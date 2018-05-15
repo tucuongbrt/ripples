@@ -7,6 +7,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,18 +22,18 @@ public class FetchData {
 	@Autowired
 	EnvDataRepository repo;
 
-	@RequestMapping(value = "/data.csv", produces = "text/csv")
+	@RequestMapping(value = "/data/{vehicle}.csv", produces = "text/csv")
 	public void getCsv(@RequestParam(defaultValue = "-24h") String start,
-			@RequestParam(defaultValue = "wg-sv3-127") String vehicle, HttpServletResponse response)
+			@PathVariable String vehicle, HttpServletResponse response)
 			throws IOException {
 		response.getWriter().write("vehicle,latitude,longitude,timestamp,salinity,temperature,conductivity,pressure\n");
 		Date startDate = DateUtil.parse(start);
 		List<EnvDatum> data;
 
-		if (startDate == null)
-			data = repo.findBySource(vehicle);
+		if (vehicle.equals("any"))
+			data = repo.findByTimestampAfterOrderByTimestampDesc(startDate);
 		else
-			data = repo.findBySourceAndTimestampAfter(vehicle, startDate);
+			data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startDate);
 
 		for (EnvDatum d : data) {
 			response.getWriter().write(String.join(",", d.getSource(), String.valueOf(d.getLatitude()),
@@ -53,7 +54,7 @@ public class FetchData {
 		if (startDate == null)
 			return repo.findBySource(vehicle);
 		else
-			return repo.findBySourceAndTimestampAfter(vehicle, startDate);
+			return repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startDate);
 	}
 
 	

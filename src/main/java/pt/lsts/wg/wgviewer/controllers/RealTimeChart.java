@@ -3,7 +3,9 @@ package pt.lsts.wg.wgviewer.controllers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.knowm.xchart.BitmapEncoder;
 import org.knowm.xchart.BitmapEncoder.BitmapFormat;
@@ -13,6 +15,7 @@ import org.knowm.xchart.XYSeries;
 import org.knowm.xchart.style.Styler.ChartTheme;
 import org.knowm.xchart.style.markers.SeriesMarkers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,14 +34,24 @@ public class RealTimeChart {
 
 	@RequestMapping(value = "/plot/{vehicle}/{var}.png", produces = "image/png")
 	public @ResponseBody byte[] getPlot(@PathVariable String vehicle, @PathVariable String var,
-			@RequestParam(defaultValue = "-24h") String since) throws IOException {
-		List<EnvDatum> data = repo.findBySourceAndTimestampAfter(vehicle, DateUtil.parse(since));
-		ArrayList<Double> time = new ArrayList<>();
-		ArrayList<Double> val = new ArrayList<>();
+			@RequestParam(defaultValue = "-24h") String start) throws IOException {
+		List<EnvDatum> data;
+		
+		if (vehicle.equals("any"))
+			data = repo.findByTimestampAfterOrderByTimestampDesc(DateUtil.parse(start));		
+		else
+			data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, DateUtil.parse(start));
+		
+		LinkedHashMap<String, Pair<ArrayList<Double>, ArrayList<Double>>> series = new LinkedHashMap<>();
+		
+		
 		double now = System.currentTimeMillis();
 		data.forEach(d -> {
-			time.add((d.getTimestamp().getTime() - now) / 3600_000);
-			val.add(d.getValues().get(var));
+			String source = d.getSource();
+			if (!series.containsKey(source))
+				series.put(source, Pair.of(new ArrayList<>(), new ArrayList<>()));
+			series.get(source).getFirst().add((d.getTimestamp().getTime() - now) / 3600_000);
+			series.get(source).getSecond().add(d.getValues().get(var));
 		});
 
 		XYChart chart = new XYChartBuilder().theme(ChartTheme.GGPlot2).width(1920).height(1080)
@@ -46,11 +59,46 @@ public class RealTimeChart {
 		chart.setXAxisTitle("Time (relative hours)");
 		chart.setYAxisTitle(var);
 
-		XYSeries series = chart.addSeries(var, time, val);
-		series.setMarker(SeriesMarkers.NONE);
+		for (Entry<String, Pair<ArrayList<Double>, ArrayList<Double>>> e : series.entrySet()) {
+			XYSeries xySeries = chart.addSeries(e.getKey(), e.getValue().getFirst(), e.getValue().getSecond());
+			xySeries.setMarker(SeriesMarkers.NONE);
+		}
+
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		BitmapEncoder.saveBitmap(chart, out, BitmapFormat.PNG);
 		return out.toByteArray();
 	}
+	
+	@RequestMapping(value = "/plotLon/{var}.png", produces = "image/png")
+	public @ResponseBody byte[] getPlot(@PathVariable String var,
+			@RequestParam(defaultValue = "-24h") String start) throws IOException {
+		List<EnvDatum> data;
+		data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc("wg-sv3-127", DateUtil.parse(start));
+		
+		LinkedHashMap<String, Pair<ArrayList<Double>, ArrayList<Double>>> series = new LinkedHashMap<>();
+		
+		data.forEach(d -> {
+			String source = d.getSource();
+			if (!series.containsKey(source))
+				series.put(source, Pair.of(new ArrayList<>(), new ArrayList<>()));
+			series.get(source).getFirst().add(d.getLongitude());
+			series.get(source).getSecond().add(d.getValues().get(var));			
+		});
+		
+		XYChart chart = new XYChartBuilder().theme(ChartTheme.GGPlot2).width(1920).height(1080)
+				.title("wg-sv3-127 "+ var).build();
+		chart.setXAxisTitle("longitude");
+		chart.setYAxisTitle(var);
+		
+		for (Entry<String, Pair<ArrayList<Double>, ArrayList<Double>>> e : series.entrySet()) {
+			XYSeries xySeries = chart.addSeries(e.getKey(), e.getValue().getFirst(), e.getValue().getSecond());
+			xySeries.setMarker(SeriesMarkers.NONE);
+		}
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		BitmapEncoder.saveBitmap(chart, out, BitmapFormat.PNG);
+		return out.toByteArray();
+	}
+	
 
 }
