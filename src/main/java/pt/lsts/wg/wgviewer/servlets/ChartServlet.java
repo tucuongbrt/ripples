@@ -23,7 +23,10 @@ public class ChartServlet extends HttpServletBean {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		resp.setStatus(200);
-		resp.setContentType("application/json");
+		resp.setContentType("image/png");
+		
+		
+		
 		resp.getOutputStream().write("[]".getBytes());
 		resp.getOutputStream().close();		
 	}

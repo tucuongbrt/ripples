@@ -11,6 +11,7 @@ import pt.lsts.wg.wgviewer.domain.EnvDatum;
 public interface EnvDataRepository extends CrudRepository<EnvDatum, Long>{
 
 	List<EnvDatum> findBySource(String source);
+	List<EnvDatum> findBySourceOrderByTimestampDesc(String source);
 	List<EnvDatum> findTopBySourceOrderByTimestamp(String source);
 
 }

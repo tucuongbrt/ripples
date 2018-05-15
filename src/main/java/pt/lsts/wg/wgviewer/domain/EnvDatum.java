@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -23,7 +24,7 @@ public class EnvDatum {
 	
 	private Double latitude, longitude;
 	
-	@ElementCollection
+	@ElementCollection(fetch=FetchType.EAGER)
 	private Map<String, Double> values = new HashMap<>();
 
 	/**
