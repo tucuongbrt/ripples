@@ -2,12 +2,15 @@ package pt.lsts.wg.wgviewer.controllers;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.StringJoiner;
 
@@ -27,8 +30,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import pt.lsts.wg.wgviewer.domain.EnvDatum;
+import pt.lsts.wg.wgviewer.domain.PosDatum;
 import pt.lsts.wg.wgviewer.domain.WGCtd;
+import pt.lsts.wg.wgviewer.domain.WGPosition;
 import pt.lsts.wg.wgviewer.repo.EnvDataRepository;
+import pt.lsts.wg.wgviewer.repo.PosDataRepository;
 
 @Component
 public class WGDownloader {
@@ -40,7 +46,10 @@ public class WGDownloader {
 	private String password;
 
 	@Autowired
-	private EnvDataRepository repo;
+	private EnvDataRepository envRepo;
+	
+	@Autowired
+	private PosDataRepository posRepo;
 	
 	private final Logger logger = LoggerFactory.getLogger(WGDownloader.class);
 	
@@ -48,6 +57,11 @@ public class WGDownloader {
 	 * Liquid Robotics data portal URL to query wg sensors data
 	 */
 	private final String URL = "https://dataportal.liquidr.net/firehose/?";
+	private final String RIPPLESURL = "http://ripples.lsts.pt/api/v1/systems";
+	private final double METERPSECS_KNOTS = 1.94384449;
+	private final int imcID = 0x2801;
+	private SimpleDateFormat fmt = new SimpleDateFormat("YYYY-MM-dd'T'HH:mm:ssZ");
+
 
 	/**
 	 * WG SV3-127 id in the data portal
@@ -55,14 +69,14 @@ public class WGDownloader {
 	private final String vids = "1315596328";
 
 	private void processData(String data) {
-		logger.info("Getting data...");
 		JsonParser parser = new JsonParser();
 		JsonArray root = parser.parse(data).getAsJsonArray();
 		Gson gson = new Gson();
 		root.forEach(element -> {
 			JsonObject jo = element.getAsJsonArray().get(0).getAsJsonObject();
+			logger.info(""+jo);
 			if (jo.get("kind").getAsString().equals("CTD")) {
-				logger.info(""+jo);
+				logger.info("Getting CTD data...");
 				WGCtd ctd = gson.fromJson(jo, WGCtd.class);
 				EnvDatum datum = new EnvDatum();
 				datum.setLatitude(ctd.getLatitude());
@@ -73,7 +87,20 @@ public class WGDownloader {
 				datum.getValues().put("temperature", ctd.getTemperature());
 				datum.getValues().put("salinity", ctd.getSalinity());
 				datum.getValues().put("pressure", ctd.getPressure());
-				repo.save(datum);
+				envRepo.save(datum);
+			}
+			if (jo.get("kind").getAsString().equals("Waveglider")) {
+				logger.info("Getting Position data...");
+				WGPosition pos = gson.fromJson(jo, WGPosition.class);
+				PosDatum datum = new PosDatum();
+				datum.setLatitude(pos.getLatitude());
+				datum.setLongitude(pos.getLongitude());
+				datum.setSource("wg-sv3-127");
+				datum.setTimestamp(new Date(pos.getTime()));
+				datum.setUpdated_at(new Date(System.currentTimeMillis()));
+				datum.setSpeed(pos.getCurrentSpeed());
+				sendToRipples(datum);
+				posRepo.save(datum);
 			}
 		});
 		logger.info("Finished getting data.");
@@ -96,16 +123,16 @@ public class WGDownloader {
 	@PostConstruct
 	public void initialData() {
 		// if there is no data...
-		if (!repo.findAll().iterator().hasNext())
+		if (!envRepo.findAll().iterator().hasNext())
 			processData(getData("CTD", "-30d"));
-		
 	}
+	
 	@PostConstruct
 	@Scheduled(fixedRate = 180_000)
 	public void updateWGData() {
-		processData(getData("CTD", "-3m"));
+		processData(getData("CTD,Waveglider", "-5m"));
 	}	
-
+	
 	public static String getQueryParam(String param, String value) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(param);
@@ -158,6 +185,55 @@ public class WGDownloader {
 		}
 		return null;
 	}
+	
+	 /**
+     * Adapted from https://github.com/paulosousadias/mbari-pos-ripples/blob/master/src/main/java/pt/lsts/mbari/Positions.java#L206
+     * @param datum json object to send to ripples
+     */
+    public void sendToRipples(PosDatum datum){
+    	logger.info("Sending state to "+RIPPLESURL);
+    	JsonObject obj = new JsonObject();
+    	JsonArray coords = new JsonArray();
+    	coords.add(datum.getLatitude());
+    	coords.add(datum.getLongitude());
+    	obj.addProperty("imcid", imcID);
+    	obj.addProperty("name", datum.getSource());
+    	obj.add("coordinates",coords);
+    	obj.addProperty("iridium", "");
+    	obj.addProperty("created_at", fmt.format(datum.getTimestamp()));
+    	obj.addProperty("updated_at", fmt.format(datum.getUpdated_at()));
+    	obj.addProperty("speed", datum.getSpeed()/ METERPSECS_KNOTS);
+
+		try {
+			URL url = null;
+			try {
+				url = new URL(RIPPLESURL);
+				HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+				httpCon.setDoOutput(true);
+				httpCon.setRequestMethod("PUT");
+				httpCon.setRequestProperty("Content-Type", "application/json");
+
+				
+				OutputStreamWriter out = new OutputStreamWriter(httpCon.getOutputStream());
+				out.write(obj.toString());
+				out.close();
+				httpCon.getInputStream();
+				String response = httpCon.getResponseMessage();
+				if(response.equals(Integer.toString(HttpURLConnection.HTTP_OK)))
+					logger.info("Sent: "+obj.getAsString());
+				else
+					logger.warn("Got: "+response+" from "+RIPPLESURL);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+			System.out.println(datum);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
 
 	public static void main(String args[]) {
 
