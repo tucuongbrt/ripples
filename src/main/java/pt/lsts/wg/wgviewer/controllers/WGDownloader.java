@@ -79,13 +79,31 @@ public class WGDownloader {
 		logger.info("Finished getting data.");
 	}
 	
-	//@PostConstruct
-	public void initialData() {
-		processData(getData("CTD", "-12h"));
+	@PostConstruct
+	private void authenticate() {
+		try {
+			Authenticator.setDefault(new Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return new PasswordAuthentication(user, password.toCharArray());
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		logger.info("Authenticated.");		
 	}
-	@Scheduled(fixedRate = 60_000)
+	
+	@PostConstruct
+	public void initialData() {
+		// if there is no data...
+		if (!repo.findAll().iterator().hasNext())
+			processData(getData("CTD", "-30d"));
+		
+	}
+	@PostConstruct
+	@Scheduled(fixedRate = 180_000)
 	public void updateWGData() {
-		processData(getData("CTD", "-1m"));
+		processData(getData("CTD", "-3m"));
 	}	
 
 	public static String getQueryParam(String param, String value) {
@@ -118,19 +136,7 @@ public class WGDownloader {
 		return dataPath;
 	}
 
-	@PostConstruct
-	private void authenticate() {
-		try {
-			Authenticator.setDefault(new Authenticator() {
-				protected PasswordAuthentication getPasswordAuthentication() {
-					return new PasswordAuthentication(user, password.toCharArray());
-				}
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		logger.info("Authenticated.");		
-	}
+	
 
 	/**
 	 * Returns file path where the queried data as written
