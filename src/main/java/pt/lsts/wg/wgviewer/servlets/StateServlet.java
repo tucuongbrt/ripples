@@ -27,7 +27,7 @@ public class StateServlet extends HttpServletBean{
 		try {
 			String parts[] = req.getRequestURI().split("/");
 			System.out.println(parts[2]);
-			List<EnvDatum> data = repo.findTopBySourceOrderByTimestamp(parts[2]);
+			List<EnvDatum> data = repo.findTopBySourceOrderByTimestampDesc(parts[2]);
 			resp.setStatus(200);
 			resp.setContentType("application/json");
 			if (data.isEmpty())

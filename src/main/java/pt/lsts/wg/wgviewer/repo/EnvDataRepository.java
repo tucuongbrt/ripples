@@ -1,5 +1,6 @@
 package pt.lsts.wg.wgviewer.repo;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,8 @@ public interface EnvDataRepository extends CrudRepository<EnvDatum, Long>{
 
 	List<EnvDatum> findBySource(String source);
 	Page<EnvDatum> findBySourceOrderByTimestampDesc(String source, Pageable page);
-	List<EnvDatum> findTopBySourceOrderByTimestamp(String source);
+	List<EnvDatum> findTopBySourceOrderByTimestampDesc(String source);
+	List<EnvDatum> findBySourceAndTimestampAfter(String source, Date timestamp);
+	List<EnvDatum> findBySourceAndTimestampBetween(String source, Date timestamp1, Date timestamp2);
 
 }

@@ -56,7 +56,7 @@ public class ChartServlet extends HttpServletBean {
 		    
 		    XYSeries series = chart.addSeries(var,lon, sal);
 		    series.setMarker(SeriesMarkers.NONE);
-			resp.setStatus(200);
+		    resp.setStatus(200);
 			resp.setContentType("image/png");
 			BitmapEncoder.saveBitmap(chart, resp.getOutputStream(), BitmapFormat.PNG);
 			resp.getOutputStream().close();	
