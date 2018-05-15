@@ -11,8 +11,10 @@ import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.TreeSet;
 
 import javax.annotation.PostConstruct;
 
@@ -72,6 +74,13 @@ public class WGDownloader {
 		JsonParser parser = new JsonParser();
 		JsonArray root = parser.parse(data).getAsJsonArray();
 		Gson gson = new Gson();
+		final TreeSet<PosDatum> newPositions = new TreeSet<>(new Comparator<PosDatum>() {
+			@Override
+			public int compare(PosDatum o1, PosDatum o2) {
+				return o1.getTimestamp().compareTo(o2.getTimestamp());
+			}
+		});
+		
 		root.forEach(element -> {
 			JsonObject jo = element.getAsJsonArray().get(0).getAsJsonObject();
 			logger.info(""+jo);
@@ -89,7 +98,7 @@ public class WGDownloader {
 				datum.getValues().put("pressure", ctd.getPressure());
 				envRepo.save(datum);
 			}
-			if (jo.get("kind").getAsString().equals("Waveglider")) {
+			else if (jo.get("kind").getAsString().equals("Waveglider")) {
 				logger.info("Getting Position data...");
 				WGPosition pos = gson.fromJson(jo, WGPosition.class);
 				PosDatum datum = new PosDatum();
@@ -99,10 +108,18 @@ public class WGDownloader {
 				datum.setTimestamp(new Date(pos.getTime()));
 				datum.setUpdated_at(new Date(System.currentTimeMillis()));
 				datum.setSpeed(pos.getCurrentSpeed());
-				sendToRipples(datum);
+				newPositions.add(datum);
 				posRepo.save(datum);
 			}
+			else {
+				logger.warn("ignored "+jo);
+			}
 		});
+		
+		if(!newPositions.isEmpty()) {
+			logger.info("Sending position to ripples");
+			sendToRipples(newPositions.descendingIterator().next());
+		}
 		logger.info("Finished getting data.");
 	}
 	
@@ -123,14 +140,20 @@ public class WGDownloader {
 	@PostConstruct
 	public void initialData() {
 		// if there is no data...
-		if (!envRepo.findAll().iterator().hasNext())
-			processData(getData("CTD", "-30d"));
+		if (!envRepo.findBySource("wg-sv3-127").iterator().hasNext())
+			processData(getData("CTD", "-30d"));		
 	}
 	
-	@PostConstruct
+	@Scheduled(fixedRate = 60_000)
+	public void updatePosData() {
+		logger.info("retrieving positions...");
+		processData(getData("Waveglider", "-1m"));
+	}
+	
 	@Scheduled(fixedRate = 180_000)
 	public void updateWGData() {
-		processData(getData("CTD,Waveglider", "-5m"));
+		logger.info("retrieving ctd...");
+		processData(getData("CTD", "-3m"));
 	}	
 	
 	public static String getQueryParam(String param, String value) {
