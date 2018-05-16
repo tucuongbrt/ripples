@@ -7,6 +7,7 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -41,7 +42,15 @@ public class SailDroneDownloader {
 	
 	@Scheduled(fixedRate = 60_000)
 	public void updateDataPeriodically() {
-		getDataSince(Instant.ofEpochMilli(System.currentTimeMillis()-60_000));
+		
+		List<EnvDatum> lastData = repo.findTopBySourceOrderByTimestampDesc("saildrone-1001");
+		if (lastData.isEmpty()) {
+			getDataSince(LocalDate.of(2018, 04, 01).atStartOfDay(ZoneId.of("UTC")).toInstant());
+		}
+		else {
+			getDataSince(lastData.get(0).getTimestamp().toInstant());
+		}
+			
 	}	
 
 	public void getDataSince(Instant startTime) {
