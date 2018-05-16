@@ -1,7 +1,7 @@
 package pt.lsts.wg.wgviewer.domain;
 
 public class WGPosition {
-	private String kind, undefined, wasEncripted;
+	private String kind, undefined;
 	private long vid;
 	private double latitude, longitude,currentBearing,currentSpeed,distanceOverGround,headingDesired,headingSkew,headingSub,pressureSensorSub,
 	speedToGoal,tempSub,waterSpeed;
@@ -9,7 +9,7 @@ public class WGPosition {
 	private int targetWaypoint,totalPower;
 	private boolean floatBatteryLowAlarm,floatLeakAlarm,floatPressureThresholdExceededAlarm,floatRebootAlarm,floatTempThresholdExceededAlarm,
 	floatToSubCommsAlarm,gpsNotFunctioningAlarm,internalVehicleCommAlarm,overCurrentAlarm,payloadErrorConditionAlarm,subTempThresholdExceededAlarm,
-	subRebootAlarm,subPressureThresholdAlarm,subToFloatCommsAlarm,umbilicalFaultAlarm,subLeakAlarm;
+	subRebootAlarm,subPressureThresholdAlarm,subToFloatCommsAlarm,umbilicalFaultAlarm,subLeakAlarm,wasEncripted;
 	
 	/**
 	 * @return the kind
@@ -38,13 +38,13 @@ public class WGPosition {
 	/**
 	 * @return the wasEncripted
 	 */
-	public String getWasEncripted() {
+	public boolean getWasEncripted() {
 		return wasEncripted;
 	}
 	/**
 	 * @param wasEncripted the wasEncripted to set
 	 */
-	public void setWasEncripted(String wasEncripted) {
+	public void setWasEncripted(boolean wasEncripted) {
 		this.wasEncripted = wasEncripted;
 	}
 	/**

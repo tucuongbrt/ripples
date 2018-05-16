@@ -1,7 +1,10 @@
 package pt.lsts.wg.wgviewer.controllers;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Authenticator;
 import java.net.CookieHandler;
@@ -13,6 +16,8 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.TreeSet;
 
@@ -26,15 +31,24 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
 
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.Firebase.AuthResultHandler;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import pt.lsts.wg.wgviewer.domain.ShipsDatum;
+import pt.lsts.wg.wgviewer.domain.AISDatum;
 import pt.lsts.wg.wgviewer.domain.EnvDatum;
 import pt.lsts.wg.wgviewer.domain.PosDatum;
+import pt.lsts.wg.wgviewer.domain.WGAIS;
 import pt.lsts.wg.wgviewer.domain.WGCtd;
 import pt.lsts.wg.wgviewer.domain.WGPosition;
+import pt.lsts.wg.wgviewer.repo.ShipsDataRepository;
+import pt.lsts.wg.wgviewer.repo.AISDataRepository;
 import pt.lsts.wg.wgviewer.repo.EnvDataRepository;
 import pt.lsts.wg.wgviewer.repo.PosDataRepository;
 
@@ -46,12 +60,21 @@ public class WGDownloader {
 
 	@Value("${wgms.pass}")
 	private String password;
+	
+	@Value("${ais.db}")
+	private String aisDB;
 
 	@Autowired
 	private EnvDataRepository envRepo;
 	
 	@Autowired
 	private PosDataRepository posRepo;
+	
+	@Autowired
+	private ShipsDataRepository shipsRepo;
+	
+	@Autowired
+	private AISDataRepository aisRepo;
 	
 	private final Logger logger = LoggerFactory.getLogger(WGDownloader.class);
 	
@@ -60,6 +83,8 @@ public class WGDownloader {
 	 */
 	private final String URL = "https://dataportal.liquidr.net/firehose/?";
 	private final String RIPPLESURL = "http://ripples.lsts.pt/api/v1/systems";
+	private static final String firebaseUrl = "https://neptus.firebaseio.com/";
+	private Firebase _firebase = null;
 	private final double METERPSECS_KNOTS = 1.94384449;
 	private final int imcID = 0x2801;
 	private SimpleDateFormat fmt = new SimpleDateFormat("YYYY-MM-dd'T'HH:mm:ssZ");
@@ -110,6 +135,26 @@ public class WGDownloader {
 				datum.setSpeed(pos.getCurrentSpeed());
 				newPositions.add(datum);
 				posRepo.save(datum);
+				//sendToRipples(json);				
+			}
+			else if (jo.get("kind").getAsString().equals("AIS") && jo.get("aistype").getAsString().equals("positionreport")) {
+				logger.info("Getting AIS data...");
+				WGAIS ais = gson.fromJson(jo, WGAIS.class);
+				ShipsDatum datum = new ShipsDatum();
+				datum.setLatitude(ais.getLatitude());
+				datum.setLongitude(ais.getLongitude());
+				
+				//TODO RESOLVE Ship name in BD using mmsi or aishub
+				logger.info("Resolving MMSI: "+ais.getMMSI());
+				AISDatum aisdata = aisRepo.findById(ais.getMMSI()).orElse(AISDatum.getDefault(ais.getMMSI()));
+				datum.setUid(ais.getMMSI());
+				datum.setSource(aisdata.getSource());
+				datum.setTimestamp(new Date(ais.getTime()));
+				datum.setSog(ais.getSOG());
+				datum.setType(aisdata.getType());
+				logger.info("Ship name: "+aisdata.getSource());
+				shipsRepo.save(datum);
+				sendToFirebase(datum);
 			}
 			else {
 				logger.warn("ignored "+jo);
@@ -118,7 +163,7 @@ public class WGDownloader {
 		
 		if(!newPositions.isEmpty()) {
 			logger.info("Sending position to ripples");
-			sendToRipples(newPositions.descendingIterator().next());
+			sendToRipples(getPosJson(newPositions.descendingIterator().next()));
 		}
 		logger.info("Finished getting data.");
 	}
@@ -129,6 +174,7 @@ public class WGDownloader {
 			Authenticator.setDefault(new Authenticator() {
 				protected PasswordAuthentication getPasswordAuthentication() {
 					return new PasswordAuthentication(user, password.toCharArray());
+					
 				}
 			});
 		} catch (Exception e) {
@@ -141,7 +187,9 @@ public class WGDownloader {
 	public void initialData() {
 		// if there is no data...
 		if (!envRepo.findBySource("wg-sv3-127").iterator().hasNext())
-			processData(getData("CTD", "-30d"));		
+			processData(getData("CTD", "-30d"));
+		if(!aisRepo.findAll().iterator().hasNext())
+			loadAISdata();
 	}
 	
 	@Scheduled(fixedRate = 60_000)
@@ -150,11 +198,40 @@ public class WGDownloader {
 		processData(getData("Waveglider", "-1m"));
 	}
 	
+	@Scheduled(fixedRate = 60_000)
+	public void updateAISData() {
+		logger.info("retrieving positions...");
+		processData(getData("AIS", "-5m"));
+	}
+	
 	@Scheduled(fixedRate = 180_000)
 	public void updateWGData() {
 		logger.info("retrieving ctd...");
 		processData(getData("CTD", "-3m"));
-	}	
+	}
+	private void loadAISdata() {
+		BufferedReader reader = null;
+		InputStream is = getClass().getClassLoader().getResourceAsStream(aisDB);
+		try {
+			reader = new BufferedReader(new InputStreamReader(is));
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
+		reader.lines().forEach(line -> {
+			String[] entry = line.split(",");
+			if(entry.length > 4) { //imo,mmsi,name,flag,type
+				long m = Long.parseLong(entry[1].replaceAll("\"", ""));
+				AISDatum ais = new AISDatum();
+				ais.setUid(m);
+				ais.setSource(entry[2].replaceAll("\"", ""));
+				ais.setFlag(entry[3].replaceAll("\"", ""));
+				ais.setTimestamp(new Date(System.currentTimeMillis()));
+				aisRepo.save(ais);
+			}
+		});
+		logger.info("Loaded "+aisRepo.count()+" entries onto AIS DB");
+		
+	}
 	
 	public static String getQueryParam(String param, String value) {
 		StringBuilder sb = new StringBuilder();
@@ -213,20 +290,8 @@ public class WGDownloader {
      * Adapted from https://github.com/paulosousadias/mbari-pos-ripples/blob/master/src/main/java/pt/lsts/mbari/Positions.java#L206
      * @param datum json object to send to ripples
      */
-    public void sendToRipples(PosDatum datum){
+    public void sendToRipples(JsonObject obj){
     	logger.info("Sending state to "+RIPPLESURL);
-    	JsonObject obj = new JsonObject();
-    	JsonArray coords = new JsonArray();
-    	coords.add(datum.getLatitude());
-    	coords.add(datum.getLongitude());
-    	obj.addProperty("imcid", imcID);
-    	obj.addProperty("name", datum.getSource());
-    	obj.add("coordinates",coords);
-    	obj.addProperty("iridium", "");
-    	obj.addProperty("created_at", fmt.format(datum.getTimestamp()));
-    	obj.addProperty("updated_at", fmt.format(datum.getUpdated_at()));
-    	obj.addProperty("speed", datum.getSpeed()/ METERPSECS_KNOTS);
-
 		try {
 			URL url = null;
 			try {
@@ -250,15 +315,94 @@ public class WGDownloader {
 			catch (Exception e) {
 				e.printStackTrace();
 			}
-			System.out.println(datum);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
     }
     
+    /**
+     * Adapted from https://github.com/zepinto/aiscaster/blob/master/src/info/zepinto/aiscast/Ais2Ripples.java#L61
+     * @param datum - AIS data
+     */
+	private void sendToFirebase(ShipsDatum data) {
+		
+    	if(getFirebase() != null && data.getSource()!=null){
+			if (data.getUid() < 0.2) {
+				Firebase ship = getFirebase().child("ships/" + data.getSource()).getRef();
+				if (ship != null)
+					ship.removeValue();
+			} else {
+				Map<String, Object> loc = new LinkedHashMap<>();
+				Map<String, Object> state = new LinkedHashMap<>();
+				loc.put("latitude", data.getLatitude());
+				loc.put("longitude", data.getLongitude());
+				loc.put("heading", data.getHeading());
+				loc.put("speed", data.getSog());
+				state.put("position", loc);
+				state.put("updated_at", data.getTimestamp().getTime());
+				state.put("type", data.getType());
+				if (getFirebase() != null) {
+					getFirebase().child("ships/" + data.getSource()).getRef().updateChildren(state);
+				}
+			}
+    	}
+	}
+
+	/**
+	 * @param datum
+	 * @return
+	 */
+	public JsonObject getPosJson(PosDatum datum) {
+		JsonObject obj = new JsonObject();
+    	JsonArray coords = new JsonArray();
+    	coords.add(datum.getLatitude());
+    	coords.add(datum.getLongitude());
+    	obj.addProperty("imcid", imcID);
+    	obj.addProperty("name", datum.getSource());
+    	obj.add("coordinates",coords);
+    	obj.addProperty("iridium", "");
+    	obj.addProperty("created_at", fmt.format(datum.getTimestamp()));
+    	obj.addProperty("updated_at", fmt.format(datum.getUpdated_at()));
+    	obj.addProperty("speed", datum.getSpeed()/ METERPSECS_KNOTS);
+		return obj;
+	}
+    
+	Firebase getFirebase() {
+    	if (_firebase == null) {
+			_firebase = new Firebase(firebaseUrl);
+			_firebase.authAnonymously(new AuthResultHandler() {
+				@Override
+				public void onAuthenticationError(FirebaseError error) {
+					error.toException().printStackTrace();
+					_firebase = null;
+				}
+
+				@Override
+				public void onAuthenticated(AuthData authData) {
+					logger.debug("Authenticated with firebase");
+					//System.out.println("Authenticated with firebase");
+				}
+			});
+			if (_firebase != null) {
+				Firebase.goOnline();
+			}
+		}
+    	return _firebase;
+    }
 
 	public static void main(String args[]) {
-
+		WGDownloader d =  new WGDownloader();
+		
+		d.authenticate();
+		try {
+			Thread.sleep(3000);
+			String data = d.getData("AIS", "-4h");
+			d.processData(data);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }
