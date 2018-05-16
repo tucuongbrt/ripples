@@ -198,7 +198,7 @@ public class WGDownloader {
 		processData(getData("Waveglider", "-1m"));
 	}
 	
-	@Scheduled(fixedRate = 60_000)
+	@Scheduled(fixedRate = 300_000)
 	public void updateAISData() {
 		logger.info("retrieving positions...");
 		processData(getData("AIS", "-5m"));
