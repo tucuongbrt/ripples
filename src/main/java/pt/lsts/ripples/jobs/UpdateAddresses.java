@@ -28,6 +28,7 @@ public class UpdateAddresses {
     @Autowired
     AddressesRepository repo;
 
+    
     @PostConstruct
     @Scheduled(fixedRate = 600_000)
     public void updateImcAddresses() {
@@ -71,6 +72,17 @@ public class UpdateAddresses {
         }
     }
 
+    @PostConstruct
+    public void setSailDroneAddresses() {
+    	SystemAddress s1 = repo.findById("saildrone-1001").orElse(new SystemAddress("saildrone-1001"));
+    	SystemAddress s2 = repo.findById("saildrone-1004").orElse(new SystemAddress("saildrone-1004"));
+    	s1.setImcId(10251);
+    	s2.setImcId(10252);
+    	
+    	repo.save(s1);
+    	repo.save(s2);    	
+    }
+    
     @PostConstruct
     public void setWavyAddresses() throws Exception {
         InputStream addrs = new ClassPathResource("addresses.tsv").getInputStream();

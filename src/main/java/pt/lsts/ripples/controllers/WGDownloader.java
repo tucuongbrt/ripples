@@ -254,8 +254,6 @@ public class WGDownloader {
 		return dataPath;
 	}
 
-	
-
 	/**
 	 * Returns file path where the queried data as written
 	 * 

@@ -7,6 +7,7 @@ import java.net.URLConnection;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,10 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class MyMapsController {
 
+	@Value("${kmz.url}")
+	private String url;
+	
     @GetMapping(path = {"/kml", "/kml/*"}, produces = "text/plain")
     public ResponseEntity<String> getKml() {
         try {
-            URL mapsUrl = new URL("https://www.google.com/maps/d/u/0/kml?mid=1C_guMPPn8sye2qoPgz9ciuN8Bsw");
+            URL mapsUrl = new URL(url);
             URLConnection conn = mapsUrl.openConnection();
 
             conn.setUseCaches(false);

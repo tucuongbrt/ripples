@@ -38,7 +38,7 @@
 	
 	<script type="text/javascript">
 
-	$.getJSON("/data/any.geojson?start=-10d", function(data) {
+	$.getJSON("/data/any.geojson?start=-24h", function(data) {
 	    var geojson = L.geoJson(data, {
 	      onEachFeature: function (feature, layer) {
 	        layer.bindPopup(feature.properties.system);

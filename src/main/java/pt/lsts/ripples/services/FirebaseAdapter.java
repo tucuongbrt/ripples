@@ -15,6 +15,7 @@ import com.firebase.client.Firebase;
 import pt.lsts.imc.SoiPlan;
 import pt.lsts.imc.SoiWaypoint;
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.util.SystemType;
 
 @Service
@@ -56,6 +57,18 @@ public class FirebaseAdapter {
             planRef.child("path").setValue(locs);
             planRef.child("eta").setValue(etas);
         }
+    }
+    
+    public void updateFirebase(AssetPosition pos) {
+    	Map<String, Object> assetState = new LinkedHashMap<>();
+    	Map<String, Object> tmp = new LinkedHashMap<String, Object>();
+        tmp.put("latitude", pos.getLat());
+        tmp.put("longitude", pos.getLon());
+        assetState.put("position", tmp);
+        assetState.put("updated_at", pos.getTimestamp().getTime());
+        String typeSys = SystemType.getSystemType(pos.getImcId());
+        assetState.put("type", typeSys);
+        firebase.child("assets/" + pos.getName()).getRef().updateChildren(assetState);
     }
 
     public void updateFirebase(Asset asset) {
