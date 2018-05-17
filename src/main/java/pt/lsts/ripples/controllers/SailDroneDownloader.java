@@ -68,7 +68,7 @@ public class SailDroneDownloader {
 		if (!datum2.isEmpty()) {
 			AssetPosition pos = new AssetPosition();
 			pos.setLat(datum2.get(0).getLatitude());
-			pos.setLat(datum2.get(0).getLongitude());
+			pos.setLon(datum2.get(0).getLongitude());
 			pos.setName(datum2.get(0).getSource());
 			pos.setTimestamp(datum2.get(0).getTimestamp());
 			pos.setImcId(10252);
