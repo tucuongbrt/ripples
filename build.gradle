@@ -35,6 +35,8 @@ dependencies {
     compile 'com.eclipsesource.minimal-json:minimal-json:0.9.1'
     compile 'org.knowm.xchart:xchart:3.5.2'
 	
+	compile files('libs/libimc.jar')
+	
 	runtime('com.h2database:h2')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }

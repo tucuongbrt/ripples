@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+  <cron>
+    <url>/spots/update</url>
+    <description>Update the SPOT device positions</description>
+    <schedule>every 2 mins</schedule>
+  </cron>
+  
+  <!-- cron>
+    <url>/argos/update</url>
+    <description>Update the Argos positions</description>
+    <schedule>every 2 mins</schedule>
+  </cron>
+  
+  <cron>
+    <url>/fbase/update</url>
+    <description>Update the device positions fetching the current state on Firebase DB</description>
+    <schedule>every 1 mins</schedule>
+  
+  </cron 
+    <cron>
+    <url>/addresses/update</url>
+    <description>Update the IMC addresses</description>
+    <schedule>every 3 hours</schedule>
+  </cron>
+  
+  -->
+  
+  <cron>
+    <url>/iridiumUpdates</url>
+    <description>Send Iridium updates</description>
+    <schedule>every 5 mins</schedule>
+  </cron>
+  
+</cronentries>
