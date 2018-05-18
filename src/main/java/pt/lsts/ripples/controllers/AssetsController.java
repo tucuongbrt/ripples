@@ -12,9 +12,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.PositionsRepository;
+import pt.lsts.ripples.services.AssetInfoService;
 
 @RestController
 public class AssetsController {
@@ -24,6 +26,9 @@ public class AssetsController {
 
     @Autowired
     PositionsRepository positions;
+
+    @Autowired
+    AssetInfoService assetInfos;
 
     @PostMapping(
             path = {"/asset/{id}"},
@@ -57,6 +62,13 @@ public class AssetsController {
     public List<Asset> listAssets() {
         ArrayList<Asset> assets = new ArrayList<>();
         repo.findAll().forEach(assets::add);
+        return assets;
+    }
+    
+    @RequestMapping(path = {"/assetInfo"}, method = RequestMethod.GET)
+    public List<AssetInfo> listAssetInfo() {
+    	ArrayList<AssetInfo> assets = new ArrayList<>();
+        assetInfos.getInfos().forEach(assets::add);
         return assets;
     }
 
