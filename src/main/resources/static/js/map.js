@@ -7,7 +7,6 @@ var etaMarkers = {};
 var tails = {};
 var map, marker;
 var plotlayers = [];
-var shipsOverlay = L.layerGroup([]);
 var selectedMarker;
 var layers;
 var nameById = {};
@@ -134,10 +133,6 @@ if(currentLat==undefined && currentLng==undefined && currentZoom==undefined)
 }else{
 	create_map(originLat,originLng,originZoom);
 }
-
-var kmlLayer = new L.KML("/kml/file.kmz", {
-	async : true
-});
 
 var SysIcon = L.Icon.extend({
 	options : {
@@ -417,7 +412,7 @@ function addToShipTail(name, lat, lon) {
 
 	if (tails[name] == undefined) {
 		tails[name] = L.polyline({});
-		tails[name].addTo(shipsOverlay);
+		tails[name].addTo(mapLayers.shipsOverlay);
 	}
 	tails[name].addLatLng(pos);
 	if (tails[name].getLatLngs().length > 120)
@@ -608,7 +603,7 @@ function updateShip(snapshot) {
 			heading: heading,
 			speed: speed
 		});
-		ships[name].addTo(shipsOverlay);
+		ships[name].addTo(mapLayers.shipsOverlay);
 	}
 
 
