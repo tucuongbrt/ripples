@@ -16,6 +16,10 @@ public interface PositionsRepository extends CrudRepository<AssetPosition, Long>
 
     @Query("select distinct pos.name from AssetPosition pos")
     List<String> assetNames();
-
+    
+    List<AssetPosition> findTop100ByNameOrderByTimestampDesc(String name);
+    
+    List<AssetPosition> findByNameOrderByTimestamp(String name);
     List<AssetPosition> findTopByNameOrderByTimestamp(String name);
+    List<AssetPosition> findTopByNameOrderByTimestampDesc(String name);
 }

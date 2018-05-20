@@ -20,5 +20,5 @@ public interface EnvDataRepository extends CrudRepository<EnvDatum, Long>{
 	List<EnvDatum> findByTimestampAfterOrderByTimestampDesc(Date timestamp);
 	List<EnvDatum> findBySourceAndTimestampAfterOrderByTimestampDesc(String source, Date timestamp);
 	List<EnvDatum> findBySourceAndTimestampBetween(String source, Date timestamp1, Date timestamp2);
-
+	
 }

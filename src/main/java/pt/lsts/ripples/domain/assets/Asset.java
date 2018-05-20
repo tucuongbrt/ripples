@@ -2,10 +2,15 @@ package pt.lsts.ripples.domain.assets;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+
 import java.io.Serializable;
 import java.util.Date;
 
 @Entity
+@Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Asset implements Serializable {
 
     @Id

@@ -40,8 +40,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.wg.AISDatum;
-import pt.lsts.ripples.domain.wg.EnvDatum;
 import pt.lsts.ripples.domain.wg.PosDatum;
 import pt.lsts.ripples.domain.wg.ShipsDatum;
 import pt.lsts.ripples.domain.wg.WGAIS;
@@ -49,8 +49,7 @@ import pt.lsts.ripples.domain.wg.WGCtd;
 import pt.lsts.ripples.domain.wg.WGPosition;
 import pt.lsts.ripples.repo.AISDataRepository;
 import pt.lsts.ripples.repo.EnvDataRepository;
-import pt.lsts.ripples.repo.PosDataRepository;
-import pt.lsts.ripples.repo.ShipsDataRepository;
+import pt.lsts.ripples.util.RipplesUtils;
 
 @Component
 public class WGDownloader {
@@ -68,13 +67,10 @@ public class WGDownloader {
 	private EnvDataRepository envRepo;
 	
 	@Autowired
-	private PosDataRepository posRepo;
-	
-	@Autowired
-	private ShipsDataRepository shipsRepo;
-	
-	@Autowired
 	private AISDataRepository aisRepo;
+	
+	@Autowired
+	private RipplesUtils ripples;
 	
 	private final Logger logger = LoggerFactory.getLogger(WGDownloader.class);
 	
@@ -105,6 +101,7 @@ public class WGDownloader {
 				return o1.getTimestamp().compareTo(o2.getTimestamp());
 			}
 		});
+		SystemAddress addr = ripples.getOrCreate("wg-sv3-127");
 		
 		root.forEach(element -> {
 			JsonObject jo = element.getAsJsonArray().get(0).getAsJsonObject();
@@ -112,30 +109,17 @@ public class WGDownloader {
 			if (jo.get("kind").getAsString().equals("CTD")) {
 				logger.info("Getting CTD data...");
 				WGCtd ctd = gson.fromJson(jo, WGCtd.class);
-				EnvDatum datum = new EnvDatum();
-				datum.setLatitude(ctd.getLatitude());
-				datum.setLongitude(ctd.getLongitude());
-				datum.setSource("wg-sv3-127");
-				datum.setTimestamp(new Date(ctd.getTime()));
-				datum.getValues().put("conductivity", ctd.getConductivity());
-				datum.getValues().put("temperature", ctd.getTemperature());
-				datum.getValues().put("salinity", ctd.getSalinity());
-				datum.getValues().put("pressure", ctd.getPressure());
-				envRepo.save(datum);
+				LinkedHashMap<String, Double> vals = new LinkedHashMap<>();
+				vals.put("conductivity", ctd.getConductivity());
+				vals.put("temperature", ctd.getTemperature());
+				vals.put("salinity", ctd.getSalinity());
+				vals.put("pressure", ctd.getPressure());
+				ripples.setReceivedData(addr, ctd.getLatitude(), ctd.getLongitude(), new Date(ctd.getTime()), vals);
 			}
 			else if (jo.get("kind").getAsString().equals("Waveglider")) {
 				logger.info("Getting Position data...");
 				WGPosition pos = gson.fromJson(jo, WGPosition.class);
-				PosDatum datum = new PosDatum();
-				datum.setLatitude(pos.getLatitude());
-				datum.setLongitude(pos.getLongitude());
-				datum.setSource("wg-sv3-127");
-				datum.setTimestamp(new Date(pos.getTime()));
-				datum.setUpdated_at(new Date(System.currentTimeMillis()));
-				datum.setSpeed(pos.getCurrentSpeed());
-				newPositions.add(datum);
-				posRepo.save(datum);
-				sendToRipples(getPosJson(datum));				
+				ripples.setPosition(addr, pos.getLatitude(), pos.getLongitude(), new Date(pos.getTime()), true);
 			}
 			else if (jo.get("kind").getAsString().equals("AIS") && jo.get("aistype").getAsString().equals("positionreport")) {
 				logger.info("Getting AIS data...");
@@ -152,8 +136,6 @@ public class WGDownloader {
 				datum.setTimestamp(new Date(ais.getTime()));
 				datum.setSog(ais.getSOG());
 				datum.setType(aisdata.getType());
-				logger.info("Ship name: "+aisdata.getSource());
-				shipsRepo.save(datum);
 				sendToFirebase(datum);
 			}
 			else {

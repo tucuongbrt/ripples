@@ -35,7 +35,7 @@ public class PositionsController {
         Logger.getLogger(getClass().getSimpleName()).info("Sending positions since " + start);
 
         return repo.assetNames().stream()
-                .flatMap(asset -> repo.findTopByNameOrderByTimestamp(asset).stream())
+                .flatMap(asset -> repo.findTop100ByNameOrderByTimestampDesc(asset).stream())
                 .filter(asset -> asset.getTimestamp().after(start))
                 .collect(Collectors.toList());
     }
@@ -60,7 +60,7 @@ public class PositionsController {
         processor.setAssetPosition(pos);
         return pos;
     }
-
+    
     static class SystemPosition {
         final int imcid;
         final String name;

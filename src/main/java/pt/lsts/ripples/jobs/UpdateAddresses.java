@@ -28,7 +28,6 @@ public class UpdateAddresses {
     @Autowired
     AddressesRepository repo;
 
-    
     @PostConstruct
     @Scheduled(fixedRate = 600_000)
     public void updateImcAddresses() {
