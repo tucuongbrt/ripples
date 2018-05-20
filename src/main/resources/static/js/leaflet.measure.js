@@ -1,249 +1,307 @@
 L.Control.Measure = L.Control.extend({
-	options: {
-		position: 'topleft'
-	},
+  options: {
+    position: 'topleft',
+    //  weather to use keyboard control for this plugin
+    keyboard: true,
+    //  shortcut to activate measure
+    activeKeyCode: 'M'.charCodeAt(0),
+    //  shortcut to cancel measure, defaults to 'Esc'
+    cancelKeyCode: 27,
+    //  line color
+    lineColor: 'black',
+    //  line weight
+    lineWeight: 2,
+    //  line dash
+    lineDashArray: '6, 6',
+    //  line opacity
+    lineOpacity: 1
+  },
 
-	onAdd: function (map) {
-		var className = 'leaflet-control-zoom leaflet-bar leaflet-control',
-		    container = L.DomUtil.create('div', className);
+  initialize: function (options) {
+    //  apply options to instance
+    L.Util.setOptions(this, options)
+  },
 
-		this._createButton('&#8674;', 'Measure', 'leaflet-control-measure leaflet-bar-part leaflet-bar-part-top-and-bottom', container, this._toggleMeasure, this);
+  onAdd: function (map) {
+    var className = 'leaflet-control-zoom leaflet-bar leaflet-control'
+    var container = L.DomUtil.create('div', className)
+    this._createButton('&#8674;', 'Measure',
+    'leaflet-control-measure leaflet-bar-part leaflet-bar-part-top-and-bottom',
+    container, this._toggleMeasure, this)
 
-		return container;
-	},
+    if (this.options.keyboard) {
+      L.DomEvent.on(document, 'keydown', this._onKeyDown, this)
+    }
 
-	_createButton: function (html, title, className, container, fn, context) {
-		var link = L.DomUtil.create('a', className, container);
-		link.innerHTML = html;
-		link.href = '#';
-		link.title = title;
+    return container
+  },
 
-		L.DomEvent
-			.on(link, 'click', L.DomEvent.stopPropagation)
-			.on(link, 'click', L.DomEvent.preventDefault)
-			.on(link, 'click', fn, context)
-			.on(link, 'dblclick', L.DomEvent.stopPropagation);
+  onRemove: function (map) {
+    if (this.options.keyboard) {
+      L.DomEvent.off(document, 'keydown', this._onKeyDown, this)
+    }
+  },
 
-		return link;
-	},
+  _createButton: function (html, title, className, container, fn, context) {
+    var link = L.DomUtil.create('a', className, container)
+    link.innerHTML = html
+    link.href = '#'
+    link.title = title
 
-	_toggleMeasure: function () {
-		this._measuring = !this._measuring;
+    L.DomEvent
+      .on(link, 'click', L.DomEvent.stopPropagation)
+      .on(link, 'click', L.DomEvent.preventDefault)
+      .on(link, 'click', fn, context)
+      .on(link, 'dbclick', L.DomEvent.stopPropagation)
+    return link
+  },
 
-		if(this._measuring) {
-			L.DomUtil.addClass(this._container, 'leaflet-control-measure-on');
-			this._startMeasuring();
-		} else {
-			L.DomUtil.removeClass(this._container, 'leaflet-control-measure-on');
-			this._stopMeasuring();
-		}
-	},
+  _toggleMeasure: function () {
+    this._measuring = !this._measuring
+    if (this._measuring) {
+      L.DomUtil.addClass(this._container, 'leaflet-control-measure-on')
+      this._startMeasuring()
+    } else {
+      L.DomUtil.removeClass(this._container, 'leaflet-control-measure-on')
+      this._stopMeasuring()
+    }
+  },
 
-	_startMeasuring: function() {
-		this._oldCursor = this._map._container.style.cursor;
-		this._map._container.style.cursor = 'crosshair';
+  _startMeasuring: function () {
+    this._oldCursor = this._map._container.style.cursor
+    this._map._container.style.cursor = 'crosshair'
+    this._doubleClickZoom = this._map.doubleClickZoom.enabled()
+    this._map.doubleClickZoom.disable()
+    this._isRestarted = false
 
-		this._doubleClickZoom = this._map.doubleClickZoom.enabled();
-		this._map.doubleClickZoom.disable();
+    L.DomEvent
+      .on(this._map, 'mousemove', this._mouseMove, this)
+      .on(this._map, 'click', this._mouseClick, this)
+      .on(this._map, 'dbclick', this._finishPath, this)
 
-		L.DomEvent
-			.on(this._map, 'mousemove', this._mouseMove, this)
-			.on(this._map, 'click', this._mouseClick, this)
-			.on(this._map, 'dblclick', this._finishPath, this)
-			.on(document, 'keydown', this._onKeyDown, this);
+    if (!this._layerPaint) {
+      this._layerPaint = L.layerGroup().addTo(this._map)
+    }
 
-		if(!this._layerPaint) {
-			this._layerPaint = L.layerGroup().addTo(this._map);	
-		}
+    if (!this._points) {
+      this._points = []
+    }
+  },
 
-		if(!this._points) {
-			this._points = [];
-		}
-	},
+  _stopMeasuring: function () {
+    this._map._container.style.cursor = this._oldCursor
 
-	_stopMeasuring: function() {
-		this._map._container.style.cursor = this._oldCursor;
+    L.DomEvent
+      .off(this._map, 'mousemove', this._mouseMove, this)
+      .off(this._map, 'click', this._mouseClick, this)
+      .off(this._map, 'dbclick', this._finishPath, this)
 
-		L.DomEvent
-			.off(document, 'keydown', this._onKeyDown, this)
-			.off(this._map, 'mousemove', this._mouseMove, this)
-			.off(this._map, 'click', this._mouseClick, this)
-			.off(this._map, 'dblclick', this._mouseClick, this);
+    if (this._doubleClickZoom) {
+      this._map.doubleClickZoom.enabled()
+    }
+    if (this._layerPaint) {
+      this._layerPaint.clearLayers()
+    }
 
-		if(this._doubleClickZoom) {
-			this._map.doubleClickZoom.enable();
-		}
+    this._restartPath()
+  },
 
-		if(this._layerPaint) {
-			this._layerPaint.clearLayers();
-		}
-		
-		this._restartPath();
-	},
+  _mouseMove: function (e) {
+    if (!e.latlng || !this._lastPoint) {
+      return
+    }
+    if (!this._layerPaintPathTemp) {
+      //  customize style
+      this._layerPaintPathTemp = L.polyline([this._lastPoint, e.latlng], {
+        color: this.options.lineColor,
+        weight: this.options.lineWeight,
+        opacity: this.options.lineOpacity,
+        clickable: false,
+        dashArray: this.options.lineDashArray
+      }).addTo(this._layerPaint)
+    } else {
+      //  replace the current layer to the newest draw points
+      this._layerPaintPathTemp.getLatLngs().splice(0, 2, this._lastPoint, e.latlng)
+      //  force path layer update
+      this._layerPaintPathTemp.redraw()
+    }
 
-	_mouseMove: function(e) {
-		if(!e.latlng || !this._lastPoint) {
-			return;
-		}
-		
-		if(!this._layerPaintPathTemp) {
-			this._layerPaintPathTemp = L.polyline([this._lastPoint, e.latlng], { 
-				color: 'black',
-				weight: 1.5,
-				clickable: false,
-				dashArray: '6,3'
-			}).addTo(this._layerPaint);
-		} else {
-			this._layerPaintPathTemp.spliceLatLngs(0, 2, this._lastPoint, e.latlng);
-		}
+    //  tooltip
+    if (this._tooltip) {
+      if (!this._distance) {
+        this._distance = 0
+      }
+      this._updateTooltipPosition(e.latlng)
+      var distance = e.latlng.distanceTo(this._lastPoint)
+      this._updateTooltipDistance(this._distance + distance, distance)
+    }
+  },
 
-		if(this._tooltip) {
-			if(!this._distance) {
-				this._distance = 0;
-			}
+  _mouseClick: function (e) {
+    if (!e.latlng) {
+      return
+    }
 
-			this._updateTooltipPosition(e.latlng);
+    if (this._isRestarted) {
+      this._isRestarted = false
+      return
+    }
 
-			var distance = e.latlng.distanceTo(this._lastPoint);
-			this._updateTooltipDistance(this._distance + distance, distance);
-		}
-	},
+    if (this._lastPoint && this._tooltip) {
+      if (!this._distance) {
+        this._distance = 0
+      }
 
-	_mouseClick: function(e) {
-		// Skip if no coordinates
-		if(!e.latlng) {
-			return;
-		}
+      this._updateTooltipPosition(e.latlng)
+      var distance = e.latlng.distanceTo(this._lastPoint)
+      this._updateTooltipDistance(this._distance + distance, distance)
 
-		// If we have a tooltip, update the distance and create a new tooltip, leaving the old one exactly where it is (i.e. where the user has clicked)
-		if(this._lastPoint && this._tooltip) {
-			if(!this._distance) {
-				this._distance = 0;
-			}
+      this._distance += distance
+    }
 
-			this._updateTooltipPosition(e.latlng);
+    this._createTooltip(e.latlng)
 
-			var distance = e.latlng.distanceTo(this._lastPoint);
-			this._updateTooltipDistance(this._distance + distance, distance);
+    //  main layer add to layerPaint
+    if (this._lastPoint && !this._layerPaintPath) {
+      this._layerPaintPath = L.polyline([this._lastPoint], {
+        color: this.options.lineColor,
+        weight: this.options.lineWeight,
+        opacity: this.options.lineOpacity,
+        clickable: false
+      }).addTo(this._layerPaint)
+    }
 
-			this._distance += distance;
-		}
-		this._createTooltip(e.latlng);
-		
+    //  push current point to the main layer
+    if (this._layerPaintPath) {
+      this._layerPaintPath.addLatLng(e.latlng)
+    }
 
-		// If this is already the second click, add the location to the fix path (create one first if we don't have one)
-		if(this._lastPoint && !this._layerPaintPath) {
-			this._layerPaintPath = L.polyline([this._lastPoint], { 
-				color: 'black',
-				weight: 2,
-				clickable: false
-			}).addTo(this._layerPaint);
-		}
+    if (this._lastPoint) {
+      if (this._lastCircle) {
+        this._lastCircle.off('click', this._finishPath, this)
+      }
+      this._lastCircle = this._createCircle(e.latlng).addTo(this._layerPaint)
+      this._lastCircle.on('click', this._finishPath, this)
+    }
 
-		if(this._layerPaintPath) {
-			this._layerPaintPath.addLatLng(e.latlng);
-		}
+    this._lastPoint = e.latlng
+  },
 
-		// Upate the end marker to the current location
-		if(this._lastCircle) {
-			this._layerPaint.removeLayer(this._lastCircle);
-		}
+  _finishPath: function (e) {
+    if (e) {
+      L.DomEvent.preventDefault(e)
+    }
+    if (this._lastCircle) {
+      this._lastCircle.off('click', this._finishPath, this)
+    }
+    if (this._tooltip) {
+      //  when remove from map, the _icon property becomes null
+      this._layerPaint.removeLayer(this._tooltip)
+    }
+    if (this._layerPaint && this._layerPaintPathTemp) {
+      this._layerPaint.removeLayer(this._layerPaintPathTemp)
+    }
 
-		this._lastCircle = new L.CircleMarker(e.latlng, { 
-			color: 'black', 
-			opacity: 1, 
-			weight: 1, 
-			fill: true, 
-			fillOpacity: 1,
-			radius:2,
-			clickable: this._lastCircle ? true : false
-		}).addTo(this._layerPaint);
-		
-		this._lastCircle.on('click', function() { this._finishPath(); }, this);
+    //  clear everything
+    this._restartPath()
+  },
 
-		// Save current location as last location
-		this._lastPoint = e.latlng;
-	},
+  _restartPath: function () {
+    this._distance = 0
+    this._lastCircle = undefined
+    this._lastPoint = undefined
+    this._tooltip = undefined
+    this._layerPaintPath = undefined
+    this._layerPaintPathTemp = undefined
 
-	_finishPath: function() {
-		// Remove the last end marker as well as the last (moving tooltip)
-		if(this._lastCircle) {
-			this._layerPaint.removeLayer(this._lastCircle);
-		}
-		if(this._tooltip) {
-			this._layerPaint.removeLayer(this._tooltip);
-		}
-		if(this._layerPaint && this._layerPaintPathTemp) {
-			this._layerPaint.removeLayer(this._layerPaintPathTemp);
-		}
+    //  flag to stop propagation events...
+    this._isRestarted = true
+  },
 
-		// Reset everything
-		this._restartPath();
-	},
+  _createCircle: function (latlng) {
+    return new L.CircleMarker(latlng, {
+      color: 'black',
+      opacity: 1,
+      weight: 1,
+      fillColor: 'white',
+      fill: true,
+      fillOpacity: 1,
+      radius: 4,
+      clickable: Boolean(this._lastCircle)
+    })
+  },
 
-	_restartPath: function() {
-		this._distance = 0;
-		this._tooltip = undefined;
-		this._lastCircle = undefined;
-		this._lastPoint = undefined;
-		this._layerPaintPath = undefined;
-		this._layerPaintPathTemp = undefined;
-	},
-	
-	_createTooltip: function(position) {
-		var icon = L.divIcon({
-			className: 'leaflet-measure-tooltip',
-			iconAnchor: [-5, -5]
-		});
-		this._tooltip = L.marker(position, { 
-			icon: icon,
-			clickable: false
-		}).addTo(this._layerPaint);
-	},
+  _createTooltip: function (position) {
+    var icon = L.divIcon({
+      className: 'leaflet-measure-tooltip',
+      iconAnchor: [-5, -5]
+    })
+    this._tooltip = L.marker(position, {
+      icon: icon,
+      clickable: false
+    }).addTo(this._layerPaint)
+  },
 
-	_updateTooltipPosition: function(position) {
-		this._tooltip.setLatLng(position);
-	},
+  _updateTooltipPosition: function (position) {
+    this._tooltip.setLatLng(position)
+  },
 
-	_updateTooltipDistance: function(total, difference) {
-		var totalRound = this._round(total),
-			differenceRound = this._round(difference);
+  _updateTooltipDistance: function (total, difference) {
+    if (!this._tooltip._icon) {
+      return
+    }
+    var totalRound = this._formatDistance(total)
+    var differenceRound = this._formatDistance(difference)
 
-		var text = '<div class="leaflet-measure-tooltip-total">' + totalRound + ' m</div>';
-		if(differenceRound > 0 && totalRound != differenceRound) {
-			text += '<div class="leaflet-measure-tooltip-difference">(+' + differenceRound + ' m)</div>';
-		}
+    var text = '<div class="leaflet-measure-tooltip-total">' + totalRound + '</div>'
+    if (differenceRound > 0 && totalRound !== differenceRound) {
+      text += '<div class="leaflet-measure-tooltip-difference">(+' + differenceRound + ')</div>'
+    }
+    this._tooltip._icon.innerHTML = text
+  },
 
-		this._tooltip._icon.innerHTML = text;
-	},
+  _formatDistance: function (val) {
+    if (val < 1000) {
+      return Math.round(val) + 'm'
+    } else {
+      return Math.round((val / 1000) * 100) / 100 + 'km'
+    }
+  },
 
-	_round: function(val) {
-		return val.toFixed(0).replace(/(\d)(?=(\d{3})+\.)/g, '$1,')		
-	},
-
-	_onKeyDown: function (e) {
-		if(e.keyCode == 27) {
-			// If not in path exit measuring mode, else just finish path
-			if(!this._lastPoint) {
-				this._toggleMeasure();
-			} else {
-				this._finishPath();
-			}
-		}
-	}
-});
-
-L.Map.mergeOptions({
-	measureControl: false
-});
-
-L.Map.addInitHook(function () {
-	if (this.options.measureControl) {
-		this.measureControl = new L.Control.Measure();
-		this.addControl(this.measureControl);
-	}
-});
+  _onKeyDown: function (e) {
+    // key control
+    switch (e.keyCode) {
+      case this.options.activeKeyCode:
+        if (!this._measuring) {
+          this._toggleMeasure()
+        }
+        break
+      case this.options.cancelKeyCode:
+        //  if measuring, cancel measuring
+        if (this._measuring) {
+          if (!this._lastPoint) {
+            this._toggleMeasure()
+          } else {
+            this._finishPath()
+            this._isRestarted = false
+          }
+        }
+        break
+    }
+  }
+})
 
 L.control.measure = function (options) {
-	return new L.Control.Measure(options);
-};
+  return new L.Control.Measure(options)
+}
+
+L.Map.mergeOptions({
+  measureControl: false
+})
+
+L.Map.addInitHook(function () {
+  if (this.options.measureControl) {
+    this.measureControl = new L.Control.Measure()
+    this.addControl(this.measureControl)
+  }
+})
