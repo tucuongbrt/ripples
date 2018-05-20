@@ -95,7 +95,6 @@ function showCoordinates(e) {
 function centerMap(e) {
 	map.panTo(e.latlng);
 	updateCookiePos();
-	console.log();
 	console.log("cookie data -(centerMap) - Lat: "+$.cookie('savedLat')+" Lng: "+$.cookie('savedLng')+" Zoom: "+$.cookie('savedZoom'));
 	alert("From now on, map will be centered here.");
 }
@@ -494,7 +493,6 @@ function updateAsset(snapshot) {
 			plan.eta.forEach(function(eta, index) {
 
 				if (eta > 0) {
-					console.log(eta);
 					var point = plan.path[index];
 					var time = eta;
 					var d = new Date(eta);
