@@ -2,7 +2,6 @@ package pt.lsts.ripples.util;
 
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -57,8 +56,7 @@ public class RipplesUtils {
 		addr.setImcId(lastAddress+1);
 		addresses.save(addr);
 		return addr;
-	}
-	
+	}	
 	
 	public void setPosition(SystemAddress addr, double lat, double lon, Date time, boolean updateFirebase) {
 		

@@ -1,11 +1,12 @@
 package pt.lsts.ripples.domain.assets;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class AssetPosition {
@@ -25,7 +26,8 @@ public class AssetPosition {
         return id;
     }
 
-    private void setId(Long id) {
+    @SuppressWarnings("unused")
+	private void setId(Long id) {
         this.id = id;
     }
 

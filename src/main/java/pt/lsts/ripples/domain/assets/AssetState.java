@@ -1,17 +1,19 @@
 package pt.lsts.ripples.domain.assets;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.io.Serializable;
-import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class AssetState implements Serializable {
 
-    @Id
+	private static final long serialVersionUID = 8600884824342665431L;
+	@Id
     @GeneratedValue
     private Long id;
     private double latitude;

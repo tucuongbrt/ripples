@@ -1,9 +1,10 @@
 package pt.lsts.ripples.domain.iridium;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.util.Date;
 
 @Entity
 public class IridiumSubscription {

@@ -16,7 +16,8 @@ public class SystemAddress {
     private String imei = null;
     private String phone = null;
 
-    private SystemAddress() {
+    @SuppressWarnings("unused")
+	private SystemAddress() {
 
     }
 

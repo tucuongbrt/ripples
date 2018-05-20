@@ -27,7 +27,7 @@ public class FirebaseAdapter {
     public void init() {
         try {
             firebase = new Firebase("https://neptus.firebaseio.com/");
-            firebase.goOnline();
+            Firebase.goOnline();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -35,7 +35,7 @@ public class FirebaseAdapter {
 
     @PreDestroy
     public void cleanup() {
-        firebase.goOffline();
+    	Firebase.goOffline();
     }
 
 

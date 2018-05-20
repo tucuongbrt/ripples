@@ -1,24 +1,26 @@
 package pt.lsts.ripples.jobs;
 
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.logging.Logger;
+
+import javax.annotation.PostConstruct;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.services.MessageProcessor;
 import pt.lsts.ripples.services.Resolver;
-
-import javax.annotation.PostConstruct;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.logging.Logger;
 
 @Component
 public class UpdateSpotPositions {

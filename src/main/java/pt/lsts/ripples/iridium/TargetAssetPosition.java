@@ -31,10 +31,14 @@
  */
 package pt.lsts.ripples.iridium;
 
-import pt.lsts.imc.*;
-
 import java.util.Collection;
 import java.util.Vector;
+
+import pt.lsts.imc.IMCDefinition;
+import pt.lsts.imc.IMCInputStream;
+import pt.lsts.imc.IMCMessage;
+import pt.lsts.imc.IMCOutputStream;
+import pt.lsts.imc.RemoteSensorInfo;
 
 /**
  * @author zp

@@ -1,16 +1,20 @@
 package pt.lsts.ripples.domain.assets;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+
 @Entity
 public class Plan implements Serializable {
-    @Id
+
+	private static final long serialVersionUID = -9138676928142387564L;
+
+	@Id
     private String id;
 
     @OneToMany

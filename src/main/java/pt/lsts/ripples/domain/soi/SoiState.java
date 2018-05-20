@@ -11,13 +11,9 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-
 import pt.lsts.imc.SoiPlan;
 import pt.lsts.imc.SoiWaypoint;
 import pt.lsts.imc.StateReport;
-import pt.lsts.ripples.domain.soi.VerticalProfileData.Sample;
 
 @Entity
 public class SoiState {

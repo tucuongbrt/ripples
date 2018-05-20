@@ -1,25 +1,27 @@
 package pt.lsts.ripples.domain.assets;
 
+import java.io.Serializable;
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
-import java.io.Serializable;
-import java.util.Date;
-
 @Entity
 @Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Asset implements Serializable {
 
-    @Id
+    private static final long serialVersionUID = -4837003781239242004L;
+	@Id
     private String name;
     private int imcid = -1;
     private AssetState lastState;
     private Plan plan;
 
-    private Asset() {
+    @SuppressWarnings("unused")
+	private Asset() {
     }
 
     public Asset(String name) {

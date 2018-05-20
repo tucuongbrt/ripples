@@ -34,6 +34,7 @@ public class SailDroneDownloader {
 	@Autowired
 	private RipplesUtils ripples;
 
+	@SuppressWarnings("unused")
 	@Autowired
 	private UpdateAddresses addrUpdater;
 	

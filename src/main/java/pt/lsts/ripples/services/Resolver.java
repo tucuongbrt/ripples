@@ -6,16 +6,12 @@ import org.springframework.stereotype.Service;
 import pt.lsts.imc.IMCDefinition;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.repo.AddressesRepository;
-import pt.lsts.ripples.repo.AssetsRepository;
 
 @Service
 public class Resolver {
 
     @Autowired
     private AddressesRepository addresses;
-
-    @Autowired
-    private AssetsRepository assets;
 
     public int resolve(String name) {
         SystemAddress addr = addresses.findById(name).orElse(null);

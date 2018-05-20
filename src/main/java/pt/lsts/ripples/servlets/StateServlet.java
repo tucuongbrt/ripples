@@ -19,6 +19,9 @@ import pt.lsts.ripples.repo.EnvDataRepository;
 @WebServlet(name="StateServlet", urlPatterns= {"/state/*"})
 public class StateServlet extends HttpServletBean{
 
+
+	private static final long serialVersionUID = 1988394141176352701L;
+
 	@Autowired
 	EnvDataRepository repo;
 	

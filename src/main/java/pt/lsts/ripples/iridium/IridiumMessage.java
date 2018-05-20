@@ -31,17 +31,18 @@
  */
 package pt.lsts.ripples.iridium;
 
-import pt.lsts.imc.IMCDefinition;
-import pt.lsts.imc.IMCInputStream;
-import pt.lsts.imc.IMCMessage;
-import pt.lsts.imc.IMCOutputStream;
-
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+
+import pt.lsts.imc.IMCDefinition;
+import pt.lsts.imc.IMCInputStream;
+import pt.lsts.imc.IMCMessage;
+import pt.lsts.imc.IMCOutputStream;
 
 /**
  * @author zp
