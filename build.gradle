@@ -21,6 +21,9 @@ sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
+	maven {
+		url "https://artifacts.unidata.ucar.edu/repository/unidata-all/"
+	}
 }
 
 
@@ -32,6 +35,9 @@ dependencies {
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.eclipsesource.minimal-json:minimal-json:0.9.1'
     compile 'org.knowm.xchart:xchart:3.5.2'
+    
+	compile 'edu.ucar:cdm:4.6.11'
+	compile 'commons-io:commons-io:2.6'
 	
 	compile files('libs/libimc.jar')
 	

@@ -1,16 +1,22 @@
 package pt.lsts.ripples.controllers;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +26,19 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.lsts.ripples.domain.wg.EnvDatum;
 import pt.lsts.ripples.repo.EnvDataRepository;
 import pt.lsts.ripples.util.DateUtil;
+import pt.lsts.ripples.util.netcdf.NetCDFUtils;
+import pt.lsts.ripples.util.netcdf.exporter.NetCDFExportWriter;
+import pt.lsts.ripples.util.netcdf.exporter.NetCDFRootAttributes;
+import pt.lsts.ripples.util.netcdf.exporter.NetCDFVarElement;
+import ucar.ma2.DataType;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriter;
 
 @RestController()
 public class FetchData {
+
+    @SuppressWarnings("serial")
+	public static final SimpleDateFormat dateTimeFormatterISO8601NoMillis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", new Locale("en")) {{setTimeZone(TimeZone.getTimeZone("UTC"));}};
 
 	@Autowired
 	EnvDataRepository repo;
@@ -137,6 +153,146 @@ public class FetchData {
 			return repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startDate);
 	}
 
+	@RequestMapping(value = "/data/{vehicle}.nc", produces = "application/x-netcdf")
+	public void getNetCDF(@RequestParam(defaultValue = "-24h") String start,
+			@PathVariable String vehicle, HttpServletResponse response)
+					throws IOException {
+		
+		response.getWriter().write("vehicle,latitude,longitude,timestamp,salinity,temperature,conductivity,pressure\n");
+		Date startSearshDate = DateUtil.parse(start);
+		List<EnvDatum> data;
 
+		if (vehicle.equals("any")) {
+			response.getWriter().close();
+			return;
+		}
+		else
+			data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startSearshDate);
+		
+		if (data == null || data.isEmpty())  {
+			response.getWriter().close();
+			return;
+		}
+		
+		File exportFile = File.createTempFile("wgviewer", ".nc");
+		String location = exportFile.getAbsolutePath();
+        try (NetcdfFileWriter writer = NetCDFExportWriter.createWriter(exportFile)) {
+        	EnvDatum fd = data.stream().findFirst().get();
+            NetCDFRootAttributes rootAttr = NetCDFRootAttributes.createDefault(location, location);
+            rootAttr.setDateModified(data.get(data.size() - 1).getTimestamp()).setId(fd.getSource());
 
+            int obsNumber = data.size();
+            
+            rootAttr.write(writer);
+
+            // add dimensions
+            Dimension trajDim = writer.addDimension(null, "trajectory", 1);
+            Dimension obsDim = writer.addDimension(null, "obs", obsNumber);
+
+            List<Dimension> dimsTraj = new ArrayList<Dimension>();
+            dimsTraj.add(trajDim);
+
+            List<Dimension> dims = new ArrayList<Dimension>();
+            dims.add(trajDim);
+            dims.add(obsDim);
+
+            List<NetCDFVarElement> varsList = new ArrayList<>();
+
+            Date startDate = data.stream().findFirst().get().getTimestamp();
+            NetCDFVarElement timeVar = new NetCDFVarElement("time").setLongName("time").setStandardName("time")
+                    .setUnits("seconds since " + dateTimeFormatterISO8601NoMillis.format(startDate))
+                    .setDataType(DataType.INT).setDimensions(dims).setAtribute("axis", "T");
+            timeVar.createDataArray().setUnsigned(true);
+            varsList.add(timeVar);
+
+            NetCDFVarElement latVar = new NetCDFVarElement("lat").setLongName("latitude").setStandardName("latitude")
+                    .setUnits("degrees_north").setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "Y")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "-9999")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "-9999").setAtribute("valid_min", "-90")
+                    .setAtribute("valid_max", "90");
+            varsList.add(latVar);
+
+            NetCDFVarElement lonVar = new NetCDFVarElement("lon").setLongName("longitude").setStandardName("longitude")
+                    .setUnits("degrees_east").setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "X")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "-9999")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "-9999").setAtribute("valid_min", "-180")
+                    .setAtribute("valid_max", "180");
+            varsList.add(lonVar);
+
+            // scaled as 0.1
+            NetCDFVarElement depthVar = new NetCDFVarElement("depth").setLongName("depth").setStandardName("depth")
+                    .setUnits("m").setDataType(DataType.INT).setDimensions(dims).setAtribute("axis", "Z")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "-9999")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "-9999").setAtribute("valid_min", "0")
+                    .setAtribute("scale_factor", "0.1").setAtribute("positive", "down")
+                    .setAtribute("_CoordinateAxisType", "Depth").setAtribute("_CoordinateZisPositive", "down")
+                    .setAtribute("coordinates", "time lat lon");
+            varsList.add(depthVar);
+
+            NetCDFVarElement trajVar = new NetCDFVarElement("trajectory").setLongName("trajectory")
+                    .setDataType(DataType.INT).setDimensions(dimsTraj);
+            varsList.add(trajVar);
+
+            trajVar.insertData(1, 0);
+
+            NetCDFVarElement condVar = new NetCDFVarElement("cond").setLongName("Conductivity")
+                        .setStandardName("sea_water_electrical_conductivity").setUnits("S m-1").setDataType(DataType.FLOAT)
+                        .setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "NaN")
+                        .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "NaN")
+                        .setAtribute("coordinates", "time depth lat lon");
+            varsList.add(condVar);
+            NetCDFVarElement salVar = new NetCDFVarElement("sal").setLongName("Salinity")
+            		.setStandardName("sea_water_practical_salinity").setUnits("PSU").setDataType(DataType.FLOAT)
+            		.setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "NaN")
+            		.setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "NaN")
+            		.setAtribute("coordinates", "time depth lat lon");
+            varsList.add(salVar);
+            NetCDFVarElement tempVar = new NetCDFVarElement("temp_cdt").setLongName("Temperature CTD")
+                        .setStandardName("sea_water_temperature").setUnits("degree_C").setDataType(DataType.FLOAT)
+                        .setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "NaN")
+                        .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "NaN")
+                        .setAtribute("coordinates", "time depth lat lon");
+            varsList.add(tempVar);
+
+            int idx = -1;
+    		for (EnvDatum d : data) {
+    			idx++;
+    			
+    			timeVar.insertData(idx, 0, idx);
+                latVar.insertData(d.getLatitude(), 0, idx);
+                lonVar.insertData(d.getLongitude(), 0, idx);
+                double depth = d.getValues().get("pressure");
+                depthVar.insertData(Double.isFinite(depth) ? depth * 10 : -9999, 0, idx);
+
+                double cond = d.getValues().get("conductivity");
+                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, idx);
+
+                double sal = d.getValues().get("salinity");
+                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, idx);
+
+                double temp = d.getValues().get("temperature");
+                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, idx);
+    		}
+
+            // Now writing data
+            varsList.stream().forEach(v -> v.writeVariable(writer));
+            writer.create();
+            varsList.stream().forEach(v -> v.writeData(writer));
+
+        }
+        catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try (FileInputStream is = new FileInputStream(exportFile);
+				ServletOutputStream os = response.getOutputStream();) {
+			IOUtils.copy(is, os);
+			os.flush();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		response.getWriter().close();
+	}
 }
