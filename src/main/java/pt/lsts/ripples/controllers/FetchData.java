@@ -158,7 +158,6 @@ public class FetchData {
 			@PathVariable String vehicle, HttpServletResponse response)
 					throws IOException {
 		
-		response.getWriter().write("vehicle,latitude,longitude,timestamp,salinity,temperature,conductivity,pressure\n");
 		Date startSearshDate = DateUtil.parse(start);
 		List<EnvDatum> data;
 
@@ -261,17 +260,41 @@ public class FetchData {
     			timeVar.insertData(idx, 0, idx);
                 latVar.insertData(d.getLatitude(), 0, idx);
                 lonVar.insertData(d.getLongitude(), 0, idx);
-                double depth = d.getValues().get("pressure");
+                double depth = Double.NaN;
+                try {
+                	depth = d.getValues().get("pressure");
+				}
+                catch (Exception e) {
+					// TODO: handle exception
+				}
                 depthVar.insertData(Double.isFinite(depth) ? depth * 10 : -9999, 0, idx);
 
-                double cond = d.getValues().get("conductivity");
-                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, idx);
+                double cond = Double.NaN;
+                try {
+                	cond = d.getValues().get("conductivity");
+				}
+                catch (Exception e) {
+					// TODO: handle exception
+				}
+                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, 0, idx);
 
-                double sal = d.getValues().get("salinity");
-                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, idx);
+                double sal = Double.NaN;
+                try {
+                	sal = d.getValues().get("salinity");
+				}
+                catch (Exception e) {
+					// TODO: handle exception
+				}
+                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, 0, idx);
 
-                double temp = d.getValues().get("temperature");
-                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, idx);
+                double temp = Double.NaN;
+                try {
+                	temp = d.getValues().get("temperature");
+				}
+                catch (Exception e) {
+					// TODO: handle exception
+				}
+                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, 0, idx);
     		}
 
             // Now writing data
