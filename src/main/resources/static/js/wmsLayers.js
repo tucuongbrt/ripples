@@ -100,7 +100,7 @@ mapLayers.sssc = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-anal
 	format: 'image/png',
 	styles: 'boxfill/rainbow',
 	transparent: 'true',
-	colorscalerange: '30,38',
+	colorscalerange: '33,36',
 	belowmincolor: 'extend',
 	belowmaxcolor: 'extend',
 	attribution : 'E.U. Copernicus Marine Service Information'
@@ -174,7 +174,7 @@ mapLayers.sss = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analy
 	format: 'image/png',
 	styles: 'boxfill/rainbow',
 	transparent: 'true',
-	colorscalerange: '30,38',
+	colorscalerange: '33,36',
 	belowmincolor: 'extend',
 	belowmaxcolor: 'extend',
 	opacity: '0.8',
