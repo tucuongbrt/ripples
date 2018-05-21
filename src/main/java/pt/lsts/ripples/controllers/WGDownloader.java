@@ -93,61 +93,66 @@ public class WGDownloader {
 
 	private void processData(String data) {
 		JsonParser parser = new JsonParser();
-		JsonArray root = parser.parse(data).getAsJsonArray();
-		Gson gson = new Gson();
-		final TreeSet<PosDatum> newPositions = new TreeSet<>(new Comparator<PosDatum>() {
-			@Override
-			public int compare(PosDatum o1, PosDatum o2) {
-				return o1.getTimestamp().compareTo(o2.getTimestamp());
+		try {
+			JsonArray root = parser.parse(data).getAsJsonArray();
+			Gson gson = new Gson();
+			final TreeSet<PosDatum> newPositions = new TreeSet<>(new Comparator<PosDatum>() {
+				@Override
+				public int compare(PosDatum o1, PosDatum o2) {
+					return o1.getTimestamp().compareTo(o2.getTimestamp());
+				}
+			});
+			SystemAddress addr = ripples.getOrCreate("wg-sv3-127");
+			
+			root.forEach(element -> {
+				JsonObject jo = element.getAsJsonArray().get(0).getAsJsonObject();
+				logger.info(""+jo);
+				if (jo.get("kind").getAsString().equals("CTD")) {
+					logger.info("Getting CTD data...");
+					WGCtd ctd = gson.fromJson(jo, WGCtd.class);
+					LinkedHashMap<String, Double> vals = new LinkedHashMap<>();
+					vals.put("conductivity", ctd.getConductivity());
+					vals.put("temperature", ctd.getTemperature());
+					vals.put("salinity", ctd.getSalinity());
+					vals.put("pressure", ctd.getPressure());
+					ripples.setReceivedData(addr, ctd.getLatitude(), ctd.getLongitude(), new Date(ctd.getTime()), vals);
+				}
+				else if (jo.get("kind").getAsString().equals("Waveglider")) {
+					logger.info("Getting Position data...");
+					WGPosition pos = gson.fromJson(jo, WGPosition.class);
+					ripples.setPosition(addr, pos.getLatitude(), pos.getLongitude(), new Date(pos.getTime()), true);
+				}
+				else if (jo.get("kind").getAsString().equals("AIS") && jo.get("aistype").getAsString().equals("positionreport")) {
+					logger.info("Getting AIS data...");
+					WGAIS ais = gson.fromJson(jo, WGAIS.class);
+					ShipsDatum datum = new ShipsDatum();
+					datum.setLatitude(ais.getLatitude());
+					datum.setLongitude(ais.getLongitude());
+					
+					//TODO RESOLVE Ship name in BD using mmsi or aishub
+					logger.info("Resolving MMSI: "+ais.getMMSI());
+					AISDatum aisdata = aisRepo.findById(ais.getMMSI()).orElse(AISDatum.getDefault(ais.getMMSI()));
+					datum.setUid(ais.getMMSI());
+					datum.setSource(aisdata.getSource());
+					datum.setTimestamp(new Date(ais.getTime()));
+					datum.setSog(ais.getSOG());
+					datum.setType(aisdata.getType());
+					sendToFirebase(datum);
+				}
+				else {
+					logger.warn("ignored "+jo);
+				}
+			});
+			
+			if(!newPositions.isEmpty()) {
+				logger.info("Sending position to ripples");
+				sendToRipples(getPosJson(newPositions.descendingIterator().next()));
 			}
-		});
-		SystemAddress addr = ripples.getOrCreate("wg-sv3-127");
-		
-		root.forEach(element -> {
-			JsonObject jo = element.getAsJsonArray().get(0).getAsJsonObject();
-			logger.info(""+jo);
-			if (jo.get("kind").getAsString().equals("CTD")) {
-				logger.info("Getting CTD data...");
-				WGCtd ctd = gson.fromJson(jo, WGCtd.class);
-				LinkedHashMap<String, Double> vals = new LinkedHashMap<>();
-				vals.put("conductivity", ctd.getConductivity());
-				vals.put("temperature", ctd.getTemperature());
-				vals.put("salinity", ctd.getSalinity());
-				vals.put("pressure", ctd.getPressure());
-				ripples.setReceivedData(addr, ctd.getLatitude(), ctd.getLongitude(), new Date(ctd.getTime()), vals);
-			}
-			else if (jo.get("kind").getAsString().equals("Waveglider")) {
-				logger.info("Getting Position data...");
-				WGPosition pos = gson.fromJson(jo, WGPosition.class);
-				ripples.setPosition(addr, pos.getLatitude(), pos.getLongitude(), new Date(pos.getTime()), true);
-			}
-			else if (jo.get("kind").getAsString().equals("AIS") && jo.get("aistype").getAsString().equals("positionreport")) {
-				logger.info("Getting AIS data...");
-				WGAIS ais = gson.fromJson(jo, WGAIS.class);
-				ShipsDatum datum = new ShipsDatum();
-				datum.setLatitude(ais.getLatitude());
-				datum.setLongitude(ais.getLongitude());
-				
-				//TODO RESOLVE Ship name in BD using mmsi or aishub
-				logger.info("Resolving MMSI: "+ais.getMMSI());
-				AISDatum aisdata = aisRepo.findById(ais.getMMSI()).orElse(AISDatum.getDefault(ais.getMMSI()));
-				datum.setUid(ais.getMMSI());
-				datum.setSource(aisdata.getSource());
-				datum.setTimestamp(new Date(ais.getTime()));
-				datum.setSog(ais.getSOG());
-				datum.setType(aisdata.getType());
-				sendToFirebase(datum);
-			}
-			else {
-				logger.warn("ignored "+jo);
-			}
-		});
-		
-		if(!newPositions.isEmpty()) {
-			logger.info("Sending position to ripples");
-			sendToRipples(getPosJson(newPositions.descendingIterator().next()));
+			logger.info("Finished getting data.");
 		}
-		logger.info("Finished getting data.");
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@PostConstruct
