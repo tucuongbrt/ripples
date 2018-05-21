@@ -1,5 +1,56 @@
 var mapLayers = {};
 
+L.TileLayer.WMSLegend = L.TileLayer.WMS.extend({
+	
+	getLegendUrl: function(url, options) {
+		var params = [];
+		
+		for (var i in options) {
+			params.push(encodeURIComponent(i.toUpperCase()) + '=' + encodeURIComponent(options[i]));
+		}
+		params.push('REQUEST=GetLegendGraphic');
+		params.push('LAYER='+encodeURIComponent(options['layers']));
+		return url +((!url || url.indexOf('?') === -1) ? '?' : '&') + params.join('&');		
+	},
+	
+	initialize: function(url, options) {
+		
+		L.TileLayer.WMS.prototype.initialize.call(this, url, options);
+		this._legendUrl = this.getLegendUrl(url, options);										
+    },
+    onAdd: function(map) {
+    	L.TileLayer.WMS.prototype.onAdd.call(this, map);
+    	
+    	if (this._legendUrl) {
+    		var legendUrl = this._legendUrl;
+        	this._legend = L.control({
+    		    position: 'bottomright'		    	
+    		});
+    		
+    		this._legend.onAdd = function(map) {
+    		    var src = legendUrl;
+    		    var div = L.DomUtil.create('div', 'info legend');
+    		    div.innerHTML +=
+    		        '<img src="' + src + '" alt="legend" width="80" wight="100">';
+    		    return div;
+    		};
+    		
+    		this._legend.addTo(map);
+    	}
+    },
+    onRemove: function(map) {
+    	L.TileLayer.WMS.prototype.onRemove.call(this, map);
+    	if (this._legendUrl) {
+    		map.removeControl(this._legend);	
+    	}    	
+    }
+});
+
+L.tileLayer.wmsLegend = function(url, options) {
+	return new L.TileLayer.WMSLegend(url, options);
+}
+
+
 mapLayers.hybrid = L
 .tileLayer(
 		'http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
@@ -75,7 +126,7 @@ mapLayers.gmrt = L.tileLayer.wms('https://www.gmrt.org/services/mapserver/wms_me
 	attribution: 'GEBCO (multiple sources)'
 });
 
-mapLayers.argos = L.tileLayer.wms('http://www.ifremer.fr/services/wms/coriolis/co_argo_floats_activity?REQUEST=GetMap', {
+mapLayers.argos = L.tileLayer.wms('http://www.ifremer.fr/services/wms/coriolis/co_argo_floats_activity', {
 	layers: 'StationProject',
 	format: 'image/png',
 	transparent: 'true',
@@ -83,7 +134,7 @@ mapLayers.argos = L.tileLayer.wms('http://www.ifremer.fr/services/wms/coriolis/c
 	attribution: 'IFREMER'
 });
 
-mapLayers.sst = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024?REQUEST=GetMap', {
+mapLayers.sst = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024', {
 	layers: 'thetao',
 	format: 'image/png',
 	styles: 'boxfill/sst_36',
@@ -91,11 +142,11 @@ mapLayers.sst = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analy
 	colorscalerange: '0,36',
 	belowmincolor: 'extend',
 	belowmaxcolor: 'extend',
-	opacity: '0.8',
+	opacity: '0.8',	
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
-mapLayers.sssc = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024?REQUEST=GetMap', {
+mapLayers.sssc = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024', {
 	layers: 'so',
 	format: 'image/png',
 	styles: 'boxfill/rainbow',
@@ -106,7 +157,7 @@ mapLayers.sssc = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-anal
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
-mapLayers.ssv = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024?REQUEST=GetMap', {
+mapLayers.ssv = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024', {
 	layers: 'sea_water_velocity',
 	format: 'image/png',
 	styles: 'vector/rainbow',
@@ -118,7 +169,7 @@ mapLayers.ssv = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analy
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
-mapLayers.zos = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024?REQUEST=GetMap', {
+mapLayers.zos = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024', {
 	layers: 'zos',
 	format: 'image/png',
 	styles: 'boxfill/rainbow',
@@ -130,7 +181,7 @@ mapLayers.zos = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analy
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
-mapLayers.chl = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/dataset-oc-glo-chl-multi-l4-oi_4km_daily-rt-v02?REQUEST=GetMap', {
+mapLayers.chl = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/dataset-oc-glo-chl-multi-l4-oi_4km_daily-rt-v02', {
 	layers: 'CHL',
 	format: 'image/png',
 	styles: 'boxfill/alg2',
@@ -143,7 +194,7 @@ mapLayers.chl = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/dataset-oc-g
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
-mapLayers.waves = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-wav-001-027?REQUEST=GetMap', {
+mapLayers.waves = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-wav-001-027', {
 	styles: 'boxfill/rainbow',
 	layers:'VHM0',
 	colorscalerange:'0.01,8.0',
@@ -155,7 +206,7 @@ mapLayers.waves = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-ana
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
-mapLayers.wind = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-BLENDED_WIND_L4-V5-OBS_FULL_TIME_SERIE?REQUEST=GetMap', {
+mapLayers.wind = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-BLENDED_WIND_L4-V5-OBS_FULL_TIME_SERIE', {
 	styles: 'vector/rainbow',
 	layers:'wind',
 	ELEVATION:'10',
@@ -169,7 +220,7 @@ mapLayers.wind = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-
 
 });
 
-mapLayers.sss = L.tileLayer.wms('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024?REQUEST=GetMap', {
+mapLayers.sss = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024', {
 	layers: 'so',
 	format: 'image/png',
 	styles: 'boxfill/rainbow',
