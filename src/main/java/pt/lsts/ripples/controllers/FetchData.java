@@ -197,10 +197,13 @@ public class FetchData {
 
             List<NetCDFVarElement> varsList = new ArrayList<>();
 
+			data = data.stream().sorted((t1, t2) -> t1.getTimestamp().compareTo(t2.getTimestamp()))
+					.collect(Collectors.toList());
+            
             Date startDate = data.stream().findFirst().get().getTimestamp();
             NetCDFVarElement timeVar = new NetCDFVarElement("time").setLongName("time").setStandardName("time")
                     .setUnits("seconds since " + dateTimeFormatterISO8601NoMillis.format(startDate))
-                    .setDataType(DataType.INT).setDimensions(dims).setAtribute("axis", "T");
+                    .setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "T");
             timeVar.createDataArray().setUnsigned(true);
             varsList.add(timeVar);
 
@@ -257,7 +260,7 @@ public class FetchData {
     		for (EnvDatum d : data) {
     			idx++;
     			
-    			timeVar.insertData(idx, 0, idx);
+    			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, 0, idx);
                 latVar.insertData(d.getLatitude(), 0, idx);
                 lonVar.insertData(d.getLongitude(), 0, idx);
                 double depth = Double.NaN;
