@@ -5,19 +5,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
 
 @Entity
 public class Plan implements Serializable {
 
 	private static final long serialVersionUID = -9138676928142387564L;
 
+	
 	@Id
+	private Long uid;	
+	
     private String id;
 
-    @OneToMany
+    @ElementCollection
     private List<Waypoint> waypoints = new ArrayList<>();
 
     public Plan() {
@@ -39,9 +42,9 @@ public class Plan implements Serializable {
     }
 
     public void setWaypoints(List<Waypoint> waypoints) {
-        synchronized (waypoints) {
-            waypoints.clear();
-            waypoints.addAll(waypoints);
+        synchronized (this.waypoints) {
+            this.waypoints.clear();
+            this.waypoints.addAll(waypoints);
         }
     }
 

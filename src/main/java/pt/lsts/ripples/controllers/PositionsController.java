@@ -2,7 +2,6 @@ package pt.lsts.ripples.controllers;
 
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +31,17 @@ public class PositionsController {
                 new Date(System.currentTimeMillis() - 1000 * 3600 * 24) :
                 new Date(Long.valueOf(since));
 
-        Logger.getLogger(getClass().getSimpleName()).info("Sending positions since " + start);
+        return repo.assetNames().stream()
+                .flatMap(asset -> repo.findTop100ByNameOrderByTimestampDesc(asset).stream())
+                .filter(asset -> asset.getTimestamp().after(start))
+                .collect(Collectors.toList());
+    }
+    
+    private List<AssetPosition> getLastPositions(@RequestParam(value = "_", defaultValue = "") String since) {
+
+        final Date start = since.isEmpty() ?
+                new Date(System.currentTimeMillis() - 1000 * 3600 * 24) :
+                new Date(Long.valueOf(since));
 
         return repo.assetNames().stream()
                 .flatMap(asset -> repo.findTopByNameOrderByTimestampDesc(asset).stream())
@@ -43,18 +52,15 @@ public class PositionsController {
     @GetMapping(path = "/api/v1/systems", produces = "application/json")
     public List<SystemPosition> listAllSystems() {
     	
-    	
-    	
-        return listPositions("0").stream()
+    	return getLastPositions("0").stream()
                 .map(p -> new SystemPosition(p))
-                .collect(Collectors.toList());
-        
-        
+                .collect(Collectors.toList());                
     }
 
     @GetMapping(path = "/api/v1/systems/active", produces = "application/json")
     public List<SystemPosition> listActiveSystems() {
-        return listPositions("").stream()
+    	
+        return getLastPositions("").stream()
                 .map(p -> new SystemPosition(p))
                 .collect(Collectors.toList());
     }

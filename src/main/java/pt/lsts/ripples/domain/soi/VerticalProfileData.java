@@ -2,43 +2,53 @@ package pt.lsts.ripples.domain.soi;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
+
+import pt.lsts.imc.VerticalProfile;
 
 @Entity
 
 public class VerticalProfileData {
 
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long uid;
 
 	private String system;
 
-	public String sample_type = "Temperature";
+	public String type = "Temperature";
 
 	public Date timestamp = new Date();
 
 	public double latitude = 0d;
 	public double longitude = 0d;
 
-	public ArrayList<Sample> samples = new ArrayList<Sample>();
+	@ElementCollection
+	public List<Double[]> samples = new ArrayList<Double[]>();
 
-	public static class Sample {
-		double depth = -1;
-		double value = 0;
+	public VerticalProfileData() {
 
-		public Sample() {
+	}
 
-		}
-
-		public Sample(double depth, double value) {
-			this.depth = depth;
-			this.value = value;
-		}
+	public VerticalProfileData(VerticalProfile profile) {
+		this();
+		system = profile.getSourceName();
+		latitude = profile.getLat();
+		longitude = profile.getLon();
+		type = profile.getParameter().name().toLowerCase();
+		timestamp = new Date(profile.getTimestampMillis());
+		profile.getSamples().forEach(s -> {
+			samples.add(new Double[] { (double) s.getDepth(), s.getAvg() });
+		});
 	}
 
 	@Override
@@ -49,15 +59,15 @@ public class VerticalProfileData {
 		if (system != null)
 			json.add("source", system);
 
-		json.add("type", sample_type);
+		json.add("type", type);
 		json.add("latitude", "" + latitude);
 		json.add("longitude", "" + longitude);
 
 		JsonArray array = new JsonArray();
-		for (Sample s : samples) {
+		for (Double[] s : samples) {
 			JsonObject elem = new JsonObject();
-			elem.add("depth", s.depth);
-			elem.add("value", s.value);
+			elem.add("depth", String.format("%.1f", s[0]));
+			elem.add("value", String.format("%.3f", s[1]));
 			array.add(elem);
 		}
 		json.add("samples", array);

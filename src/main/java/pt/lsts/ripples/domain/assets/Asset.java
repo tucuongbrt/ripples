@@ -5,6 +5,7 @@ import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -17,8 +18,11 @@ public class Asset implements Serializable {
 	@Id
     private String name;
     private int imcid = -1;
-    private AssetState lastState;
-    private Plan plan;
+    
+    private AssetState lastState = new AssetState();
+    
+    @Lob
+    private Plan plan = new Plan();
 
     @SuppressWarnings("unused")
 	private Asset() {

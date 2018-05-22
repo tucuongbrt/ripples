@@ -19,6 +19,7 @@ import pt.lsts.ripples.domain.assets.AssetState;
 import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.assets.Waypoint;
+import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.iridium.DeviceUpdate;
 import pt.lsts.ripples.iridium.ExtendedDeviceUpdate;
 import pt.lsts.ripples.iridium.ImcIridiumMessage;
@@ -27,6 +28,7 @@ import pt.lsts.ripples.iridium.Position;
 import pt.lsts.ripples.repo.AddressesRepository;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.PositionsRepository;
+import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.util.RipplesUtils;
 
 @Service
@@ -46,6 +48,9 @@ public class MessageProcessor {
 
 	@Autowired
 	RipplesUtils ripples;
+
+	@Autowired
+	VertProfilesRepo vertProfiles;
 
 	@Autowired
 	FirebaseAdapter firebaseAdapter;
@@ -98,7 +103,8 @@ public class MessageProcessor {
 	}
 
 	public void incoming(VerticalProfile profile) {
-
+		VerticalProfileData data = new VerticalProfileData();
+		vertProfiles.save(data);
 	}
 
 	public void incoming(StateReport cmd) {
@@ -127,7 +133,6 @@ public class MessageProcessor {
 		Asset vehicle = null;
 
 		switch (cmd.getCommand()) {
-		case EXEC:
 		case STOP:
 			if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
 				vehicle = assets.findByImcid(cmd.getSrc());
@@ -136,11 +141,12 @@ public class MessageProcessor {
 				Logger.getLogger(MessageProcessor.class.getName()).info("Vehicle stopped: " + vehicle);
 			}
 			break;
+		case EXEC:
 		case GET_PLAN:
 			if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
 				vehicle = assets.findByImcid(cmd.getSrc());
 				SoiPlan plan = cmd.getPlan();
-				
+
 				if (plan == null || plan.getWaypoints().isEmpty()) {
 					vehicle.setPlan(new Plan());
 				} else {
@@ -149,17 +155,17 @@ public class MessageProcessor {
 					ArrayList<Waypoint> wpts = new ArrayList<>();
 					plan.getWaypoints().forEach(
 							wpt -> wpts.add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration())));
-
 					p.setWaypoints(wpts);
+					Logger.getLogger(MessageProcessor.class.getName())
+							.info("Received plan for " + vehicle + ": " + plan);
 					vehicle.setPlan(p);
-					Logger.getLogger(MessageProcessor.class.getName()).info("Received plan for " + vehicle + ": " + plan);
-					vehicle = assets.findByImcid(cmd.getSrc());
 					assets.save(vehicle);
 				}
 			}
 			break;
 		default:
-			Logger.getLogger(MessageProcessor.class.getName()).info(cmd.getTypeStr()+" / "+cmd.getCommandStr()+" on "+cmd.getSourceName());			
+			Logger.getLogger(MessageProcessor.class.getName())
+					.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
 			break;
 		}
 
