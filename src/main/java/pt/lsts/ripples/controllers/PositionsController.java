@@ -35,16 +35,21 @@ public class PositionsController {
         Logger.getLogger(getClass().getSimpleName()).info("Sending positions since " + start);
 
         return repo.assetNames().stream()
-                .flatMap(asset -> repo.findTop100ByNameOrderByTimestampDesc(asset).stream())
+                .flatMap(asset -> repo.findTopByNameOrderByTimestampDesc(asset).stream())
                 .filter(asset -> asset.getTimestamp().after(start))
                 .collect(Collectors.toList());
     }
 
     @GetMapping(path = "/api/v1/systems", produces = "application/json")
     public List<SystemPosition> listAllSystems() {
+    	
+    	
+    	
         return listPositions("0").stream()
                 .map(p -> new SystemPosition(p))
                 .collect(Collectors.toList());
+        
+        
     }
 
     @GetMapping(path = "/api/v1/systems/active", produces = "application/json")

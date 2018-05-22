@@ -59,8 +59,8 @@ public class FetchData {
 		for (EnvDatum d : data) {
 			response.getWriter().write(String.join(",", d.getSource(), String.valueOf(d.getLatitude()),
 					String.valueOf(d.getLongitude()), String.valueOf(d.getTimestamp()),
-					String.valueOf(d.getValues().get("salinity")), String.valueOf(d.getValues().get("temperature")),
-					String.valueOf(d.getValues().get("conductivity")), String.valueOf(d.getValues().get("pressure"))));
+					String.format("%.3f", d.getValues().get("salinity")), String.format("%.3f", d.getValues().get("temperature")),
+					String.format("%.3f", d.getValues().get("conductivity")), String.format("%.3f", d.getValues().get("pressure"))));
 			response.getWriter().write('\n');
 		}
 
@@ -108,8 +108,8 @@ public class FetchData {
 		String json = locations.values().stream().flatMap(ll -> ll.stream()).map(datum -> {
 			return "{\"type\": \"Feature\","+
 					"\n\"properties\": {\"system\": \""+ datum.getSource() + "\","+
-					"\"salinity\": \""+datum.getValues().get("salinity")+"\","+
-					"\"temperature\": \""+datum.getValues().get("temperature")+"\","+
+					"\"salinity\": \""+String.format("%.3f", datum.getValues().get("salinity"))+"\","+
+					"\"temperature\": \""+String.format("%.3f", +datum.getValues().get("temperature"))+"\","+
 					"\"time\": \""+sdf.format(datum.getTimestamp())+"\"},"+
 					"\n\"geometry\": { \"type\": \"Point\", \"coordinates\": "+
 					"[" + datum.getLongitude() + "," + datum.getLatitude() + "]}}";}).collect(Collectors.joining(",\n"));

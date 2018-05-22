@@ -62,7 +62,7 @@ public class WGDownloader {
 	
 	@Value("${ais.db}")
 	private String aisDB;
-
+	
 	@Autowired
 	private EnvDataRepository envRepo;
 	

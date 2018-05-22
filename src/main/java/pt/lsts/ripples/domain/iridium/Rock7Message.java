@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 
 @Entity
 public class Rock7Message {
@@ -15,6 +16,8 @@ public class Rock7Message {
     private String imei;
     private int source;
     private int destination;
+    
+    @Lob
     private String msg;
     private int type;
     private Date created_at;
