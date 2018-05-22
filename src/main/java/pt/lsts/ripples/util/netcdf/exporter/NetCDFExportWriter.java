@@ -11,14 +11,7 @@ package pt.lsts.ripples.util.netcdf.exporter;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-import pt.lsts.ripples.util.netcdf.NetCDFUtils;
-import ucar.ma2.ArrayDouble;
-import ucar.ma2.DataType;
-import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 
 /**
