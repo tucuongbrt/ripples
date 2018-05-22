@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -158,15 +159,13 @@ public class FetchData {
 			@PathVariable String vehicle, HttpServletResponse response)
 					throws IOException {
 		
-		Date startSearshDate = DateUtil.parse(start);
+		Date startSearchDate = DateUtil.parse(start);
 		List<EnvDatum> data;
 
-		if (vehicle.equals("any")) {
-			response.getWriter().close();
-			return;
-		}
+		if (vehicle.equals("any"))
+			data = repo.findByTimestampAfterOrderByTimestampDesc(startSearchDate);
 		else
-			data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startSearshDate);
+			data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startSearchDate);
 		
 		if (data == null || data.isEmpty())  {
 			response.getWriter().close();
@@ -176,16 +175,23 @@ public class FetchData {
 		File exportFile = File.createTempFile("wgviewer", ".nc");
 		String location = exportFile.getAbsolutePath();
         try (NetcdfFileWriter writer = NetCDFExportWriter.createWriter(exportFile)) {
+//        	writer.setFill(true); // to allow fill the empty: Does not seams to work as expected
+        	
         	EnvDatum fd = data.stream().findFirst().get();
             NetCDFRootAttributes rootAttr = NetCDFRootAttributes.createDefault(location, location);
             rootAttr.setDateModified(data.get(data.size() - 1).getTimestamp()).setId(fd.getSource());
 
+            data = data.stream().sorted((t1, t2) -> t1.getTimestamp().compareTo(t2.getTimestamp()))
+            		.collect(Collectors.toList());
+
+			List<String> sources = data.stream().map(e -> e.getSource()).distinct().collect(Collectors.toList());
+            
             int obsNumber = data.size();
             
             rootAttr.write(writer);
 
             // add dimensions
-            Dimension trajDim = writer.addDimension(null, "trajectory", 1);
+            Dimension trajDim = writer.addDimension(null, "trajectory", sources.size());
             Dimension obsDim = writer.addDimension(null, "obs", obsNumber);
 
             List<Dimension> dimsTraj = new ArrayList<Dimension>();
@@ -197,14 +203,10 @@ public class FetchData {
 
             List<NetCDFVarElement> varsList = new ArrayList<>();
 
-			data = data.stream().sorted((t1, t2) -> t1.getTimestamp().compareTo(t2.getTimestamp()))
-					.collect(Collectors.toList());
-            
             Date startDate = data.stream().findFirst().get().getTimestamp();
             NetCDFVarElement timeVar = new NetCDFVarElement("time").setLongName("time").setStandardName("time")
                     .setUnits("seconds since " + dateTimeFormatterISO8601NoMillis.format(startDate))
                     .setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "T");
-            timeVar.createDataArray().setUnsigned(true);
             varsList.add(timeVar);
 
             NetCDFVarElement latVar = new NetCDFVarElement("lat").setLongName("latitude").setStandardName("latitude")
@@ -235,7 +237,10 @@ public class FetchData {
                     .setDataType(DataType.INT).setDimensions(dimsTraj);
             varsList.add(trajVar);
 
-            trajVar.insertData(1, 0);
+            // trajVar.insertData(1, 0);
+            for (int i = 0; i < sources.size(); i++) {
+            	trajVar.insertData(i + 1, i);
+			}
 
             NetCDFVarElement condVar = new NetCDFVarElement("cond").setLongName("Conductivity")
                         .setStandardName("sea_water_electrical_conductivity").setUnits("S m-1").setDataType(DataType.FLOAT)
@@ -260,9 +265,25 @@ public class FetchData {
     		for (EnvDatum d : data) {
     			idx++;
     			
-    			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, 0, idx);
-                latVar.insertData(d.getLatitude(), 0, idx);
-                lonVar.insertData(d.getLongitude(), 0, idx);
+    			String src = d.getSource();
+    			int traj = sources.indexOf(src);
+    			for (int i = 0; i < sources.size(); i++) {
+    				if (i == traj)
+    					continue;
+
+        			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, i, idx);
+                    latVar.insertData(-9999, i, idx);
+                    lonVar.insertData(-9999, i, idx);
+                    depthVar.insertData(-9999, i, idx);
+                    
+                    condVar.insertData(Float.NaN, i, idx);
+                    salVar.insertData(Float.NaN, i, idx);
+                    tempVar.insertData(Float.NaN, i, idx);
+				}
+    			
+    			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, traj, idx);
+                latVar.insertData(d.getLatitude(), traj, idx);
+                lonVar.insertData(d.getLongitude(), traj, idx);
                 double depth = Double.NaN;
                 try {
                 	depth = d.getValues().get("pressure");
@@ -270,7 +291,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                depthVar.insertData(Double.isFinite(depth) ? depth * 10 : -9999, 0, idx);
+                depthVar.insertData(Double.isFinite(depth) ? depth * 10 : -9999, traj, idx);
 
                 double cond = Double.NaN;
                 try {
@@ -279,7 +300,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, 0, idx);
+                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, traj, idx);
 
                 double sal = Double.NaN;
                 try {
@@ -288,7 +309,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, 0, idx);
+                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, traj, idx);
 
                 double temp = Double.NaN;
                 try {
@@ -297,14 +318,13 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, 0, idx);
+                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, traj, idx);
     		}
 
             // Now writing data
             varsList.stream().forEach(v -> v.writeVariable(writer));
             writer.create();
             varsList.stream().forEach(v -> v.writeData(writer));
-
         }
         catch (Exception e) {
 			e.printStackTrace();
