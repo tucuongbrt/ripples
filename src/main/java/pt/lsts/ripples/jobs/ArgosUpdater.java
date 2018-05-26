@@ -20,7 +20,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 
+import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.services.AssetInfoService;
+import pt.lsts.ripples.util.RipplesUtils;
 
 @Service
 public class ArgosUpdater {
@@ -45,6 +47,9 @@ public class ArgosUpdater {
 
 	@Autowired
 	AssetInfoService infoServ;
+
+	@Autowired
+	RipplesUtils ripples;
 
 	private enum ARGOS_COLUMNS {
 		date_update, platform_number, latitude, longitude, pres, temp, psal
@@ -95,6 +100,19 @@ public class ArgosUpdater {
 				measures.put("pressure", e.getValue().getSecond()[ARGOS_COLUMNS.pres.ordinal()]);
 				double lat = Double.valueOf(e.getValue().getSecond()[ARGOS_COLUMNS.latitude.ordinal()]);
 				double lon = Double.valueOf(e.getValue().getSecond()[ARGOS_COLUMNS.longitude.ordinal()]);
+				
+				/*try {
+				LinkedHashMap<String, Double> data = new LinkedHashMap<>();
+				for (Entry<String, String> el : measures.entrySet())
+					data.put(el.getKey(), Double.parseDouble(el.getValue()));
+				
+				SystemAddress addr = ripples.getOrCreate("argos_"+e.getKey());
+				ripples.setPosition(addr, lat, lon, Date.from(e.getValue().getFirst()), false);
+				ripples.setReceivedData(addr, lat, lon, Date.from(e.getValue().getFirst()), data);
+				}
+				catch (Exception ex) {
+					ex.printStackTrace();
+				}*/
 				infoServ.updateArgosAsset(e.getKey(), measures, Date.from(e.getValue().getFirst()), lat, lon);
 			}
 

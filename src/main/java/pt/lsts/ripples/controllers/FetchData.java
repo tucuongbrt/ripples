@@ -46,11 +46,16 @@ public class FetchData {
 
 	@RequestMapping(value = "/data/{vehicle}.csv", produces = "text/csv")
 	public void getCsv(@RequestParam(defaultValue = "-24h") String start,
+			@RequestParam(defaultValue = "-0m") String end,
 			@PathVariable String vehicle, HttpServletResponse response)
 					throws IOException {
 		response.getWriter().write("vehicle,latitude,longitude,timestamp,salinity,temperature,conductivity,pressure\n");
 		Date startDate = DateUtil.parse(start);
+		Date endDate = DateUtil.parse(end);
+		
 		List<EnvDatum> data;
+		
+		System.out.println(endDate);
 
 		if (vehicle.equals("any"))
 			data = repo.findByTimestampAfterOrderByTimestampDesc(startDate);
@@ -58,6 +63,8 @@ public class FetchData {
 			data = repo.findBySourceAndTimestampAfterOrderByTimestampDesc(vehicle, startDate);
 
 		for (EnvDatum d : data) {
+			if (d.getTimestamp().after(endDate))
+				continue;
 			response.getWriter().write(String.join(",", d.getSource(), String.valueOf(d.getLatitude()),
 					String.valueOf(d.getLongitude()), String.valueOf(d.getTimestamp()),
 					String.format("%.3f", d.getValues().get("salinity")), String.format("%.3f", d.getValues().get("temperature")),

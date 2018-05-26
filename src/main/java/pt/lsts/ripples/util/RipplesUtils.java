@@ -21,53 +21,61 @@ public class RipplesUtils {
 
 	@Autowired
 	PositionsRepository positions;
-	
+
 	@Autowired
 	EnvDataRepository dataRepo;
-	
+
 	@Autowired
 	AddressesRepository addresses;
-	
+
 	@Autowired
 	FirebaseAdapter firebase;
-	
+
 	private LinkedHashMap<String, EnvDatum> lastPostedData = new LinkedHashMap<>();
 	private LinkedHashMap<String, AssetPosition> lastPostedPositions = new LinkedHashMap<>();
-	
+
 	public Integer resolveName(String source) {
 		SystemAddress addr = addresses.findById(source).get();
 		if (addr == null)
 			return null;
 		return addr.getImcId();
 	}
-	
+
 	public SystemAddress getOrCreate(String source) {
 		int lastAddress = 0;
-		
+
 		if (addresses.existsById(source))
 			return addresses.findById(source).get();
-		
+
 		for (SystemAddress addr : addresses.findAll()) {
-			if (addr.getImcId() > lastAddress)
+			if (addr.getImcId() != null && addr.getImcId() > lastAddress)
 				lastAddress = addr.getImcId();
 		}
-		
+
 		SystemAddress addr = new SystemAddress(source);
-		addr.setImcId(lastAddress+1);
+		addr.setImcId(lastAddress + 1);
 		addresses.save(addr);
 		return addr;
-	}	
-	
+	}
+
 	public void setPosition(SystemAddress addr, double lat, double lon, Date time, boolean updateFirebase) {
-		
+
 		AssetPosition last = lastPostedPositions.get(addr.getName());
+
+		if (last == null)
+			last = positions.findTopByImcIdOrderByTimestampDesc(addr.getImcId());
 		
-		if (last != null && System.currentTimeMillis() - time.getTime() > 60_000) {
-			 if (time.getTime() - last.getTimestamp().getTime() < 300_000)
-				 return;
+		if (last != null && time.equals(last.getTimestamp())) {
+			return;
 		}
-		
-		Logger.getLogger(getClass().getSimpleName()).info("Storing position from "+addr.getName()+" ("+addr.getImcId()+") for time "+time);
+			
+		if (last != null && System.currentTimeMillis() - time.getTime() > 60_000) {
+			if (time.getTime() - last.getTimestamp().getTime() < 300_000)
+				return;
+		}
+
+		Logger.getLogger(getClass().getSimpleName())
+				.info("Storing position from " + addr.getName() + " (" + addr.getImcId() + ") for time " + time);
 
 		AssetPosition pos = new AssetPosition();
 		pos.setLat(lat);
@@ -76,26 +84,25 @@ public class RipplesUtils {
 		pos.setName(addr.getName());
 		pos.setImcId(addr.getImcId());
 		positions.save(pos);
-			
+
 		if (updateFirebase)
 			firebase.updateFirebase(pos);
-		lastPostedPositions.put(addr.getName(), pos);	
+		lastPostedPositions.put(addr.getName(), pos);
 	}
-	
+
 	public void setReceivedData(SystemAddress addr, double lat, double lon, Date time, Map<String, Double> data) {
-	
+
 		setPosition(addr, lat, lon, time, false);
-		
+
 		EnvDatum last = lastPostedData.get(addr.getName());
-		
+
 		if (last != null && System.currentTimeMillis() - time.getTime() > 60_000) {
-			 if (last.getTimestamp().after(time))
-				 return;
+			if (last.getTimestamp().after(time))
+				return;
 		}
-		
-		Logger.getLogger(getClass().getSimpleName()).info("Storing data from "+addr.getName()+" for time "+time);
-		
-		
+
+		Logger.getLogger(getClass().getSimpleName()).info("Storing data from " + addr.getName() + " for time " + time);
+
 		EnvDatum datum = new EnvDatum();
 		datum.getValues().putAll(data);
 		datum.setLatitude(lat);
