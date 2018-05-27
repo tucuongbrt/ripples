@@ -62,7 +62,12 @@ $.getJSON("/data/any.geojson?start=-10d", function(data) {
 				weight: 5,
 				fillOpacity: 1
 			});
-			mark.bindPopup("Salinity: "+feature.properties.salinity+"<br/>Temperature: "+feature.properties.temperature+"<br/>Time: "+feature.properties.time);
+			
+			url = "/info/"+feature.properties.system+".html";
+			if (feature.properties.system.startsWith("argos_")) {
+				url = "http://www.ifremer.fr/co-argoFloats/float?ptfCode="+feature.properties.system.substring(6);
+			}
+			mark.bindPopup("Salinity: "+feature.properties.salinity+"<br/>Temperature: "+feature.properties.temperature+"<br/>Time: "+feature.properties.time+"<br/><a href=\""+url+"\">"+feature.properties.system+"</a>");		
 			if (!isNaN(feature.properties.salinity))
 				mark.addTo(map);
 		}
