@@ -68,6 +68,8 @@ public class RipplesUtils {
 		if (last != null && time.equals(last.getTimestamp())) {
 			return;
 		}
+		
+		System.out.println("Last position is for "+last.getTimestamp()+". New position is for "+time);
 			
 		if (last != null && System.currentTimeMillis() - time.getTime() > 60_000) {
 			if (time.getTime() - last.getTimestamp().getTime() < 300_000)

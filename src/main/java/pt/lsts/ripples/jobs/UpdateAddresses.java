@@ -12,6 +12,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,12 +26,23 @@ import pt.lsts.ripples.repo.AddressesRepository;
 @Component
 public class UpdateAddresses {
 
-    private static final String location = "https://raw.githubusercontent.com/LSTS/imc/master/IMC_Addresses.xml";
+	@Value("${skip.db.initialization:false}")
+	boolean skip_initialization;
+	
+	private static final String location = "https://raw.githubusercontent.com/LSTS/imc/master/IMC_Addresses.xml";
 
     @Autowired
     AddressesRepository repo;
 
     @PostConstruct
+    public void initialization() {
+    	if (skip_initialization) {
+			Logger.getLogger(getClass().getSimpleName()).info("Skipping DB initialization");
+			return;
+		}
+    	updateImcAddresses();
+    }
+    
     @Scheduled(fixedRate = 600_000)
     public void updateImcAddresses() {
         try {

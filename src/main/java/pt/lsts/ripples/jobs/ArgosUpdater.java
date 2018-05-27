@@ -45,6 +45,9 @@ public class ArgosUpdater {
 	@Value("${argos.url:http://www.ifremer.fr/erddap/tabledap/ArgoFloats.csv?date_update,platform_number,latitude,longitude,pres,temp,psal}")
 	String argosUrl;
 
+	@Value("${skip.db.initialization:false}")
+	boolean skip_initialization;
+
 	@Autowired
 	AssetInfoService infoServ;
 
@@ -58,6 +61,11 @@ public class ArgosUpdater {
 	@PostConstruct
 	public void updateArgos() {
 
+		if (skip_initialization) {
+			Logger.getLogger(getClass().getSimpleName()).info("Skipping DB initialization");
+			return;
+		}
+    
 		StringBuilder sb = new StringBuilder(argosUrl);
 		sb.append("&time>=" + Instant.now().minus(daysToFetch, ChronoUnit.DAYS));
 		sb.append("&latitude>=" + latitude_min);
@@ -101,7 +109,7 @@ public class ArgosUpdater {
 				double lat = Double.valueOf(e.getValue().getSecond()[ARGOS_COLUMNS.latitude.ordinal()]);
 				double lon = Double.valueOf(e.getValue().getSecond()[ARGOS_COLUMNS.longitude.ordinal()]);
 				
-				/*try {
+				try {
 				LinkedHashMap<String, Double> data = new LinkedHashMap<>();
 				for (Entry<String, String> el : measures.entrySet())
 					data.put(el.getKey(), Double.parseDouble(el.getValue()));
@@ -112,7 +120,7 @@ public class ArgosUpdater {
 				}
 				catch (Exception ex) {
 					ex.printStackTrace();
-				}*/
+				}
 				infoServ.updateArgosAsset(e.getKey(), measures, Date.from(e.getValue().getFirst()), lat, lon);
 			}
 

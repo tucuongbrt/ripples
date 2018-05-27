@@ -11,6 +11,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -33,11 +34,23 @@ public class UpdateSpotPositions {
 
     @Autowired
     Resolver nameResolver;
+    
+	@Value("${skip.db.initialization:false}")
+	boolean skip_initialization;
 
     @PostConstruct
+    public void initialization() {
+    	if (skip_initialization) {
+			Logger.getLogger(getClass().getSimpleName()).info("Skipping DB initialization");
+			return;
+		}
+    	updateSpots();
+    }
+    
     @Scheduled(fixedRate = 60_000)
     public void updateSpots() {
-        try {
+    	
+    	try {
             Logger.getLogger(getClass().getSimpleName()).info("Updating SPOT tag positions...");
             
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();

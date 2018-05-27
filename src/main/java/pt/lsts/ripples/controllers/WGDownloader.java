@@ -63,6 +63,10 @@ public class WGDownloader {
 	@Value("${ais.db}")
 	private String aisDB;
 	
+	@Value("${skip.db.initialization:false}")
+	boolean skip_initialization;
+
+	
 	@Autowired
 	private EnvDataRepository envRepo;
 	
@@ -157,6 +161,12 @@ public class WGDownloader {
 	
 	@PostConstruct
 	public void initialData() {
+		
+		if (skip_initialization) {
+			logger.info("Skipping DB initialization");
+			return;
+		}
+		
 		try {
 			Authenticator.setDefault(new Authenticator() {
 				protected PasswordAuthentication getPasswordAuthentication() {

@@ -16,6 +16,7 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +39,10 @@ public class SailDroneDownloader {
 	@Autowired
 	private UpdateAddresses addrUpdater;
 	
+	@Value("${skip.db.initialization:false}")
+	boolean skip_initialization;
+
+	
 	private final Logger logger = LoggerFactory.getLogger(SailDroneDownloader.class);
 
 	private final String URL = "https://www.pmel.noaa.gov/sdig/soi/erddap/tabledap/soi_saildrone.csv0?trajectory,longitude,latitude,time,SAL_MEAN,COND_MEAN,TEMP_CTD_MEAN&time%3E";
@@ -48,6 +53,11 @@ public class SailDroneDownloader {
 
 	@PostConstruct
 	public void initialData() {
+		
+		if (skip_initialization) {
+			logger.info("Skipping DB initialization");
+			return;
+		}
 
 		List<EnvDatum> lastData = repo.findTopBySourceOrderByTimestampDesc("saildrone-1001");
 		if (lastData.isEmpty()) {
