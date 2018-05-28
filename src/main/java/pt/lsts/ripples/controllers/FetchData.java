@@ -12,7 +12,6 @@ import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -198,14 +197,15 @@ public class FetchData {
             rootAttr.write(writer);
 
             // add dimensions
-            Dimension trajDim = writer.addDimension(null, "trajectory", sources.size());
             Dimension obsDim = writer.addDimension(null, "obs", obsNumber);
+            Dimension nameStrlenDim = writer.addDimension(null, "name_strlen", 30);
 
             List<Dimension> dimsTraj = new ArrayList<Dimension>();
-            dimsTraj.add(trajDim);
+            if (sources.size() > 1)
+            	dimsTraj.add(obsDim);
+            dimsTraj.add(nameStrlenDim);
 
             List<Dimension> dims = new ArrayList<Dimension>();
-            dims.add(trajDim);
             dims.add(obsDim);
 
             List<NetCDFVarElement> varsList = new ArrayList<>();
@@ -218,79 +218,66 @@ public class FetchData {
 
             NetCDFVarElement latVar = new NetCDFVarElement("lat").setLongName("latitude").setStandardName("latitude")
                     .setUnits("degrees_north").setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "Y")
-                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "-9999")
-                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "-9999").setAtribute("valid_min", "-90")
-                    .setAtribute("valid_max", "90");
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, -9999.)
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, -9999.).setAtribute("valid_min", -90.)
+                    .setAtribute("valid_max", 90.).setAtribute(NetCDFUtils.NETCDF_ATT_VALID_RANGE, new double[] {-90., 90.});
             varsList.add(latVar);
 
             NetCDFVarElement lonVar = new NetCDFVarElement("lon").setLongName("longitude").setStandardName("longitude")
                     .setUnits("degrees_east").setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "X")
-                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "-9999")
-                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "-9999").setAtribute("valid_min", "-180")
-                    .setAtribute("valid_max", "180");
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, -9999.)
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, -9999.).setAtribute("valid_min", -180.)
+                    .setAtribute("valid_max", 180.).setAtribute(NetCDFUtils.NETCDF_ATT_VALID_RANGE, new double[] {-180., 180.});
             varsList.add(lonVar);
 
             // scaled as 0.1
             NetCDFVarElement depthVar = new NetCDFVarElement("depth").setLongName("depth").setStandardName("depth")
                     .setUnits("m").setDataType(DataType.INT).setDimensions(dims).setAtribute("axis", "Z")
-                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "-9999")
-                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "-9999").setAtribute("valid_min", "0")
-                    .setAtribute("scale_factor", "0.1").setAtribute("positive", "down")
-                    .setAtribute("_CoordinateAxisType", "Depth").setAtribute("_CoordinateZisPositive", "down")
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, -9999)
+                    .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, -9999).setAtribute("valid_min", 0)
+                    .setAtribute("scale_factor", 0.1).setAtribute("positive", "down")
+                    .setAtribute("_CoordinateAxisType", "Depth")
                     .setAtribute("coordinates", "time lat lon");
             varsList.add(depthVar);
 
             NetCDFVarElement trajVar = new NetCDFVarElement("trajectory").setLongName("trajectory")
-                    .setDataType(DataType.INT).setDimensions(dimsTraj);
+                    .setDataType(DataType.CHAR).setDimensions(dimsTraj).setAtribute("cf_role", "trajectory_id");
             varsList.add(trajVar);
-
-            // trajVar.insertData(1, 0);
-            for (int i = 0; i < sources.size(); i++) {
-            	trajVar.insertData(i + 1, i);
-			}
 
             NetCDFVarElement condVar = new NetCDFVarElement("cond").setLongName("Conductivity")
                         .setStandardName("sea_water_electrical_conductivity").setUnits("S m-1").setDataType(DataType.FLOAT)
-                        .setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "NaN")
-                        .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "NaN")
+                        .setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, Float.NaN)
+                        .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, Float.NaN)
                         .setAtribute("coordinates", "time depth lat lon");
             varsList.add(condVar);
             NetCDFVarElement salVar = new NetCDFVarElement("sal").setLongName("Salinity")
             		.setStandardName("sea_water_practical_salinity").setUnits("PSU").setDataType(DataType.FLOAT)
-            		.setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "NaN")
-            		.setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "NaN")
+            		.setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, Float.NaN)
+            		.setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, Float.NaN)
             		.setAtribute("coordinates", "time depth lat lon");
             varsList.add(salVar);
-            NetCDFVarElement tempVar = new NetCDFVarElement("temp_cdt").setLongName("Temperature CTD")
+            NetCDFVarElement tempVar = new NetCDFVarElement("temp_ctd").setLongName("Temperature CTD")
                         .setStandardName("sea_water_temperature").setUnits("degree_C").setDataType(DataType.FLOAT)
-                        .setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, "NaN")
-                        .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, "NaN")
+                        .setDimensions(dims).setAtribute(NetCDFUtils.NETCDF_ATT_FILL_VALUE, Float.NaN)
+                        .setAtribute(NetCDFUtils.NETCDF_ATT_MISSING_VALUE, Float.NaN)
                         .setAtribute("coordinates", "time depth lat lon");
             varsList.add(tempVar);
 
+            if (sources.size() == 1)
+            	trajVar.insertData(sources.get(0).toCharArray());
+            	
             int idx = -1;
     		for (EnvDatum d : data) {
     			idx++;
     			
-    			String src = d.getSource();
-    			int traj = sources.indexOf(src);
-    			for (int i = 0; i < sources.size(); i++) {
-    				if (i == traj)
-    					continue;
-
-        			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, i, idx);
-                    latVar.insertData(-9999, i, idx);
-                    lonVar.insertData(-9999, i, idx);
-                    depthVar.insertData(-9999, i, idx);
-                    
-                    condVar.insertData(Float.NaN, i, idx);
-                    salVar.insertData(Float.NaN, i, idx);
-                    tempVar.insertData(Float.NaN, i, idx);
-				}
+    			if (sources.size() > 1) {
+    				String src = d.getSource();
+    				trajVar.insertData(src.toCharArray(), idx);
+    			}
     			
-    			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, traj, idx);
-                latVar.insertData(d.getLatitude(), traj, idx);
-                lonVar.insertData(d.getLongitude(), traj, idx);
+    			timeVar.insertData((d.getTimestamp().getTime() - startDate.getTime()) / 1E3, idx);
+                latVar.insertData(d.getLatitude(), idx);
+                lonVar.insertData(d.getLongitude(), idx);
                 double depth = Double.NaN;
                 try {
                 	depth = d.getValues().get("pressure");
@@ -298,7 +285,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                depthVar.insertData(Double.isFinite(depth) ? depth : -9999, traj, idx);
+                depthVar.insertData(Double.isFinite(depth) ? depth : -9999, idx);
 
                 double cond = Double.NaN;
                 try {
@@ -307,7 +294,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, traj, idx);
+                condVar.insertData(Double.isFinite(cond) ? cond: Float.NaN, idx);
 
                 double sal = Double.NaN;
                 try {
@@ -316,7 +303,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, traj, idx);
+                salVar.insertData(Double.isFinite(sal) ? sal : Float.NaN, idx);
 
                 double temp = Double.NaN;
                 try {
@@ -325,7 +312,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, traj, idx);
+                tempVar.insertData(Double.isFinite(temp) ? temp : Float.NaN, idx);
     		}
 
             // Now writing data
@@ -346,6 +333,6 @@ public class FetchData {
 			e.printStackTrace();
 		}
 
-		response.getWriter().close();
+//		response.getWriter().close();
 	}
 }
