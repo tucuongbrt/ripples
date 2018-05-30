@@ -16,12 +16,13 @@ public class LetsEncryptController {
     @GetMapping({"/.well-known/acme-challenge/{file}"})
     public ResponseEntity<String> challenge(@PathVariable("file") String file) {
         try {
-            String contents = Files.lines(Paths.get("~/.well-known/acme-challenge/" +
+            String contents = Files.lines(Paths.get(".well-known/acme-challenge/" +
                     file.replaceAll("[^a-zA-Z0-9\\._]+", "_")))
                     .collect(Collectors.joining("\n"));
 
             return new ResponseEntity<String>(contents, HttpStatus.OK);
         } catch (Exception e) {
+        	e.printStackTrace();
             return new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST);
         }
     }
