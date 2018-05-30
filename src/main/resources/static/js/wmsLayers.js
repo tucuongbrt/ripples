@@ -236,6 +236,11 @@ mapLayers.kmlLayer = new L.KML("/kml/file.kmz", {
 	async : true
 });
 
+mapLayers.mur = new L.GIBSLayer('GHRSST_L4_MUR_Sea_Surface_Temperature', {
+    date: new Date('2018/05/25'),
+    transparent: false
+});
+
 
 function addBaseLayers(layersControl) {
 
@@ -255,10 +260,12 @@ function addWmsOverlays(layersControl) {
 	layers.addOverlay(mapLayers.sst, "CMEMS Water Temperature");
 	layers.addOverlay(mapLayers.ssv, "CMEMS Water Velocity");
 	layers.addOverlay(mapLayers.zos, "CMEMS Surface Height");
+	layers.addOverlay(mapLayers.chl, "CMEMS Chlorophyll");
 	layers.addOverlay(mapLayers.waves, "CMEMS Waves");
 	layers.addOverlay(mapLayers.wind, "CMEMS Wind");
 	layers.addOverlay(mapLayers.argos, "Argos Floats");
-
+	layers.addOverlay(mapLayers.mur, "MUR Surface Temperature");
+	
 }
 
 function addTransparentOverlays() {
