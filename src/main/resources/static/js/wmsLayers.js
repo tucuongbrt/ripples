@@ -232,6 +232,18 @@ mapLayers.sss = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/global
 	attribution : 'E.U. Copernicus Marine Service Information'
 });
 
+mapLayers.sla = L.tileLayer.wmsLegend('http://nrt.cmems-du.eu/thredds/wms/dataset-duacs-nrt-global-merged-allsat-phy-l4', {
+	layers: 'ugosa',
+	format: 'image/png',
+	transparent: 'true',
+	styles: 'boxfill/redblue',
+	colorscalerange: '-0.8,0.8',
+	belowmincolor: 'extend',
+	belowmaxcolor: 'extend',
+	opacity:'0.8',
+	attribution : 'E.U. Copernicus Marine Service Information'
+});	
+	
 mapLayers.kmlLayer = new L.KML("/kml/file.kmz", {
 	async : true
 });
@@ -261,6 +273,8 @@ function addWmsOverlays(layersControl) {
 	layers.addOverlay(mapLayers.ssv, "CMEMS Water Velocity");
 	layers.addOverlay(mapLayers.zos, "CMEMS Surface Height");
 	layers.addOverlay(mapLayers.chl, "CMEMS Chlorophyll");
+	layers.addOverlay(mapLayers.sla, "CMEMS Sea Level Anomaly");
+	
 	layers.addOverlay(mapLayers.waves, "CMEMS Waves");
 	layers.addOverlay(mapLayers.wind, "CMEMS Wind");
 	layers.addOverlay(mapLayers.argos, "Argos Floats");
