@@ -44,7 +44,8 @@ public class FetchData {
 	private static final Date REF_DATE;
 	static {
 		Calendar cal = Calendar.getInstance();
-		cal.set(2004, Calendar.SEPTEMBER, 1);
+		cal.set(2004, Calendar.SEPTEMBER, 1, 0, 0, 0);
+		cal.setTimeZone(TimeZone.getTimeZone("UTC"));
 		REF_DATE = cal.getTime();
 	}
 
