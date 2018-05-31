@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,6 +40,13 @@ public class FetchData {
 
     @SuppressWarnings("serial")
 	public static final SimpleDateFormat dateTimeFormatterISO8601NoMillis = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", new Locale("en")) {{setTimeZone(TimeZone.getTimeZone("UTC"));}};
+	
+	private static final Date REF_DATE;
+	static {
+		Calendar cal = Calendar.getInstance();
+		cal.set(2004, Calendar.SEPTEMBER, 1);
+		REF_DATE = cal.getTime();
+	}
 
 	@Autowired
 	EnvDataRepository repo;
@@ -210,7 +218,7 @@ public class FetchData {
 
             List<NetCDFVarElement> varsList = new ArrayList<>();
 
-            Date startDate = data.stream().findFirst().get().getTimestamp();
+            Date startDate = REF_DATE;
             NetCDFVarElement timeVar = new NetCDFVarElement("time").setLongName("time").setStandardName("time")
                     .setUnits("seconds since " + dateTimeFormatterISO8601NoMillis.format(startDate))
                     .setDataType(DataType.DOUBLE).setDimensions(dims).setAtribute("axis", "T");
