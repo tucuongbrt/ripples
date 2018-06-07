@@ -294,7 +294,7 @@ public class FetchData {
                 catch (Exception e) {
 					// TODO: handle exception
 				}
-                depthVar.insertData(Double.isFinite(depth) ? depth : -9999, idx);
+                depthVar.insertData(Double.isFinite(depth) ? depth / 0.1 : -9999, idx);
 
                 double cond = Double.NaN;
                 try {
