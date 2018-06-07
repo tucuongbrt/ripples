@@ -8,18 +8,19 @@
 
 <!-- Bootstrap CSS -->
 <link rel="stylesheet"
-	href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+	href="/css/bootstrap.min.css"
 	integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB"
 	crossorigin="anonymous">
 
 <!-- Plot.ly js -->
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="/js/plotly-latest.min.js"></script>
 
 <title>WG Salinity</title>
 </head>
 
 <body>
 	<div id="wg"></div>
+	<div id="falkor"></div>
 	<div id="sail1"></div>
 	<div id="sail2"></div>
 	<script type="text/javascript">
@@ -102,7 +103,7 @@
   	createPlot('wg', 'wg-sv3-127');
   	createPlot('sail1', 'saildrone-1001');
   	createPlot('sail2', 'saildrone-1004');
-  	
+  	createPlot('falkor', 'falkor');
   	
   
   </script>
