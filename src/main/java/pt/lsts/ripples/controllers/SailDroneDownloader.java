@@ -87,13 +87,17 @@ public class SailDroneDownloader {
 				logger.error("Error " + conn.getResponseCode());
 				return;
 			}
+			
 			BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			String line = reader.readLine();
-
 			ConcurrentHashMap<String, SystemAddress> addrs = new ConcurrentHashMap<>();
 			
 			while (line != null) {
 				String[] parts = line.split(",");
+				if (parts.length < PART_NAMES.values().length){
+					logger.warn("Ignoring line read" + line);
+					break;
+				}
 				String source = "saildrone-" + parts[PART_NAMES.trajectory.ordinal()].replaceAll("\\.0", "");
 				SystemAddress addr = addrs.getOrDefault(source, ripples.getOrCreate(source));
 				
