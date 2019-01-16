@@ -193,9 +193,12 @@ public class WGDownloader {
 	
 	@Scheduled(fixedRate = 180_000)
 	public void updateWGData() {
-		logger.info("retrieving ctd...");
-		processData(getData("CTD,AIS,Waveglider", "-3m"));
+		if (!skip_initialization){
+			logger.info("retrieving ctd...");
+			processData(getData("CTD,AIS,Waveglider", "-3m"));
+		}
 	}
+		
 	
 	private void loadAISdata() {
 		BufferedReader reader = null;
