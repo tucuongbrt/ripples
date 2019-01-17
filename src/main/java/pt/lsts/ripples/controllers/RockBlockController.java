@@ -22,6 +22,7 @@ import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.repo.Rock7Repository;
 import pt.lsts.ripples.services.MessageProcessor;
+import pt.lsts.ripples.util.IridiumUtils;
 
 
 @RestController
@@ -50,35 +51,36 @@ public class RockBlockController {
 	@SuppressWarnings("rawtypes")
 	@PostMapping(path = {"/api/v1/iridium", "/api/v1/irsim"}, consumes = "application/hub")
 	public ResponseEntity sendMessage(@RequestBody String body) {
-
+		IridiumMessage msg;
 		try {
 			byte[] data = hexAdapter.unmarshal(body);
-			IridiumMessage msg = IridiumMessage.deserialize(data);
-
-			int dst = msg.getDestination();
-			int src = msg.getSource();
-
-			Rock7Message m = new Rock7Message();
-			m.setType(msg.getMessageType());
-			m.setDestination(dst);
-			m.setSource(src);
-			m.setMsg(body);
-			m.setCreated_at(new Date(msg.timestampMillis));
-			m.setUpdated_at(new Date());
-
-			repo.save(m);
-
-			msgProcessor.process(msg);
-			return new ResponseEntity<String>("Message posted to Ripples", HttpStatus.OK);
-
-		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).log(Level.WARNING,
-					"Error sending Iridium message", e);
-
-			return new ResponseEntity<String>(e.getClass().getSimpleName() + " while sending Iridium message",
-					HttpStatus.INTERNAL_SERVER_ERROR);
+			msg = IridiumMessage.deserialize(data);
 		}
-	}
+		catch (Exception e1) {
+			try { 
+				IridiumUtils.parsePlainTextReport(body);
+				return new ResponseEntity<String>("Parsed plain text message", HttpStatus.OK);
+			} catch( Exception e2) {
+				return new ResponseEntity<String>(e2.getClass().getSimpleName() + " while sending Iridium message",
+				HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		}
+		int dst = msg.getDestination();
+		int src = msg.getSource();
+
+		Rock7Message m = new Rock7Message();
+		m.setType(msg.getMessageType());
+		m.setDestination(dst);
+		m.setSource(src);
+		m.setMsg(body);
+		m.setCreated_at(new Date(msg.timestampMillis));
+		m.setUpdated_at(new Date());
+
+		repo.save(m);
+
+		msgProcessor.process(msg);
+		return new ResponseEntity<String>("Message posted to Ripples", HttpStatus.OK);
+	} 	
 
 
 	@PostMapping(path = "/rock7")
