@@ -53,20 +53,21 @@ public class IridiumUtils {
 				System.err.println("Received report from unknown system name: " + vehicle);
 				return;
 			}
-			SystemPosition position = new SystemPosition();
-			position.imc_id = source;
-			position.lat = lat;
-			position.lon = lon;
-			
+
 			Date time = date.getTime();
 			if (time.after(new Date(System.currentTimeMillis() + 600_000))) {
 				Logger.getLogger(IridiumUtils.class.getSimpleName()).log(Level.WARNING, "Received a message from the future?");
 				time = new Date(time.getTime() - 24 * 3600 * 1000);					
 			}
-			
+			/*
+			SystemPosition position = new SystemPosition();
+			position.imc_id = source;
+			position.lat = lat;
+			position.lon = lon;
 			position.timestamp = time;
 			System.out.println(position.timestamp+" / "+position.lat);
 			PositionsServlet.addPosition(position, false);
+			*/
 			System.out.println(vehicle + " sent report (" + type + ") at time " + date.getTime() + ". Position: " + lat
 					+ " / " + lon);
 		}
