@@ -103,7 +103,7 @@ public class MessageProcessor {
 	}
 
 	public void incoming(VerticalProfile profile) {
-		VerticalProfileData data = new VerticalProfileData();
+		VerticalProfileData data = new VerticalProfileData(profile);
 		vertProfiles.save(data);
 	}
 
