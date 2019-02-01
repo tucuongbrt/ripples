@@ -1,89 +1,128 @@
 import React, { Component } from 'react'
-import { Map, TileLayer, Marker, Popup, Polyline} from 'react-leaflet'
-import {auvIcon} from './icons/auvIcon'
+import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
+//import {auvIcon} from './icons/auvIcon'
+import Vehicle from './Vehicle'
+import Spot from './Spot'
+import VehiclePlan from './VehiclePlan'
+import { fetchSoiData, fetchProfileData } from './SoiUtils'
 import './css/Ripples.css'
+import VerticalProfile from './VerticalProfile';
+const { BaseLayer, Overlay } = LayersControl
 
 export default class Ripples extends Component {
 
-  constructor(props){
+  constructor(props) {
     super(props);
     this.state = {
+      vehicles: [],
+      spots: [],
+      profiles: []
+    }
+    this.initCoords = {
       lat: 41.18,
       lng: -8.7,
-      zoom: 5,
-      soiData: [],
+      zoom: 10,
     }
-    this.drawActiveSystems = this.drawActiveSystems.bind(this)
+    this.drawVehicles = this.drawVehicles.bind(this)
+    this.drawSpots = this.drawSpots.bind(this)
     this.drawPlans = this.drawPlans.bind(this)
+    this.drawProfiles = this.drawProfiles.bind(this)
+    this.updateSoiData = this.updateSoiData.bind(this)
   }
 
   componentDidMount() {
-
-    fetch('http://localhost:9090/soi')
-      .then(response => response.json())
-      .then((data) => {
-        console.log('soiData', data);
-        this.setState({soiData: data})
-      });
+    this.updateSoiData();
+    const intervalId = setInterval(this.updateSoiData, 60000); //get Soi data every minute
+    this.setState({ intervalId: intervalId })
   }
 
-  getSystemPosition(lastState){
-    return {lat: lastState.latitude, lng: lastState.longitude}
+  componentWillUnmount() {
+    clearInterval(this.state.intervalId);
   }
-  timestampToDate(timestamp) {
-    return new Date(timestamp).toISOString();
+
+  updateSoiData() {
+    fetchSoiData().then(soiData => {
+      this.setState({ vehicles: soiData.vehicles, spots: soiData.spots })
+    })
+    fetchProfileData().then(profiles => {
+      this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
+    })
   }
-  drawActiveSystems(){
-    let markers = [];
-    this.state.soiData.forEach(system => {
-      markers.push(
-        <Marker key={system.imcid} position={this.getSystemPosition(system.lastState)} icon={auvIcon}>
-          <Popup>
-            <h3>{system.name}</h3>
-            <ul>
-              <li>Fuel: {system.lastState.fuel}</li>
-              <li>Heading: {system.lastState.heading}</li>
-              <li>Date: {this.timestampToDate(system.lastState.timestamp)}</li>
-            </ul>
-          </Popup>
-        </Marker>
+
+  drawVehicles() {
+    let vehicles = [];
+    this.state.vehicles.forEach(vehicle => {
+      vehicles.push(
+        <Vehicle key={vehicle.imcid} lastState={vehicle.lastState} name={vehicle.name}></Vehicle>
       )
     })
-    return markers;
+    return vehicles;
   }
-  drawPlans(){
+
+  drawPlans() {
     let plans = [];
-    let soiData = this.state.soiData
-    soiData.filter(s => s.plan.waypoints.length > 0).forEach(vehicle => {
-      let waypoints = vehicle.plan.waypoints;
-      let positions = waypoints.map(wp => [wp.latitude, wp.longitude])
-      positions.forEach((p,i) => {
-        plans.push(
-          <Marker position={p}>
-            <Popup>
-              <h3>Waypoint</h3>
-              <span>ETA: {this.timestampToDate(waypoints[i].eta)}</span>
-            </Popup>
-          </Marker>
-        )
-      })
+    this.state.vehicles.filter(vehicle => vehicle.plan.waypoints.length > 0).forEach(vehicle => {
+      const plan = vehicle.plan;
       plans.push(
-        <Polyline key={vehicle.plan.id} positions={positions} color='#008000'></Polyline>
+        <VehiclePlan key={"VehiclePlan" + plan.id} id={plan.id} waypoints={plan.waypoints}></VehiclePlan>
       )
     })
     return plans;
   }
 
+  drawSpots() {
+    let spots = [];
+    this.state.spots.forEach(spot => {
+      spots.push(
+        <Spot key={spot.imcid} lastState={spot.lastState} name={spot.name}></Spot>
+      )
+    })
+    return spots;
+  }
+
+  drawProfiles() {
+    let profiles = [];
+    this.state.profiles.forEach(profile => {
+      profiles.push(
+        <VerticalProfile data={profile}></VerticalProfile>
+      )
+    })
+    return profiles;
+  }
+
   render() {
-    const position = [this.state.lat, this.state.lng]
+    const position = [this.initCoords.lat, this.initCoords.lng]
     return (
-      <Map center={position} zoom={this.state.zoom}>
-        <TileLayer
-          attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {this.drawActiveSystems()}
-        {this.drawPlans()}
+      <Map center={position} zoom={this.initCoords.zoom}>
+        <LayersControl position="topright">
+          <BaseLayer checked name="OpenStreetMap.Mapnik">
+            <TileLayer
+              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </BaseLayer>
+          <Overlay checked name="Vehicles">
+            <LayerGroup>
+              {this.drawVehicles()}
+            </LayerGroup>
+          </Overlay>
+          <Overlay checked name="Spots">
+            <LayerGroup>
+              {this.drawSpots()}
+            </LayerGroup>
+          </Overlay>
+          <Overlay checked name="Plans">
+            <LayerGroup>
+              {this.drawPlans()}
+            </LayerGroup>
+          </Overlay>
+          <Overlay checked name="Profiles">
+            <LayerGroup>
+              {this.drawProfiles()}
+            </LayerGroup>
+          </Overlay>
+        </LayersControl>
+
       </Map>
     )
   }
