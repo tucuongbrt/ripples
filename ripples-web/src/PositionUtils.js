@@ -1,3 +1,7 @@
+export function getSystemPosition(lastState){
+    return {lat: lastState.latitude, lng: lastState.longitude}
+}
+
 function degreesToRadians(degrees) {
     return degrees * Math.PI / 180;
 }
