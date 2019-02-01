@@ -63,7 +63,7 @@ public class WGDownloader {
 	@Value("${ais.db}")
 	private String aisDB;
 	
-	@Value("${skip.db.initialization:false}")
+	@Value("${skip.db.initialization}")
 	boolean skip_initialization;
 
 	
