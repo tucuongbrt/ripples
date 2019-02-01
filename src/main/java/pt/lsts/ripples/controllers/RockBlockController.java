@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.repo.Rock7Repository;
@@ -58,7 +58,8 @@ public class RockBlockController {
 		}
 		catch (Exception e1) {
 			try { 
-				IridiumUtils.parsePlainTextReport(body);
+				AssetPosition position = IridiumUtils.parsePlainTextReport(body);
+				msgProcessor.setAssetPosition(position);
 				return new ResponseEntity<String>("Parsed plain text message", HttpStatus.OK);
 			} catch( Exception e2) {
 				return new ResponseEntity<String>(e2.getClass().getSimpleName() + " while sending Iridium message",
