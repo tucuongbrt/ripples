@@ -39,7 +39,7 @@ public class SailDroneDownloader {
 	@Autowired
 	private UpdateAddresses addrUpdater;
 	
-	@Value("${skip.db.initialization:false}")
+	@Value("${skip.db.initialization}")
 	boolean skip_initialization;
 
 	
@@ -69,7 +69,9 @@ public class SailDroneDownloader {
 
 	@Scheduled(fixedRate = 60_000)
 	public void updateDataPeriodically() {
-
+		if (skip_initialization) {
+			return;
+		}
 		List<EnvDatum> lastData = repo.findTopBySourceOrderByTimestampDesc("saildrone-1001");
 		if (lastData.isEmpty()) {
 			getDataSince(LocalDate.of(2018, 04, 01).atStartOfDay(ZoneId.of("UTC")).toInstant());
