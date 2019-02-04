@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Map, TileLayer, LayerGroup, LayersControl} from 'react-leaflet'
+import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
 import { Container, Row, Col } from 'reactstrap';
 import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
 import Vehicle from './Vehicle'
@@ -23,8 +23,9 @@ export default class Ripples extends Component {
       spots: [],
       profiles: [],
       freeDrawMode: NONE,
-      selecetdPlan: null,
+      selectedPlan: null,
       freeDrawPolygon: [],
+      dropdownText: 'Edit Plan'
     }
     this.initCoords = {
       lat: 41.18,
@@ -38,8 +39,9 @@ export default class Ripples extends Component {
     this.updateSoiData = this.updateSoiData.bind(this)
     this.handleExecPlan = this.handleExecPlan.bind(this)
     this.handleDrawNewPlan = this.handleDrawNewPlan.bind(this)
-    this.handleUpdatePlan = this.handleUpdatePlan.bind(this)
+    this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
+    this.handleMapClick = this.handleMapClick.bind(this)
   }
 
   componentDidMount() {
@@ -77,12 +79,15 @@ export default class Ripples extends Component {
     let selectedPlan = this.state.selectedPlan;
     this.state.vehicles.filter(vehicle => vehicle.plan.waypoints.length > 0).forEach(vehicle => {
       const plan = vehicle.plan;
+      console.log("Ripples draw plans:", plan)
       plans.push(
-        <VehiclePlan 
-        key={"VehiclePlan" + plan.id}
-        id={plan.id}
-        waypoints={plan.waypoints} isMovable={plan.id === selectedPlan}
-        handleMarkerClick={this.handleMarkerClick}>
+        <VehiclePlan
+          key={"VehiclePlan" + plan.id}
+          plan={vehicle.plan}
+          vehicle={vehicle.name}
+          imcId={vehicle.imcId}
+          isMovable={plan.id === selectedPlan}
+          handleMarkerClick={this.handleMarkerClick}>
         </VehiclePlan>
       )
     })
@@ -111,7 +116,7 @@ export default class Ripples extends Component {
 
   handleOnMarkers = event => {
     this.setState({ freeDrawPolygon: event.latLngs[0] })
-    this.setState({freeDrawMode: EDIT | DELETE})
+    this.setState({ freeDrawMode: EDIT | DELETE })
   };
 
   handleModeChange = event => {
@@ -132,23 +137,42 @@ export default class Ripples extends Component {
     })
   }
 
-  handleUpdatePlan = (planId) => {
+  handleEditPlan = (planId) => {
     console.log('Update plan: ', planId);
     // enable drag on markers of the plan
     this.setState({
-      selectedPlan: planId
+      selectedPlan: planId,
+      dropdownText: `Editing ${planId}`
     })
   }
 
-  handleMarkerClick(planId, markerId){
+  handleMarkerClick(planId, markerId) {
     console.log(planId, markerId)
-    if(planId === this.state.selecetdPlan){
-        this.setState({
-            wpSelected: markerId
-        })
+    console.log(this.state.selectedPlan)
+    if (planId === this.state.selectedPlan) {
+      this.setState({
+        wpSelected: markerId,
+      })
     }
-    
-}
+  }
+
+  handleMapClick(e) {
+    const selectedPlan = this.state.selectedPlan;
+    const wpSelected = this.state.wpSelected;
+    if (wpSelected != null && selectedPlan != null) {
+      const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
+      this.setState({ wpSelected: null, selectedPlan: null, dropdownText: `Edit Plan` })
+      // send new point to server
+      console.log(e)
+      // update point locally
+      let newVehicles = this.state.vehicles.slice();
+      const vehicleIdx = newVehicles.findIndex(v => v.plan.id === selectedPlan);
+      const prevEta = newVehicles[vehicleIdx].plan.waypoints[wpSelected].eta;
+      newVehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, {eta: prevEta, duration: 120})
+      this.setState({vehicles: newVehicles})
+      console.log("Vehicles:", this.state.vehicles)
+    }
+  }
 
 
   freedrawRef = React.createRef();
@@ -165,11 +189,12 @@ export default class Ripples extends Component {
               plans={this.state.plans}
               handleDrawNewPlan={this.handleDrawNewPlan}
               handleExecPlan={this.handleExecPlan}
-              handleUpdatePlan={this.handleUpdatePlan}>
+              handleEditPlan={this.handleEditPlan}
+              dropdownText={this.state.dropdownText}>
             </LeftsideNav>
           </Col>
           <Col xs="10">
-            <Map center={position} zoom={this.initCoords.zoom} fullscreenControl>
+            <Map center={position} zoom={this.initCoords.zoom} fullscreenControl onClick={this.handleMapClick}>
               <Freedraw
                 mode={mode}
                 onMarkers={this.handleOnMarkers}

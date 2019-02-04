@@ -11,22 +11,11 @@ export default class VehiclePlan extends Component {
 
     constructor(props) {
         super(props);
-        let newWaypoints = props.waypoints.map(wp => {
-            return {
-                latitude: wp.latitude,
-                longitude: wp.longitude,
-                eta: wp.eta * 1000 // save in millisseconds
-            }
-        })
-        console.log(newWaypoints)
         this.state = {
-            prevWaypoits: newWaypoints, //save state in order to cancel plan changes
-            waypoints: newWaypoints,
-            id: props.id,
             etas: [],
             estimatedPos: { longitude: 0, latitude: 0 }
         }
-        this.renderPlanLine = this.renderPlanLine.bind(this);
+        this.renderPlanLine = this.renderPlanLines.bind(this);
         this.renderPlanWaypoints = this.renderPlanWaypoints.bind(this);
         this.renderEstimatedPosition = this.renderEstimatedPosition.bind(this);
         this.updateETA = this.updateETA.bind(this);
@@ -49,23 +38,37 @@ export default class VehiclePlan extends Component {
     }
 
 
-    renderPlanLine(positions) {
-        return <Polyline key={"Polyline" + this.state.id} positions={positions} color='#008000'></Polyline>
+    /**
+     * Multiple polylines need to be rendered so that the plan can be edit to not be a single line
+     * @param {} positions Positions of waypoints
+     */
+    renderPlanLines() {
+        let positions = this.props.plan.waypoints.map(wp => [wp.latitude, wp.longitude])
+        let polylines = [];
+        for(let i = 0; i < positions.length - 1; i++){
+            let current = positions[i];
+            let next = positions[i+1];
+            polylines.push(
+                <Polyline key={"Polyline_" + i + "_" + this.props.plan.id} positions={[current,next]} color='#008000'></Polyline>
+            )
+        }
+        return polylines;
     }
 
-    renderPlanWaypoints(positions) {
+    renderPlanWaypoints() {
+        let positions = this.props.plan.waypoints.map(wp => [wp.latitude, wp.longitude])
         let markers = [];
         positions.forEach((p, i) => {
             let isMovable = this.props.isMovable && (this.state.etas[i] - Date.now()) > 0;
             let popup = isMovable ? <Popup><span>Click on the map to move me there</span></Popup> : 
-            (<Popup><h3>Waypoint</h3><span>ETA: {timeFromNow(this.state.etas[i])}</span></Popup>)
+            (<Popup><h3>Waypoint {i} of {this.props.plan.id}</h3><span>ETA: {timeFromNow(this.state.etas[i])}</span></Popup>)
             markers.push(
                 <Marker
-                    key={"Waypoint" + i + "_" + this.state.id}
+                    key={"Waypoint" + i + "_" + this.props.plan.id}
                     index={i}
                     position={p}
                     icon={new WaypointIcon()}
-                    onClick={() => this.props.handleMarkerClick(this.state.id, i)}>
+                    onClick={() => this.props.handleMarkerClick(this.props.plan.id, i)}>
                     {popup}
                 </Marker>
             )
@@ -74,7 +77,7 @@ export default class VehiclePlan extends Component {
     }
 
     updateEstimatedPos() {
-        const waypoints = this.state.waypoints;
+        const waypoints = this.props.plan.waypoints;
         const firstWaypoint = waypoints[0];
         const lastWaypoint = waypoints[waypoints.length - 1];
         const deltaTime = lastWaypoint.eta - firstWaypoint.eta;
@@ -89,7 +92,7 @@ export default class VehiclePlan extends Component {
     renderEstimatedPosition() {
         const estimatedPos = getSystemPosition(this.state.estimatedPos);
         return (
-            <Marker key={this.props.imcid} position={estimatedPos} icon={new GhostIcon()} opacity={0.7}>
+            <Marker key={"estimated_"+this.props.vehicle.imcid} position={estimatedPos} icon={new GhostIcon()} opacity={0.7}>
                 <Popup>
                     <h3>Estimated Position</h3>
                     <ul>
@@ -103,18 +106,17 @@ export default class VehiclePlan extends Component {
 
     updateETA() {
         let eta = [];
-        this.state.waypoints.forEach(wp => {
-            eta.push(wp.eta);
+        this.props.plan.waypoints.forEach(wp => {
+            eta.push(wp.eta*1000); //convert to ms
         })
         this.setState({ etas: eta })
     }
 
     render() {
-        let positions = this.state.waypoints.map(wp => [wp.latitude, wp.longitude])
         return (
             <div>
-                {this.renderPlanLine(positions)}
-                {this.renderPlanWaypoints(positions)}
+                {this.renderPlanLines()}
+                {this.renderPlanWaypoints()}
                 {this.renderEstimatedPosition()}
             </div>
 

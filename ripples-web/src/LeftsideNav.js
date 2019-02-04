@@ -7,11 +7,11 @@ export default class LeftsideNav extends Component {
     super(props)
     this.state = {
       dropdownOpen: false,
-      execPlanDisabled: true
+      execPlanDisabled: true,
     }
     this.toggleDropdown = this.toggleDropdown.bind(this)
-    this.toggleExecPlan = this.toggleExecPlan.bind(this)
-    this.toogleDrawNewPlan = this.toggleDrawNewPlan.bind(this)
+    this.toggleExecPlan = this.handleExecPlan.bind(this)
+    this.toogleDrawNewPlan = this.handleDrawNewPlan.bind(this)
   }
   toggleDropdown() {
     this.setState({
@@ -19,22 +19,23 @@ export default class LeftsideNav extends Component {
     });
   }
 
-  toggleExecPlan() {
+  handleExecPlan() {
     this.setState({
       execPlanDisabled: !this.state.execPlanDisabled
     })
     this.props.handleExecPlan()
   }
-  toggleDrawNewPlan(){
+  handleDrawNewPlan(){
     this.setState({
       execPlanDisabled: !this.state.execPlanDisabled
     })
     this.props.handleDrawNewPlan();
   }
 
+
   getPlans() {
     return this.props.plans.map(p => {
-      return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.props.handleUpdatePlan(p)}>{p}</DropdownItem>
+      return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.props.handleEditPlan(p)}>{p}</DropdownItem>
     })
   }
 
@@ -48,11 +49,11 @@ export default class LeftsideNav extends Component {
             <NavLink disabled={!this.state.execPlanDisabled} onClick={this.toogleDrawNewPlan} href="#" >Draw new plan</NavLink>
           </NavItem>
           <NavItem>
-            <NavLink disabled={this.state.execPlanDisabled} onClick={this.toggleExecPlan} href="#">Execute plan</NavLink>
+            <NavLink disabled={this.state.execPlanDisabled} onClick={this.handleExecPlan} href="#">Execute plan</NavLink>
           </NavItem>
           <Dropdown nav isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown}>
             <DropdownToggle nav caret>
-              Edit a Plan
+              {this.props.dropdownText}
             </DropdownToggle>
             <DropdownMenu>
               {this.getPlans()}
