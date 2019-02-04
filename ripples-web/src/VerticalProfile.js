@@ -5,9 +5,7 @@ import LinePlot from './LinePlot';
 import { SensorIcon } from './icons/Icons';
 
 export default class VerticalProfile extends Component {
-    constructor(props){
-        super(props);
-    }
+
     render(){
         return (
             <Marker position={getSystemPosition(this.props.data)} icon={new SensorIcon()}>

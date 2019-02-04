@@ -10,7 +10,7 @@ export const AuvIcon = L.Icon.extend({
 
 export const GhostIcon = L.Icon.extend({
     options: {
-		iconUrl: 'http://files.softicons.com/download/holidays-icons/halloween-icons-by-arrioch/ico/ghost.ico',
+		iconUrl: 'https://image.flaticon.com/icons/png/128/190/190006.png',
 		//iconUrl: './src/icons/ico_auv.png',
         iconSize: [32, 32]
     }

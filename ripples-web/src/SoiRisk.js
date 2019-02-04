@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Table } from 'reactstrap';
 import { fetchSoiData } from './SoiUtils';
-import { secondsToTime } from './DateUtils';
+import { timeFromNow } from './DateUtils';
 import { distanceInKmBetweenCoords } from './PositionUtils';
 
 export default class SoiRisk extends Component {
@@ -14,7 +14,6 @@ export default class SoiRisk extends Component {
         this.rootCoords = {lat: 41.18, lng: -8.7}
         this.updateSoiData = this.updateSoiData.bind(this)
         this.renderAllVehicles = this.renderAllVehicles.bind(this)
-        this.getTimeForNextComm = this.getTimeForNextComm.bind(this)
     }
 
     componentDidMount() {
@@ -54,12 +53,6 @@ export default class SoiRisk extends Component {
         }
     }
 
-    getTimeForNextComm(vehicle){
-        const nextWaypoint= this.getNextWaypoint(vehicle);
-        console.log('Next Waypoint', nextWaypoint)
-        return secondsToTime(Math.floor((nextWaypoint.eta*1000 - Date.now())/1000))
-    }
-
     getDistanceToVehicle(vehicle){
         return distanceInKmBetweenCoords(
             vehicle.lastState.latitude,
@@ -69,12 +62,12 @@ export default class SoiRisk extends Component {
     }
 
     renderVehicle(vehicle){
-        let lastCommInSeconds = Math.floor(Date.now()/1000) - vehicle.lastState.timestamp;
+        const nextWaypoint= this.getNextWaypoint(vehicle);
         return (
             <tr key={vehicle.name}>
                 <th scope="row">{vehicle.name}</th>
-                <td>{secondsToTime(lastCommInSeconds)}</td>
-                <td>{this.getTimeForNextComm(vehicle)}</td>
+                <td>{timeFromNow(vehicle.lastState.timestamp*1000)}</td>
+                <td>{timeFromNow(nextWaypoint.eta * 1000)}</td>
                 <td>{vehicle.lastState.fuel}</td>
                 <td>{this.getDistanceToVehicle(vehicle)}</td>
                 <td>N/D</td>
