@@ -20,6 +20,7 @@ export default class VehiclePlan extends Component {
         this.renderEstimatedPosition = this.renderEstimatedPosition.bind(this);
         this.updateETA = this.updateETA.bind(this);
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
+        this.getPrevAndNextWaypoints = this.getPrevAndNextWaypoints.bind(this)
     }
 
     componentDidMount() {
@@ -76,10 +77,17 @@ export default class VehiclePlan extends Component {
         return markers;
     }
 
-    updateEstimatedPos() {
+    getPrevAndNextWaypoints(){
         const waypoints = this.props.plan.waypoints;
-        const firstWaypoint = waypoints[0];
-        const lastWaypoint = waypoints[waypoints.length - 1];
+        const now = Date.now();
+        const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1] > now)
+        return {prev: waypoints[prevIndex], next: waypoints[prevIndex+1]}
+    }
+
+    updateEstimatedPos() {
+        const waypoints = this.getPrevAndNextWaypoints();
+        const firstWaypoint = waypoints.prev;
+        const lastWaypoint = waypoints.next
         const deltaTime = lastWaypoint.eta - firstWaypoint.eta;
         const timeSince = Date.now() - firstWaypoint.eta;
         const newEstimatedPosition = {
