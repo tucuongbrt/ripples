@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import {Marker, Popup} from 'react-leaflet'
-import { getSystemPosition } from './PositionUtils';
+import { getSystemPosition } from './utils/PositionUtils';
 import LinePlot from './LinePlot';
 import { SensorIcon } from './icons/Icons';
 

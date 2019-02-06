@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import {Line} from 'react-chartjs-2'
-import { timestampMsToReadableDate } from './DateUtils';
+import { timestampMsToReadableDate } from './utils/DateUtils';
 
 /**
  * Responsible for drawing line charts
@@ -12,8 +12,8 @@ export default class LinePlot extends Component {
         let y = [];
         let humanReadableTime = timestampMsToReadableDate(props.data.timestamp);
         props.data.samples.forEach(point => {
-            x.push((point[0]/10).toFixed(1))
-            y.push(point[1])
+            y.push((point[0]/10).toFixed(1))
+            x.push(point[1])
         })
 
         this.state = {
@@ -35,13 +35,13 @@ export default class LinePlot extends Component {
                     yAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: `${props.data.type}`
+                            labelString: `depth`
                         }
                     }],
                     xAxes: [{
                         scaleLabel: {
                             display: true,
-                            labelString: 'depth'
+                            labelString: `${props.data.type}`
                         }
                     }]
                 },

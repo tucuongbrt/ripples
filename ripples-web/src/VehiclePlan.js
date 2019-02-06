@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Marker, Popup, Polyline } from 'react-leaflet'
 import { WaypointIcon, GhostIcon } from './icons/Icons'
-import { timeFromNow } from './DateUtils';
-import { getSystemPosition } from './PositionUtils';
+import { timeFromNow } from './utils/DateUtils';
+import { getSystemPosition } from './utils/PositionUtils';
 
 /**
  * Renders a vehicle plan (line, waypoints and 'ghost')
@@ -12,19 +12,16 @@ export default class VehiclePlan extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            etas: [],
             estimatedPos: { longitude: 0, latitude: 0 }
         }
         this.renderPlanLine = this.renderPlanLines.bind(this);
         this.renderPlanWaypoints = this.renderPlanWaypoints.bind(this);
         this.renderEstimatedPosition = this.renderEstimatedPosition.bind(this);
-        this.updateETA = this.updateETA.bind(this);
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
         this.getPrevAndNextWaypoints = this.getPrevAndNextWaypoints.bind(this)
     }
 
     componentDidMount() {
-        this.updateETA();
         this.updateEstimatedPos();
         const interval1 = setInterval(this.updateETA, 1000);
         const interval2 = setInterval(this.updateEstimatedPos, 1000);
@@ -57,12 +54,14 @@ export default class VehiclePlan extends Component {
     }
 
     renderPlanWaypoints() {
-        let positions = this.props.plan.waypoints.map(wp => [wp.latitude, wp.longitude])
+        const waypoints = this.props.plan.waypoints;
+        const positions = waypoints.map(wp => [wp.latitude, wp.longitude])
         let markers = [];
         positions.forEach((p, i) => {
-            let isMovable = this.props.isMovable && (this.state.etas[i] - Date.now()) > 0;
+            let eta = waypoints[i].eta;
+            let isMovable = this.props.isMovable && (eta - Date.now()) > 0;
             let popup = isMovable ? <Popup><span>Click on the map to move me there</span></Popup> : 
-            (<Popup><h3>Waypoint {i} of {this.props.plan.id}</h3><span>ETA: {timeFromNow(this.state.etas[i])}</span></Popup>)
+            (<Popup><h3>Waypoint {i} of {this.props.plan.id}</h3><span>ETA: {timeFromNow(eta)}</span></Popup>)
             markers.push(
                 <Marker
                     key={"Waypoint" + i + "_" + this.props.plan.id}
@@ -80,19 +79,19 @@ export default class VehiclePlan extends Component {
     getPrevAndNextWaypoints(){
         const waypoints = this.props.plan.waypoints;
         const now = Date.now();
-        const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1] > now)
+        const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1].eta > now)
         return {prev: waypoints[prevIndex], next: waypoints[prevIndex+1]}
     }
 
     updateEstimatedPos() {
         const waypoints = this.getPrevAndNextWaypoints();
-        const firstWaypoint = waypoints.prev;
-        const lastWaypoint = waypoints.next
-        const deltaTime = lastWaypoint.eta - firstWaypoint.eta;
-        const timeSince = Date.now() - firstWaypoint.eta;
+        const prevWaypoint = waypoints.prev;
+        const nextWaypoint = waypoints.next;
+        const deltaTime = (nextWaypoint.eta - prevWaypoint.eta)/1000;
+        const timeSince = (Date.now() - prevWaypoint.eta)/1000;
         const newEstimatedPosition = {
-            latitude: firstWaypoint.latitude + (lastWaypoint.latitude - firstWaypoint.latitude) * (timeSince / deltaTime),
-            longitude: firstWaypoint.longitude + (lastWaypoint.longitude - firstWaypoint.longitude) * (timeSince / deltaTime)
+            latitude: prevWaypoint.latitude + (nextWaypoint.latitude - prevWaypoint.latitude) * (timeSince / deltaTime),
+            longitude: prevWaypoint.longitude + (nextWaypoint.longitude - prevWaypoint.longitude) * (timeSince / deltaTime)
         }
         this.setState({ estimatedPos: newEstimatedPosition })
     }
@@ -110,14 +109,6 @@ export default class VehiclePlan extends Component {
                 </Popup>
             </Marker>
         )
-    }
-
-    updateETA() {
-        let eta = [];
-        this.props.plan.waypoints.forEach(wp => {
-            eta.push(wp.eta*1000); //convert to ms
-        })
-        this.setState({ etas: eta })
     }
 
     render() {
