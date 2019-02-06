@@ -5,11 +5,13 @@ import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
 import Vehicle from './Vehicle'
 import Spot from './Spot'
 import VehiclePlan from './VehiclePlan'
-import { fetchSoiData, fetchProfileData } from './SoiUtils'
+import { fetchSoiData, fetchProfileData } from './utils/SoiUtils'
 import './css/Ripples.css'
 import VerticalProfile from './VerticalProfile';
 import LeftsideNav from './LeftsideNav';
 import 'react-leaflet-fullscreen-control'
+import AISShip from './AISShip';
+import { fetchAisData } from './utils/AISUtils';
 
 const { BaseLayer, Overlay } = LayersControl
 
@@ -22,6 +24,7 @@ export default class Ripples extends Component {
       vehicles: [],
       spots: [],
       profiles: [],
+      aisShips: [],
       freeDrawMode: NONE,
       selectedPlan: null,
       freeDrawPolygon: [],
@@ -37,6 +40,7 @@ export default class Ripples extends Component {
     this.drawPlans = this.drawPlans.bind(this)
     this.drawProfiles = this.drawProfiles.bind(this)
     this.updateSoiData = this.updateSoiData.bind(this)
+    this.updateAISData = this.updateAISData.bind(this)
     this.handleExecPlan = this.handleExecPlan.bind(this)
     this.handleDrawNewPlan = this.handleDrawNewPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
@@ -46,21 +50,37 @@ export default class Ripples extends Component {
 
   componentDidMount() {
     this.updateSoiData();
-    const intervalId = setInterval(this.updateSoiData, 60000); //get Soi data every minute
-    this.setState({ intervalId: intervalId })
+    this.updateAISData();
+    const soiInterval = setInterval(this.updateSoiData, 60000); //get Soi data every minute
+    const aisInterval = setInterval(this.updateAISData, 60000); //get Soi data every minute
+    this.setState({ soiInterval: soiInterval, aisInterval: aisInterval })
   }
 
   componentWillUnmount() {
-    clearInterval(this.state.intervalId);
+    clearInterval(this.state.soiInterval);
+    clearInterval(this.state.aisInterval)
   }
 
   updateSoiData() {
     fetchSoiData().then(soiData => {
-      this.setState({ vehicles: soiData.vehicles, spots: soiData.spots })
+      let vehicles = soiData.vehicles;
+      vehicles = vehicles.map(v => {
+        let plan = v.plan;
+        plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, {eta: wp.eta *1000}))
+        return Object.assign(v, {plan: plan})
+      })
+      this.setState({ vehicles: vehicles, spots: soiData.spots })
       this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
     })
     fetchProfileData().then(profiles => {
       this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
+    })
+  }
+  updateAISData() {
+    fetchAisData().then(shipsData => {
+      console.log('Fetched aisShips', shipsData);
+      let ships = shipsData.map(ship => Object.assign(ship, {type: Number(ship.type)}))
+      this.setState({aisShips: ships})
     })
   }
 
@@ -79,11 +99,10 @@ export default class Ripples extends Component {
     let selectedPlan = this.state.selectedPlan;
     this.state.vehicles.filter(vehicle => vehicle.plan.waypoints.length > 0).forEach(vehicle => {
       const plan = vehicle.plan;
-      console.log("Ripples draw plans:", plan)
       plans.push(
         <VehiclePlan
           key={"VehiclePlan" + plan.id}
-          plan={vehicle.plan}
+          plan={plan}
           vehicle={vehicle.name}
           imcId={vehicle.imcId}
           isMovable={plan.id === selectedPlan}
@@ -112,6 +131,16 @@ export default class Ripples extends Component {
       )
     })
     return profiles;
+  }
+
+  drawAISData(){
+    let ships = [];
+    this.state.aisShips.forEach(ship => {
+        ships.push(
+          <AISShip key={"Ship_" + ship.mmsi} data={ship}></AISShip>
+        )
+    })
+    return ships;
   }
 
   handleOnMarkers = event => {
@@ -162,7 +191,7 @@ export default class Ripples extends Component {
     if (wpSelected != null && selectedPlan != null) {
       const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
       this.setState({ wpSelected: null, selectedPlan: null, dropdownText: `Edit Plan` })
-      // send new point to server
+      // TODO: send new point to server
       console.log(e)
       // update point locally
       let newVehicles = this.state.vehicles.slice();
@@ -227,6 +256,11 @@ export default class Ripples extends Component {
                 <Overlay checked name="Profiles">
                   <LayerGroup>
                     {this.drawProfiles()}
+                  </LayerGroup>
+                </Overlay>
+                <Overlay checked name="AIS Data">
+                  <LayerGroup>
+                    {this.drawAISData()}
                   </LayerGroup>
                 </Overlay>
               </LayersControl>
