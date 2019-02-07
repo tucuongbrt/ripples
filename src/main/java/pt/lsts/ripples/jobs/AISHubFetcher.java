@@ -1,0 +1,86 @@
+package pt.lsts.ripples.jobs;
+
+import java.net.URL;
+import java.util.Scanner;
+
+import javax.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import pt.lsts.ripples.domain.wg.AISShip;
+import pt.lsts.ripples.repo.AISRepository;
+
+
+@Component
+public class AISHubFetcher {
+
+
+	@Autowired
+	AISRepository repo;
+
+	private final Logger logger = LoggerFactory.getLogger(AISHubFetcher.class);
+	
+	private static long lastRequest;
+	
+	@Value("${ais.username}")
+	private String USERNAME;
+	
+	private double latMin;
+	
+	private double latMax;
+	
+	private double lonMin;
+
+	private double lonMax;
+	
+	private String url;
+	
+	@PostConstruct
+	public void init() {
+		latMin=40;
+		latMax=42;
+		lonMin=-13;
+		lonMax=-8;
+		url = "http://data.aishub.net/ws.php?username=" + USERNAME
+				+ "&format=1&output=csv&latmin=" + latMin + "&lonmin=" + lonMin + "&latmax=" 
+				+ latMax + "&lonmax=" + lonMax;
+		logger.info("AISHubFetcher url: " + url);
+	}
+	
+	
+	public void fetchAISHub() {
+		
+		if (System.currentTimeMillis() - lastRequest < 60 * 1000)
+			return;
+		
+		try {
+			URL aishub = new URL(url);
+			 Scanner scanner = new Scanner(aishub.openStream());
+			 scanner.useDelimiter("\n");
+			 int count = 0;
+			 while (scanner.hasNext()) {
+				 String line = scanner.next().trim();
+				 if (line.startsWith("\"") || line.endsWith("!"))
+					 continue;
+				 try {
+					 logger.info(line);
+					 repo.save(AISShip.parseCSV(line));
+					 count++;
+				 }
+				 catch (Exception e) {
+					 e.printStackTrace();
+				}
+			 }
+			 lastRequest = System.currentTimeMillis();
+			 logger.info("Read "+count+" ships");
+			 scanner.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();		
+		}
+	}
+}
