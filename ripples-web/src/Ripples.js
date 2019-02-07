@@ -213,7 +213,7 @@ export default class Ripples extends Component {
     console.log("Draw mode", mode)
     return (
       <div>
-        <div class="navbar">
+        <div className="navbar">
           <TopNav
             plans={this.state.plans}
             handleDrawNewPlan={this.handleDrawNewPlan}
@@ -222,7 +222,7 @@ export default class Ripples extends Component {
             dropdownText={this.state.dropdownText}>
           </TopNav>
         </div>
-        <div class="map"> 
+        <div className="map"> 
           <Map center={position} zoom={this.initCoords.zoom} fullscreenControl onClick={this.handleMapClick}>
             <Freedraw
               mode={mode}
