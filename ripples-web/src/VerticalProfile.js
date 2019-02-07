@@ -9,7 +9,7 @@ export default class VerticalProfile extends Component {
     render(){
         return (
             <Marker position={getSystemPosition(this.props.data)} icon={new SensorIcon()}>
-                <Popup minWidth={500} maxWidth={1024}>
+                <Popup minWidth={300} maxWidth={600}>
                     <LinePlot data={this.props.data}></LinePlot>
                 </Popup>
             </Marker>

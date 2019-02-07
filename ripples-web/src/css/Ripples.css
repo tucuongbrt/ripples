@@ -7,6 +7,12 @@
     width: 100%;
 }
 
+.chartwrapper{
+    height:300px;
+    width: 100%;
+}
+
+
 section.map.mode-create {
     cursor: crosshair;
 }
