@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
-import { Container, Row, Col } from 'reactstrap';
 import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
 import Vehicle from './Vehicle'
 import Spot from './Spot'
@@ -8,7 +7,7 @@ import VehiclePlan from './VehiclePlan'
 import { fetchSoiData, fetchProfileData } from './utils/SoiUtils'
 import './css/Ripples.css'
 import VerticalProfile from './VerticalProfile';
-import LeftsideNav from './LeftsideNav';
+import TopNav from './TopNav';
 import 'react-leaflet-fullscreen-control'
 import AISShip from './AISShip';
 import { fetchAisData } from './utils/AISUtils';
@@ -28,13 +27,15 @@ export default class Ripples extends Component {
       freeDrawMode: NONE,
       selectedPlan: null,
       freeDrawPolygon: [],
-      dropdownText: 'Edit Plan'
+      dropdownText: 'Edit Plan',
+      sidebarOpen: true
     }
     this.initCoords = {
       lat: 41.18,
       lng: -8.7,
       zoom: 10,
     }
+
     this.drawVehicles = this.drawVehicles.bind(this)
     this.drawSpots = this.drawSpots.bind(this)
     this.drawPlans = this.drawPlans.bind(this)
@@ -66,8 +67,8 @@ export default class Ripples extends Component {
       let vehicles = soiData.vehicles;
       vehicles = vehicles.map(v => {
         let plan = v.plan;
-        plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, {eta: wp.eta *1000}))
-        return Object.assign(v, {plan: plan})
+        plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
+        return Object.assign(v, { plan: plan })
       })
       this.setState({ vehicles: vehicles, spots: soiData.spots })
       this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
@@ -79,8 +80,8 @@ export default class Ripples extends Component {
   updateAISData() {
     fetchAisData().then(shipsData => {
       console.log('Fetched aisShips', shipsData);
-      let ships = shipsData.map(ship => Object.assign(ship, {type: Number(ship.type)}))
-      this.setState({aisShips: ships})
+      let ships = shipsData.map(ship => Object.assign(ship, { type: Number(ship.type) }))
+      this.setState({ aisShips: ships })
     })
   }
 
@@ -133,12 +134,12 @@ export default class Ripples extends Component {
     return profiles;
   }
 
-  drawAISData(){
+  drawAISData() {
     let ships = [];
     this.state.aisShips.forEach(ship => {
-        ships.push(
-          <AISShip key={"Ship_" + ship.mmsi} data={ship}></AISShip>
-        )
+      ships.push(
+        <AISShip key={"Ship_" + ship.mmsi} data={ship}></AISShip>
+      )
     })
     return ships;
   }
@@ -197,8 +198,8 @@ export default class Ripples extends Component {
       let newVehicles = this.state.vehicles.slice();
       const vehicleIdx = newVehicles.findIndex(v => v.plan.id === selectedPlan);
       const prevEta = newVehicles[vehicleIdx].plan.waypoints[wpSelected].eta;
-      newVehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, {eta: prevEta, duration: 120})
-      this.setState({vehicles: newVehicles})
+      newVehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { eta: prevEta, duration: 120 })
+      this.setState({ vehicles: newVehicles })
       console.log("Vehicles:", this.state.vehicles)
     }
   }
@@ -211,64 +212,62 @@ export default class Ripples extends Component {
     const mode = this.state.freeDrawMode;
     console.log("Draw mode", mode)
     return (
-      <Container fluid={true}>
-        <Row>
-          <Col xs="2">
-            <LeftsideNav
-              plans={this.state.plans}
-              handleDrawNewPlan={this.handleDrawNewPlan}
-              handleExecPlan={this.handleExecPlan}
-              handleEditPlan={this.handleEditPlan}
-              dropdownText={this.state.dropdownText}>
-            </LeftsideNav>
-          </Col>
-          <Col xs="10">
-            <Map center={position} zoom={this.initCoords.zoom} fullscreenControl onClick={this.handleMapClick}>
-              <Freedraw
-                mode={mode}
-                onMarkers={this.handleOnMarkers}
-                onModeChange={this.handleModeChange}
-                ref={this.freedrawRef}
-                maximumPolygons={1}
-              />
-              <LayersControl position="topright">
-                <BaseLayer checked name="OpenStreetMap.Mapnik">
-                  <TileLayer
-                    attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                </BaseLayer>
-                <Overlay checked name="Vehicles">
-                  <LayerGroup>
-                    {this.drawVehicles()}
-                  </LayerGroup>
-                </Overlay>
-                <Overlay checked name="Spots">
-                  <LayerGroup>
-                    {this.drawSpots()}
-                  </LayerGroup>
-                </Overlay>
-                <Overlay checked name="Plans">
-                  <LayerGroup>
-                    {this.drawPlans()}
-                  </LayerGroup>
-                </Overlay>
-                <Overlay checked name="Profiles">
-                  <LayerGroup>
-                    {this.drawProfiles()}
-                  </LayerGroup>
-                </Overlay>
-                <Overlay checked name="AIS Data">
-                  <LayerGroup>
-                    {this.drawAISData()}
-                  </LayerGroup>
-                </Overlay>
-              </LayersControl>
+      <div>
+        <div class="navbar">
+          <TopNav
+            plans={this.state.plans}
+            handleDrawNewPlan={this.handleDrawNewPlan}
+            handleExecPlan={this.handleExecPlan}
+            handleEditPlan={this.handleEditPlan}
+            dropdownText={this.state.dropdownText}>
+          </TopNav>
+        </div>
+        <div class="map"> 
+          <Map center={position} zoom={this.initCoords.zoom} fullscreenControl onClick={this.handleMapClick}>
+            <Freedraw
+              mode={mode}
+              onMarkers={this.handleOnMarkers}
+              onModeChange={this.handleModeChange}
+              ref={this.freedrawRef}
+              maximumPolygons={1}
+            />
+            <LayersControl position="topright">
+              <BaseLayer checked name="OpenStreetMap.Mapnik">
+                <TileLayer
+                  attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+              </BaseLayer>
+              <Overlay checked name="Vehicles">
+                <LayerGroup>
+                  {this.drawVehicles()}
+                </LayerGroup>
+              </Overlay>
+              <Overlay checked name="Spots">
+                <LayerGroup>
+                  {this.drawSpots()}
+                </LayerGroup>
+              </Overlay>
+              <Overlay checked name="Plans">
+                <LayerGroup>
+                  {this.drawPlans()}
+                </LayerGroup>
+              </Overlay>
+              <Overlay checked name="Profiles">
+                <LayerGroup>
+                  {this.drawProfiles()}
+                </LayerGroup>
+              </Overlay>
+              <Overlay checked name="AIS Data">
+                <LayerGroup>
+                  {this.drawAISData()}
+                </LayerGroup>
+              </Overlay>
+            </LayersControl>
 
-            </Map>
-          </Col>
-        </Row>
-      </Container>
+          </Map>
+        </div>
+      </div>
 
     )
   }

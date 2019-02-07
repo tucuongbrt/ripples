@@ -7,6 +7,7 @@
     "chart.js": "^2.7.3",
     "leaflet": "^1.4.0",
     "leaflet-freedraw": "^2.9.0",
+    "leaflet-rotatedmarker": "^0.2.0",
     "moment": "^2.24.0",
     "ramda": "^0.26.1",
     "react": "^16.7.0",

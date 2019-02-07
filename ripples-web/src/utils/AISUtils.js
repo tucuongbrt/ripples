@@ -1,7 +1,5 @@
-const apiURL = 'http://localhost:9090'
-
 export function fetchAisData() {
-  return fetch(`${apiURL}/ais`)
+  return fetch(`${process.env.REACT_APP_API_URL}/ais`)
     .then(response => response.json())
     .then(ships => {
         return ships;

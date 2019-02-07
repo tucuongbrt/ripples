@@ -1,4 +1,4 @@
-const apiURL = 'http://localhost:9090'
+const apiURL = process.env.REACT_APP_API_URL
 
 export function fetchSoiData() {
   return fetch(`${apiURL}/soi`)
