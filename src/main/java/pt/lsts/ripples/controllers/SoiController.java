@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
+import pt.lsts.ripples.jobs.AISHubFetcher;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
@@ -27,6 +28,9 @@ public class SoiController {
 
 	@Autowired
 	VertProfilesRepo vertProfiles;
+
+	@Autowired
+	AISHubFetcher aisUpdater;
 
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
 	public List<Asset> listAssets() {
@@ -44,6 +48,7 @@ public class SoiController {
 	
 	@RequestMapping(path = { "/soi/risk", "/soi/risk/" }, method = RequestMethod.GET)
 	public ConcurrentHashMap<String, VehicleRiskAnalysis> riskAnalysis() {
+		aisUpdater.fetchAISHub();
 		ConcurrentHashMap<String, VehicleRiskAnalysis> vehiclesRisk = collisionService.updateCollisions();
 		return vehiclesRisk;
 	}
