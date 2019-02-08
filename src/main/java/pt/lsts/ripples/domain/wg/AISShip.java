@@ -14,7 +14,7 @@ public class AISShip {
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("\"yyyy-MM-dd HH:mm:ss Z\"");
 
 	@Id
-	private long mmsi;
+	private int mmsi;
 
 	private String type;
 	private String name;
@@ -25,7 +25,7 @@ public class AISShip {
 	private double longitude;
 	private double sog;
 
-	public static AISShip getDefault(long mmsi) {
+	public static AISShip getDefault(int mmsi) {
 		AISShip ais = new AISShip();
 		ais.setMmsi(mmsi);
 		ais.setCog(0);
@@ -43,7 +43,7 @@ public class AISShip {
 	public static AISShip parseCSV(String csvString) throws ParseException {
 		AISShip ais = new AISShip();
 		String[] parts = csvString.split(",");
-		ais.mmsi = Long.valueOf(parts[0]);
+		ais.mmsi = Integer.valueOf(parts[0]);
 		ais.updated_at = sdf.parse(parts[1]).getTime();
 		ais.latitude = Double.valueOf(parts[2]);
 		ais.longitude = Double.valueOf(parts[3]);
@@ -70,11 +70,11 @@ public class AISShip {
 		return json.toString();
 	}
 
-	public long getMmsi() {
+	public int getMmsi() {
 		return mmsi;
 	}
 
-	public void setMmsi(long mmsi) {
+	public void setMmsi(int mmsi) {
 		this.mmsi = mmsi;
 	}
 
