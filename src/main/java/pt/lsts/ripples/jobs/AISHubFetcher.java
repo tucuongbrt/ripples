@@ -1,6 +1,7 @@
 package pt.lsts.ripples.jobs;
 
 import java.net.URL;
+import java.text.ParseException;
 import java.util.Scanner;
 
 import javax.annotation.PostConstruct;
@@ -10,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import pt.lsts.aismanager.api.AisContactManager;
 import pt.lsts.ripples.domain.wg.AISShip;
 import pt.lsts.ripples.repo.AISRepository;
 
@@ -67,8 +68,10 @@ public class AISHubFetcher {
 				 if (line.startsWith("\"") || line.endsWith("!"))
 					 continue;
 				 try {
-					 logger.info(line);
-					 repo.save(AISShip.parseCSV(line));
+					 AISShip aisShip = AISShip.parseCSV(line);
+					 saveShipSnapshot(aisShip);
+					 repo.save(aisShip);
+					 
 					 count++;
 				 }
 				 catch (Exception e) {
@@ -82,5 +85,17 @@ public class AISHubFetcher {
 		catch (Exception e) {
 			e.printStackTrace();		
 		}
+	}
+	
+	private void saveShipSnapshot(AISShip ais) throws ParseException {
+		AisContactManager.getInstance().setShipPosition(
+				ais.getMmsi(),
+				ais.getSog(),
+				ais.getCog(),
+				ais.getHeading(),
+				ais.getLatitude(),
+				ais.getLongitude(),
+				ais.getUpdated_at(),
+				ais.getName());
 	}
 }
