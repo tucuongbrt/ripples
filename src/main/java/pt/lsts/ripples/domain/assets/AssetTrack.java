@@ -131,8 +131,6 @@ public class AssetTrack implements Serializable{
             track.putAll(plan);
         }
         
-        System.out.println("Asset track Plan size: " + plan.size());
-
         Entry<Date, AssetState> nextOne = track.ceilingEntry(d);
         Entry<Date, AssetState> previousOne = track.floorEntry(d);
 
