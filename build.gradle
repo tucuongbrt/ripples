@@ -39,7 +39,7 @@ dependencies {
 	compile 'edu.ucar:cdm:4.6.11'
 	compile 'commons-io:commons-io:2.6'
 	
-	compile files('libs/libimc.jar')
+	compile files('libs/libimc.jar','libs/ais-contact-manager-1.0.jar')
 	
 	runtime('com.h2database:h2')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
