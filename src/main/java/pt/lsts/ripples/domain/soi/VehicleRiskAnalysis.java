@@ -28,6 +28,8 @@
  * For more information please see <http://lsts.fe.up.pt/neptus>.
  *
  * Copied from https://github.com/LSTS/neptus/blob/develop/plugins-dev/soi/pt/lsts/neptus/soi/risk/VehicleRiskAnalysis.java
+ * Author: zp
+ * May 8, 2018
  * Author: Renato Campos
  * February 9, 2019
  */
