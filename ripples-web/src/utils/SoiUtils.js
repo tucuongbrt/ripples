@@ -10,7 +10,10 @@ export function fetchSoiData() {
         if (system.name.startsWith('spot')) {
           spots.push(system)
         } else {
-          vehicles.push(system)
+          const waypoints = system.plan.waypoints;
+          if (waypoints[waypoints.length - 1].eta*1000 > Date.now()){
+            vehicles.push(system)
+          }
         }
       })
       return { vehicles: vehicles, spots: spots };
