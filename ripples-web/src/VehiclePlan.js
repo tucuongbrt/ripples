@@ -80,6 +80,9 @@ export default class VehiclePlan extends Component {
         const waypoints = this.props.plan.waypoints;
         const now = Date.now();
         const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1].eta > now)
+        if (prevIndex === - 1){
+            return {prev: waypoints[0], next: waypoints[1]}
+        }
         return {prev: waypoints[prevIndex], next: waypoints[prevIndex+1]}
     }
 
