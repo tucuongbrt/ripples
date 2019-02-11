@@ -9,8 +9,6 @@ export default class Vehicle extends Component {
     constructor(props){
         super(props);
         this.state = {
-            lastState: props.lastState,
-            name: props.name,
             plan: null
         };
         this.setPlan.bind(this);
@@ -21,7 +19,7 @@ export default class Vehicle extends Component {
     }
 
     render(){
-        let vehicle = this.state;
+        let vehicle = this.props;
         console.log('draw vehicle called')
         return (
             <Marker position={getSystemPosition(vehicle.lastState)} icon={new AuvIcon()}>
