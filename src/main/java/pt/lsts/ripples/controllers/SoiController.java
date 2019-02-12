@@ -2,14 +2,20 @@ package pt.lsts.ripples.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.soi.NewPlanBody;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.jobs.AISHubFetcher;
@@ -53,5 +59,19 @@ public class SoiController {
 		return vehiclesRisk;
 	}
 	
+	@SuppressWarnings("rawtypes")
+	@PostMapping(path = {"/soi", "/soi/"}, consumes = "application/json", produces = "application/json")
+	public ResponseEntity updatePlan(@RequestBody NewPlanBody body) {
+		Optional<Asset> optAsset = repo.findById(body.getVehicleName());
+		if (optAsset.isPresent()) {
+			Asset asset = optAsset.get();
+			asset.setPlan(body.getPlan());
+			repo.save(asset);
+			System.out.println("Saved new plan for " + asset.getName());
+			return new ResponseEntity(HttpStatus.OK);
+		}
+		return new ResponseEntity(HttpStatus.NOT_FOUND);
+	}
+
 
 }
