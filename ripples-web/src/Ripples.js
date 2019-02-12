@@ -53,7 +53,7 @@ export default class Ripples extends Component {
     this.updateSoiData();
     this.updateAISData();
     const soiInterval = setInterval(this.updateSoiData, 60000); //get Soi data every minute
-    const aisInterval = setInterval(this.updateAISData, 60000); //get Soi data every minute
+    const aisInterval = setInterval(this.updateAISData, 60000); //get ais data every minute
     this.setState({ soiInterval: soiInterval, aisInterval: aisInterval })
   }
 
@@ -174,6 +174,8 @@ export default class Ripples extends Component {
       selectedPlan: planId,
       dropdownText: `Editing ${planId}`
     })
+    // stop updating soi data
+    clearInterval(this.state.soiInterval);
   }
 
   handleMarkerClick(planId, markerId) {
@@ -223,7 +225,7 @@ export default class Ripples extends Component {
           </TopNav>
         </div>
         <div className="map"> 
-          <Map center={position} zoom={this.initCoords.zoom} fullscreenControl onClick={this.handleMapClick}>
+          <Map fullscreenControl center={position}  zoom={this.initCoords.zoom} onClick={this.handleMapClick}>
             <Freedraw
               mode={mode}
               onMarkers={this.handleOnMarkers}
