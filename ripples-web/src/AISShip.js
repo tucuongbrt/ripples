@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Popup } from 'react-leaflet'
-import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon } from './icons/Icons'
+import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './icons/Icons'
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from './utils/DateUtils';
 
@@ -19,27 +19,26 @@ export default class AISShip extends Component {
 
 
     getIcon(type) {
-        switch (type) {
-            case 30: // orange - fishing
+        const tenths = Math.floor(type / 10);
+        switch (tenths) {
+            case 0: // antenna
+                return new AISAntennaIcon();
+            case 3: // orange - fishing
                 return new AISOrangeShipIcon();
-            case 70: // green - general cargo or dredger
-                return new AISGreenShipIcon();
-            case 80: // red - oil
-                return new AISRedShipIcon();
-            default: // blue
+            case 6: // blue - passenger
                 return new AISBlueShipIcon();
+            case 7: // green - cargo
+                return new AISGreenShipIcon();
+            case 8: // red - tanker
+                return new AISRedShipIcon();
+            default: // yellow - others
+                return new AISYellowShipIcon();
         }
     }
 
     getOpacity(lastUpdate){
         let deltaTimeSec = Math.round((Date.now() - lastUpdate)/1000);
-        if (deltaTimeSec < 600){ // 10 min
-            return 1
-        }
-        if (deltaTimeSec < 1800){
-            return 0.7
-        }
-        return 0.5
+        return 0.36 + (1.000 - 0.36)/(1 + Math.pow((deltaTimeSec/8000),0.9))
     }
 
     render() {

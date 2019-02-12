@@ -18,29 +18,43 @@ export const GhostIcon = L.Icon.extend({
 
 export const AISRedShipIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/V2UAJTG.png',
+        iconUrl: 'https://i.imgur.com/hqIGg6n.png',
         iconSize: [16, 16]
     }
 })
 
 export const AISBlueShipIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/D8Cu7jX.png',
+        iconUrl: 'https://i.imgur.com/bvJIiOM.png',
         iconSize: [16, 16]
     }
 })
 
 export const AISOrangeShipIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/nz9vcq2.png',
+        iconUrl: 'https://i.imgur.com/CKsgR2Q.png',
         iconSize: [16, 16]
     }
 })
 
 export const AISGreenShipIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/ucQg0s4.png',
+        iconUrl: 'https://i.imgur.com/HCNwjyG.png',
         iconSize: [16, 16]
+    }
+})
+
+export const AISYellowShipIcon = L.Icon.extend({
+    options: {
+        iconUrl: 'https://i.imgur.com/F2VhR2Q.png',
+        iconSize: [16, 16]
+    }
+})
+
+export const AISAntennaIcon = L.Icon.extend({
+    options: {
+        iconUrl: 'https://i.imgur.com/gfNRrPz.png',
+        iconSize: [16,16]
     }
 })
 
