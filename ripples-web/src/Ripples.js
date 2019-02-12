@@ -4,13 +4,14 @@ import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
 import Vehicle from './Vehicle'
 import Spot from './Spot'
 import VehiclePlan from './VehiclePlan'
-import { fetchSoiData, fetchProfileData } from './utils/SoiUtils'
+import { fetchSoiData, fetchProfileData, postNewPlan } from './utils/SoiUtils'
 import './css/Ripples.css'
 import VerticalProfile from './VerticalProfile';
 import TopNav from './TopNav';
 import 'react-leaflet-fullscreen-control'
 import AISShip from './AISShip';
 import { fetchAisData } from './utils/AISUtils';
+import { distanceInKmBetweenCoords } from './utils/PositionUtils';
 
 const { BaseLayer, Overlay } = LayersControl
 
@@ -47,6 +48,7 @@ export default class Ripples extends Component {
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
     this.handleMapClick = this.handleMapClick.bind(this)
+    this.sendPlanToVehicle = this.sendPlanToVehicle.bind(this)
   }
 
   componentDidMount() {
@@ -193,17 +195,44 @@ export default class Ripples extends Component {
     const wpSelected = this.state.wpSelected;
     if (wpSelected != null && selectedPlan != null) {
       const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-      this.setState({ wpSelected: null, selectedPlan: null, dropdownText: `Edit Plan` })
-      // TODO: send new point to server
+      this.setState({ wpSelected: null})
       console.log(e)
-      // update point locally
-      let newVehicles = this.state.vehicles.slice();
-      const vehicleIdx = newVehicles.findIndex(v => v.plan.id === selectedPlan);
-      const prevEta = newVehicles[vehicleIdx].plan.waypoints[wpSelected].eta;
-      newVehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { eta: prevEta, duration: 120 })
-      this.setState({ vehicles: newVehicles })
-      console.log("Vehicles:", this.state.vehicles)
+      // update waypoints locally
+      let vehicles = this.state.vehicles.slice();
+      const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+      vehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { eta: 0, duration: 60 })
+      this.updateWaypointsEtaFromIndex(vehicles[vehicleIdx].plan.waypoints, wpSelected);
+      this.setState({ vehicles: vehicles })
     }
+  }
+
+  updateWaypointsEtaFromIndex(waypoints, firstIndex){
+    if (firstIndex <= 0) {
+      console.log("First Index cannot be lower than 1");
+      return;
+    }
+    const speed = 3; // meters per second
+    const lastIndex = waypoints.length - 1;
+    for (let i = firstIndex; i <= lastIndex; i++){
+      let prevWp = waypoints[i-1];
+      let currentWp = waypoints[i];
+      const distanceInMeters = distanceInKmBetweenCoords(prevWp.latitude, prevWp.longitude, currentWp.latitude, currentWp.longitude) * 1000;
+      currentWp.eta = prevWp.eta + (distanceInMeters/speed)*1000; // eta is saved in ms
+    }
+
+  }
+
+  sendPlanToVehicle() {
+    const selectedPlan = this.state.selectedPlan;
+    const vehicles = this.state.vehicles;
+    const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+    let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
+    // convert eta from ms
+    plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta / 1000 }))
+    if (vehicleIdx >= 0){
+      postNewPlan(vehicles[vehicleIdx].name, plan);
+    }
+    this.setState({ selectedPlan: null, dropdownText: `Edit Plan`})
   }
 
 
@@ -221,6 +250,7 @@ export default class Ripples extends Component {
             handleDrawNewPlan={this.handleDrawNewPlan}
             handleExecPlan={this.handleExecPlan}
             handleEditPlan={this.handleEditPlan}
+            sendPlanToVehicle={this.sendPlanToVehicle}
             dropdownText={this.state.dropdownText}>
           </TopNav>
         </div>

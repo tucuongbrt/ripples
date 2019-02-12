@@ -28,3 +28,20 @@ export function fetchProfileData(){
       return data;
     })
 }
+
+export function postNewPlan(vehicleName, newPlan){
+  console.log("Called post new plan")
+  return fetch(`${apiURL}/soi`, {
+    method: "POST", // *GET, POST, PUT, DELETE, etc.
+    headers: new Headers({'content-type': 'application/json'}),
+    body: JSON.stringify({vehicleName: vehicleName, plan: newPlan}), // body data type must match "Content-Type" header
+})
+.then(res => {
+  if (res.status === 200){
+    console.log("Sucess");
+  } else {
+    console.log("Error");
+  }
+})
+.catch(error => console.error('Error:', error));
+}

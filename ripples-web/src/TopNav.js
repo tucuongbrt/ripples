@@ -11,12 +11,15 @@ export default class TopNav extends Component {
       isNavOpen: true,
       dropdownOpen: false,
       execPlanDisabled: true,
+      editingPlan: false,
     }
 
     this.onNavToggle = this.onNavToggle.bind(this);
     this.toggleDropdown = this.toggleDropdown.bind(this)
     this.handleExecPlan = this.handleExecPlan.bind(this)
     this.toogleDrawNewPlan = this.handleDrawNewPlan.bind(this)
+    this.handleSendToVehicle = this.handleSendToVehicle.bind(this)
+    this.handleEditPlan = this.handleEditPlan.bind(this)
   }
 
   onNavToggle() {
@@ -42,10 +45,23 @@ export default class TopNav extends Component {
     this.props.handleDrawNewPlan();
   }
 
+  handleEditPlan(p){
+    this.setState({
+      editingPlan: true,
+    })
+    this.props.handleEditPlan(p);
+  }
+
+  handleSendToVehicle() {
+    this.setState({
+      editingPlan: false
+    })
+    this.props.sendPlanToVehicle();
+  }
 
   getPlans() {
     return this.props.plans.map(p => {
-      return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.props.handleEditPlan(p)}>{p}</DropdownItem>
+      return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.handleEditPlan(p)}>{p}</DropdownItem>
     })
   }
 
@@ -70,6 +86,9 @@ export default class TopNav extends Component {
                 {this.getPlans()}
               </DropdownMenu>
             </Dropdown>
+            <NavItem>
+              <NavLink disabled={!this.state.editingPlan} onClick={this.handleSendToVehicle} href="#">Send to vehicle</NavLink>
+            </NavItem>
           </Nav>
         </Collapse>
       </Navbar>)

@@ -76,42 +76,43 @@ export default class VehiclePlan extends Component {
         return markers;
     }
 
-    getPrevAndNextWaypoints(){
+    getPrevAndNextWaypoints(now){
         const waypoints = this.props.plan.waypoints;
-        const now = Date.now();
         const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1].eta > now)
-        if (prevIndex === - 1){
-            return {prev: waypoints[0], next: waypoints[1]}
-        }
         return {prev: waypoints[prevIndex], next: waypoints[prevIndex+1]}
     }
 
     updateEstimatedPos() {
-        const waypoints = this.getPrevAndNextWaypoints();
-        const prevWaypoint = waypoints.prev;
-        const nextWaypoint = waypoints.next;
-        const deltaTime = (nextWaypoint.eta - prevWaypoint.eta)/1000;
-        const timeSince = (Date.now() - prevWaypoint.eta)/1000;
-        const newEstimatedPosition = {
-            latitude: prevWaypoint.latitude + (nextWaypoint.latitude - prevWaypoint.latitude) * (timeSince / deltaTime),
-            longitude: prevWaypoint.longitude + (nextWaypoint.longitude - prevWaypoint.longitude) * (timeSince / deltaTime)
+        const now = Date.now();
+        const prevAndNext = this.props.plan.waypoints;
+        const isExecutingPlan = prevAndNext[0].eta < now && prevAndNext[prevAndNext.length - 1].eta > now; 
+        if (isExecutingPlan){
+            const prevAndNext = this.getPrevAndNextWaypoints(now);
+            const prevWaypoint = prevAndNext.prev;
+            const nextWaypoint = prevAndNext.next;
+            const deltaTime = (nextWaypoint.eta - prevWaypoint.eta)/1000;
+            const timeSince = (now - prevWaypoint.eta)/1000;
+            const newEstimatedPosition = {
+                latitude: prevWaypoint.latitude + (nextWaypoint.latitude - prevWaypoint.latitude) * (timeSince / deltaTime),
+                longitude: prevWaypoint.longitude + (nextWaypoint.longitude - prevWaypoint.longitude) * (timeSince / deltaTime)
+            }
+            this.setState({ estimatedPos: newEstimatedPosition })
         }
-        this.setState({ estimatedPos: newEstimatedPosition })
     }
 
     renderEstimatedPosition() {
-        const estimatedPos = getSystemPosition(this.state.estimatedPos);
-        return (
-            <Marker key={"estimated_"+this.props.vehicle.imcid} position={estimatedPos} icon={new GhostIcon()} opacity={0.7}>
-                <Popup>
-                    <h3>Estimated Position</h3>
-                    <ul>
-                        <li>Lat: {estimatedPos.lat.toFixed(5)}</li>
-                        <li>Lng: {estimatedPos.lng.toFixed(5)}</li>
-                    </ul>
-                </Popup>
-            </Marker>
-        )
+            const estimatedPos = getSystemPosition(this.state.estimatedPos);
+            return (
+                <Marker key={"estimated_"+this.props.vehicle.imcid} position={estimatedPos} icon={new GhostIcon()} opacity={0.7}>
+                    <Popup>
+                        <h3>Estimated Position</h3>
+                        <ul>
+                            <li>Lat: {estimatedPos.lat.toFixed(5)}</li>
+                            <li>Lng: {estimatedPos.lng.toFixed(5)}</li>
+                        </ul>
+                    </Popup>
+                </Marker>
+            )
     }
 
     render() {
