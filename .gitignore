@@ -26,3 +26,4 @@
 /nbdist/
 /.nb-gradle/
 /data.db.mv.db
+data.db.trace.db
