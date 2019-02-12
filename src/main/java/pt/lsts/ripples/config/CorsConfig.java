@@ -10,16 +10,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 public class CorsConfig implements WebMvcConfigurer {
  
-	@Value("${in.production}")
-	Boolean inProduction;
-	
 	
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-    	if (!inProduction) {
-    		registry.addMapping("/**");
-    	}
-        
+    	registry.addMapping("/**");
     }
 }
 
