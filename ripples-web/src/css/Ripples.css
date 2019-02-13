@@ -43,3 +43,18 @@ path.leaflet-polygon {
     fill-opacity: .75;
 }
 
+.editing-waypoint {
+    height: 16px;
+  width: 16px;
+  transform: translate(-2px, -2px);
+  background-color:red;
+  border-radius: 50%;
+  border: 2px solid #000;
+  display: inline-block;
+}
+
+.leaflet-div-icon {
+    background: transparent;
+    border: none;
+}       
+
