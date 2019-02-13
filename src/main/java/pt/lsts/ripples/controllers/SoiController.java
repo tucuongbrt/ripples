@@ -26,7 +26,7 @@ import pt.lsts.ripples.jobs.AISHubFetcher;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
-import pt.lsts.ripples.util.Response;
+import pt.lsts.ripples.util.HTTPResponse;
 
 @RestController
 public class SoiController {
@@ -69,7 +69,7 @@ public class SoiController {
 		 
 	@PostMapping(path = {"/soi", "/soi/"}, consumes = "application/json", produces = "application/json")
 	@ResponseBody
-	public Response updatePlan(@RequestBody NewPlanBody body) {
+	public HTTPResponse updatePlan(@RequestBody NewPlanBody body) {
 		Optional<Asset> optAsset = repo.findById(body.getVehicleName());
 		if (optAsset.isPresent()) {
 			Asset asset = optAsset.get();
@@ -86,11 +86,11 @@ public class SoiController {
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.out.println(e.getMessage());
-				return new Response("error", e.getMessage());
+				return new HTTPResponse("error", e.getMessage());
 			}
-			return new Response("success", "Plan for " + asset.getName() + " was updated.");
+			return new HTTPResponse("success", "Plan for " + asset.getName() + " was updated.");
 		}
-		return new Response("error", "Asset not found");
+		return new HTTPResponse("error", "Asset not found");
 	}
 
 
