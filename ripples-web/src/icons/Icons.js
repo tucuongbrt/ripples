@@ -54,7 +54,7 @@ export const AISYellowShipIcon = L.Icon.extend({
 export const AISAntennaIcon = L.Icon.extend({
     options: {
         iconUrl: 'https://i.imgur.com/gfNRrPz.png',
-        iconSize: [16,16]
+        iconSize: [32,32]
     }
 })
 
