@@ -109,7 +109,9 @@ export default class Ripples extends Component {
           vehicle={vehicle.name}
           imcId={vehicle.imcId}
           isMovable={plan.id === selectedPlan}
-          handleMarkerClick={this.handleMarkerClick}>
+          handleMarkerClick={this.handleMarkerClick}
+          wpSelected={this.state.wpSelected}
+        >
         </VehiclePlan>
       )
     })
@@ -195,7 +197,7 @@ export default class Ripples extends Component {
     const wpSelected = this.state.wpSelected;
     if (wpSelected != null && selectedPlan != null) {
       const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-      this.setState({ wpSelected: null})
+      this.setState({ wpSelected: null })
       console.log(e)
       // update waypoints locally
       let vehicles = this.state.vehicles.slice();
@@ -206,18 +208,18 @@ export default class Ripples extends Component {
     }
   }
 
-  updateWaypointsEtaFromIndex(waypoints, firstIndex){
+  updateWaypointsEtaFromIndex(waypoints, firstIndex) {
     if (firstIndex <= 0) {
       console.log("First Index cannot be lower than 1");
       return;
     }
     const speed = 3; // meters per second
     const lastIndex = waypoints.length - 1;
-    for (let i = firstIndex; i <= lastIndex; i++){
-      let prevWp = waypoints[i-1];
+    for (let i = firstIndex; i <= lastIndex; i++) {
+      let prevWp = waypoints[i - 1];
       let currentWp = waypoints[i];
       const distanceInMeters = distanceInKmBetweenCoords(prevWp.latitude, prevWp.longitude, currentWp.latitude, currentWp.longitude) * 1000;
-      currentWp.eta = prevWp.eta + (distanceInMeters/speed)*1000; // eta is saved in ms
+      currentWp.eta = prevWp.eta + (distanceInMeters / speed) * 1000; // eta is saved in ms
     }
 
   }
@@ -229,10 +231,10 @@ export default class Ripples extends Component {
     let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
     // convert eta from ms
     plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta / 1000 }))
-    if (vehicleIdx >= 0){
+    if (vehicleIdx >= 0) {
       postNewPlan(vehicles[vehicleIdx].name, plan);
     }
-    this.setState({ selectedPlan: null, dropdownText: `Edit Plan`})
+    this.setState({ selectedPlan: null, dropdownText: `Edit Plan` })
   }
 
 
@@ -254,8 +256,8 @@ export default class Ripples extends Component {
             dropdownText={this.state.dropdownText}>
           </TopNav>
         </div>
-        <div className="map"> 
-          <Map fullscreenControl center={position}  zoom={this.initCoords.zoom} onClick={this.handleMapClick}>
+        <div className="map">
+          <Map fullscreenControl center={position} zoom={this.initCoords.zoom} onClick={this.handleMapClick}>
             <Freedraw
               mode={mode}
               onMarkers={this.handleOnMarkers}
