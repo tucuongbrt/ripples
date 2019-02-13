@@ -14,7 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import pt.lsts.imc.SoiCommand;
+import pt.lsts.imc.SoiCommand.COMMAND;
+import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.soi.NewPlanBody;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
@@ -58,16 +62,22 @@ public class SoiController {
 		ConcurrentHashMap<String, VehicleRiskAnalysis> vehiclesRisk = collisionService.updateCollisions();
 		return vehiclesRisk;
 	}
-	
+		
 	@SuppressWarnings("rawtypes")
 	@PostMapping(path = {"/soi", "/soi/"}, consumes = "application/json", produces = "application/json")
 	public ResponseEntity updatePlan(@RequestBody NewPlanBody body) {
 		Optional<Asset> optAsset = repo.findById(body.getVehicleName());
 		if (optAsset.isPresent()) {
 			Asset asset = optAsset.get();
-			asset.setPlan(body.getPlan());
+			Plan plan = body.getPlan();
+			asset.setPlan(plan);
 			repo.save(asset);
 			System.out.println("Saved new plan for " + asset.getName());
+			SoiCommand cmd = new SoiCommand();
+            cmd.setCommand(COMMAND.EXEC);
+            cmd.setType(TYPE.REQUEST);
+            cmd.setPlan(plan.asImc());
+            //sendCommand(cmd, asset.getName());
 			return new ResponseEntity(HttpStatus.OK);
 		}
 		return new ResponseEntity(HttpStatus.NOT_FOUND);
