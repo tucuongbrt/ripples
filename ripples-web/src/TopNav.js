@@ -20,6 +20,7 @@ export default class TopNav extends Component {
     this.toogleDrawNewPlan = this.handleDrawNewPlan.bind(this)
     this.handleSendToVehicle = this.handleSendToVehicle.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
+    this.handleCancelEditing = this.handleCancelEditing.bind(this);
   }
 
   onNavToggle() {
@@ -59,10 +60,28 @@ export default class TopNav extends Component {
     this.props.sendPlanToVehicle();
   }
 
-  getPlans() {
-    return this.props.plans.map(p => {
-      return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.handleEditPlan(p)}>{p}</DropdownItem>
+  handleCancelEditing(){
+    this.setState({
+      editingPlan: false
     })
+    this.props.cancelEditing();
+  }
+
+  getPlans() {
+    const editingPlan = this.state.editingPlan;
+    if (editingPlan){
+      return (
+        <div>
+        <DropdownItem key="send" onClick={this.handleSendToVehicle}>Send plan to vehicle</DropdownItem>
+        <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
+        </div>
+      )
+    }
+    else {
+      return this.props.plans.map(p => {
+        return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.handleEditPlan(p)}>{p}</DropdownItem>
+      })
+    }
   }
 
   render() {

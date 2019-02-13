@@ -69,11 +69,11 @@ export default class VehiclePlan extends Component {
             let eta = waypoints[i].eta;
             let isMovable = this.props.isMovable && (eta - Date.now()) > 0;
             let className = (this.props.wpSelected === i && isMovable) ? 'editing-waypoint' : '';
-            if (isMovable){
-                console.log(`Props wp selected: ${this.props.wpSelected}, Index: ${i}, ClassName: ${className}`);
-            }
             const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon();
-            let popup = isMovable ? <Popup>Click anywhere on the map to move me'</Popup> : 
+            let popup = isMovable ? <Popup>
+            Click anywhere on the map to move me'
+            <button onClick={() => this.props.handleDeleteMarker(this.props.plan.id, i)}>Delete me</button>
+            </Popup> : 
             (<Popup><h3>Waypoint {i} of {this.props.plan.id}</h3><span>ETA: {timeFromNow(eta)}</span></Popup>)
             markers.push(
                 <Marker
@@ -81,7 +81,7 @@ export default class VehiclePlan extends Component {
                     index={i}
                     position={p}
                     icon={icon}
-                    onClick={() => this.props.handleMarkerClick(this.props.plan.id, i)}
+                    onClick={() => this.props.handleMarkerClick(this.props.plan.id, i, isMovable)}
                     className={className}>
                     {popup}
                 </Marker>

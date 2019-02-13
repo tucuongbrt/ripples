@@ -11,7 +11,7 @@ export function fetchSoiData() {
           spots.push(system)
         } else {
           const waypoints = system.plan.waypoints;
-          if (waypoints[waypoints.length - 1].eta*1000 > Date.now()){
+          if (waypoints[waypoints.length - 1].eta * 1000 > Date.now()) {
             vehicles.push(system)
           }
         }
@@ -20,7 +20,7 @@ export function fetchSoiData() {
     });
 }
 
-export function fetchProfileData(){
+export function fetchProfileData() {
   return fetch(`${apiURL}/soi/profiles`)
     .then(response => response.json())
     .then((data) => {
@@ -29,19 +29,12 @@ export function fetchProfileData(){
     })
 }
 
-export function postNewPlan(vehicleName, newPlan){
+export function postNewPlan(vehicleName, newPlan) {
   console.log("Called post new plan")
   return fetch(`${apiURL}/soi`, {
     method: "POST", // *GET, POST, PUT, DELETE, etc.
-    headers: new Headers({'content-type': 'application/json'}),
-    body: JSON.stringify({vehicleName: vehicleName, plan: newPlan}), // body data type must match "Content-Type" header
-})
-.then(res => {
-  if (res.status === 200){
-    console.log("Sucess");
-  } else {
-    console.log("Error");
-  }
-})
-.catch(error => console.error('Error:', error));
+    headers: new Headers({ 'content-type': 'application/json' }),
+    body: JSON.stringify({ vehicleName: vehicleName, plan: newPlan }), // body data type must match "Content-Type" header
+  })
+    .then(response => response.json());
 }

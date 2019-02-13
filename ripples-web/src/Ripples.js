@@ -12,6 +12,8 @@ import 'react-leaflet-fullscreen-control'
 import AISShip from './AISShip';
 import { fetchAisData } from './utils/AISUtils';
 import { distanceInKmBetweenCoords } from './utils/PositionUtils';
+import { NotificationContainer, NotificationManager } from 'react-notifications';
+import 'react-notifications/lib/notifications.css';
 
 const { BaseLayer, Overlay } = LayersControl
 
@@ -22,6 +24,7 @@ export default class Ripples extends Component {
     this.state = {
       plans: [],
       vehicles: [],
+      previousVehicles: [],
       spots: [],
       profiles: [],
       aisShips: [],
@@ -49,6 +52,9 @@ export default class Ripples extends Component {
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
     this.handleMapClick = this.handleMapClick.bind(this)
     this.sendPlanToVehicle = this.sendPlanToVehicle.bind(this)
+    this.cancelEditing = this.cancelEditing.bind(this);
+    this.createNotification = this.createNotification.bind(this)
+    this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
   }
 
   componentDidMount() {
@@ -110,6 +116,7 @@ export default class Ripples extends Component {
           imcId={vehicle.imcId}
           isMovable={plan.id === selectedPlan}
           handleMarkerClick={this.handleMarkerClick}
+          handleDeleteMarker={this.handleDeleteMarker}
           wpSelected={this.state.wpSelected}
         >
         </VehiclePlan>
@@ -176,19 +183,29 @@ export default class Ripples extends Component {
     // enable drag on markers of the plan
     this.setState({
       selectedPlan: planId,
-      dropdownText: `Editing ${planId}`
+      dropdownText: `Editing ${planId}`,
+      previousVehicles: JSON.parse(JSON.stringify(this.state.vehicles)),
     })
     // stop updating soi data
     clearInterval(this.state.soiInterval);
   }
 
-  handleMarkerClick(planId, markerId) {
-    console.log(planId, markerId)
-    console.log(this.state.selectedPlan)
-    if (planId === this.state.selectedPlan) {
+  handleMarkerClick(planId, markerId, isMovable) {
+    
+    if (isMovable && planId === this.state.selectedPlan) {
       this.setState({
         wpSelected: markerId,
       })
+    }
+  }
+
+  handleDeleteMarker(planId, markerIdx){
+    const selectedPlan = this.state.selectedPlan;
+    if (planId === selectedPlan){
+      let vehicles = this.state.vehicles.slice();
+      const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+      vehicles[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
+      this.setState({vehicles: vehicles});
     }
   }
 
@@ -232,9 +249,40 @@ export default class Ripples extends Component {
     // convert eta from ms
     plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta / 1000 }))
     if (vehicleIdx >= 0) {
-      postNewPlan(vehicles[vehicleIdx].name, plan);
+      postNewPlan(vehicles[vehicleIdx].name, plan)
+        .then(data => this.createNotification(data.status, data.message))
+        .catch(error => this.createNotification("error", error));
     }
     this.setState({ selectedPlan: null, dropdownText: `Edit Plan` })
+  }
+
+  cancelEditing(){
+    const prevVehicles = JSON.parse(JSON.stringify(this.state.previousVehicles))
+    this.setState({
+      vehicles: prevVehicles,
+      prevVehicles: null,
+      selectedPlan: null,
+      dropdownText: `Edit Plan`});
+  }
+
+  createNotification(type, message) {
+      switch (type) {
+        case 'info':
+          NotificationManager.info(message);
+          break;
+        case 'success':
+          NotificationManager.success(message);
+          break;
+        case 'warning':
+          NotificationManager.warning(message);
+          break;
+        case 'error':
+          NotificationManager.error(message);
+          break;
+        default:
+          NotificationManager.info(message);
+          break;
+      }
   }
 
 
@@ -253,6 +301,7 @@ export default class Ripples extends Component {
             handleExecPlan={this.handleExecPlan}
             handleEditPlan={this.handleEditPlan}
             sendPlanToVehicle={this.sendPlanToVehicle}
+            cancelEditing={this.cancelEditing}
             dropdownText={this.state.dropdownText}>
           </TopNav>
         </div>
@@ -301,6 +350,7 @@ export default class Ripples extends Component {
 
           </Map>
         </div>
+        <NotificationContainer />
       </div>
 
     )
