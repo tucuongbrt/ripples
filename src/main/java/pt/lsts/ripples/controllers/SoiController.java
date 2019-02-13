@@ -6,12 +6,11 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.imc.SoiCommand;
@@ -22,10 +21,12 @@ import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.soi.NewPlanBody;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
+import pt.lsts.ripples.iridium.SoiInteraction;
 import pt.lsts.ripples.jobs.AISHubFetcher;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
+import pt.lsts.ripples.util.Response;
 
 @RestController
 public class SoiController {
@@ -41,6 +42,9 @@ public class SoiController {
 
 	@Autowired
 	AISHubFetcher aisUpdater;
+	
+	@Autowired
+	SoiInteraction soiInteraction;
 
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
 	public List<Asset> listAssets() {
@@ -62,10 +66,10 @@ public class SoiController {
 		ConcurrentHashMap<String, VehicleRiskAnalysis> vehiclesRisk = collisionService.updateCollisions();
 		return vehiclesRisk;
 	}
-		
-	@SuppressWarnings("rawtypes")
+		 
 	@PostMapping(path = {"/soi", "/soi/"}, consumes = "application/json", produces = "application/json")
-	public ResponseEntity updatePlan(@RequestBody NewPlanBody body) {
+	@ResponseBody
+	public Response updatePlan(@RequestBody NewPlanBody body) {
 		Optional<Asset> optAsset = repo.findById(body.getVehicleName());
 		if (optAsset.isPresent()) {
 			Asset asset = optAsset.get();
@@ -77,10 +81,16 @@ public class SoiController {
             cmd.setCommand(COMMAND.EXEC);
             cmd.setType(TYPE.REQUEST);
             cmd.setPlan(plan.asImc());
-            //sendCommand(cmd, asset.getName());
-			return new ResponseEntity(HttpStatus.OK);
+            try {
+            	soiInteraction.sendCommand(cmd,  asset);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println(e.getMessage());
+				return new Response("error", e.getMessage());
+			}
+			return new Response("success", "Plan for " + asset.getName() + " was updated.");
 		}
-		return new ResponseEntity(HttpStatus.NOT_FOUND);
+		return new Response("error", "Asset not found");
 	}
 
 
