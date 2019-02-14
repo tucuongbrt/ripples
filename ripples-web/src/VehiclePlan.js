@@ -3,6 +3,8 @@ import { Marker, Popup, Polyline } from 'react-leaflet'
 import { WaypointIcon, GhostIcon } from './icons/Icons'
 import { timeFromNow } from './utils/DateUtils';
 import { getSystemPosition } from './utils/PositionUtils';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { divIcon } from 'leaflet';
 
 /**
  * Renders a vehicle plan (line, waypoints and 'ghost')
@@ -57,18 +59,30 @@ export default class VehiclePlan extends Component {
         const waypoints = this.props.plan.waypoints;
         const positions = waypoints.map(wp => [wp.latitude, wp.longitude])
         let markers = [];
+        const iconMarkup = renderToStaticMarkup(<i className="editing-waypoint" />);
+        const customMarkerIcon = divIcon({
+            html: iconMarkup,
+          });
+      
+      
         positions.forEach((p, i) => {
             let eta = waypoints[i].eta;
             let isMovable = this.props.isMovable && (eta - Date.now()) > 0;
-            let popup = isMovable ? <Popup><span>Click on the map to move me there</span></Popup> : 
+            let className = (this.props.wpSelected === i && isMovable) ? 'editing-waypoint' : '';
+            const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon();
+            let popup = isMovable ? <Popup>
+            Click anywhere on the map to move me'
+            <button onClick={() => this.props.handleDeleteMarker(this.props.plan.id, i)}>Delete me</button>
+            </Popup> : 
             (<Popup><h3>Waypoint {i} of {this.props.plan.id}</h3><span>ETA: {timeFromNow(eta)}</span></Popup>)
             markers.push(
                 <Marker
                     key={"Waypoint" + i + "_" + this.props.plan.id}
                     index={i}
                     position={p}
-                    icon={new WaypointIcon()}
-                    onClick={() => this.props.handleMarkerClick(this.props.plan.id, i)}>
+                    icon={icon}
+                    onClick={() => this.props.handleMarkerClick(this.props.plan.id, i, isMovable)}
+                    className={className}>
                     {popup}
                 </Marker>
             )
@@ -76,42 +90,43 @@ export default class VehiclePlan extends Component {
         return markers;
     }
 
-    getPrevAndNextWaypoints(){
+    getPrevAndNextWaypoints(now){
         const waypoints = this.props.plan.waypoints;
-        const now = Date.now();
         const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1].eta > now)
-        if (prevIndex === - 1){
-            return {prev: waypoints[0], next: waypoints[1]}
-        }
         return {prev: waypoints[prevIndex], next: waypoints[prevIndex+1]}
     }
 
     updateEstimatedPos() {
-        const waypoints = this.getPrevAndNextWaypoints();
-        const prevWaypoint = waypoints.prev;
-        const nextWaypoint = waypoints.next;
-        const deltaTime = (nextWaypoint.eta - prevWaypoint.eta)/1000;
-        const timeSince = (Date.now() - prevWaypoint.eta)/1000;
-        const newEstimatedPosition = {
-            latitude: prevWaypoint.latitude + (nextWaypoint.latitude - prevWaypoint.latitude) * (timeSince / deltaTime),
-            longitude: prevWaypoint.longitude + (nextWaypoint.longitude - prevWaypoint.longitude) * (timeSince / deltaTime)
+        const now = Date.now();
+        const prevAndNext = this.props.plan.waypoints;
+        const isExecutingPlan = prevAndNext[0].eta < now && prevAndNext[prevAndNext.length - 1].eta > now; 
+        if (isExecutingPlan){
+            const prevAndNext = this.getPrevAndNextWaypoints(now);
+            const prevWaypoint = prevAndNext.prev;
+            const nextWaypoint = prevAndNext.next;
+            const deltaTime = (nextWaypoint.eta - prevWaypoint.eta)/1000;
+            const timeSince = (now - prevWaypoint.eta)/1000;
+            const newEstimatedPosition = {
+                latitude: prevWaypoint.latitude + (nextWaypoint.latitude - prevWaypoint.latitude) * (timeSince / deltaTime),
+                longitude: prevWaypoint.longitude + (nextWaypoint.longitude - prevWaypoint.longitude) * (timeSince / deltaTime)
+            }
+            this.setState({ estimatedPos: newEstimatedPosition })
         }
-        this.setState({ estimatedPos: newEstimatedPosition })
     }
 
     renderEstimatedPosition() {
-        const estimatedPos = getSystemPosition(this.state.estimatedPos);
-        return (
-            <Marker key={"estimated_"+this.props.vehicle.imcid} position={estimatedPos} icon={new GhostIcon()} opacity={0.7}>
-                <Popup>
-                    <h3>Estimated Position</h3>
-                    <ul>
-                        <li>Lat: {estimatedPos.lat.toFixed(5)}</li>
-                        <li>Lng: {estimatedPos.lng.toFixed(5)}</li>
-                    </ul>
-                </Popup>
-            </Marker>
-        )
+            const estimatedPos = getSystemPosition(this.state.estimatedPos);
+            return (
+                <Marker key={"estimated_"+this.props.vehicle.imcid} position={estimatedPos} icon={new GhostIcon()} opacity={0.7}>
+                    <Popup>
+                        <h3>Estimated Position</h3>
+                        <ul>
+                            <li>Lat: {estimatedPos.lat.toFixed(5)}</li>
+                            <li>Lng: {estimatedPos.lng.toFixed(5)}</li>
+                        </ul>
+                    </Popup>
+                </Marker>
+            )
     }
 
     render() {

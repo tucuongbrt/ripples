@@ -36,10 +36,12 @@ public class UpdateAddresses {
 
     @PostConstruct
     public void initialization() {
+    	/*
     	if (skip_initialization) {
 			Logger.getLogger(getClass().getSimpleName()).info("Skipping DB initialization");
 			return;
 		}
+		*/
     	updateImcAddresses();
     }
     

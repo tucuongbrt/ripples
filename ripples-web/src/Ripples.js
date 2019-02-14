@@ -4,13 +4,16 @@ import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
 import Vehicle from './Vehicle'
 import Spot from './Spot'
 import VehiclePlan from './VehiclePlan'
-import { fetchSoiData, fetchProfileData } from './utils/SoiUtils'
+import { fetchSoiData, fetchProfileData, postNewPlan } from './utils/SoiUtils'
 import './css/Ripples.css'
 import VerticalProfile from './VerticalProfile';
 import TopNav from './TopNav';
 import 'react-leaflet-fullscreen-control'
 import AISShip from './AISShip';
 import { fetchAisData } from './utils/AISUtils';
+import { distanceInKmBetweenCoords } from './utils/PositionUtils';
+import { NotificationContainer, NotificationManager } from 'react-notifications';
+import 'react-notifications/lib/notifications.css';
 
 const { BaseLayer, Overlay } = LayersControl
 
@@ -21,6 +24,7 @@ export default class Ripples extends Component {
     this.state = {
       plans: [],
       vehicles: [],
+      previousVehicles: [],
       spots: [],
       profiles: [],
       aisShips: [],
@@ -28,7 +32,8 @@ export default class Ripples extends Component {
       selectedPlan: null,
       freeDrawPolygon: [],
       dropdownText: 'Edit Plan',
-      sidebarOpen: true
+      sidebarOpen: true,
+      soiInterval: false,
     }
     this.initCoords = {
       lat: 41.18,
@@ -47,14 +52,32 @@ export default class Ripples extends Component {
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
     this.handleMapClick = this.handleMapClick.bind(this)
+    this.sendPlanToVehicle = this.sendPlanToVehicle.bind(this)
+    this.cancelEditing = this.cancelEditing.bind(this);
+    this.createNotification = this.createNotification.bind(this)
+    this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
+    this.stopSoiUpdates = this.stopSoiUpdates.bind(this);
+    this.startSoiUpdates = this.startSoiUpdates.bind(this);
   }
 
   componentDidMount() {
     this.updateSoiData();
     this.updateAISData();
-    const soiInterval = setInterval(this.updateSoiData, 60000); //get Soi data every minute
-    const aisInterval = setInterval(this.updateAISData, 60000); //get Soi data every minute
-    this.setState({ soiInterval: soiInterval, aisInterval: aisInterval })
+    this.startSoiUpdates();
+    const aisInterval = setInterval(this.updateAISData, 60000); //get ais data every minute
+    this.setState({ aisInterval: aisInterval })
+  }
+
+  stopSoiUpdates() {
+    clearInterval(this.state.soiInterval);
+    this.setState({ soiInterval: false });
+  }
+
+  startSoiUpdates() {
+    if (!this.state.soiInterval) {
+      const soiInterval = setInterval(this.updateSoiData, 60000);
+      this.setState({ soiInterval: soiInterval });
+    }
   }
 
   componentWillUnmount() {
@@ -63,18 +86,24 @@ export default class Ripples extends Component {
   }
 
   updateSoiData() {
-    fetchSoiData().then(soiData => {
-      let vehicles = soiData.vehicles;
-      vehicles = vehicles.map(v => {
-        let plan = v.plan;
-        plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
-        return Object.assign(v, { plan: plan })
+    fetchSoiData()
+      .then(soiData => {
+        let vehicles = soiData.vehicles;
+        vehicles = vehicles.map(v => {
+          let plan = v.plan;
+          plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
+          return Object.assign(v, { plan: plan })
+        })
+        this.setState({ vehicles: vehicles, spots: soiData.spots })
+        this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
       })
-      this.setState({ vehicles: vehicles, spots: soiData.spots })
-      this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
-    })
+      .catch(error => {
+        this.createNotification('error', "Failed to fetch soi data");
+      })
     fetchProfileData().then(profiles => {
       this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
+    }).catch(error => {
+      this.createNotification('error', "Failed to fetch profiles data");
     })
   }
   updateAISData() {
@@ -107,7 +136,10 @@ export default class Ripples extends Component {
           vehicle={vehicle.name}
           imcId={vehicle.imcId}
           isMovable={plan.id === selectedPlan}
-          handleMarkerClick={this.handleMarkerClick}>
+          handleMarkerClick={this.handleMarkerClick}
+          handleDeleteMarker={this.handleDeleteMarker}
+          wpSelected={this.state.wpSelected}
+        >
         </VehiclePlan>
       )
     })
@@ -172,17 +204,29 @@ export default class Ripples extends Component {
     // enable drag on markers of the plan
     this.setState({
       selectedPlan: planId,
-      dropdownText: `Editing ${planId}`
+      dropdownText: `Editing ${planId}`,
+      previousVehicles: JSON.parse(JSON.stringify(this.state.vehicles)),
     })
+    this.stopSoiUpdates();
   }
 
-  handleMarkerClick(planId, markerId) {
-    console.log(planId, markerId)
-    console.log(this.state.selectedPlan)
-    if (planId === this.state.selectedPlan) {
+  handleMarkerClick(planId, markerId, isMovable) {
+
+    if (isMovable && planId === this.state.selectedPlan) {
       this.setState({
         wpSelected: markerId,
       })
+    }
+  }
+
+  handleDeleteMarker(planId, markerIdx) {
+    const selectedPlan = this.state.selectedPlan;
+    if (planId === selectedPlan) {
+      let vehicles = this.state.vehicles.slice();
+      const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+      vehicles[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
+      this.updateWaypointsEtaFromIndex(vehicles[vehicleIdx].plan.waypoints, markerIdx);
+      this.setState({ vehicles: vehicles });
     }
   }
 
@@ -191,16 +235,94 @@ export default class Ripples extends Component {
     const wpSelected = this.state.wpSelected;
     if (wpSelected != null && selectedPlan != null) {
       const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-      this.setState({ wpSelected: null, selectedPlan: null, dropdownText: `Edit Plan` })
-      // TODO: send new point to server
-      console.log(e)
-      // update point locally
-      let newVehicles = this.state.vehicles.slice();
-      const vehicleIdx = newVehicles.findIndex(v => v.plan.id === selectedPlan);
-      const prevEta = newVehicles[vehicleIdx].plan.waypoints[wpSelected].eta;
-      newVehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { eta: prevEta, duration: 120 })
-      this.setState({ vehicles: newVehicles })
-      console.log("Vehicles:", this.state.vehicles)
+      this.setState({ wpSelected: null })
+      // update waypoints locally
+      let vehicles = this.state.vehicles.slice();
+      const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+      vehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { eta: 0, duration: 60 })
+      this.updateWaypointsEtaFromIndex(vehicles[vehicleIdx].plan.waypoints, wpSelected);
+      this.setState({ vehicles: vehicles })
+    }
+  }
+
+  getSpeedBetweenWaypoints(waypoints){
+    if (waypoints.length < 2) return 1;
+    let firstWp = waypoints[0];
+    let secondWp = waypoints[1];
+    const distanceInMeters = distanceInKmBetweenCoords(firstWp.latitude, firstWp.longitude, secondWp.latitude, secondWp.longitude) * 1000;
+    const deltaSec = (secondWp.eta - firstWp.eta)/1000;
+    return distanceInMeters/deltaSec;
+  }
+
+  updateWaypointsEtaFromIndex(waypoints, firstIndex) {
+    if (firstIndex <= 0 || firstIndex >= waypoints.length) {
+      return;
+    }
+    const speed = this.getSpeedBetweenWaypoints(waypoints)
+    const lastIndex = waypoints.length - 1;
+    for (let i = firstIndex; i <= lastIndex; i++) {
+      let prevWp = waypoints[i - 1];
+      let currentWp = waypoints[i];
+      const distanceInMeters = distanceInKmBetweenCoords(prevWp.latitude, prevWp.longitude, currentWp.latitude, currentWp.longitude) * 1000;
+      currentWp.eta = prevWp.eta + (distanceInMeters / speed) * 1000; // eta is saved in ms
+    }
+
+  }
+
+  sendPlanToVehicle() {
+    const selectedPlan = this.state.selectedPlan;
+    const vehicles = this.state.vehicles;
+    const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+    let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
+    // convert eta from ms
+    plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta / 1000 }))
+    if (vehicleIdx >= 0) {
+      postNewPlan(vehicles[vehicleIdx].name, plan)
+        .then(([responseOk, body]) => {
+          this.createNotification(body.status, body.message)
+          if (!responseOk) {
+            this.cancelEditing();
+          } else {
+            this.startSoiUpdates();
+          }
+        })
+        .catch(error => {
+          // handles fetch errors
+          this.createNotification('error', error.message);
+          this.cancelEditing();
+        });
+    }
+    this.setState({ selectedPlan: null, dropdownText: `Edit Plan` })
+  }
+
+  cancelEditing() {
+    const prevVehicles = JSON.parse(JSON.stringify(this.state.previousVehicles))
+    this.startSoiUpdates();
+    this.setState({
+      vehicles: prevVehicles,
+      prevVehicles: null,
+      selectedPlan: null,
+      dropdownText: `Edit Plan`
+    });
+  }
+
+  createNotification(type, message) {
+    switch (type) {
+      case 'info':
+        NotificationManager.info(message);
+        break;
+      case 'success':
+        NotificationManager.success(message);
+        break;
+      case 'warning':
+        NotificationManager.warning(message);
+        break;
+      case 'error':
+        NotificationManager.error(message);
+        break;
+      default:
+        NotificationManager.info(message);
+        break;
     }
   }
 
@@ -219,11 +341,13 @@ export default class Ripples extends Component {
             handleDrawNewPlan={this.handleDrawNewPlan}
             handleExecPlan={this.handleExecPlan}
             handleEditPlan={this.handleEditPlan}
+            sendPlanToVehicle={this.sendPlanToVehicle}
+            cancelEditing={this.cancelEditing}
             dropdownText={this.state.dropdownText}>
           </TopNav>
         </div>
-        <div className="map"> 
-          <Map center={position} zoom={this.initCoords.zoom} fullscreenControl onClick={this.handleMapClick}>
+        <div className="map">
+          <Map fullscreenControl center={position} zoom={this.initCoords.zoom} onClick={this.handleMapClick}>
             <Freedraw
               mode={mode}
               onMarkers={this.handleOnMarkers}
@@ -267,6 +391,7 @@ export default class Ripples extends Component {
 
           </Map>
         </div>
+        <NotificationContainer />
       </div>
 
     )
