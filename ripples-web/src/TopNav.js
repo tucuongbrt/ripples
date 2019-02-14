@@ -78,8 +78,8 @@ export default class TopNav extends Component {
       )
     }
     else {
-      return this.props.plans.map(p => {
-        return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.handleEditPlan(p)}>{p}</DropdownItem>
+      return this.props.plans.map(([v,p]) => {
+        return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.handleEditPlan(p)}>{v+"_"+p}</DropdownItem>
       })
     }
   }
