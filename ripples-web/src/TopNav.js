@@ -46,7 +46,7 @@ export default class TopNav extends Component {
     this.props.handleDrawNewPlan();
   }
 
-  handleEditPlan(p){
+  handleEditPlan(p) {
     this.setState({
       editingPlan: true,
     })
@@ -60,7 +60,7 @@ export default class TopNav extends Component {
     this.props.sendPlanToVehicle();
   }
 
-  handleCancelEditing(){
+  handleCancelEditing() {
     this.setState({
       editingPlan: false
     })
@@ -69,11 +69,11 @@ export default class TopNav extends Component {
 
   getPlans() {
     const editingPlan = this.state.editingPlan;
-    if (editingPlan){
+    if (editingPlan) {
       return (
         <div>
-        <DropdownItem key="send" onClick={this.handleSendToVehicle}>Send plan to vehicle</DropdownItem>
-        <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
+          <DropdownItem key="send" onClick={this.handleSendToVehicle}>Send plan to vehicle</DropdownItem>
+          <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
         </div>
       )
     }
@@ -91,12 +91,6 @@ export default class TopNav extends Component {
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar>
           <Nav className="ml-auto" navbar>
-            <NavItem>
-              <NavLink disabled={!this.state.execPlanDisabled} onClick={this.toogleDrawNewPlan} href="#" >Draw new plan</NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink disabled={this.state.execPlanDisabled} onClick={this.handleExecPlan} href="#">Execute plan</NavLink>
-            </NavItem>
             <Dropdown nav isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown}>
               <DropdownToggle nav caret>
                 {this.props.dropdownText}
@@ -106,36 +100,14 @@ export default class TopNav extends Component {
               </DropdownMenu>
             </Dropdown>
             <NavItem>
-              <NavLink disabled={!this.state.editingPlan} onClick={this.handleSendToVehicle} href="#">Send to vehicle</NavLink>
+              <NavLink disabled={!this.state.execPlanDisabled} onClick={this.toogleDrawNewPlan} href="#" >Draw new plan</NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink disabled={this.state.execPlanDisabled} onClick={this.handleExecPlan} href="#">Execute plan</NavLink>
             </NavItem>
           </Nav>
         </Collapse>
       </Navbar>)
   }
-  /*
-    render() {
-      return (
-        <div>
-          <h3>Menu</h3>
-          <hr></hr>
-          <Nav vertical>
-            <NavItem>
-              <NavLink disabled={!this.state.execPlanDisabled} onClick={this.toogleDrawNewPlan} href="#" >Draw new plan</NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink disabled={this.state.execPlanDisabled} onClick={this.handleExecPlan} href="#">Execute plan</NavLink>
-            </NavItem>
-            <Dropdown nav isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown}>
-              <DropdownToggle nav caret>
-                {this.props.dropdownText}
-              </DropdownToggle>
-              <DropdownMenu>
-                {this.getPlans()}
-              </DropdownMenu>
-            </Dropdown>
-          </Nav>
-        </div>
-      );
-    }*/
 }
 
