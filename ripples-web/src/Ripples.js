@@ -95,7 +95,7 @@ export default class Ripples extends Component {
           return Object.assign(v, { plan: plan })
         })
         this.setState({ vehicles: vehicles, spots: soiData.spots })
-        this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
+        this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => [v.name, v.plan.id]) })
       })
       .catch(error => {
         this.createNotification('error', "Failed to fetch soi data");
