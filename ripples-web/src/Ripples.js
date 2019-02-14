@@ -225,6 +225,7 @@ export default class Ripples extends Component {
       let vehicles = this.state.vehicles.slice();
       const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
       vehicles[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
+      this.updateWaypointsEtaFromIndex(vehicles[vehicleIdx].plan.waypoints, markerIdx);
       this.setState({ vehicles: vehicles });
     }
   }
@@ -244,12 +245,20 @@ export default class Ripples extends Component {
     }
   }
 
+  getSpeedBetweenWaypoints(waypoints){
+    if (waypoints.length < 2) return 1;
+    let firstWp = waypoints[0];
+    let secondWp = waypoints[1];
+    const distanceInMeters = distanceInKmBetweenCoords(firstWp.latitude, firstWp.longitude, secondWp.latitude, secondWp.longitude) * 1000;
+    const deltaSec = (secondWp.eta - firstWp.eta)/1000;
+    return distanceInMeters/deltaSec;
+  }
+
   updateWaypointsEtaFromIndex(waypoints, firstIndex) {
-    if (firstIndex <= 0) {
-      console.log("First Index cannot be lower than 1");
+    if (firstIndex <= 0 || firstIndex >= waypoints.length) {
       return;
     }
-    const speed = 3; // meters per second
+    const speed = this.getSpeedBetweenWaypoints(waypoints)
     const lastIndex = waypoints.length - 1;
     for (let i = firstIndex; i <= lastIndex; i++) {
       let prevWp = waypoints[i - 1];
