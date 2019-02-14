@@ -74,15 +74,14 @@ public class SoiController {
 		if (optAsset.isPresent()) {
 			Asset asset = optAsset.get();
 			Plan plan = body.getPlan();
-			asset.setPlan(plan);
-			repo.save(asset);
-			System.out.println("Saved new plan for " + asset.getName());
 			SoiCommand cmd = new SoiCommand();
             cmd.setCommand(COMMAND.EXEC);
             cmd.setType(TYPE.REQUEST);
             cmd.setPlan(plan.asImc());
             try {
             	soiInteraction.sendCommand(cmd,  asset);
+            	asset.setPlan(plan);
+    			repo.save(asset);
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.out.println(e.getMessage());
