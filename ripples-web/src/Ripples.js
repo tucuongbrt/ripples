@@ -32,7 +32,8 @@ export default class Ripples extends Component {
       selectedPlan: null,
       freeDrawPolygon: [],
       dropdownText: 'Edit Plan',
-      sidebarOpen: true
+      sidebarOpen: true,
+      soiInterval: false,
     }
     this.initCoords = {
       lat: 41.18,
@@ -55,14 +56,28 @@ export default class Ripples extends Component {
     this.cancelEditing = this.cancelEditing.bind(this);
     this.createNotification = this.createNotification.bind(this)
     this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
+    this.stopSoiUpdates = this.stopSoiUpdates.bind(this);
+    this.startSoiUpdates = this.startSoiUpdates.bind(this);
   }
 
   componentDidMount() {
     this.updateSoiData();
     this.updateAISData();
-    const soiInterval = setInterval(this.updateSoiData, 60000); //get Soi data every minute
+    this.startSoiUpdates();
     const aisInterval = setInterval(this.updateAISData, 60000); //get ais data every minute
-    this.setState({ soiInterval: soiInterval, aisInterval: aisInterval })
+    this.setState({ aisInterval: aisInterval })
+  }
+
+  stopSoiUpdates() {
+    clearInterval(this.state.soiInterval);
+    this.setState({ soiInterval: false });
+  }
+
+  startSoiUpdates() {
+    if (!this.state.soiInterval) {
+      const soiInterval = setInterval(this.updateSoiData, 60000);
+      this.setState({ soiInterval: soiInterval });
+    }
   }
 
   componentWillUnmount() {
@@ -71,18 +86,24 @@ export default class Ripples extends Component {
   }
 
   updateSoiData() {
-    fetchSoiData().then(soiData => {
-      let vehicles = soiData.vehicles;
-      vehicles = vehicles.map(v => {
-        let plan = v.plan;
-        plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
-        return Object.assign(v, { plan: plan })
+    fetchSoiData()
+      .then(soiData => {
+        let vehicles = soiData.vehicles;
+        vehicles = vehicles.map(v => {
+          let plan = v.plan;
+          plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
+          return Object.assign(v, { plan: plan })
+        })
+        this.setState({ vehicles: vehicles, spots: soiData.spots })
+        this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
       })
-      this.setState({ vehicles: vehicles, spots: soiData.spots })
-      this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => v.plan.id) })
-    })
+      .catch(error => {
+        this.createNotification('error', "Failed to fetch soi data");
+      })
     fetchProfileData().then(profiles => {
       this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
+    }).catch(error => {
+      this.createNotification('error', "Failed to fetch profiles data");
     })
   }
   updateAISData() {
@@ -186,12 +207,11 @@ export default class Ripples extends Component {
       dropdownText: `Editing ${planId}`,
       previousVehicles: JSON.parse(JSON.stringify(this.state.vehicles)),
     })
-    // stop updating soi data
-    clearInterval(this.state.soiInterval);
+    this.stopSoiUpdates();
   }
 
   handleMarkerClick(planId, markerId, isMovable) {
-    
+
     if (isMovable && planId === this.state.selectedPlan) {
       this.setState({
         wpSelected: markerId,
@@ -199,13 +219,13 @@ export default class Ripples extends Component {
     }
   }
 
-  handleDeleteMarker(planId, markerIdx){
+  handleDeleteMarker(planId, markerIdx) {
     const selectedPlan = this.state.selectedPlan;
-    if (planId === selectedPlan){
+    if (planId === selectedPlan) {
       let vehicles = this.state.vehicles.slice();
       const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
       vehicles[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
-      this.setState({vehicles: vehicles});
+      this.setState({ vehicles: vehicles });
     }
   }
 
@@ -215,7 +235,6 @@ export default class Ripples extends Component {
     if (wpSelected != null && selectedPlan != null) {
       const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
       this.setState({ wpSelected: null })
-      console.log(e)
       // update waypoints locally
       let vehicles = this.state.vehicles.slice();
       const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
@@ -250,39 +269,52 @@ export default class Ripples extends Component {
     plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta / 1000 }))
     if (vehicleIdx >= 0) {
       postNewPlan(vehicles[vehicleIdx].name, plan)
-        .then(data => this.createNotification(data.status, data.message))
-        .catch(error => this.createNotification("error", error));
+        .then(([responseOk, body]) => {
+          this.createNotification(body.status, body.message)
+          if (!responseOk) {
+            this.cancelEditing();
+          } else {
+            this.startSoiUpdates();
+          }
+        })
+        .catch(error => {
+          // handles fetch errors
+          this.createNotification('error', error.message);
+          this.cancelEditing();
+        });
     }
     this.setState({ selectedPlan: null, dropdownText: `Edit Plan` })
   }
 
-  cancelEditing(){
+  cancelEditing() {
     const prevVehicles = JSON.parse(JSON.stringify(this.state.previousVehicles))
+    this.startSoiUpdates();
     this.setState({
       vehicles: prevVehicles,
       prevVehicles: null,
       selectedPlan: null,
-      dropdownText: `Edit Plan`});
+      dropdownText: `Edit Plan`
+    });
   }
 
   createNotification(type, message) {
-      switch (type) {
-        case 'info':
-          NotificationManager.info(message);
-          break;
-        case 'success':
-          NotificationManager.success(message);
-          break;
-        case 'warning':
-          NotificationManager.warning(message);
-          break;
-        case 'error':
-          NotificationManager.error(message);
-          break;
-        default:
-          NotificationManager.info(message);
-          break;
-      }
+    switch (type) {
+      case 'info':
+        NotificationManager.info(message);
+        break;
+      case 'success':
+        NotificationManager.success(message);
+        break;
+      case 'warning':
+        NotificationManager.warning(message);
+        break;
+      case 'error':
+        NotificationManager.error(message);
+        break;
+      default:
+        NotificationManager.info(message);
+        break;
+    }
   }
 
 

@@ -17,7 +17,7 @@ export function fetchSoiData() {
         }
       })
       return { vehicles: vehicles, spots: spots };
-    });
+    })
 }
 
 export function fetchProfileData() {
@@ -36,5 +36,5 @@ export function postNewPlan(vehicleName, newPlan) {
     headers: new Headers({ 'content-type': 'application/json' }),
     body: JSON.stringify({ vehicleName: vehicleName, plan: newPlan }), // body data type must match "Content-Type" header
   })
-    .then(response => response.json());
+    .then(response => Promise.all([response.ok, response.json()]));
 }
