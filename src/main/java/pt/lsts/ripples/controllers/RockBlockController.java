@@ -111,7 +111,7 @@ public class RockBlockController {
 			m.setSource(msg.getSource());
 			m.setDestination(msg.getDestination());
 		} catch (Exception e) {
-			Logger.getLogger(getClass().getName()).warning("Unable to parse message data");
+			Logger.getLogger(getClass().getName()).warning("Unable to parse message data:" + e.getMessage());
 			m.setType(-1);
 		}
 
