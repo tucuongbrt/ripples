@@ -362,6 +362,16 @@ export default class Ripples extends Component {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
               </BaseLayer>
+              <Overlay checked name="Nautical charts">
+                <TileLayer 
+                  url='http://wms.transas.com/TMS/1.0.0/TX97-transp/{z}/{x}/{y}.png?token=9e53bcb2-01d0-46cb-8aff-512e681185a4'
+                  attribution='Map data &copy; Transas Nautical Charts'
+                  tms={true}
+                  maxZoom={21}
+			            opacity={0.7}
+			            maxNativeZoom={17}>
+                </TileLayer>
+              </Overlay>
               <Overlay checked name="Vehicles">
                 <LayerGroup>
                   {this.drawVehicles()}
