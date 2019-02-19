@@ -17,12 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.repo.Rock7Repository;
 import pt.lsts.ripples.services.MessageProcessor;
-import pt.lsts.ripples.util.IridiumUtils;
 
 
 @RestController
@@ -48,23 +46,22 @@ public class RockBlockController {
 		return repo.findSince(d);
 	}
 
+    @GetMapping(path = "/api/v1/iridium/plaintext")
+    public List<Rock7Message> pollPlainTextMessages() {
+        Date d = new Date(System.currentTimeMillis() - 1000 * 24 * 3600);
+        return repo.findPlainTextSince(d);
+    }
+
 	@SuppressWarnings("rawtypes")
 	@PostMapping(path = {"/api/v1/iridium", "/api/v1/irsim"}, consumes = "application/hub")
 	public ResponseEntity sendMessage(@RequestBody String body) {
 		IridiumMessage msg;
 		try {
-			byte[] data = hexAdapter.unmarshal(body);
-			msg = IridiumMessage.deserialize(data);
+			msg = IridiumMessage.deserialize(hexAdapter.unmarshal(body));
 		}
-		catch (Exception e1) {
-			try { 
-				AssetPosition position = IridiumUtils.parsePlainTextReport(body);
-				msgProcessor.setAssetPosition(position);
-				return new ResponseEntity<String>("Parsed plain text message", HttpStatus.OK);
-			} catch( Exception e2) {
-				return new ResponseEntity<String>(e2.getClass().getSimpleName() + " while sending Iridium message",
-				HttpStatus.INTERNAL_SERVER_ERROR);
-			}
+		catch (Exception e) {
+		    return new ResponseEntity<String>(e.getClass().getSimpleName() + " while sending Iridium message",
+			HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		int dst = msg.getDestination();
 		int src = msg.getSource();
@@ -76,6 +73,7 @@ public class RockBlockController {
 		m.setMsg(body);
 		m.setCreated_at(new Date(msg.timestampMillis));
 		m.setUpdated_at(new Date());
+		m.setPlainText(msg.getMessageType() == -1);
 
 		repo.save(m);
 
@@ -87,6 +85,10 @@ public class RockBlockController {
 	@PostMapping(path = "/rock7")
 	public ResponseEntity<String> postMessage(@RequestParam String imei,
 			@RequestParam String transmit_time, @RequestParam String data) {
+
+		if (data.isEmpty()){
+			return new ResponseEntity<String>("Received empty message", HttpStatus.OK);
+		}
 
 		Date timestamp = new Date();
 
@@ -103,16 +105,20 @@ public class RockBlockController {
 		m.setUpdated_at(new Date());
 		m.setMsg(data);
 
-		IridiumMessage msg = null;
+		IridiumMessage msg;
 		try {
 			// try to parse message as an IridiumMessage object
 			msg = IridiumMessage.deserialize(hexAdapter.unmarshal(data));
 			m.setType(msg.getMessageType());
 			m.setSource(msg.getSource());
 			m.setDestination(msg.getDestination());
+			m.setPlainText(msg.getMessageType() == -1);
 		} catch (Exception e) {
+		    e.printStackTrace();
 			Logger.getLogger(getClass().getName()).warning("Unable to parse message data:" + e.getMessage());
-			m.setType(-1);
+			return new ResponseEntity<String>(
+					"Unable to parse message data:" + e.getMessage(),
+					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
 		System.out.println("Received message from RockBlock: " + m);

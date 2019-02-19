@@ -18,6 +18,8 @@ public interface Rock7Repository extends CrudRepository<Rock7Message, Long> {
 
     @Query("select m from Rock7Message m where m.created_at > :date")
     List<Rock7Message> findSince(@Param("date") Date since);
+    @Query("select m from Rock7Message m where m.created_at > :date and m.isPlainText = true")
+    List<Rock7Message> findPlainTextSince(@Param("date") Date since);
 
 
 }

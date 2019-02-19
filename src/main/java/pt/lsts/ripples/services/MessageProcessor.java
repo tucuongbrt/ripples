@@ -20,11 +20,7 @@ import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.assets.Waypoint;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
-import pt.lsts.ripples.iridium.DeviceUpdate;
-import pt.lsts.ripples.iridium.ExtendedDeviceUpdate;
-import pt.lsts.ripples.iridium.ImcIridiumMessage;
-import pt.lsts.ripples.iridium.IridiumMessage;
-import pt.lsts.ripples.iridium.Position;
+import pt.lsts.ripples.iridium.*;
 import pt.lsts.ripples.repo.AddressesRepository;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.PositionsRepository;
@@ -70,6 +66,9 @@ public class MessageProcessor {
 		case IridiumMessage.TYPE_IMC_IRIDIUM_MESSAGE:
 			onImcIridiumMessage((ImcIridiumMessage) msg);
 			break;
+		case IridiumMessage.TYPE_PLAIN_TEXT:
+			onPlainTextReport((PlainTextReport) msg);
+			break;
 		default:
 			break;
 		}
@@ -93,6 +92,17 @@ public class MessageProcessor {
 			Logger.getLogger(MessageProcessor.class.getName()).warning(
 					"Message of type " + msg.getAbbrev() + " from " + msg.getSourceName() + " is not being processed.");
 			break;
+		}
+	}
+
+	public void onPlainTextReport(PlainTextReport msg){
+		AssetPosition position = msg.getAssetPosition();
+		if (position != null) {
+			SystemAddress addr = ripples.getOrCreate(position.getName());
+			// save on positions repo
+			ripples.setPosition(addr, position.getLat(), position.getLon(), position.getTimestamp(), false);
+			// save asset position
+			setAssetPosition(position);
 		}
 	}
 
@@ -144,6 +154,8 @@ public class MessageProcessor {
 		case EXEC:
 		case GET_PLAN:
 			if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+				Logger.getLogger(MessageProcessor.class.getName())
+						.info("Finding asset by imc id:" + cmd.getSrc());
 				vehicle = assets.findByImcid(cmd.getSrc());
 				SoiPlan plan = cmd.getPlan();
 
