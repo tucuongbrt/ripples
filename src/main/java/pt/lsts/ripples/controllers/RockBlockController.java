@@ -84,7 +84,7 @@ public class RockBlockController {
 
 	@PostMapping(path = "/rock7")
 	public ResponseEntity<String> postMessage(@RequestParam String imei,
-			@RequestParam String transmit_time, @RequestParam String body) {
+			@RequestParam String transmit_time, @RequestParam String data) {
 
 		if (data.isEmpty()){
 			return new ResponseEntity<String>("Received empty message", HttpStatus.OK);
@@ -103,12 +103,12 @@ public class RockBlockController {
 		m.setImei(imei);
 		m.setCreated_at(timestamp);
 		m.setUpdated_at(new Date());
-		m.setMsg(body);
+		m.setMsg(data);
 
 		IridiumMessage msg;
 		try {
-			byte[] data = hexAdapter.unmarshal(body);
-			msg = IridiumMessage.deserialize(data);
+			byte[] body = hexAdapter.unmarshal(data);
+			msg = IridiumMessage.deserialize(body);
 			// try to parse message as an IridiumMessage object
 			m.setType(msg.getMessageType());
 			m.setSource(msg.getSource());
