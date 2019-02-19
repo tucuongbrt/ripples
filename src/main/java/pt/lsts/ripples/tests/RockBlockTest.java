@@ -3,7 +3,6 @@ package pt.lsts.ripples.tests;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-import pt.lsts.ripples.domain.assets.Plan;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
