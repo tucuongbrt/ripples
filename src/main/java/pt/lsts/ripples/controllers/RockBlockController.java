@@ -84,7 +84,7 @@ public class RockBlockController {
 
 	@PostMapping(path = "/rock7")
 	public ResponseEntity<String> postMessage(@RequestParam String imei,
-			@RequestParam String transmit_time, @RequestParam String data) {
+			@RequestParam String transmit_time, @RequestParam String body) {
 
 		if (data.isEmpty()){
 			return new ResponseEntity<String>("Received empty message", HttpStatus.OK);
@@ -103,12 +103,13 @@ public class RockBlockController {
 		m.setImei(imei);
 		m.setCreated_at(timestamp);
 		m.setUpdated_at(new Date());
-		m.setMsg(data);
+		m.setMsg(body);
 
 		IridiumMessage msg;
 		try {
+			byte[] data = hexAdapter.unmarshal(body);
+			msg = IridiumMessage.deserialize(data);
 			// try to parse message as an IridiumMessage object
-			msg = IridiumMessage.deserialize(hexAdapter.unmarshal(data));
 			m.setType(msg.getMessageType());
 			m.setSource(msg.getSource());
 			m.setDestination(msg.getDestination());
@@ -120,11 +121,6 @@ public class RockBlockController {
 					"Unable to parse message data:" + e.getMessage(),
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-
-		System.out.println("Received message from RockBlock: " + m);
-
-		// Save message to repository
-		repo.save(m);
 
 		// process incoming message
 		if (msg != null)
