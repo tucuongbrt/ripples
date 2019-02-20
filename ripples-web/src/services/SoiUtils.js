@@ -10,10 +10,7 @@ export async function fetchSoiData() {
       spots.push(system);
     }
     else {
-      const waypoints = system.plan.waypoints;
-      if (waypoints[waypoints.length - 1].eta * 1000 > Date.now()) {
-        vehicles.push(system);
-      }
+      vehicles.push(system)
     }
   });
   return { vehicles: vehicles, spots: spots };
