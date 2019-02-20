@@ -91,7 +91,9 @@ export default class Ripples extends Component {
         let vehicles = soiData.vehicles;
         vehicles = vehicles.map(v => {
           let plan = v.plan;
-          plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
+          if (plan.waypoints.length > 0){
+            plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
+          }
           return Object.assign(v, { plan: plan })
         })
         this.setState({ vehicles: vehicles, spots: soiData.spots })
