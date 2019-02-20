@@ -122,6 +122,7 @@ public class RockBlockController {
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
+		repo.save(m);
 		// process incoming message
 		if (msg != null)
 			msgProcessor.process(msg);
