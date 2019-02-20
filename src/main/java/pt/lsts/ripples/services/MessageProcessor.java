@@ -154,24 +154,27 @@ public class MessageProcessor {
 		case EXEC:
 		case GET_PLAN:
 			if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
-				Logger.getLogger(MessageProcessor.class.getName())
-						.info("Finding asset by imc id:" + cmd.getSrc());
 				vehicle = assets.findByImcid(cmd.getSrc());
-				SoiPlan plan = cmd.getPlan();
+				if (vehicle != null){
+					SoiPlan plan = cmd.getPlan();
 
-				if (plan == null || plan.getWaypoints().isEmpty()) {
-					vehicle.setPlan(new Plan());
+					if (plan == null || plan.getWaypoints().isEmpty()) {
+						vehicle.setPlan(new Plan());
+					} else {
+						Plan p = new Plan();
+						p.setId("soi_" + plan.getPlanId());
+						ArrayList<Waypoint> wpts = new ArrayList<>();
+						plan.getWaypoints().forEach(
+								wpt -> wpts.add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration())));
+						p.setWaypoints(wpts);
+						Logger.getLogger(MessageProcessor.class.getName())
+								.info("Received plan for " + vehicle + ": " + plan);
+						vehicle.setPlan(p);
+						assets.save(vehicle);
+					}
 				} else {
-					Plan p = new Plan();
-					p.setId("soi_" + plan.getPlanId());
-					ArrayList<Waypoint> wpts = new ArrayList<>();
-					plan.getWaypoints().forEach(
-							wpt -> wpts.add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration())));
-					p.setWaypoints(wpts);
 					Logger.getLogger(MessageProcessor.class.getName())
-							.info("Received plan for " + vehicle + ": " + plan);
-					vehicle.setPlan(p);
-					assets.save(vehicle);
+						.warning("Trying to set a plan on a non-existent asset - imcId: " + cmd.getSrc());
 				}
 			}
 			break;
