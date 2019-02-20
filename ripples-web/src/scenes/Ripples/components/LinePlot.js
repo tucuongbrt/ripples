@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { ResponsiveLine } from '@nivo/line'
-import { timestampMsToReadableDate } from './utils/DateUtils';
+import { timestampMsToReadableDate } from '../../../services/DateUtils';
 
 /**
  * Responsible for drawing line charts

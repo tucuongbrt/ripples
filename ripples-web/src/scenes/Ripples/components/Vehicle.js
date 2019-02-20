@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import {Marker, Popup} from 'react-leaflet'
-import {getSystemPosition} from './utils/PositionUtils'
-import {timestampSecToReadableDate} from './utils/DateUtils'
-import {AuvIcon} from './icons/Icons'
+import {getSystemPosition} from '../../../services/PositionUtils'
+import {timestampSecToReadableDate} from '../../../services/DateUtils'
+import {AuvIcon} from './Icons'
 
 export default class Vehicle extends Component {
 

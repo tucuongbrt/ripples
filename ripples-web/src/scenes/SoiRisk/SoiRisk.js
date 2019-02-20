@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Table } from 'reactstrap';
-import { fetchSoiData } from './utils/SoiUtils';
-import { timeFromNow } from './utils/DateUtils';
-import { distanceInKmBetweenCoords } from './utils/PositionUtils';
+import { fetchSoiData } from '../../services/SoiUtils';
+import { timeFromNow } from '../../services/DateUtils';
+import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
 
 export default class SoiRisk extends Component {
 
