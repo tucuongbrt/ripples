@@ -1,18 +1,19 @@
 import React, { Component } from 'react'
 import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
 import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
-import Vehicle from './Vehicle'
-import Spot from './Spot'
-import VehiclePlan from './VehiclePlan'
-import { fetchSoiData, fetchProfileData, postNewPlan } from './utils/SoiUtils'
-import './css/Ripples.css'
-import VerticalProfile from './VerticalProfile';
-import TopNav from './TopNav';
+import Vehicle from './components/Vehicle'
+import Spot from './components/Spot'
+import VehiclePlan from './components/VehiclePlan'
+import { fetchSoiData, fetchProfileData, postNewPlan } from '../../services/SoiUtils'
+import './styles/Ripples.css'
+import VerticalProfile from './components/VerticalProfile';
+import TopNav from './components/TopNav';
 import 'react-leaflet-fullscreen-control'
-import AISShip from './AISShip';
-import { fetchAisData } from './utils/AISUtils';
-import { distanceInKmBetweenCoords } from './utils/PositionUtils';
-import { NotificationContainer, NotificationManager } from 'react-notifications';
+import AISShip from './components/AISShip';
+import { fetchAisData } from '../../services/AISUtils';
+import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
+import { NotificationContainer} from 'react-notifications';
+import { createNotification } from '../../services/Notifications'
 import 'react-notifications/lib/notifications.css';
 
 const { BaseLayer, Overlay } = LayersControl
@@ -54,7 +55,6 @@ export default class Ripples extends Component {
     this.handleMapClick = this.handleMapClick.bind(this)
     this.sendPlanToVehicle = this.sendPlanToVehicle.bind(this)
     this.cancelEditing = this.cancelEditing.bind(this);
-    this.createNotification = this.createNotification.bind(this)
     this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
     this.stopSoiUpdates = this.stopSoiUpdates.bind(this);
     this.startSoiUpdates = this.startSoiUpdates.bind(this);
@@ -98,12 +98,12 @@ export default class Ripples extends Component {
         this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => [v.name, v.plan.id]) })
       })
       .catch(error => {
-        this.createNotification('error', "Failed to fetch soi data");
+        createNotification('error', "Failed to fetch soi data");
       })
     fetchProfileData().then(profiles => {
       this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
     }).catch(error => {
-      this.createNotification('error', "Failed to fetch profiles data");
+      createNotification('error', "Failed to fetch profiles data");
     })
   }
   updateAISData() {
@@ -279,7 +279,7 @@ export default class Ripples extends Component {
     if (vehicleIdx >= 0) {
       postNewPlan(vehicles[vehicleIdx].name, plan)
         .then(([responseOk, body]) => {
-          this.createNotification(body.status, body.message)
+          createNotification(body.status, body.message)
           if (!responseOk) {
             this.cancelEditing();
           } else {
@@ -288,7 +288,7 @@ export default class Ripples extends Component {
         })
         .catch(error => {
           // handles fetch errors
-          this.createNotification('error', error.message);
+          createNotification('error', error.message);
           this.cancelEditing();
         });
     }
@@ -304,26 +304,6 @@ export default class Ripples extends Component {
       selectedPlan: null,
       dropdownText: `Edit Plan`
     });
-  }
-
-  createNotification(type, message) {
-    switch (type) {
-      case 'info':
-        NotificationManager.info(message);
-        break;
-      case 'success':
-        NotificationManager.success(message);
-        break;
-      case 'warning':
-        NotificationManager.warning(message);
-        break;
-      case 'error':
-        NotificationManager.error(message);
-        break;
-      default:
-        NotificationManager.info(message);
-        break;
-    }
   }
 
 

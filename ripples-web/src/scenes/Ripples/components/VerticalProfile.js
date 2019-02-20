@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import {Marker, Popup} from 'react-leaflet'
-import { getSystemPosition } from './utils/PositionUtils';
+import { getSystemPosition } from '../../../services/PositionUtils';
 import LinePlot from './LinePlot';
-import { SensorIcon } from './icons/Icons';
+import { SensorIcon } from './Icons';
 
 export default class VerticalProfile extends Component {
 

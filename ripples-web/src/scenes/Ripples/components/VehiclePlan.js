@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Marker, Popup, Polyline } from 'react-leaflet'
-import { WaypointIcon, GhostIcon } from './icons/Icons'
-import { timeFromNow } from './utils/DateUtils';
-import { getSystemPosition } from './utils/PositionUtils';
+import { WaypointIcon, GhostIcon } from './Icons'
+import { timeFromNow } from '../../../services/DateUtils'
+import { getSystemPosition } from '../../../services/PositionUtils';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { divIcon } from 'leaflet';
 

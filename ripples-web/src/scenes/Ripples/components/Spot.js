@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Marker, Popup} from 'react-leaflet'
-import {timestampSecToReadableDate} from './utils/DateUtils'
-import {getSystemPosition} from './utils/PositionUtils'
-import { SpotIcon } from './icons/Icons';
+import {timestampSecToReadableDate} from '../../../services/DateUtils'
+import {getSystemPosition} from '../../../services/PositionUtils'
+import { SpotIcon } from './Icons';
 
 export default class Spot extends Component {
     constructor(props){

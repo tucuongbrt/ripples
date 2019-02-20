@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Popup } from 'react-leaflet'
-import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './icons/Icons'
+import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
-import { timeFromNow } from './utils/DateUtils';
+import { timeFromNow } from '../../../services/DateUtils';
 
 /**
  * AISShip should contain:

@@ -8,6 +8,7 @@ export default class Home extends Component{
                 <ul>
                     <li><Link to="/ripples">Ripples</Link></li>
                     <li><Link to="/soirisk">SOI Risk Analysis</Link></li>
+                    <li><Link to="/messages/text">Text Messages</Link></li>
                 </ul>
             </div>
         )
