@@ -4,6 +4,7 @@ import Freedraw, { ALL, EDIT, DELETE, NONE } from 'react-leaflet-freedraw';
 import Vehicle from './components/Vehicle'
 import Spot from './components/Spot'
 import VehiclePlan from './components/VehiclePlan'
+import MeasureArea from './components/MeasureArea'
 import { fetchSoiData, fetchProfileData, postNewPlan } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import VerticalProfile from './components/VerticalProfile';
@@ -380,7 +381,7 @@ export default class Ripples extends Component {
                 </LayerGroup>
               </Overlay>
             </LayersControl>
-
+            <MeasureArea></MeasureArea>
           </Map>
         </div>
         <NotificationContainer />
