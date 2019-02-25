@@ -3,6 +3,7 @@ package pt.lsts.ripples.iridium;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import pt.lsts.imc.SoiCommand;
@@ -18,7 +19,8 @@ public class SoiInteraction {
 	private Logger logger = LoggerFactory.getLogger(SoiInteraction.class);
 
 	// TODO: REVIEW THIS ID
-	private int localId = 99;
+	@Value("${ripples.imcid}")
+	private int localId;
 
 	public void sendCommand(SoiCommand cmd, Asset asset) throws Exception {
 		int payloadSize = cmd.getPayloadSize();
