@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -21,6 +22,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
+import pt.lsts.ripples.iridium.RockBlockIridiumSender;
 import pt.lsts.ripples.repo.AddressesRepository;
 
 @Component
@@ -30,6 +32,8 @@ public class UpdateAddresses {
 	boolean skip_initialization;
 	
 	private static final String location = "https://raw.githubusercontent.com/LSTS/imc/master/IMC_Addresses.xml";
+
+    private static org.slf4j.Logger logger = LoggerFactory.getLogger(UpdateAddresses.class);
 
     @Autowired
     AddressesRepository repo;
@@ -43,12 +47,18 @@ public class UpdateAddresses {
 		}
 		*/
     	updateImcAddresses();
+    	setSailDroneAddresses();
+    	try {
+    	    setWavyAddresses();
+        } catch (Exception e){
+            logger.warn(e.getMessage());
+        }
     }
     
     @Scheduled(fixedRate = 600_000)
     public void updateImcAddresses() {
         try {
-            Logger.getLogger(getClass().getName()).info("Updating IMC addresses...");
+            logger.info("Updating IMC addresses...");
             
             URL url = new URL(location);
             
@@ -87,7 +97,6 @@ public class UpdateAddresses {
         }
     }
 
-    @PostConstruct
     public void setSailDroneAddresses() {
     	SystemAddress s1 = repo.findById("saildrone-1001").orElse(new SystemAddress("saildrone-1001"));
     	SystemAddress s2 = repo.findById("saildrone-1004").orElse(new SystemAddress("saildrone-1004"));
@@ -97,8 +106,7 @@ public class UpdateAddresses {
     	repo.save(s1);
     	repo.save(s2);    	
     }
-    
-    @PostConstruct
+
     public void setWavyAddresses() throws Exception {
         InputStream addrs = new ClassPathResource("addresses.tsv").getInputStream();
 
