@@ -49,6 +49,7 @@ import javax.net.ssl.SSLContext;
 import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
@@ -57,7 +58,6 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -68,7 +68,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.repo.AddressesRepository;
 import pt.lsts.ripples.util.ByteUtil;
 
@@ -85,7 +84,7 @@ import pt.lsts.ripples.util.ByteUtil;
 public class RockBlockIridiumSender {
 
     protected boolean available = true;
-    protected String serverUrl = "https://secure.rock7mobile.com/rockblock/MT";
+    protected static String serverUrl = "https://secure.rock7mobile.com/rockblock/MT";
     private static long lastSuccess = -1;
 
     private static Logger logger = LoggerFactory.getLogger(RockBlockIridiumSender.class);
@@ -101,8 +100,10 @@ public class RockBlockIridiumSender {
 
 
     public void sendMessage(IridiumMessage msg) throws Exception {
-        
+
         SystemAddress system = addressesRepo.findByImcId(msg.getDestination());
+
+        logger.info("System imei: " + system.getImei() + "; System destination: " + msg.getDestination());
         String result = sendToRockBlockHttp(system.getImei(), rockBlockUsername, rockBlockPassword,
                 msg.serialize());
 
@@ -135,15 +136,15 @@ public class RockBlockIridiumSender {
     }
     
     public static String sendToRockBlockHttp(String destImei, String username, String password, byte[] data)
-            throws HttpException, IOException {
+            throws IOException {
 
-        CloseableHttpClient client = HttpClients.custom()
+        HttpClient client = HttpClients.custom()
                 .setSSLSocketFactory(sslsf)
                 .setConnectionManager(cm)
                 .build();
                 
 
-        HttpPost post = new HttpPost("https://secure.rock7mobile.com/rockblock/MT");
+        HttpPost post = new HttpPost(serverUrl);
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
         urlParameters.add(new BasicNameValuePair("imei", destImei));
         urlParameters.add(new BasicNameValuePair("username", username));
@@ -162,13 +163,6 @@ public class RockBlockIridiumSender {
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
-        }
-        
-        try {
-            client.close();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
         }
         
         return result.toString();
