@@ -103,6 +103,7 @@ public class RockBlockIridiumSender {
     public void sendMessage(IridiumMessage msg) throws Exception {
         
         SystemAddress system = addressesRepo.findByImcId(msg.getDestination());
+        if (system == null || system.getImei() == null) return;
         String result = sendToRockBlockHttp(system.getImei(), rockBlockUsername, rockBlockPassword,
                 msg.serialize());
 
