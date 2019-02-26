@@ -76,6 +76,7 @@ public class RockBlockController {
 		    return new ResponseEntity<String>(e.getClass().getSimpleName() + ": deserialize Iridium message error",
 			HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+		logger.info(msg.toString());
 		int dst = msg.getDestination();
 		int src = msg.getSource();
 		logger.info("Message dst: " + dst + "; msg src: "  + src);
