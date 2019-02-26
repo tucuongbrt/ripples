@@ -25,16 +25,13 @@ export default class VehiclePlan extends Component {
 
     componentDidMount() {
         this.updateEstimatedPos();
-        const interval1 = setInterval(this.updateETA, 1000);
-        const interval2 = setInterval(this.updateEstimatedPos, 1000);
+        const interval1 = setInterval(this.updateEstimatedPos, 1000);
         // store interval in the state so it can be accessed later:
         this.setState({ interval1: interval1 });
-        this.setState({ interval2: interval2 });
     }
 
     componentWillUnmount() {
         clearInterval(this.state.interval1);
-        clearInterval(this.state.interval2);
     }
 
 
@@ -43,6 +40,7 @@ export default class VehiclePlan extends Component {
      * @param {} positions Positions of waypoints
      */
     renderPlanLines() {
+        
         let positions = this.props.plan.waypoints.map(wp => [wp.latitude, wp.longitude])
         let polylines = [];
         for(let i = 0; i < positions.length - 1; i++){
@@ -66,7 +64,7 @@ export default class VehiclePlan extends Component {
       
       
         positions.forEach((p, i) => {
-            let eta = waypoints[i].eta;
+            let eta = waypoints[i].arrivalDate;
             let isMovable = this.props.isMovable && (eta - Date.now()) > 0;
             let className = (this.props.wpSelected === i && isMovable) ? 'editing-waypoint' : '';
             const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon();
@@ -92,20 +90,21 @@ export default class VehiclePlan extends Component {
 
     getPrevAndNextWaypoints(now){
         const waypoints = this.props.plan.waypoints;
-        const prevIndex = waypoints.findIndex((wp,i) => wp.eta < now && waypoints[i+1].eta > now)
+        const prevIndex = waypoints.findIndex((wp,i) => wp.arrivalDate < now && waypoints[i+1].arrivalDate > now)
         return {prev: waypoints[prevIndex], next: waypoints[prevIndex+1]}
     }
 
     updateEstimatedPos() {
         const now = Date.now();
         const prevAndNext = this.props.plan.waypoints;
-        const isExecutingPlan = prevAndNext[0].eta < now && prevAndNext[prevAndNext.length - 1].eta > now; 
+        const isExecutingPlan = prevAndNext[0].arrivalDate < now && 
+            prevAndNext[prevAndNext.length - 1].arrivalDate > now; 
         if (isExecutingPlan){
             const prevAndNext = this.getPrevAndNextWaypoints(now);
             const prevWaypoint = prevAndNext.prev;
             const nextWaypoint = prevAndNext.next;
-            const deltaTime = (nextWaypoint.eta - prevWaypoint.eta)/1000;
-            const timeSince = (now - prevWaypoint.eta)/1000;
+            const deltaTime = (nextWaypoint.arrivalDate - prevWaypoint.arrivalDate)/1000;
+            const timeSince = (now - prevWaypoint.arrivalDate)/1000;
             const newEstimatedPosition = {
                 latitude: prevWaypoint.latitude + (nextWaypoint.latitude - prevWaypoint.latitude) * (timeSince / deltaTime),
                 longitude: prevWaypoint.longitude + (nextWaypoint.longitude - prevWaypoint.longitude) * (timeSince / deltaTime)

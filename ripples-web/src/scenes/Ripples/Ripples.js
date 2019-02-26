@@ -89,15 +89,7 @@ export default class Ripples extends Component {
   updateSoiData() {
     fetchSoiData()
       .then(soiData => {
-        let vehicles = soiData.vehicles;
-        vehicles = vehicles.map(v => {
-          let plan = v.plan;
-          if (plan.waypoints.length > 0){
-            plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta * 1000 }))
-          }
-          return Object.assign(v, { plan: plan })
-        })
-        this.setState({ vehicles: vehicles, spots: soiData.spots })
+        this.setState({ vehicles: soiData.vehicles, spots: soiData.spots })
         this.setState({ plans: soiData.vehicles.filter(v => v.plan.waypoints.length > 0).map(v => [v.name, v.plan.id]) })
       })
       .catch(error => {
@@ -228,7 +220,7 @@ export default class Ripples extends Component {
       let vehicles = this.state.vehicles.slice();
       const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
       vehicles[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
-      this.updateWaypointsEtaFromIndex(vehicles[vehicleIdx].plan.waypoints, markerIdx);
+      this.updateWaypointsArrivalDateFromIndex(vehicles[vehicleIdx].plan.waypoints, markerIdx);
       this.setState({ vehicles: vehicles });
     }
   }
@@ -243,7 +235,7 @@ export default class Ripples extends Component {
       let vehicles = this.state.vehicles.slice();
       const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
       vehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { eta: 0, duration: 60 })
-      this.updateWaypointsEtaFromIndex(vehicles[vehicleIdx].plan.waypoints, wpSelected);
+      this.updateWaypointsArrivalDateFromIndex(vehicles[vehicleIdx].plan.waypoints, wpSelected);
       this.setState({ vehicles: vehicles })
     }
   }
@@ -253,11 +245,11 @@ export default class Ripples extends Component {
     let firstWp = waypoints[0];
     let secondWp = waypoints[1];
     const distanceInMeters = distanceInKmBetweenCoords(firstWp.latitude, firstWp.longitude, secondWp.latitude, secondWp.longitude) * 1000;
-    const deltaSec = (secondWp.eta - firstWp.eta)/1000;
+    const deltaSec = (secondWp.arrivalDate - firstWp.arrivalDate)/1000;
     return distanceInMeters/deltaSec;
   }
 
-  updateWaypointsEtaFromIndex(waypoints, firstIndex) {
+  updateWaypointsArrivalDateFromIndex(waypoints, firstIndex) {
     if (firstIndex <= 0 || firstIndex >= waypoints.length) {
       return;
     }
@@ -267,7 +259,7 @@ export default class Ripples extends Component {
       let prevWp = waypoints[i - 1];
       let currentWp = waypoints[i];
       const distanceInMeters = distanceInKmBetweenCoords(prevWp.latitude, prevWp.longitude, currentWp.latitude, currentWp.longitude) * 1000;
-      currentWp.eta = prevWp.eta + (distanceInMeters / speed) * 1000; // eta is saved in ms
+      currentWp.arrivalDate = prevWp.arrivalDate + Math.round(distanceInMeters / speed) * 1000; // arrivalDate is saved in ms
     }
 
   }
@@ -277,8 +269,7 @@ export default class Ripples extends Component {
     const vehicles = this.state.vehicles;
     const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
     let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
-    // convert eta from ms
-    plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.eta / 1000 }))
+    plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.arrivalDate / 1000 }))
     if (vehicleIdx >= 0) {
       postNewPlan(vehicles[vehicleIdx].name, plan)
         .then(([responseOk, body]) => {

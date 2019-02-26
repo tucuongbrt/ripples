@@ -67,7 +67,7 @@ export default class SoiRisk extends Component {
             <tr key={vehicle.name}>
                 <th scope="row">{vehicle.name}</th>
                 <td>{timeFromNow(vehicle.lastState.timestamp*1000)}</td>
-                <td>{timeFromNow(nextWaypoint.eta * 1000)}</td>
+                <td>{timeFromNow(nextWaypoint.arrivalDate)}</td>
                 <td>{vehicle.lastState.fuel}</td>
                 <td>{this.getDistanceToVehicle(vehicle)}</td>
                 <td>N/D</td>
