@@ -1,4 +1,4 @@
-package pt.lsts.ripples.jobs;
+package pt.lsts.ripples.services;
 
 import java.net.URL;
 import java.text.ParseException;
@@ -42,7 +42,7 @@ public class AISHubFetcher {
 	
 	@PostConstruct
 	public void init() {
-		latMin=40;
+		latMin=37;
 		latMax=42;
 		lonMin=-13;
 		lonMax=-8;
