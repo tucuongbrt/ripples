@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +20,9 @@ import pt.lsts.imc.SoiCommand;
 import pt.lsts.imc.SoiCommand.COMMAND;
 import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.assets.Plan;
+import pt.lsts.ripples.domain.soi.AwarenessData;
 import pt.lsts.ripples.domain.soi.NewPlanBody;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
@@ -29,6 +33,7 @@ import pt.lsts.ripples.services.AISHubFetcher;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
+import pt.lsts.ripples.services.SoiAwareness;
 import pt.lsts.ripples.util.HTTPResponse;
 
 @RestController
@@ -49,6 +54,11 @@ public class SoiController {
 	@Autowired
 	SoiInteraction soiInteraction;
 
+	@Autowired
+	SoiAwareness soiAwareness;
+
+	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
+
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
 	public List<Asset> listAssets() {
 		ArrayList<Asset> assets = new ArrayList<>();
@@ -68,6 +78,16 @@ public class SoiController {
 		aisUpdater.fetchAISHub();
 		ConcurrentHashMap<String, VehicleRiskAnalysis> vehiclesRisk = collisionService.updateCollisions();
 		return vehiclesRisk;
+	}
+
+	@RequestMapping(path = { "/soi/awareness", "/soi/awareness/" }, method = RequestMethod.GET)
+	public List<AwarenessData> soiAwareness() {
+		List<AwarenessData> awarenessDataList = soiAwareness.getPositionsOfVehicles(12);
+		for (AwarenessData awarenessData : awarenessDataList) {
+			logger.info("name:" + awarenessData.getName());
+			logger.info("positions: " + awarenessData.getPositions().size());
+		}
+		return awarenessDataList;
 	}
 		 
 	@PostMapping(path = {"/soi", "/soi/"}, consumes = "application/json", produces = "application/json")
