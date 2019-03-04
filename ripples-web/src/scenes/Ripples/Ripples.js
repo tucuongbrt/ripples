@@ -9,6 +9,7 @@ import { fetchSoiData, fetchProfileData, postNewPlan } from '../../services/SoiU
 import './styles/Ripples.css'
 import VerticalProfile from './components/VerticalProfile';
 import TopNav from './components/TopNav';
+import Slider from './components/SliderControl';
 import 'react-leaflet-fullscreen-control'
 import AISShip from './components/AISShip';
 import { fetchAisData } from '../../services/AISUtils';
@@ -42,7 +43,9 @@ export default class Ripples extends Component {
       lng: -8.7,
       zoom: 10,
     }
+    this.sliderValue = 0
 
+    this.cancelEditing = this.cancelEditing.bind(this)
     this.drawVehicles = this.drawVehicles.bind(this)
     this.drawSpots = this.drawSpots.bind(this)
     this.drawPlans = this.drawPlans.bind(this)
@@ -50,15 +53,16 @@ export default class Ripples extends Component {
     this.updateSoiData = this.updateSoiData.bind(this)
     this.updateAISData = this.updateAISData.bind(this)
     this.handleExecPlan = this.handleExecPlan.bind(this)
+    this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
     this.handleDrawNewPlan = this.handleDrawNewPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
     this.handleMapClick = this.handleMapClick.bind(this)
+    this.onSliderChange = this.onSliderChange.bind(this)
     this.sendPlanToVehicle = this.sendPlanToVehicle.bind(this)
-    this.cancelEditing = this.cancelEditing.bind(this);
-    this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
-    this.stopSoiUpdates = this.stopSoiUpdates.bind(this);
-    this.startSoiUpdates = this.startSoiUpdates.bind(this);
+    this.stopSoiUpdates = this.stopSoiUpdates.bind(this)
+    this.startSoiUpdates = this.startSoiUpdates.bind(this)
+    
   }
 
   componentDidMount() {
@@ -300,6 +304,10 @@ export default class Ripples extends Component {
     });
   }
 
+  onSliderChange(event) {
+    this.sliderValue = event.target.value
+    console.log("Slider new value", this.sliderValue)
+  }
 
   freedrawRef = React.createRef();
 
@@ -373,6 +381,7 @@ export default class Ripples extends Component {
               </Overlay>
             </LayersControl>
             <MeasureArea></MeasureArea>
+            <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.sliderValue}></Slider>
           </Map>
         </div>
         <NotificationContainer />
