@@ -21,6 +21,7 @@
     "react-notifications": "^1.4.3",
     "react-router-dom": "^4.3.1",
     "react-scripts": "^2.1.5",
+    "react-style-object-to-css": "^1.1.2",
     "reactstrap": "^7.1.0",
     "yarn": "^1.13.0"
   },
