@@ -18,17 +18,19 @@ import { NotificationContainer} from 'react-notifications';
 import { createNotification } from '../../services/Notifications'
 import 'react-notifications/lib/notifications.css';
 import EstimatedPosition from './components/EstimatedPosition';
-import Profile from '../../model/Profile';
+import IProfile from '../../model/IProfile';
+import IAsset from '../../model/IAsset';
+import IAisShip from '../../model/IAisShip';
 
 const { BaseLayer, Overlay } = LayersControl
 
 type MyState = { 
   plans: any[],
-  vehicles: any[],
-  previousVehicles: any[],
-  spots: any[],
-  profiles: any[],
-  aisShips: any[],
+  vehicles: IAsset[],
+  previousVehicles: IAsset[],
+  spots: IAsset[],
+  profiles: IProfile[],
+  aisShips: IAisShip[],
   freeDrawMode: Number,
   selectedPlan: any,
   freeDrawPolygon: any[],
@@ -38,6 +40,7 @@ type MyState = {
   aisInterval: any,
   soiAwareness: any[],
   sliderValue: Number
+  drawAwareness: Boolean
  };
 
 export default class Ripples extends Component<{}, MyState> {
@@ -62,6 +65,7 @@ export default class Ripples extends Component<{}, MyState> {
       aisInterval: false,
       soiAwareness : [],
       sliderValue : 0,
+      drawAwareness: false
     }
 
     this.initCoords = {
@@ -127,7 +131,7 @@ export default class Ripples extends Component<{}, MyState> {
       .catch(error => {
         createNotification('error', "Failed to fetch soi data");
       })
-    fetchProfileData().then(profiles => {
+    fetchProfileData().then((profiles: IProfile[]) => {
       this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
     }).catch(error => {
       createNotification('error', "Failed to fetch profiles data");
@@ -139,21 +143,20 @@ export default class Ripples extends Component<{}, MyState> {
     })
   }
   updateAISData() {
-    fetchAisData().then(shipsData => {
+    fetchAisData().then((shipsData: IAisShip[]) => {
       console.log('Fetched aisShips', shipsData);
-      let ships = shipsData.map(ship => Object.assign(ship, { type: Number(ship.type) }))
-      this.setState({ aisShips: ships })
+      this.setState({ aisShips: shipsData })
     })
   }
 
   drawVehicles() {
-    let vehicles = [];
+    let vehicles: any[] = [];
     this.state.vehicles.forEach(vehicle => {
       vehicles.push(
         <Vehicle key={vehicle.imcid} lastState={vehicle.lastState} name={vehicle.name}></Vehicle>
       )
     })
-    if (this.state.drawVehicleAwareness === true) {
+    if (this.state.drawAwareness === true) {
       const deltaHours = this.state.sliderValue 
       this.state.soiAwareness.forEach(vehicle => {
         vehicles.push(
@@ -350,10 +353,10 @@ export default class Ripples extends Component<{}, MyState> {
     if (sliderValue === 0){
       // reset state
       this.startUpdates()
-      this.setState({drawVehicleAwareness: false})
+      this.setState({drawAwareness: false})
     } else {
       this.stopUpdates()
-      this.setState({drawVehicleAwareness: true})
+      this.setState({drawAwareness: true})
     }
     this.setState({sliderValue: sliderValue})
     console.log("Slider new value", sliderValue)

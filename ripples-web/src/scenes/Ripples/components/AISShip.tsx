@@ -3,6 +3,7 @@ import { Popup } from 'react-leaflet'
 import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
+import IAisShip from '../../../model/IAisShip';
 
 /**
  * AISShip should contain:
@@ -15,7 +16,7 @@ import { timeFromNow } from '../../../services/DateUtils';
  * updated_at
  * type
  */
-export default class AISShip extends Component {
+export default class AISShip extends Component<{data: IAisShip}, {}> {
 
 
     getIcon(type: number) {

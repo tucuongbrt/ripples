@@ -1,13 +1,13 @@
-import Asset from "../model/Asset";
-import Plan from "../model/Plan";
+import IAsset from "../model/IAsset";
+import IPlan from "../model/IPlan";
 
 const apiURL = process.env.REACT_APP_API_URL
 
 export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
-  let vehicles: Asset[] = [];
-  let spots: Asset[] = [];
+  let vehicles: IAsset[] = [];
+  let spots: IAsset[] = [];
   data.forEach( (system: any) => {
     if (system.name.startsWith('spot')) {
       spots.push(system);
@@ -35,7 +35,7 @@ export async function fetchProfileData() {
   return data;
 }
 
-export async function postNewPlan(vehicleName: String, newPlan: Plan) {
+export async function postNewPlan(vehicleName: String, newPlan: IPlan) {
   console.log("Called post new plan")
   const response = await fetch(`${apiURL}/soi`, {
     method: "POST",

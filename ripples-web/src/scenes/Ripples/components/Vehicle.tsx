@@ -4,20 +4,19 @@ import {timestampMsToReadableDate} from '../../../services/DateUtils'
 import {AuvIcon} from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { getLatLng } from '../../../services/PositionUtils';
+import IAssetState from '../../../model/IAssetState';
 
-export default class Vehicle extends Component {
+type propsType = {
+    lastState: IAssetState,
+    name: String
+}
 
-    constructor(props){
+export default class Vehicle extends Component<propsType,{}> {
+
+    constructor(props: propsType){
         super(props);
-        this.state = {
-            plan: null
-        };
-        this.setPlan.bind(this);
     }
 
-    setPlan(newPlan){
-        this.setState({plan: newPlan});
-    }
 
     render(){
         let vehicle = this.props;
