@@ -1,16 +1,19 @@
+import Asset from "../model/Asset";
+import Plan from "../model/Plan";
+
 const apiURL = process.env.REACT_APP_API_URL
 
 export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
-  let vehicles = [];
-  let spots = [];
-  data.forEach(system => {
+  let vehicles: Asset[] = [];
+  let spots: Asset[] = [];
+  data.forEach( (system: any) => {
     if (system.name.startsWith('spot')) {
       spots.push(system);
     }
     else {
-      system.plan.waypoints = system.plan.waypoints.map(wp => 
+      system.plan.waypoints = system.plan.waypoints.map((wp: any) => 
         Object.assign({}, 
           {
             timestamp: wp.arrivalDate,
@@ -32,7 +35,7 @@ export async function fetchProfileData() {
   return data;
 }
 
-export async function postNewPlan(vehicleName, newPlan) {
+export async function postNewPlan(vehicleName: String, newPlan: Plan) {
   console.log("Called post new plan")
   const response = await fetch(`${apiURL}/soi`, {
     method: "POST",
