@@ -24,3 +24,7 @@ export function secondsToTime(secondsInput){
 export function timeFromNow(timestamp){
     return moment(timestamp).fromNow(); 
 }
+
+export function timestampFromDeltaHours(deltaHours) {
+    return Date.now() + deltaHours * 3600*1000
+}

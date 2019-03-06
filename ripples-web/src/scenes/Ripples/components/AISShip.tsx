@@ -18,7 +18,7 @@ import { timeFromNow } from '../../../services/DateUtils';
 export default class AISShip extends Component {
 
 
-    getIcon(type) {
+    getIcon(type: number) {
         const tenths = Math.floor(type / 10);
         switch (tenths) {
             case 0: // antenna
@@ -36,7 +36,7 @@ export default class AISShip extends Component {
         }
     }
 
-    getOpacity(lastUpdate){
+    getOpacity(lastUpdate: number){
         let deltaTimeSec = Math.round((Date.now() - lastUpdate)/1000);
         return 0.36 + (1.000 - 0.36)/(1 + Math.pow((deltaTimeSec/8000),0.9))
     }

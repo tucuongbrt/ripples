@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-import {Marker, Popup} from 'react-leaflet'
-import {getSystemPosition} from '../../../services/PositionUtils'
-import {timestampSecToReadableDate} from '../../../services/DateUtils'
+import {Popup} from 'react-leaflet'
+import {timestampMsToReadableDate} from '../../../services/DateUtils'
 import {AuvIcon} from './Icons'
+import RotatedMarker from './RotatedMarker'
+import { getLatLng } from '../../../services/PositionUtils';
 
 export default class Vehicle extends Component {
 
@@ -20,9 +21,14 @@ export default class Vehicle extends Component {
 
     render(){
         let vehicle = this.props;
-        console.log('draw vehicle called')
+        const systemPosition = getLatLng(vehicle.lastState)
+        console.log('draw vehicle called', vehicle)
         return (
-            <Marker position={getSystemPosition(vehicle.lastState)} icon={new AuvIcon()}>
+            <RotatedMarker 
+            position={systemPosition}
+            icon={new AuvIcon()}
+            rotationAngle={0}
+            rotationOrigin={'center'}>
                 <Popup>
                     <h3>{vehicle.name}</h3>
                     <ul>
@@ -30,10 +36,10 @@ export default class Vehicle extends Component {
                     <li>Lng: {vehicle.lastState.longitude.toFixed(5)}</li>
                     <li>Fuel: {vehicle.lastState.fuel}</li>
                     <li>Heading: {vehicle.lastState.heading.toFixed(3)}</li>
-                    <li>Date: {timestampSecToReadableDate(vehicle.lastState.timestamp)}</li>
+                    <li>Date: {timestampMsToReadableDate(vehicle.lastState.timestamp)}</li>
                     </ul>
                 </Popup>
-            </Marker>        
+            </RotatedMarker>        
         );
         
     }

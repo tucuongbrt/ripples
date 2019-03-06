@@ -10,9 +10,18 @@ export async function fetchSoiData() {
       spots.push(system);
     }
     else {
+      system.plan.waypoints = system.plan.waypoints.map(wp => 
+        Object.assign({}, 
+          {
+            timestamp: wp.arrivalDate,
+            latitude: wp.latitude,
+            longitude: wp.longitude
+          }))
+      system.lastState.timestamp = system.lastState.timestamp * 1000
       vehicles.push(system)
     }
   });
+  console.log("soi vehicles", vehicles)
   return { vehicles: vehicles, spots: spots };
 }
 
@@ -31,4 +40,11 @@ export async function postNewPlan(vehicleName, newPlan) {
     body: JSON.stringify({ vehicleName: vehicleName, plan: newPlan }),
   });
   return await Promise.all([response.ok, response.json()]);
+}
+
+export async function fetchAwareness() {
+  const response = await fetch(`${apiURL}/soi/awareness`)
+  const data = await response.json()
+  console.log("awareness data:", data)
+  return data
 }

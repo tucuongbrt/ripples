@@ -5,7 +5,7 @@ import Vehicle from './components/Vehicle'
 import Spot from './components/Spot'
 import VehiclePlan from './components/VehiclePlan'
 import MeasureArea from './components/MeasureArea'
-import { fetchSoiData, fetchProfileData, postNewPlan } from '../../services/SoiUtils'
+import { fetchSoiData, fetchProfileData, postNewPlan, fetchAwareness } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import VerticalProfile from './components/VerticalProfile';
 import TopNav from './components/TopNav';
@@ -17,12 +17,34 @@ import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
 import { NotificationContainer} from 'react-notifications';
 import { createNotification } from '../../services/Notifications'
 import 'react-notifications/lib/notifications.css';
+import EstimatedPosition from './components/EstimatedPosition';
+import Profile from '../../model/Profile';
 
 const { BaseLayer, Overlay } = LayersControl
 
-export default class Ripples extends Component {
+type MyState = { 
+  plans: any[],
+  vehicles: any[],
+  previousVehicles: any[],
+  spots: any[],
+  profiles: any[],
+  aisShips: any[],
+  freeDrawMode: Number,
+  selectedPlan: any,
+  freeDrawPolygon: any[],
+  dropdownText: String,
+  sidebarOpen: Boolean,
+  soiInterval: any,
+  aisInterval: any,
+  soiAwareness: any[],
+  sliderValue: Number
+ };
 
-  constructor(props) {
+export default class Ripples extends Component<{}, MyState> {
+
+  initCoords: any;
+
+  constructor(props: any) {
     super(props);
     this.state = {
       plans: [],
@@ -37,21 +59,22 @@ export default class Ripples extends Component {
       dropdownText: 'Edit Plan',
       sidebarOpen: true,
       soiInterval: false,
+      aisInterval: false,
+      soiAwareness : [],
+      sliderValue : 0,
     }
+
     this.initCoords = {
       lat: 41.18,
       lng: -8.7,
       zoom: 10,
     }
-    this.sliderValue = 0
 
     this.cancelEditing = this.cancelEditing.bind(this)
     this.drawVehicles = this.drawVehicles.bind(this)
     this.drawSpots = this.drawSpots.bind(this)
     this.drawPlans = this.drawPlans.bind(this)
     this.drawProfiles = this.drawProfiles.bind(this)
-    this.updateSoiData = this.updateSoiData.bind(this)
-    this.updateAISData = this.updateAISData.bind(this)
     this.handleExecPlan = this.handleExecPlan.bind(this)
     this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
     this.handleDrawNewPlan = this.handleDrawNewPlan.bind(this)
@@ -60,28 +83,33 @@ export default class Ripples extends Component {
     this.handleMapClick = this.handleMapClick.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
     this.sendPlanToVehicle = this.sendPlanToVehicle.bind(this)
-    this.stopSoiUpdates = this.stopSoiUpdates.bind(this)
-    this.startSoiUpdates = this.startSoiUpdates.bind(this)
-    
+    this.stopUpdates = this.stopUpdates.bind(this)
+    this.startUpdates = this.startUpdates.bind(this)
+    this.updateSoiData = this.updateSoiData.bind(this)
+    this.updateAISData = this.updateAISData.bind(this)
   }
 
   componentDidMount() {
-    this.updateSoiData();
-    this.updateAISData();
-    this.startSoiUpdates();
-    const aisInterval = setInterval(this.updateAISData, 60000); //get ais data every minute
-    this.setState({ aisInterval: aisInterval })
+    this.startUpdates();
   }
 
-  stopSoiUpdates() {
+  stopUpdates() {
     clearInterval(this.state.soiInterval);
     this.setState({ soiInterval: false });
+    clearInterval(this.state.aisInterval);
+    this.setState({soiInterval: false});
   }
 
-  startSoiUpdates() {
+  startUpdates() {
+    this.updateSoiData();
+    this.updateAISData();
     if (!this.state.soiInterval) {
       const soiInterval = setInterval(this.updateSoiData, 60000);
       this.setState({ soiInterval: soiInterval });
+    }
+    if (!this.state.aisInterval) {
+      const aisInterval = setInterval(this.updateAISData, 60000); //get ais data every minute
+      this.setState({ aisInterval: aisInterval })
     }
   }
 
@@ -104,6 +132,11 @@ export default class Ripples extends Component {
     }).catch(error => {
       createNotification('error', "Failed to fetch profiles data");
     })
+    fetchAwareness().then(assetsPositions => {
+      this.setState({ soiAwareness: assetsPositions})
+    }).catch(error => {
+      createNotification('error', 'Failed to fetch awareness data');
+    })
   }
   updateAISData() {
     fetchAisData().then(shipsData => {
@@ -120,6 +153,14 @@ export default class Ripples extends Component {
         <Vehicle key={vehicle.imcid} lastState={vehicle.lastState} name={vehicle.name}></Vehicle>
       )
     })
+    if (this.state.drawVehicleAwareness === true) {
+      const deltaHours = this.state.sliderValue 
+      this.state.soiAwareness.forEach(vehicle => {
+        vehicles.push(
+          <EstimatedPosition vehicle={vehicle.name} deltaHours={deltaHours} positions={vehicle.positions}></EstimatedPosition>
+        )
+      })
+    }
     return vehicles;
   }
 
@@ -206,7 +247,7 @@ export default class Ripples extends Component {
       dropdownText: `Editing ${planId}`,
       previousVehicles: JSON.parse(JSON.stringify(this.state.vehicles)),
     })
-    this.stopSoiUpdates();
+    this.stopUpdates();
   }
 
   handleMarkerClick(planId, markerId, isMovable) {
@@ -249,7 +290,7 @@ export default class Ripples extends Component {
     let firstWp = waypoints[0];
     let secondWp = waypoints[1];
     const distanceInMeters = distanceInKmBetweenCoords(firstWp.latitude, firstWp.longitude, secondWp.latitude, secondWp.longitude) * 1000;
-    const deltaSec = (secondWp.arrivalDate - firstWp.arrivalDate)/1000;
+    const deltaSec = (secondWp.timestamp - firstWp.timestamp)/1000;
     return distanceInMeters/deltaSec;
   }
 
@@ -263,7 +304,7 @@ export default class Ripples extends Component {
       let prevWp = waypoints[i - 1];
       let currentWp = waypoints[i];
       const distanceInMeters = distanceInKmBetweenCoords(prevWp.latitude, prevWp.longitude, currentWp.latitude, currentWp.longitude) * 1000;
-      currentWp.arrivalDate = prevWp.arrivalDate + Math.round(distanceInMeters / speed) * 1000; // arrivalDate is saved in ms
+      currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000; // timestamp is saved in ms
     }
 
   }
@@ -273,7 +314,7 @@ export default class Ripples extends Component {
     const vehicles = this.state.vehicles;
     const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
     let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
-    plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.arrivalDate / 1000 }))
+    plan.waypoints = plan.waypoints.map(wp => Object.assign(wp, { eta: wp.timestamp / 1000 }))
     if (vehicleIdx >= 0) {
       postNewPlan(vehicles[vehicleIdx].name, plan)
         .then(([responseOk, body]) => {
@@ -281,7 +322,7 @@ export default class Ripples extends Component {
           if (!responseOk) {
             this.cancelEditing();
           } else {
-            this.startSoiUpdates();
+            this.startUpdates();
           }
         })
         .catch(error => {
@@ -295,7 +336,7 @@ export default class Ripples extends Component {
 
   cancelEditing() {
     const prevVehicles = JSON.parse(JSON.stringify(this.state.previousVehicles))
-    this.startSoiUpdates();
+    this.startUpdates();
     this.setState({
       vehicles: prevVehicles,
       prevVehicles: null,
@@ -305,8 +346,17 @@ export default class Ripples extends Component {
   }
 
   onSliderChange(event) {
-    this.sliderValue = event.target.value
-    console.log("Slider new value", this.sliderValue)
+    let sliderValue = event.target.value
+    if (sliderValue === 0){
+      // reset state
+      this.startUpdates()
+      this.setState({drawVehicleAwareness: false})
+    } else {
+      this.stopUpdates()
+      this.setState({drawVehicleAwareness: true})
+    }
+    this.setState({sliderValue: sliderValue})
+    console.log("Slider new value", sliderValue)
   }
 
   freedrawRef = React.createRef();
@@ -381,7 +431,7 @@ export default class Ripples extends Component {
               </Overlay>
             </LayersControl>
             <MeasureArea></MeasureArea>
-            <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.sliderValue}></Slider>
+            <Slider onChange={this.onSliderChange} min={-12} max={12} value={0}></Slider>
           </Map>
         </div>
         <NotificationContainer />
