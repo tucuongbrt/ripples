@@ -1,16 +1,35 @@
 import React, { Component } from 'react';
 import { ResponsiveLine } from '@nivo/line'
 import { timestampMsToReadableDate } from '../../../services/DateUtils';
+import IProfile from '../../../model/IProfile';
+
+type propsType = {
+    data: IProfile
+}
+
+type XYPoint = {
+    x: number
+    y: number
+}
+
+type stateType = {
+    processedData: XYPoint[]
+    maxDepth: number
+    minTemp: number
+    maxTemp: number
+    time: string
+    type: string
+}
 
 /**
  * Responsible for drawing line charts
  */
-export default class LinePlot extends Component {
+export default class LinePlot extends Component<propsType, stateType> {
 
 
-    constructor(props) {
+    constructor(props: propsType) {
         super(props)
-        let data = props.data.samples.map(point => {
+        let data: XYPoint[] = props.data.samples.map(point => {
             return { y: +(point[0] / 10), x: +(point[1]) }
         })
         let maxDepth = Math.max(...data.map(p => p.y))
@@ -19,7 +38,6 @@ export default class LinePlot extends Component {
         let maxTemp = Math.max(...xMap);
         let humanReadableTime = timestampMsToReadableDate(this.props.data.timestamp);
         let type = props.data.type;
-        console.log(data);
         this.state = {
             processedData: data,
             maxDepth: maxDepth,
@@ -28,7 +46,6 @@ export default class LinePlot extends Component {
             minTemp: minTemp,
             maxTemp: maxTemp,
         };
-        console.log(this.state.maxDepth)
     }
 
     render() {
@@ -64,7 +81,6 @@ export default class LinePlot extends Component {
                         axisTop={null}
                         axisRight={null}
                         axisBottom={{
-                            "orient": "bottom",
                             "tickSize": 5,
                             "tickPadding": 5,
                             "tickRotation": 0,
@@ -73,7 +89,6 @@ export default class LinePlot extends Component {
                             "legendPosition": "middle"
                         }}
                         axisLeft={{
-                            "orient": "left",
                             "tickSize": 5,
                             "tickPadding": 5,
                             "tickRotation": 0,
@@ -86,8 +101,6 @@ export default class LinePlot extends Component {
                         dotBorderWidth={2}
                         dotBorderColor="#ffffff"
                         enableDotLabel={false}
-                        dotLabel="y"
-                        dotLabelYOffset={-12}
                         animate={false}
                         motionStiffness={90}
                         motionDamping={15}
@@ -106,7 +119,6 @@ export default class LinePlot extends Component {
                                 "itemOpacity": 0.75,
                                 "symbolSize": 12,
                                 "symbolShape": "circle",
-                                "symbolBorderColor": "rgba(0, 0, 0, .5)",
                                 "effects": [
                                     {
                                         "on": "hover",

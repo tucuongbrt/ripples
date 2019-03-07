@@ -2,38 +2,45 @@ import React, { Component } from 'react';
 import { Table } from 'reactstrap';
 import {fetchTextMessages} from '../../services/Rock7Utils'
 import hexToAscii from '../../services/HexToAscii';
-import { NotificationContainer} from 'react-notifications';
-import { createNotification } from '../../services/Notifications'
 import { timestampMsToReadableDate } from '../../services/DateUtils';
+import NotificationSystem from 'react-notification-system';
+import ITextMessage from '../../model/ITextMessage';
+
+type stateType = {
+    messages: ITextMessage[]
+}
+
 
 /**
  * Display iridium / rock7 plain text messages
  */
-export default class TextMessages extends Component {
+export default class TextMessages extends Component<{},stateType> {
 
-    constructor(props){
+    _notificationSystem: any = null
+    timerID: number = 0
+
+    constructor(props: any){
         super(props)
         this.state = {
             messages: [],
-            intervalId: -1
         }
         this.updateMessages = this.updateMessages.bind(this)
     }
 
     componentDidMount(){
         this.updateMessages();
-        let interval = setInterval(this.updateMessages, 60000)
-        this.setState({intervalId: interval})
+        this.timerID = window.setInterval(this.updateMessages, 60000)
+        this._notificationSystem = this.refs.notificationSystem;
     }
 
     componentWillUnmount(){
-        clearInterval(this.state.intervalId)
+        clearInterval(this.timerID)
     }
 
     updateMessages() {
         fetchTextMessages()
         .then(data => {
-            let messages = data.map(m => 
+            let messages = data.map((m:any) => 
                 Object.assign(
                     m,
                     {
@@ -43,11 +50,14 @@ export default class TextMessages extends Component {
             this.setState({messages: messages.reverse()})
         })
         .catch(error => {
-            createNotification('error', "Failed to fetch text messages");
+            this._notificationSystem.addNotification({
+                message: 'Failed to fetch text messages',
+                level: 'warning'
+              });
         })
     }
 
-    renderMessage(textMsg){
+    renderMessage(textMsg: ITextMessage){
         return (
             <tr key={textMsg.updated_at}>
                 <td>{textMsg.date}</td>
@@ -73,7 +83,7 @@ export default class TextMessages extends Component {
                 {this.renderMessages()}
               </tbody>
             </Table>
-            <NotificationContainer />
+            <NotificationSystem ref="notificationSystem" />
         </div>
     )
     }

@@ -1,23 +1,31 @@
-function degreesToRadians(degrees) {
+import ILatLngHead from "../model/ILatLngHead";
+import IPositionAtTime from "../model/IPositionAtTime";
+import ILatLng from "../model/ILatLng";
+
+function degreesToRadians(degrees: number) {
     return degrees * Math.PI / 180;
 }
 
-export function distanceInKmBetweenCoords(lat1, lon1, lat2, lon2) {
-    var earthRadiusKm = 6371;
+export function distanceInKmBetweenCoords(p1: ILatLng, p2: ILatLng) {
+    const earthRadiusKm = 6371;
 
-    var dLat = degreesToRadians(lat2 - lat1);
-    var dLon = degreesToRadians(lon2 - lon1);
+    const dLat = degreesToRadians(p2.latitude - p1.latitude);
+    const dLon = degreesToRadians(p2.longitude - p1.longitude);
 
-    lat1 = degreesToRadians(lat1);
-    lat2 = degreesToRadians(lat2);
+    const lat1 = degreesToRadians(p1.latitude);
+    const lat2 = degreesToRadians(p2.latitude);
 
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return earthRadiusKm * c;
 }
 
-export function interpolateTwoPoints(date, prevPoint, nextPoint) {
+export function interpolateTwoPoints(
+    date: number,
+    prevPoint: IPositionAtTime,
+    nextPoint: IPositionAtTime): ILatLngHead 
+    {
     const ratioCompleted = (date - prevPoint.timestamp)/(nextPoint.timestamp - prevPoint.timestamp)
     const latDelta = nextPoint.latitude - prevPoint.latitude
     const lngDelta = nextPoint.longitude - prevPoint.longitude
@@ -32,11 +40,11 @@ export function interpolateTwoPoints(date, prevPoint, nextPoint) {
     }
 }
 
-export function getPrevAndNextPoints(points, date){
+export function getPrevAndNextPoints(points: IPositionAtTime[], date: number){
     const prevIndex = points.findIndex((wp,i) => wp.timestamp < date && points[i+1].timestamp > date)
     return {prev: points[prevIndex], next: points[prevIndex+1]}
 }
 
-export function getLatLng(position){
+export function getLatLng(position: ILatLng){
     return {lat: position.latitude, lng: position.longitude}
 }

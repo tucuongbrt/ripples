@@ -1,6 +1,6 @@
-import IWaypoint from "./IWaypoint";
+import IPositionAtTime from "./IPositionAtTime";
 
 export default interface IPlan {
-    id: String
-    waypoints: IWaypoint[]
+    id: string
+    waypoints: IPositionAtTime[]
 }

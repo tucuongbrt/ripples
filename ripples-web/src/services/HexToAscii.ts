@@ -1,4 +1,4 @@
-export default function hexToAscii(str1){
+export default function hexToAscii(str1: string){
 	let hex  = str1.toString();
 	let str = '';
 	for (let n = 0; n < hex.length; n += 2) {

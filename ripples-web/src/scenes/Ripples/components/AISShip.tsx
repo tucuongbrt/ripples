@@ -5,17 +5,7 @@ import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
 import IAisShip from '../../../model/IAisShip';
 
-/**
- * AISShip should contain:
- * name
- * mmsi
- * sog
- * cog
- * latitude
- * longitude
- * updated_at
- * type
- */
+
 export default class AISShip extends Component<{data: IAisShip}, {}> {
 
 
@@ -49,7 +39,7 @@ export default class AISShip extends Component<{data: IAisShip}, {}> {
                 position={{ lat: ship.latitude, lng: ship.longitude }}
                 rotationAngle={Math.round(ship.cog)}
                 rotationOrigin={'center'}
-                icon={this.getIcon(ship.type)}
+                icon={this.getIcon(Number(ship.type))}
                 opacity={this.getOpacity(ship.updated_at)}>
                 <Popup>
                     <h3>{ship.name} - {ship.mmsi}</h3>

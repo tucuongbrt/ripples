@@ -3,34 +3,49 @@ import { Marker, Popup, Polyline } from 'react-leaflet'
 import { WaypointIcon} from './Icons'
 import { timeFromNow } from '../../../services/DateUtils'
 import { renderToStaticMarkup } from 'react-dom/server';
-import { divIcon } from 'leaflet';
+import { divIcon, LatLngExpression, LatLngLiteral } from 'leaflet';
 import EstimatedPosition from './EstimatedPosition';
 import { interpolateTwoPoints, getPrevAndNextPoints } from '../../../services/PositionUtils';
+import ILatLngHead from '../../../model/ILatLngHead';
+import IPlan from '../../../model/IPlan';
+import ILatLng from '../../../model/ILatLng';
+
+type propsType = {
+    plan: IPlan
+    vehicle: string
+    isMovable: boolean
+    handleMarkerClick: Function
+    handleDeleteMarker: Function
+    wpSelected: number
+} 
+
+type stateType = {
+    estimatedPos: ILatLngHead
+}
 
 /**
  * Renders a vehicle plan (line, waypoints and 'ghost')
  */
-export default class VehiclePlan extends Component {
+export default class VehiclePlan extends Component<propsType, stateType> {
+    timerID: number = 0
 
-    constructor(props) {
+    constructor(props: propsType) {
         super(props);
         this.state = {
             estimatedPos: { longitude: 0, latitude: 0 , heading: 0}
         }
-        this.renderPlanLine = this.renderPlanLines.bind(this);
+        this.renderPlanLines = this.renderPlanLines.bind(this);
         this.renderPlanWaypoints = this.renderPlanWaypoints.bind(this);
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
     }
 
     componentDidMount() {
         this.updateEstimatedPos();
-        const interval1 = setInterval(this.updateEstimatedPos, 1000);
-        // store interval in the state so it can be accessed later:
-        this.setState({ interval1: interval1 });
+        this.timerID = window.setInterval(this.updateEstimatedPos, 1000);
     }
 
     componentWillUnmount() {
-        clearInterval(this.state.interval1);
+        clearInterval(this.timerID);
     }
 
 
@@ -40,11 +55,13 @@ export default class VehiclePlan extends Component {
      */
     renderPlanLines() {
         
-        let positions = this.props.plan.waypoints.map(wp => [wp.latitude, wp.longitude])
+        let positions = this.props.plan.waypoints.map(wp => {
+            return {lat: wp.latitude, lng: wp.longitude}
+        })
         let polylines = [];
         for(let i = 0; i < positions.length - 1; i++){
-            let current = positions[i];
-            let next = positions[i+1];
+            let current: LatLngLiteral = positions[i];
+            let next: LatLngLiteral = positions[i+1];
             polylines.push(
                 <Polyline key={"Polyline_" + i + "_" + this.props.plan.id} positions={[current,next]} color='#008000'></Polyline>
             )
@@ -54,8 +71,10 @@ export default class VehiclePlan extends Component {
 
     renderPlanWaypoints() {
         const waypoints = this.props.plan.waypoints;
-        const positions = waypoints.map(wp => [wp.latitude, wp.longitude])
-        let markers = [];
+        let positions = this.props.plan.waypoints.map(wp => {
+            return {lat: wp.latitude, lng: wp.longitude}
+        })
+        let markers: any[] = [];
         const iconMarkup = renderToStaticMarkup(<i className="editing-waypoint" />);
         const customMarkerIcon = divIcon({
             html: iconMarkup,

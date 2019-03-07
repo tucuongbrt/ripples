@@ -3,8 +3,14 @@ import { GhostIcon } from './Icons'
 import RotatedMarker from './RotatedMarker';
 import {Popup} from 'react-leaflet'
 import { getLatLng } from '../../../services/PositionUtils';
+import IPositionAtTime from '../../../model/IPositionAtTime';
+import ILatLngHead from '../../../model/ILatLngHead';
 
-export default class EstimatedPosition extends Component { 
+type propsType = {
+    vehicle: string
+    position: ILatLngHead
+}
+export default class EstimatedPosition extends Component<propsType, {}> { 
     render() {
         const estimatedPos = this.props.position;
         return (

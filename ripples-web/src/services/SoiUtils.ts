@@ -35,7 +35,7 @@ export async function fetchProfileData() {
   return data;
 }
 
-export async function postNewPlan(vehicleName: String, newPlan: IPlan) {
+async function postNewPlan(vehicleName: string, newPlan: IPlan) {
   console.log("Called post new plan")
   const response = await fetch(`${apiURL}/soi`, {
     method: "POST",
@@ -50,4 +50,17 @@ export async function fetchAwareness() {
   const data = await response.json()
   console.log("awareness data:", data)
   return data
+}
+
+export async function sendPlanToVehicle(selectedPlan: string, vehicles: IAsset[]) {
+    const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
+    if (vehicleIdx >= 0) {
+      let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
+      plan.waypoints = plan.waypoints.map((wp: any) => {
+      let timestamp = wp.timestamp
+      delete wp.timestamp
+      return Object.assign(wp, { eta: timestamp / 1000, duration: 60})
+    })
+      return postNewPlan(vehicles[vehicleIdx].name, plan)
+    }
 }

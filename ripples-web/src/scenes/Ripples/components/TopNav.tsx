@@ -1,23 +1,37 @@
 import React, { Component } from 'react'
-import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, NavItem, NavLink, Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
+import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
+import IPair from '../../../model/IPair';
 
+type propsType = {
+  vehiclePlanPairs: IPair<string>[]
+  handleEditPlan: Function
+  handleSendPlanToVehicle: Function
+  handleCancelEditPlan: Function
+}
 
-export default class TopNav extends Component {
+type stateType = {
+  isNavOpen: boolean
+  isDropdownOpen: boolean
+  isExecPlanDisabled: boolean
+  isEditingPlan: boolean
+  dropdownText: string
+}
 
-  constructor(props) {
+export default class TopNav extends Component<propsType, stateType> {
+
+  constructor(props: propsType) {
     super(props)
 
     this.state = {
       isNavOpen: true,
-      dropdownOpen: false,
-      execPlanDisabled: true,
-      editingPlan: false,
+      isDropdownOpen: false,
+      isExecPlanDisabled: true,
+      isEditingPlan: false,
+      dropdownText: 'Edit Plan'
     }
 
     this.onNavToggle = this.onNavToggle.bind(this);
     this.toggleDropdown = this.toggleDropdown.bind(this)
-    this.handleExecPlan = this.handleExecPlan.bind(this)
-    this.toogleDrawNewPlan = this.handleDrawNewPlan.bind(this)
     this.handleSendToVehicle = this.handleSendToVehicle.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleCancelEditing = this.handleCancelEditing.bind(this);
@@ -29,46 +43,36 @@ export default class TopNav extends Component {
 
   toggleDropdown() {
     this.setState({
-      dropdownOpen: !this.state.dropdownOpen
+      isDropdownOpen: !this.state.isDropdownOpen
     });
   }
 
-  handleExecPlan() {
+  handleEditPlan(p: IPair<string>) {
     this.setState({
-      execPlanDisabled: !this.state.execPlanDisabled
+      isEditingPlan: true,
+      dropdownText: `Editing ${p.first}_${p.second}`
     })
-    this.props.handleExecPlan()
-  }
-  handleDrawNewPlan() {
-    this.setState({
-      execPlanDisabled: !this.state.execPlanDisabled
-    })
-    this.props.handleDrawNewPlan();
-  }
-
-  handleEditPlan(p) {
-    this.setState({
-      editingPlan: true,
-    })
-    this.props.handleEditPlan(p);
+    this.props.handleEditPlan(p.second);
   }
 
   handleSendToVehicle() {
     this.setState({
-      editingPlan: false
+      isEditingPlan: false,
+      dropdownText: `Edit Plan`
     })
-    this.props.sendPlanToVehicle();
+    this.props.handleSendPlanToVehicle();
   }
 
   handleCancelEditing() {
     this.setState({
-      editingPlan: false
+      isEditingPlan: false,
+      dropdownText: `Edit Plan`
     })
-    this.props.cancelEditing();
+    this.props.handleCancelEditPlan();
   }
 
   getPlans() {
-    const editingPlan = this.state.editingPlan;
+    const editingPlan = this.state.isEditingPlan;
     if (editingPlan) {
       return (
         <div>
@@ -78,8 +82,12 @@ export default class TopNav extends Component {
       )
     }
     else {
-      return this.props.plans.map(([v,p]) => {
-        return <DropdownItem key={"dropdown-item-" + p} onClick={() => this.handleEditPlan(p)}>{v+"_"+p}</DropdownItem>
+      return this.props.vehiclePlanPairs.map((p: IPair<string>) => {
+        return <DropdownItem 
+          key={"dropdown-item-" + p}
+          onClick={() => this.handleEditPlan(p)}>
+          {p.first + "_" + p.second}
+          </DropdownItem>
       })
     }
   }
@@ -91,20 +99,14 @@ export default class TopNav extends Component {
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar>
           <Nav className="ml-auto" navbar>
-            <Dropdown nav isOpen={this.state.dropdownOpen} toggle={this.toggleDropdown}>
+            <Dropdown nav isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
               <DropdownToggle nav caret>
-                {this.props.dropdownText}
+                {this.state.dropdownText}
               </DropdownToggle>
               <DropdownMenu>
                 {this.getPlans()}
               </DropdownMenu>
             </Dropdown>
-            <NavItem>
-              <NavLink disabled={!this.state.execPlanDisabled} onClick={this.toogleDrawNewPlan} href="#" >Draw new plan</NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink disabled={this.state.execPlanDisabled} onClick={this.handleExecPlan} href="#">Execute plan</NavLink>
-            </NavItem>
           </Nav>
         </Collapse>
       </Navbar>)

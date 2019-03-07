@@ -3,27 +3,36 @@ import { Table } from 'reactstrap';
 import { fetchSoiData } from '../../services/SoiUtils';
 import { timeFromNow } from '../../services/DateUtils';
 import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
+import IAsset from '../../model/IAsset';
+import ILatLng from '../../model/ILatLng';
+import IPositionAtTime from '../../model/IPositionAtTime';
 
-export default class SoiRisk extends Component {
 
-    constructor(props){
+type stateType = {
+    vehicles: IAsset[],
+}
+
+export default class SoiRisk extends Component<{}, stateType> {
+
+    timerID: number = 0
+    rootCoords: ILatLng = {latitude: 41.18, longitude: -8.7}
+
+    constructor(props: any){
         super(props);
         this.state = {
-            vehicles: []
+            vehicles: [],
         }
-        this.rootCoords = {lat: 41.18, lng: -8.7}
         this.updateSoiData = this.updateSoiData.bind(this)
         this.renderAllVehicles = this.renderAllVehicles.bind(this)
     }
 
     componentDidMount() {
         this.updateSoiData();
-        const intervalId = setInterval(this.updateSoiData, 60000); //get Soi data every minute
-        this.setState({intervalId: intervalId})
+        this.timerID = window.setInterval(this.updateSoiData, 60000); //get Soi data every minute
     }
 
     componentWillUnmount() {
-        clearInterval(this.state.intervalId);
+        clearInterval(this.timerID);
     }
 
     updateSoiData(){
@@ -32,42 +41,43 @@ export default class SoiRisk extends Component {
         })
     }
 
-    getNextWaypoint(vehicle){
+    getNextWaypoint(vehicle: IAsset){
         const waypoints = vehicle.plan.waypoints;
         const lastLat = vehicle.lastState.latitude;
         const isLatIncreasing = waypoints[0].latitude < waypoints[1].latitude;
         if(isLatIncreasing) {
-            return waypoints.find((e,i) => {
-                if (i!==0){
-                    return e.latitude > lastLat && waypoints[i-1].latitude < lastLat
-                }
-                return false;
+            return waypoints.findIndex((e,i) => {
+                return e.latitude > lastLat && waypoints[i-1].latitude < lastLat
+                
             })
         } else {
-            return waypoints.find((e,i) => {
-                if (i !== 0) {
-                    return e.latitude < lastLat && waypoints[i-1].latitude > lastLat
-                }
-                return false;
+            return waypoints.findIndex((e,i) => {
+                return e.latitude < lastLat && waypoints[i-1].latitude > lastLat
             })
         }
     }
 
-    getDistanceToVehicle(vehicle){
+    getDistanceToVehicle(vehicle: IAsset){
         return distanceInKmBetweenCoords(
-            vehicle.lastState.latitude,
-            vehicle.lastState.longitude,
-            this.rootCoords.lat,
-            this.rootCoords.lng).toFixed(3)
+            vehicle.lastState,
+            this.rootCoords).toFixed(3)
     }
 
-    renderVehicle(vehicle){
-        const nextWaypoint= this.getNextWaypoint(vehicle);
+    renderTimeForNextWaypoint(waypoints: IPositionAtTime[], nextWaypointIdx: number){
+        if (nextWaypointIdx >= 0){
+            return <td>{timeFromNow(waypoints[nextWaypointIdx].timestamp)}</td> 
+        }
+        return <td>N/D</td>
+        
+    }
+
+    renderVehicle(vehicle: IAsset){
+        const nextWaypointIdx = this.getNextWaypoint(vehicle);
         return (
             <tr key={vehicle.name}>
                 <th scope="row">{vehicle.name}</th>
                 <td>{timeFromNow(vehicle.lastState.timestamp*1000)}</td>
-                <td>{timeFromNow(nextWaypoint.timestamp)}</td>
+                {this.renderTimeForNextWaypoint(vehicle.plan.waypoints, nextWaypointIdx)}
                 <td>{vehicle.lastState.fuel}</td>
                 <td>{this.getDistanceToVehicle(vehicle)}</td>
                 <td>N/D</td>

@@ -2,8 +2,8 @@
 import React, { Component } from 'react'
 import { withLeaflet } from 'react-leaflet';
 
-// Import to a different variable so you don't have to update the rest of your codes
-import MeasureControlDefault from 'react-leaflet-measure';
+// Import with require as there's no type definition
+let MeasureControlDefault = require('react-leaflet-measure');
  
 // Wrap our new variable and assign it to the one we used before. The rest of the codes stays the same.
 const MeasureControl = withLeaflet(MeasureControlDefault);

@@ -8,7 +8,7 @@ import IAssetState from '../../../model/IAssetState';
 
 type propsType = {
     lastState: IAssetState,
-    name: String
+    name: string
 }
 
 export default class Vehicle extends Component<propsType,{}> {
