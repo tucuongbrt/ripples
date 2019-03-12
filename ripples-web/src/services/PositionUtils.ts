@@ -32,7 +32,7 @@ export function interpolateTwoPoints(
     const totalDelta = Math.sqrt(Math.pow(latDelta, 2) + Math.pow(lngDelta, 2))
     const cosAlpha = latDelta / totalDelta;
     let heading = Math.round(Math.acos(cosAlpha) * 180 / Math.PI)
-    if (lngDelta < 0) heading += 180
+    if (lngDelta < 0) heading = 360 - heading
     return {
         latitude: prevPoint.latitude + ratioCompleted * latDelta,
         longitude: prevPoint.longitude + ratioCompleted * lngDelta,

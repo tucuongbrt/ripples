@@ -43,12 +43,19 @@ describe("interpolate two points", () => {
 
     it("finds the correct heading 315", () => {
         const point1 = {latitude: 0, longitude: 0, timestamp: 0}
-        const point2 = {latitude: -10, longitude: -10, timestamp: 10000}
+        const point2 = {latitude: 10, longitude: -10, timestamp: 10000}
         const date = 5000
         const result = interpolateTwoPoints(date, point1, point2)
-        expect(result).toEqual({latitude: -5, longitude: -5, heading: 315});
+        expect(result).toEqual({latitude: 5, longitude: -5, heading: 315});
     });
 
-
+    it("finds the correct heading NW", () => {
+        const point1 = {latitude: 41.18197, longitude: -8.70558, timestamp: 0}
+        const point2 = {latitude: 41.18278, longitude: -8.70571, timestamp: 10000}
+        const date = 5000
+        const result = interpolateTwoPoints(date, point1, point2)
+        expect(result.heading).toBeGreaterThan(270)
+        expect(result.heading).toBeLessThan(360)
+    })
 
 });
