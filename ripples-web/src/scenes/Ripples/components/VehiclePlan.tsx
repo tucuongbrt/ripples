@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { Marker, Popup, Polyline } from 'react-leaflet'
 import { WaypointIcon} from './Icons'
-import { timeFromNow } from '../../../services/DateUtils'
+import { timeFromNow, timestampMsToReadableDate } from '../../../services/DateUtils'
 import { renderToStaticMarkup } from 'react-dom/server';
 import { divIcon, LatLngExpression, LatLngLiteral } from 'leaflet';
 import EstimatedPosition from './EstimatedPosition';
@@ -9,6 +9,7 @@ import { interpolateTwoPoints, getPrevAndNextPoints } from '../../../services/Po
 import ILatLngHead from '../../../model/ILatLngHead';
 import IPlan from '../../../model/IPlan';
 import ILatLng from '../../../model/ILatLng';
+import IPositionAtTime from '../../../model/IPositionAtTime';
 
 type propsType = {
     plan: IPlan
@@ -69,6 +70,21 @@ export default class VehiclePlan extends Component<propsType, stateType> {
         return polylines;
     }
 
+    renderPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
+        let popup = isMovable ? <Popup>
+        <div>Click on the map to move me</div>
+        <button onClick={() => this.props.handleDeleteMarker(this.props.plan.id, wpIndex)}>Delete me</button>
+        </Popup> : 
+        (<Popup><h4>Waypoint {wpIndex} of {this.props.plan.id}</h4>
+        <div>
+            <li>ETA: {timeFromNow(wp.timestamp)}</li>
+            <li>Exact ETA: {timestampMsToReadableDate(wp.timestamp)}</li>
+            <li>Lat: {wp.latitude.toFixed(5)}</li>
+            <li>Lng: {wp.longitude.toFixed(5)}</li>
+        </div></Popup>)
+        return popup
+    }
+
     renderPlanWaypoints() {
         const waypoints = this.props.plan.waypoints;
         let positions = this.props.plan.waypoints.map(wp => {
@@ -86,11 +102,7 @@ export default class VehiclePlan extends Component<propsType, stateType> {
             let isMovable = this.props.isMovable && (eta - Date.now()) > 0;
             let className = (this.props.wpSelected === i && isMovable) ? 'editing-waypoint' : '';
             const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon();
-            let popup = isMovable ? <Popup>
-            <div>Click on the map to move me</div>
-            <button onClick={() => this.props.handleDeleteMarker(this.props.plan.id, i)}>Delete me</button>
-            </Popup> : 
-            (<Popup><h4>Waypoint {i} of {this.props.plan.id}</h4><span>ETA: {timeFromNow(eta)}</span></Popup>)
+            
             markers.push(
                 <Marker
                     key={"Waypoint" + i + "_" + this.props.plan.id}
@@ -99,7 +111,7 @@ export default class VehiclePlan extends Component<propsType, stateType> {
                     icon={icon}
                     onClick={() => this.props.handleMarkerClick(this.props.plan.id, i, isMovable)}
                     className={className}>
-                    {popup}
+                    {this.renderPopup(isMovable, i, waypoints[i])}
                 </Marker>
             )
         })

@@ -157,7 +157,7 @@ export default class Ripples extends Component<{}, stateType> {
         <Vehicle key={vehicle.imcid} lastState={vehicle.lastState} name={vehicle.name}></Vehicle>
       )
     })
-    if (this.state.drawAwareness === true) {
+    if (this.state.drawAwareness) {
       const deltaHours = this.state.sliderValue
       this.state.soiAwareness.forEach(vehicle => {
         vehicles.push(
