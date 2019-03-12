@@ -1,4 +1,4 @@
-import React, { Component, ReactInstance } from 'react'
+import React, { Component, ReactInstance, ChangeEvent } from 'react'
 import { Map, TileLayer, LayerGroup, LayersControl, LatLng } from 'react-leaflet'
 import Vehicle from './components/Vehicle'
 import Spot from './components/Spot'
@@ -8,7 +8,7 @@ import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle } fro
 import './styles/Ripples.css'
 import VerticalProfile from './components/VerticalProfile';
 import TopNav from './components/TopNav';
-import Slider from './components/SliderControl';
+import Slider from './components/Slider';
 import 'react-leaflet-fullscreen-control'
 import AISShip from './components/AISShip';
 import { fetchAisData } from '../../services/AISUtils';
@@ -329,8 +329,8 @@ export default class Ripples extends Component<{}, stateType> {
     });
   }
 
-  onSliderChange(event: any) {
-    let sliderValue = event.target.value
+  onSliderChange(event: ChangeEvent<HTMLInputElement>) {
+    let sliderValue = +event.target.value
     if (sliderValue === 0) {
       // reset state
       this.startUpdates()
@@ -402,9 +402,9 @@ export default class Ripples extends Component<{}, stateType> {
               </Overlay>
             </LayersControl>
             <MeasureArea></MeasureArea>
-            <Slider onChange={this.onSliderChange} min={-12} max={12} value={0}></Slider>
           </Map>
         </div>
+        <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.state.sliderValue}></Slider>
         <NotificationSystem ref="notificationSystem" />
       </div>
 
