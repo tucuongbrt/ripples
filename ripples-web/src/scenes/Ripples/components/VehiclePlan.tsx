@@ -117,16 +117,16 @@ export default class VehiclePlan extends Component<propsType, stateType> {
         return markers;
     }
 
-    updateEstimatedPos(date = Date.now()) {
-        
+    updateEstimatedPos() {
+        const now = Date.now()
         const waypoints = this.props.plan.waypoints;
-        const isExecutingPlan = waypoints[0].timestamp < date && 
-            waypoints[waypoints.length - 1].timestamp > date; 
+        const isExecutingPlan = waypoints[0].timestamp < now && 
+            waypoints[waypoints.length - 1].timestamp > now; 
         if (isExecutingPlan) {
-            const prevAndNext = getPrevAndNextPoints(waypoints, date);
+            const prevAndNext = getPrevAndNextPoints(waypoints, now);
             const prevPoint = prevAndNext.prev;
             const nextPoint = prevAndNext.next;
-            this.setState({ estimatedPos: interpolateTwoPoints(date, prevPoint, nextPoint) })
+            this.setState({ estimatedPos: interpolateTwoPoints(now, prevPoint, nextPoint) })
         }
     }
 

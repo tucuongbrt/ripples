@@ -1,5 +1,5 @@
-import React, { Component, ReactInstance, ChangeEvent } from 'react'
-import { Map, TileLayer, LayerGroup, LayersControl, LatLng } from 'react-leaflet'
+import React, { Component, ChangeEvent } from 'react'
+import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
 import Vehicle from './components/Vehicle'
 import Spot from './components/Spot'
 import VehiclePlan from './components/VehiclePlan'
