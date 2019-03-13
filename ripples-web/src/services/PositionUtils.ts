@@ -1,4 +1,4 @@
-import ILatLngHead from "../model/ILatLngHead";
+import IPosHeadingAtTime from "../model/ILatLngHead";
 import IPositionAtTime from "../model/IPositionAtTime";
 import ILatLng from "../model/ILatLng";
 
@@ -24,23 +24,40 @@ export function distanceInKmBetweenCoords(p1: ILatLng, p2: ILatLng) {
 export function interpolateTwoPoints(
     date: number,
     prevPoint: IPositionAtTime,
-    nextPoint: IPositionAtTime): ILatLngHead 
+    nextPoint: IPositionAtTime): IPosHeadingAtTime 
     {
-    const ratioCompleted = (date - prevPoint.timestamp)/(nextPoint.timestamp - prevPoint.timestamp)
+    let ratioCompleted = 1
+    if (prevPoint.timestamp !== nextPoint.timestamp){
+        ratioCompleted = (date - prevPoint.timestamp)/(nextPoint.timestamp - prevPoint.timestamp)
+    }
     const latDelta = nextPoint.latitude - prevPoint.latitude
     const lngDelta = nextPoint.longitude - prevPoint.longitude
     const totalDelta = Math.sqrt(Math.pow(latDelta, 2) + Math.pow(lngDelta, 2))
-    const cosAlpha = latDelta / totalDelta;
+    let cosAlpha = 1
+    if (totalDelta !== 0){
+        cosAlpha = latDelta / totalDelta;
+    }
     let heading = Math.round(Math.acos(cosAlpha) * 180 / Math.PI)
     if (lngDelta < 0) heading = 360 - heading
     return {
         latitude: prevPoint.latitude + ratioCompleted * latDelta,
         longitude: prevPoint.longitude + ratioCompleted * lngDelta,
-        heading: heading
+        heading: heading,
+        timestamp: date
     }
 }
 
 export function getPrevAndNextPoints(points: IPositionAtTime[], date: number){
+    if (points.length === 0) {
+        let defaultP = {latitude: 0, longitude: 0, timestamp: date}
+        return {prev: defaultP, next: defaultP}
+    }
+    if (points.length === 1 || date < points[0].timestamp){
+        return {prev: points[0], next: points[0]}
+    }
+    if (date > points[points.length - 1].timestamp){
+        return {prev: points[points.length - 1], next: points[points.length - 1]}
+    }
     const prevIndex = points.findIndex((wp,i) => wp.timestamp < date && points[i+1].timestamp > date)
     return {prev: points[prevIndex], next: points[prevIndex+1]}
 }

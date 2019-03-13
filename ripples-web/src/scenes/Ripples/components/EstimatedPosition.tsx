@@ -4,11 +4,12 @@ import RotatedMarker from './RotatedMarker';
 import {Popup} from 'react-leaflet'
 import { getLatLng } from '../../../services/PositionUtils';
 import IPositionAtTime from '../../../model/IPositionAtTime';
-import ILatLngHead from '../../../model/ILatLngHead';
+import IPosHeadingAtTime from '../../../model/ILatLngHead';
+import { timestampMsToReadableDate } from '../../../services/DateUtils';
 
 type propsType = {
     vehicle: string
-    position: ILatLngHead
+    position: IPosHeadingAtTime
 }
 export default class EstimatedPosition extends Component<propsType, {}> { 
     render() {
@@ -26,6 +27,7 @@ export default class EstimatedPosition extends Component<propsType, {}> {
                         <ul>
                             <li>Lat: {estimatedPos.latitude.toFixed(5)}</li>
                             <li>Lng: {estimatedPos.longitude.toFixed(5)}</li>
+                            <li>Date: {timestampMsToReadableDate(estimatedPos.timestamp)}</li>
                         </ul>
                     </Popup>
                 </RotatedMarker>

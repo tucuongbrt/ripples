@@ -1,5 +1,5 @@
-import ILatLng from "./ILatLng";
+import IPositionAtTime from "./IPositionAtTime";
 
-export default interface ILatLngHead extends ILatLng{
+export default interface IPosHeadingAtTime extends IPositionAtTime{
     heading: number
 }

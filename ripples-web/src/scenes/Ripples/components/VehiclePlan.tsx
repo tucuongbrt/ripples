@@ -3,12 +3,11 @@ import { Marker, Popup, Polyline } from 'react-leaflet'
 import { WaypointIcon} from './Icons'
 import { timeFromNow, timestampMsToReadableDate } from '../../../services/DateUtils'
 import { renderToStaticMarkup } from 'react-dom/server';
-import { divIcon, LatLngExpression, LatLngLiteral } from 'leaflet';
+import { divIcon, LatLngLiteral } from 'leaflet';
 import EstimatedPosition from './EstimatedPosition';
 import { interpolateTwoPoints, getPrevAndNextPoints } from '../../../services/PositionUtils';
-import ILatLngHead from '../../../model/ILatLngHead';
+import IPosHeadingAtTime from '../../../model/ILatLngHead';
 import IPlan from '../../../model/IPlan';
-import ILatLng from '../../../model/ILatLng';
 import IPositionAtTime from '../../../model/IPositionAtTime';
 
 type propsType = {
@@ -21,7 +20,7 @@ type propsType = {
 } 
 
 type stateType = {
-    estimatedPos: ILatLngHead
+    estimatedPos: IPosHeadingAtTime
 }
 
 /**
@@ -33,7 +32,7 @@ export default class VehiclePlan extends Component<propsType, stateType> {
     constructor(props: propsType) {
         super(props);
         this.state = {
-            estimatedPos: { longitude: 0, latitude: 0 , heading: 0}
+            estimatedPos: { longitude: 0, latitude: 0 , heading: 0, timestamp: Date.now()}
         }
         this.renderPlanLines = this.renderPlanLines.bind(this);
         this.renderPlanWaypoints = this.renderPlanWaypoints.bind(this);

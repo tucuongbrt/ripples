@@ -27,7 +27,7 @@ export default class Slider extends Component<propsType, {}> {
         max={this.props.max} 
         value={this.props.value}
         onChange={ e => this.props.onChange(e)}
-        step={1/30}
+        step={1/50}
         ></input>
         </Row>
         <Row className="mt-2">

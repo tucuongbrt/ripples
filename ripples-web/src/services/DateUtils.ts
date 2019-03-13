@@ -9,7 +9,7 @@ export function timestampMsToReadableDate(timestamp: number){
     return formatDate(new Date(timestamp))
 }
 function formatDate(date: Date){
-    return moment(date).format('MMMM Do YYYY, h:mm:ss a')
+    return moment(date).format('h:mm:ss a, MMMM Do YYYY')
 }
 
 export function secondsToTime(secondsInput: number){

@@ -3,7 +3,7 @@ import EstimatedPosition from './EstimatedPosition';
 import { interpolateTwoPoints, getPrevAndNextPoints } from '../../../services/PositionUtils';
 import { timestampFromDeltaHours } from '../../../services/DateUtils'
 import ISoiAwareness from '../../../model/ISoiAwareness';
-import ILatLngHead from '../../../model/ILatLngHead';
+import IPosHeadingAtTime from '../../../model/ILatLngHead';
 
 type propsType = {
     awareness: ISoiAwareness,
@@ -17,17 +17,19 @@ export default class SoiAwareness extends Component<propsType, {}> {
         this.estimatedPositionAtTime = this.estimatedPositionAtTime.bind(this)
     }
 
-    estimatedPositionAtTime(): ILatLngHead {
+    estimatedPositionAtTime(): IPosHeadingAtTime {
         const date = timestampFromDeltaHours(this.props.deltaHours)
         const pair = getPrevAndNextPoints(this.props.awareness.positions, date);
         return interpolateTwoPoints(date, pair.prev, pair.next)
     }
 
     render() {
+        let estimatedPos = this.estimatedPositionAtTime()
+        console.log(estimatedPos)
         return (
         <EstimatedPosition 
             vehicle={this.props.awareness.name}
-            position={this.estimatedPositionAtTime()}>
+            position={estimatedPos}>
         </EstimatedPosition>
         )
         
