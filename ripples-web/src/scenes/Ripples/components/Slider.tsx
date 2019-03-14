@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import '../styles/Slider.css';
 import { Row, Col } from 'reactstrap';
-
+import { decimalHoursToTime } from '../../../services/DateUtils'
 
 type propsType = {
     min: number
@@ -32,7 +32,7 @@ export default class Slider extends Component<propsType, {}> {
         </Row>
         <Row className="mt-2">
         <Col className="text-left font-weight-bold p-0">{this.props.min}h</Col>
-        <Col className="text-center font-weight-bold p-0">{this.props.value}h</Col>
+        <Col className="text-center font-weight-bold p-0">{decimalHoursToTime(this.props.value)}</Col>
         <Col className="text-right font-weight-bold p-0">{this.props.max}h</Col>
         </Row>
         </div>

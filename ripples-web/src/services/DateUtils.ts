@@ -1,6 +1,15 @@
 
 import moment from 'moment'
 
+export function decimalHoursToTime(decimalHours: number) {
+    if (decimalHours === 0){
+        return 'Now'
+    }
+    const absTime = moment.utc(moment.duration(Math.abs(decimalHours), 'hours')
+                    .as('milliseconds')).format('H[h]m[m]')
+    return decimalHours < 0 ? "-"+absTime: absTime
+}
+
 export function timestampSecToReadableDate(timestamp: number){
     return formatDate(new Date(timestamp*1000))
 }
