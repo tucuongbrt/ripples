@@ -4,6 +4,7 @@ import IPlan from "../model/IPlan";
 const apiURL = process.env.REACT_APP_API_URL
 
 export async function fetchSoiData() {
+  const settingsPromise = fetchAssetsSettings();
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
   let vehicles: IAsset[] = [];
@@ -24,8 +25,25 @@ export async function fetchSoiData() {
       vehicles.push(system)
     }
   });
+  const assetSettings = await settingsPromise;
+  assetSettings.forEach(entry => {
+    const vehicle = vehicles.filter(v => v.name === entry.name)[0]
+    vehicle.settings = new Map(Object.entries(entry.params));
+  })
   console.log("soi vehicles", vehicles)
   return { vehicles: vehicles, spots: spots };
+}
+
+type assetSettings = {
+  name: string
+  params: Object
+}
+
+async function fetchAssetsSettings() {
+  const response = await fetch(`${apiURL}/assets/params`)
+  const data: assetSettings[] = await response.json()
+  console.log('assets settings:', data)
+  return data
 }
 
 export async function fetchProfileData() {

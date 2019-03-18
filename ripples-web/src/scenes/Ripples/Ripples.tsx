@@ -154,7 +154,10 @@ export default class Ripples extends Component<{}, stateType> {
     let vehicles: any[] = [];
     this.state.vehicles.forEach(vehicle => {
       vehicles.push(
-        <Vehicle key={vehicle.imcid} lastState={vehicle.lastState} name={vehicle.name}></Vehicle>
+        <Vehicle key={vehicle.imcid}
+        lastState={vehicle.lastState}
+        name={vehicle.name}
+        settings={vehicle.settings}></Vehicle>
       )
     })
     if (this.state.drawAwareness) {

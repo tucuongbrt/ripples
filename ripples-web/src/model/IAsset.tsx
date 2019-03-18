@@ -6,4 +6,5 @@ export default interface IAsset {
     name: string
     plan: IPlan
     lastState: IAssetState
+    settings: Map<string, string>
 }
