@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetInfo;
+import pt.lsts.ripples.domain.assets.AssetParams;
 import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.repo.AssetsParamsRepository;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.PositionsRepository;
 import pt.lsts.ripples.services.AssetInfoService;
@@ -29,6 +31,9 @@ public class AssetsController {
 
     @Autowired
     AssetInfoService assetInfos;
+
+    @Autowired
+    AssetsParamsRepository assetParamsRepo;
 
     @PostMapping(
             path = {"/asset/{id}"},
@@ -70,6 +75,13 @@ public class AssetsController {
     	ArrayList<AssetInfo> assets = new ArrayList<>();
         assetInfos.getInfos().forEach(assets::add);
         return assets;
+    }
+
+    @RequestMapping(path = {"/assetsParams"}, method = RequestMethod.GET)
+    public List<AssetParams> listAssetParams() {
+        ArrayList<AssetParams> assetsParams = new ArrayList<>();
+        assetParamsRepo.findAll().forEach(assetsParams::add);
+        return assetsParams;
     }
 
 }
