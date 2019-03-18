@@ -1,15 +1,18 @@
 package pt.lsts.ripples.domain.assets;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Entity
 public class AssetParams {
     @Id
     private String name;
 
-    private LinkedHashMap<String, String> params;
+    @ElementCollection
+    private Map<String, String> params;
 
     @SuppressWarnings("unused")
     private AssetParams() {
@@ -25,7 +28,7 @@ public class AssetParams {
         return name;
     }
 
-    public LinkedHashMap<String, String> getParams() {
+    public Map<String, String> getParams() {
         return params;
     }
 

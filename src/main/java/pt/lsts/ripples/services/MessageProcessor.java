@@ -176,25 +176,32 @@ public class MessageProcessor {
 			}
 			break;
 		case SET_PARAMS:
-			if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
-				vehicle = assets.findByImcid(cmd.getSrc());
-				LinkedHashMap<String, String> cmdSettings = cmd.getSettings();
-				Optional<AssetParams> optionalAssetParams = assetParamsRepo.findById(vehicle.getName());
-				if (!optionalAssetParams.isPresent()){
-					assetParamsRepo.save(new AssetParams(vehicle.getName(), cmdSettings));
-				} else {
-					AssetParams paramsInDb = optionalAssetParams.get();
-					paramsInDb.addParams(cmdSettings);
-					assetParamsRepo.save(paramsInDb);
-				}
-			}
+			onNewAssetParams(cmd);
 			break;
+		case GET_PARAMS:
+			onNewAssetParams(cmd);
+		break;
 		default:
 			Logger.getLogger(MessageProcessor.class.getName())
 					.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
 			break;
 		}
 
+	}
+
+	private void onNewAssetParams(SoiCommand cmd) {
+		if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+			Asset vehicle = assets.findByImcid(cmd.getSrc());
+			LinkedHashMap<String, String> cmdSettings = cmd.getSettings();
+			Optional<AssetParams> optionalAssetParams = assetParamsRepo.findById(vehicle.getName());
+			if (!optionalAssetParams.isPresent()){
+				assetParamsRepo.save(new AssetParams(vehicle.getName(), cmdSettings));
+			} else {
+				AssetParams paramsInDb = optionalAssetParams.get();
+				paramsInDb.addParams(cmdSettings);
+				assetParamsRepo.save(paramsInDb);
+			}
+		}
 	}
 
 	public void onDeviceUpdate(DeviceUpdate devUpdate) {
