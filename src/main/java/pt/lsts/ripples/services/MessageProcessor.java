@@ -2,6 +2,8 @@ package pt.lsts.ripples.services;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,18 +15,10 @@ import pt.lsts.imc.SoiCommand;
 import pt.lsts.imc.SoiPlan;
 import pt.lsts.imc.StateReport;
 import pt.lsts.imc.VerticalProfile;
-import pt.lsts.ripples.domain.assets.Asset;
-import pt.lsts.ripples.domain.assets.AssetPosition;
-import pt.lsts.ripples.domain.assets.AssetState;
-import pt.lsts.ripples.domain.assets.Plan;
-import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.domain.assets.Waypoint;
+import pt.lsts.ripples.domain.assets.*;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.iridium.*;
-import pt.lsts.ripples.repo.AddressesRepository;
-import pt.lsts.ripples.repo.AssetsRepository;
-import pt.lsts.ripples.repo.PositionsRepository;
-import pt.lsts.ripples.repo.VertProfilesRepo;
+import pt.lsts.ripples.repo.*;
 import pt.lsts.ripples.util.RipplesUtils;
 
 @Service
@@ -35,6 +29,9 @@ public class MessageProcessor {
 
 	@Autowired
 	AddressesRepository addresses;
+
+	@Autowired
+	AssetsParamsRepository assetParamsRepo;
 
 	@Autowired
 	PositionsRepository positions;
@@ -175,6 +172,20 @@ public class MessageProcessor {
 				} else {
 					Logger.getLogger(MessageProcessor.class.getName())
 						.warning("Trying to set a plan on a non-existent asset - imcId: " + cmd.getSrc());
+				}
+			}
+			break;
+		case SET_PARAMS:
+			if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+				vehicle = assets.findByImcid(cmd.getSrc());
+				LinkedHashMap<String, String> cmdSettings = cmd.getSettings();
+				Optional<AssetParams> optionalAssetParams = assetParamsRepo.findById(vehicle.getName());
+				if (!optionalAssetParams.isPresent()){
+					assetParamsRepo.save(new AssetParams(vehicle.getName(), cmdSettings));
+				} else {
+					AssetParams paramsInDb = optionalAssetParams.get();
+					paramsInDb.addParams(cmdSettings);
+					assetParamsRepo.save(paramsInDb);
 				}
 			}
 			break;
