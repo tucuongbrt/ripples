@@ -77,7 +77,7 @@ public class AssetsController {
         return assets;
     }
 
-    @RequestMapping(path = {"/assetsParams"}, method = RequestMethod.GET)
+    @RequestMapping(path = {"/assets/params"}, method = RequestMethod.GET)
     public List<AssetParams> listAssetParams() {
         ArrayList<AssetParams> assetsParams = new ArrayList<>();
         assetParamsRepo.findAll().forEach(assetsParams::add);
