@@ -1,7 +1,7 @@
 import IAsset from "../model/IAsset";
 import IPlan from "../model/IPlan";
 
-const apiURL = process.env.REACT_APP_API_URL
+const apiURL = process.env.REACT_APP_API_BASE_URL
 
 export async function fetchSoiData() {
   const settingsPromise = fetchAssetsSettings();

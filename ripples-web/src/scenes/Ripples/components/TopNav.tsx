@@ -1,12 +1,18 @@
 import React, { Component } from 'react'
 import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
 import IPair from '../../../model/IPair';
+import Login from '../../../components/Login';
+import IAuthState from '../../../model/IAuthState';
+import NavItem from 'reactstrap/lib/NavItem';
+import NavLink from 'reactstrap/lib/NavLink';
 
 type propsType = {
   vehiclePlanPairs: IPair<string>[]
   handleEditPlan: Function
   handleSendPlanToVehicle: Function
   handleCancelEditPlan: Function
+  handleLogout: Function
+  authState: IAuthState
 }
 
 type stateType = {
@@ -107,6 +113,7 @@ export default class TopNav extends Component<propsType, stateType> {
                 {this.getPlans()}
               </DropdownMenu>
             </Dropdown>
+            <Login authState={this.props.authState} handleLogout={this.props.handleLogout}></Login>
           </Nav>
         </Collapse>
       </Navbar>)
