@@ -24,12 +24,12 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-public class SheetsQuickstart {
+public class GoogleSheetsService {
     private final String APPLICATION_NAME = "Google Sheets API Java Quickstart";
     private final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
     private final String TOKENS_DIRECTORY_PATH = "tokens";
-    //@Value("${users.spreadsheet.id}")
-    //private String spreadsheetId = "1m2EP30f-QeCQHMb-F7WLAj_xW_cw0NauA281LBUcUOA/edit";
+    @Value("${google.users.spreadsheet.id}")
+    private String spreadsheetId;
 
     /**
      * Global instance of the scopes required by this quickstart.
@@ -46,7 +46,7 @@ public class SheetsQuickstart {
      */
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
         // Load client secrets.
-        InputStream in = SheetsQuickstart.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        InputStream in = GoogleSheetsService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
         // Build flow and trigger user authorization request.
@@ -67,7 +67,6 @@ public class SheetsQuickstart {
     public List<List<Object>> run() throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        final String spreadsheetId = "1m2EP30f-QeCQHMb-F7WLAj_xW_cw0NauA281LBUcUOA";
         final String range = "Sheet1!A2:C";
         Sheets service = new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
