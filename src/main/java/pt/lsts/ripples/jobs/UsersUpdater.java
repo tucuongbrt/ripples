@@ -1,5 +1,7 @@
 package pt.lsts.ripples.jobs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,14 +23,14 @@ public class UsersUpdater {
     @Autowired
     UserRepository usersRepo;
 
+    private final Logger logger = LoggerFactory.getLogger(UsersUpdater.class);
 
-    @Scheduled(fixedRate = 600_000)
+
+    @Scheduled(fixedRate = 600_000) // each 10 minutes
     public void updateUsers() {
         try{
             List<List<Object>> values = googleSheetsService.run();
             for (List row : values) {
-                // Print columns A and B, which correspond to indices 0 and 1.
-                System.out.printf("%s, %s\n", row.get(0), row.get(1));
                 Optional<User> byEmail = usersRepo.findByEmail((String) row.get(0));
                 if (!byEmail.isPresent()){
                     updateUser(new User(), row);
@@ -41,6 +43,13 @@ public class UsersUpdater {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Scheduled(fixedRate = 1296_000_000) // each 15 days
+    public void clearUsers() {
+        logger.info("Deleted all users");
+        usersRepo.deleteAll();
+        updateUsers();
     }
 
     private void updateUser(User user, List row) {
