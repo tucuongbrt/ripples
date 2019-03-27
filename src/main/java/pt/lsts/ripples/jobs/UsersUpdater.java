@@ -58,6 +58,7 @@ public class UsersUpdater {
         user.setName((String)row.get(2));
         user.setEmailVerified(true);
         user.setProvider(AuthProvider.google);
+        logger.info("Adding user: " + user.getEmail());
         usersRepo.save(user);
     }
 }
