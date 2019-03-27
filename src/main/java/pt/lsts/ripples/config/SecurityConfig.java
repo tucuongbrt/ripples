@@ -78,6 +78,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+
+
         http
                 .cors()
                 .and()
@@ -107,7 +110,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/auth/**", "/oauth2/**")
                 .permitAll()
-                .antMatchers("/ais/**","/soi/**","/assets/**")
+                .antMatchers("/ais/**","/soi/**","/assets/**", "/asset/**",
+                        "/assetInfo", "/api/**", "/rock7", "/addresses/**",
+                        "/data/**", "/kml/**", "/positions/**", "/plot/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
