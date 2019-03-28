@@ -76,7 +76,7 @@ export default class SoiRisk extends Component<{}, stateType> {
         return (
             <tr key={vehicle.name}>
                 <th scope="row">{vehicle.name}</th>
-                <td>{timeFromNow(vehicle.lastState.timestamp*1000)}</td>
+                <td>{timeFromNow(vehicle.lastState.timestamp)}</td>
                 {this.renderTimeForNextWaypoint(vehicle.plan.waypoints, nextWaypointIdx)}
                 <td>{vehicle.lastState.fuel}</td>
                 <td>{this.getDistanceToVehicle(vehicle)}</td>
