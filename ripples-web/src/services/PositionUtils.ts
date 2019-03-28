@@ -21,6 +21,18 @@ export function distanceInKmBetweenCoords(p1: ILatLng, p2: ILatLng) {
     return earthRadiusKm * c;
 }
 
+export function calculateNextPosition(p: IPositionAtTime, cog: number, speed: number, inSeconds: number): IPositionAtTime {
+    let oneDegreeToMeters = 111139;
+    let cogInRads = cog * Math.PI / 180; 
+    let directionVector = [Math.sin(cogInRads), Math.cos(cogInRads)]
+    let deltaMoveInMeters = [directionVector[0]*speed*inSeconds, directionVector[1]*speed*inSeconds]
+    return {
+        longitude: p.longitude + deltaMoveInMeters[0]/oneDegreeToMeters,
+        latitude: p.latitude + deltaMoveInMeters[1]/oneDegreeToMeters,
+        timestamp: p.timestamp + inSeconds * 1000
+    }
+}
+
 export function interpolateTwoPoints(
     date: number,
     prevPoint: IPositionAtTime,

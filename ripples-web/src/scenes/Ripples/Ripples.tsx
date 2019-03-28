@@ -12,12 +12,12 @@ import Slider from './components/Slider';
 import 'react-leaflet-fullscreen-control'
 import AISShip from './components/AISShip';
 import { fetchAisData } from '../../services/AISUtils';
-import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
+import { distanceInKmBetweenCoords, calculateNextPosition } from '../../services/PositionUtils';
 import IProfile from '../../model/IProfile';
 import IAsset from '../../model/IAsset';
 import IAisShip from '../../model/IAisShip';
-import SoiAwareness from './components/SoiAwareness';
-import ISoiAwareness from '../../model/ISoiAwareness';
+import AssetAwareness from './components/AssetAwareness';
+import IAssetAwareness from '../../model/IAssetAwareness';
 import IPositionAtTime from '../../model/IPositionAtTime';
 import IPair from '../../model/IPair';
 import { LatLngLiteral } from 'leaflet';
@@ -37,7 +37,8 @@ type stateType = {
   selectedPlan: string,
   freeDrawPolygon: any[],
   sidebarOpen: boolean,
-  soiAwareness: ISoiAwareness[],
+  soiAwareness: IAssetAwareness[],
+  aisAwareness: IAssetAwareness[],
   sliderValue: number
   drawAwareness: boolean
   wpSelected: number
@@ -65,6 +66,7 @@ export default class Ripples extends Component<{}, stateType> {
       freeDrawPolygon: [],
       sidebarOpen: true,
       soiAwareness: [],
+      aisAwareness: [],
       sliderValue: 0,
       drawAwareness: false,
       wpSelected: -1,
@@ -179,7 +181,27 @@ export default class Ripples extends Component<{}, stateType> {
     fetchAisData().then((shipsData: IAisShip[]) => {
       console.log('Fetched aisShips', shipsData);
       this.setState({ aisShips: shipsData })
+      let aisShipsAwareness: IAssetAwareness[] = []
+      const twelveHours = 12 * 3600;
+      const knotsToMetersPerSec = 0.514
+      shipsData.forEach(aisShip => {
+        let speedMetersPerSec = aisShip.sog * knotsToMetersPerSec
+        let currentPosition = {
+          latitude: aisShip.latitude,
+          longitude: aisShip.longitude,
+          timestamp: aisShip.updated_at
+        }
+        let prevPos = calculateNextPosition(currentPosition, aisShip.cog, speedMetersPerSec, -twelveHours)
+        let nextPos =  calculateNextPosition(currentPosition, aisShip.cog, speedMetersPerSec, twelveHours)
+        aisShipsAwareness.push({
+          name: aisShip.name,
+          positions:  [prevPos, nextPos]
+        })
+
+      })
+      this.setState({ aisAwareness: aisShipsAwareness })
     })
+    
   }
 
   drawVehicles() {
@@ -196,7 +218,7 @@ export default class Ripples extends Component<{}, stateType> {
       const deltaHours = this.state.sliderValue
       this.state.soiAwareness.forEach(vehicle => {
         vehicles.push(
-          <SoiAwareness awareness={vehicle} deltaHours={deltaHours}></SoiAwareness>
+          <AssetAwareness awareness={vehicle} deltaHours={deltaHours}></AssetAwareness>
         )
       })
     }
@@ -251,6 +273,14 @@ export default class Ripples extends Component<{}, stateType> {
         <AISShip key={"Ship_" + ship.mmsi} data={ship}></AISShip>
       )
     })
+    if (this.state.drawAwareness) {
+      const deltaHours = this.state.sliderValue
+      this.state.aisAwareness.forEach(ship => {
+        ships.push(
+          <AssetAwareness awareness={ship} deltaHours={deltaHours}></AssetAwareness>
+        )
+      })
+    }
     return ships;
   }
 

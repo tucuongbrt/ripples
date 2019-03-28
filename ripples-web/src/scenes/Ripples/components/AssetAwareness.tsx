@@ -2,16 +2,16 @@ import React, { Component } from 'react'
 import EstimatedPosition from './EstimatedPosition';
 import { interpolateTwoPoints, getPrevAndNextPoints } from '../../../services/PositionUtils';
 import { timestampFromDeltaHours } from '../../../services/DateUtils'
-import ISoiAwareness from '../../../model/ISoiAwareness';
+import IAssetAwareness from '../../../model/IAssetAwareness';
 import IPosHeadingAtTime from '../../../model/ILatLngHead';
 
 type propsType = {
-    awareness: ISoiAwareness,
+    awareness: IAssetAwareness,
     deltaHours: number
 }
 
 
-export default class SoiAwareness extends Component<propsType, {}> { 
+export default class AssetAwareness extends Component<propsType, {}> { 
     constructor(props: propsType){
         super(props)
         this.estimatedPositionAtTime = this.estimatedPositionAtTime.bind(this)

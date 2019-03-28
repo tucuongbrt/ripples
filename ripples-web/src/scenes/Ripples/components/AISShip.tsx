@@ -48,7 +48,7 @@ export default class AISShip extends Component<{data: IAisShip}, {}> {
                         <li>Lng: {ship.longitude.toFixed(5)}</li>
                         <li>Heading: {ship.heading.toFixed(1)}</li>
                         <li>Cog: {ship.cog.toFixed(1)}</li>
-                        <li>Sog: {ship.sog.toFixed(1)}</li>
+                        <li>Sog: {(ship.sog).toFixed(1)} knots</li>
                         <li>Type: {ship.type}</li>
                         <li>Last update: {timeFromNow(ship.updated_at)}</li>
                     </ul>
