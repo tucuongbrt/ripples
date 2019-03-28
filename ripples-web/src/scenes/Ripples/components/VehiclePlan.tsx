@@ -120,13 +120,18 @@ export default class VehiclePlan extends Component<propsType, stateType> {
     updateEstimatedPos() {
         const now = Date.now()
         const waypoints = this.props.plan.waypoints;
-        const isExecutingPlan = waypoints[0].timestamp < now && 
-            waypoints[waypoints.length - 1].timestamp > now; 
+        const planStarted = now >= waypoints[0].timestamp
+        const planEnded = now > waypoints[waypoints.length - 1].timestamp
+        const isExecutingPlan = planStarted && !planEnded
         if (isExecutingPlan) {
             const prevAndNext = getPrevAndNextPoints(waypoints, now);
             const prevPoint = prevAndNext.prev;
             const nextPoint = prevAndNext.next;
             this.setState({ estimatedPos: interpolateTwoPoints(now, prevPoint, nextPoint) })
+        } else if (!planStarted) {
+            this.setState({ estimatedPos: Object.assign(waypoints[0], {heading: 0})})
+        } else { // plan ended
+            this.setState({ estimatedPos: Object.assign(waypoints[waypoints.length - 1], {heading: 0})})
         }
     }
 

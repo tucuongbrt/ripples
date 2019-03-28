@@ -22,6 +22,7 @@ export async function fetchSoiData() {
             longitude: wp.longitude
           }))
       system.lastState.timestamp = system.lastState.timestamp * 1000
+      system.settings = new Map()
       vehicles.push(system)
     }
   });
