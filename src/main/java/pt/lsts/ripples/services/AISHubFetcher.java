@@ -29,23 +29,23 @@ public class AISHubFetcher {
 	
 	@Value("${ais.username}")
 	private String USERNAME;
-	
-	private double latMin;
-	
-	private double latMax;
-	
-	private double lonMin;
 
-	private double lonMax;
+	@Value("${ais.minlat}")
+	private String latMin;
+
+	@Value("${ais.maxlat}")
+	private String latMax;
+
+	@Value("${ais.minlng}")
+	private String lonMin;
+
+	@Value("${ais.maxlng}")
+	private String lonMax;
 	
 	private String url;
 	
 	@PostConstruct
 	public void init() {
-		latMin=37;
-		latMax=42;
-		lonMin=-13;
-		lonMax=-8;
 		url = "http://data.aishub.net/ws.php?username=" + USERNAME
 				+ "&format=1&output=csv&latmin=" + latMin + "&lonmin=" + lonMin + "&latmax=" 
 				+ latMax + "&lonmax=" + lonMax;
