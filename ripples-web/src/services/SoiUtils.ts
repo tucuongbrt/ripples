@@ -17,7 +17,7 @@ export async function fetchSoiData() {
       system.plan.waypoints = system.plan.waypoints.map((wp: any) => 
         Object.assign({}, 
           {
-            timestamp: wp.arrivalDate,
+            timestamp: new Date(wp.arrivalDate),
             latitude: wp.latitude,
             longitude: wp.longitude
           }))
