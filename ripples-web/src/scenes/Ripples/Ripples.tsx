@@ -22,8 +22,9 @@ import IPositionAtTime from '../../model/IPositionAtTime';
 import IPair from '../../model/IPair';
 import { LatLngLiteral } from 'leaflet';
 import NotificationSystem from 'react-notification-system';
-import IAuthState from '../../model/IAuthState';
 import { getCurrentUser } from '../../services/AuthUtils';
+import { connect } from 'react-redux';
+import { setUser, removeUser } from '../../redux/ripples.actions';
 
 const { BaseLayer, Overlay } = LayersControl
 
@@ -42,10 +43,9 @@ type stateType = {
   sliderValue: number
   drawAwareness: boolean
   wpSelected: number
-  authState: IAuthState
 };
 
-export default class Ripples extends Component<{}, stateType> {
+class Ripples extends Component<{}, stateType> {
 
   initCoords: LatLngLiteral = {lat: 41.18, lng: -8.7,}
   initZoom: number = 10
@@ -70,7 +70,6 @@ export default class Ripples extends Component<{}, stateType> {
       sliderValue: 0,
       drawAwareness: false,
       wpSelected: -1,
-      authState: {authenticated: false, currentUser: {name: '', email: ''}}
     }
 
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
@@ -88,14 +87,11 @@ export default class Ripples extends Component<{}, stateType> {
     this.startUpdates = this.startUpdates.bind(this)
     this.updateSoiData = this.updateSoiData.bind(this)
     this.updateAISData = this.updateAISData.bind(this)
-    this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
-    this.handleLogout = this.handleLogout.bind(this)
   }
 
   componentDidMount() {
     this._notificationSystem = this.refs.notificationSystem;
     this.startUpdates();
-    this.loadCurrentlyLoggedInUser();
   }
 
   stopUpdates() {
@@ -117,31 +113,6 @@ export default class Ripples extends Component<{}, stateType> {
   componentWillUnmount() {
     clearInterval(this.soiTimer);
     clearInterval(this.aisTimer)
-  }
-
-  loadCurrentlyLoggedInUser() {
-
-    getCurrentUser()
-    .then(response => {
-      this.setState({
-        authState: {authenticated: true, currentUser: response}
-      });
-      this._notificationSystem.addNotification({
-        message: `Logged in with ${response.email}`,
-        level: 'info'
-      });
-    }) 
-  }
-
-  handleLogout() {
-    localStorage.removeItem("ACCESS_TOKEN");
-    this.setState({
-      authState: {authenticated: false, currentUser: {name: '', email: ''}}
-    });
-    this._notificationSystem.addNotification({
-      message: `You're safely logged out!`,
-      level: 'info'
-    });
   }
 
   updateSoiData() {
@@ -419,8 +390,7 @@ export default class Ripples extends Component<{}, stateType> {
             handleEditPlan={this.handleEditPlan}
             handleSendPlanToVehicle={this.handleSendPlanToVehicle}
             handleCancelEditPlan={this.handleCancelEditPlan}
-            handleLogout={this.handleLogout}
-            authState={this.state.authState}>
+            >
           </TopNav>
         </div>
         <div className="map">
@@ -468,7 +438,10 @@ export default class Ripples extends Component<{}, stateType> {
                 </LayerGroup>
               </Overlay>
             </LayersControl>
+            {/**
             <MeasureArea></MeasureArea>
+             */}
+            
           </Map>
         </div>
         <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.state.sliderValue}></Slider>
@@ -478,3 +451,10 @@ export default class Ripples extends Component<{}, stateType> {
     )
   }
 }
+
+const actionCreators = {
+  setUser,
+  removeUser,
+}
+
+export default connect(null,actionCreators)(Ripples)
