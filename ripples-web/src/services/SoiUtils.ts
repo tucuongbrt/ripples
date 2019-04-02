@@ -1,5 +1,8 @@
 import IAsset from "../model/IAsset";
 import IPlan from "../model/IPlan";
+import IProfile from "../model/IProfile";
+import IAssetAwareness from "../model/IAssetAwareness";
+import IPositionAtTime from "../model/IPositionAtTime";
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
@@ -9,15 +12,15 @@ export async function fetchSoiData() {
   const data = await response.json();
   let vehicles: IAsset[] = [];
   let spots: IAsset[] = [];
-  data.forEach( (system: any) => {
+  data.forEach((system: IAsset) => {
     if (system.name.startsWith('spot')) {
       spots.push(system);
     }
     else {
-      system.plan.waypoints = system.plan.waypoints.map((wp: any) => 
-        Object.assign({}, 
+      system.plan.waypoints = system.plan.waypoints.map((wp: any) =>
+        Object.assign({},
           {
-            timestamp: new Date(wp.arrivalDate),
+            timestamp: new Date(wp.arrivalDate).getTime(),
             latitude: wp.latitude,
             longitude: wp.longitude
           }))
@@ -47,7 +50,7 @@ async function fetchAssetsSettings() {
   return data
 }
 
-export async function fetchProfileData() {
+export async function fetchProfileData(): Promise<IProfile[]> {
   const response = await fetch(`${apiURL}/soi/profiles`);
   const data = await response.json();
   console.log('profile data:', data);
@@ -64,22 +67,19 @@ async function postNewPlan(vehicleName: string, newPlan: IPlan) {
   return await Promise.all([response.ok, response.json()]);
 }
 
-export async function fetchAwareness() {
+export async function fetchAwareness(): Promise<IAssetAwareness[]> {
   const response = await fetch(`${apiURL}/soi/awareness`)
   const data = await response.json()
   console.log("awareness data:", data)
   return data
 }
 
-export async function sendPlanToVehicle(selectedPlan: string, vehicles: IAsset[]) {
-    const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
-    if (vehicleIdx >= 0) {
-      let plan = JSON.parse(JSON.stringify(vehicles[vehicleIdx].plan));
-      plan.waypoints = plan.waypoints.map((wp: any) => {
-      let timestamp = wp.timestamp
-      delete wp.timestamp
-      return Object.assign(wp, { eta: timestamp / 1000, duration: 60})
-    })
-      return postNewPlan(vehicles[vehicleIdx].name, plan)
-    }
+export async function sendPlanToVehicle(vehicle: IAsset) {
+  let plan = JSON.parse(JSON.stringify(vehicle.plan));
+  plan.waypoints = plan.waypoints.map((wp: IPositionAtTime) => {
+    let timestamp = wp.timestamp
+    delete wp.timestamp
+    return Object.assign(wp, { eta: timestamp / 1000, duration: 60 })
+  })
+  return postNewPlan(vehicle.name, plan)
 }

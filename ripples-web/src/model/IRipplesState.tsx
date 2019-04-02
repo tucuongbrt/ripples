@@ -5,20 +5,25 @@ import IAisShip from "./IAisShip";
 import IPair from "./IPair";
 import IAuthState from "./IAuthState";
 
-export default interface StateType {
-    vehiclePlanPairs: IPair<string>[],
-    vehicles: IAsset[],
-    previousVehicles: IAsset[],
-    spots: IAsset[],
-    profiles: IProfile[],
-    aisShips: IAisShip[],
-    selectedPlan: string,
-    freeDrawPolygon: any[],
-    sidebarOpen: boolean,
-    soiAwareness: IAssetAwareness[],
-    aisAwareness: IAssetAwareness[],
+
+export interface IAssetsGroup {
+  vehicles: IAsset[],
+  previousVehicles: IAsset[],
+  spots: IAsset[],
+  aisShips: IAisShip[], 
+}
+
+export default interface IRipplesState {
+    assets: IAssetsGroup,
+    selectedVehicle: IAsset, // vehicle name
     sliderValue: number
-    drawAwareness: boolean
-    wpSelected: number
+    selectedWaypointIdx: number
     auth: IAuthState
   };
+
+export const defaultAssetsGroup: IAssetsGroup = {
+  vehicles: [],
+  previousVehicles: [],
+  spots: [],
+  aisShips: []
+}

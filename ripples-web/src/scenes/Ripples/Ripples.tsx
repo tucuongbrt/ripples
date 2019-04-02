@@ -1,86 +1,47 @@
 import React, { Component, ChangeEvent } from 'react'
-import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
-import Vehicle from './components/Vehicle'
-import Spot from './components/Spot'
-import VehiclePlan from './components/VehiclePlan'
-import MeasureArea from './components/MeasureArea'
+
 import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle } from '../../services/SoiUtils'
 import './styles/Ripples.css'
-import VerticalProfile from './components/VerticalProfile';
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
 import 'react-leaflet-fullscreen-control'
-import AISShip from './components/AISShip';
 import { fetchAisData } from '../../services/AISUtils';
-import { distanceInKmBetweenCoords, calculateNextPosition } from '../../services/PositionUtils';
-import IProfile from '../../model/IProfile';
+import { estimatePositionsAtDeltaTime } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
 import IAisShip from '../../model/IAisShip';
-import AssetAwareness from './components/AssetAwareness';
-import IAssetAwareness from '../../model/IAssetAwareness';
-import IPositionAtTime from '../../model/IPositionAtTime';
-import IPair from '../../model/IPair';
-import { LatLngLiteral } from 'leaflet';
 import NotificationSystem from 'react-notification-system';
-import { getCurrentUser } from '../../services/AuthUtils';
 import { connect } from 'react-redux';
-import { setUser, removeUser } from '../../redux/ripples.actions';
+import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan } from '../../redux/ripples.actions';
+import IRipplesState from '../../model/IRipplesState';
+import RipplesMap from './components/RipplesMap';
 
-const { BaseLayer, Overlay } = LayersControl
 
-type stateType = {
-  vehiclePlanPairs: IPair<string>[],
-  vehicles: IAsset[],
-  previousVehicles: IAsset[],
-  spots: IAsset[],
-  profiles: IProfile[],
-  aisShips: IAisShip[],
-  selectedPlan: string,
-  freeDrawPolygon: any[],
-  sidebarOpen: boolean,
-  soiAwareness: IAssetAwareness[],
-  aisAwareness: IAssetAwareness[],
+
+type stateType = {};
+
+type propsType = {
+  setVehicles: Function
+  setSpots: Function
+  setAis: Function
+  setSlider: Function
+  editPlan: Function
+  cancelEditPlan: Function
+  selectedVehicle: IAsset
   sliderValue: number
-  drawAwareness: boolean
-  wpSelected: number
-};
+}
 
-class Ripples extends Component<{}, stateType> {
 
-  initCoords: LatLngLiteral = {lat: 41.18, lng: -8.7,}
-  initZoom: number = 10
+class Ripples extends Component<propsType, stateType> {
+
   soiTimer: number = 0
   aisTimer: number = 0
   _notificationSystem: any = null
 
   constructor(props: any) {
     super(props);
-    this.state = {
-      vehiclePlanPairs: [],
-      vehicles: [],
-      previousVehicles: [],
-      spots: [],
-      profiles: [],
-      aisShips: [],
-      selectedPlan: '',
-      freeDrawPolygon: [],
-      sidebarOpen: true,
-      soiAwareness: [],
-      aisAwareness: [],
-      sliderValue: 0,
-      drawAwareness: false,
-      wpSelected: -1,
-    }
 
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
-    this.drawVehicles = this.drawVehicles.bind(this)
-    this.drawSpots = this.drawSpots.bind(this)
-    this.drawPlans = this.drawPlans.bind(this)
-    this.drawProfiles = this.drawProfiles.bind(this)
-    this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
-    this.handleMarkerClick = this.handleMarkerClick.bind(this)
-    this.handleMapClick = this.handleMapClick.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
     this.handleSendPlanToVehicle = this.handleSendPlanToVehicle.bind(this)
     this.stopUpdates = this.stopUpdates.bind(this)
@@ -115,221 +76,61 @@ class Ripples extends Component<{}, stateType> {
     clearInterval(this.aisTimer)
   }
 
-  updateSoiData() {
-    fetchSoiData()
-      .then(soiData => {
-        this.setState({ vehicles: soiData.vehicles, spots: soiData.spots })
-        this.setState({ vehiclePlanPairs: soiData.vehicles.filter(v => v.plan.waypoints.length > 0)
-          .map(v => { 
-            return {first: v.name, second: v.plan.id}
-          })
-        })
+  async updateSoiData() {
+    try {
+      const soiData = await fetchSoiData()
+      let vehicles = soiData.vehicles;
+
+      // fetch profiles
+      let profiles = await fetchProfileData();
+      profiles = profiles.filter(p =>
+        p.samples.length > 0 &&
+        vehicles.filter(v => v.name == p.system).length == 1
+      )
+      // get vehicle which uploded profiles
+      profiles.forEach(p => {
+        const uploader = vehicles.filter((v) => v.name == p.system)[0];
+        uploader.plan.profiles.push(p)
       })
-      .catch(error => {
-        this._notificationSystem.addNotification({
-          message: 'Failed to fetch soi data',
-          level: 'warning'
-        });
-      })
-    fetchProfileData().then((profiles: IProfile[]) => {
-      this.setState({ profiles: profiles.filter(p => p.samples.length > 0) })
-    }).catch(error => {
-      this._notificationSystem.addNotification({
-        message: 'Failed to fetch profiles data',
-        level: 'warning'
-      });
-    })
-    fetchAwareness().then(assetsPositions => {
-      this.setState({ soiAwareness: assetsPositions })
-    }).catch(error => {
-      this._notificationSystem.addNotification({
-        message: 'Failed to fetch awareness data',
-        level: 'warning'
-      });
-    })
-  }
-  updateAISData() {
-    fetchAisData().then((shipsData: IAisShip[]) => {
-      console.log('Fetched aisShips', shipsData);
-      this.setState({ aisShips: shipsData })
-      let aisShipsAwareness: IAssetAwareness[] = []
-      const twelveHours = 12 * 3600;
-      const knotsToMetersPerSec = 0.514
-      shipsData.forEach(aisShip => {
-        let speedMetersPerSec = aisShip.sog * knotsToMetersPerSec
-        let currentPosition = {
-          latitude: aisShip.latitude,
-          longitude: aisShip.longitude,
-          timestamp: aisShip.updated_at
+
+      // fetch soi awareness
+      const assetsAwareness = await fetchAwareness()
+      assetsAwareness.forEach(assetAwareness => {
+        let vehicle = vehicles.find(v => v.name === assetAwareness.name)
+        if (vehicle) {
+          vehicle.awareness = assetAwareness.positions
         }
-        let prevPos = calculateNextPosition(currentPosition, aisShip.cog, speedMetersPerSec, -twelveHours)
-        let nextPos =  calculateNextPosition(currentPosition, aisShip.cog, speedMetersPerSec, twelveHours)
-        aisShipsAwareness.push({
-          name: aisShip.name,
-          positions:  [prevPos, nextPos]
-        })
-
       })
-      this.setState({ aisAwareness: aisShipsAwareness })
-    })
-    
-  }
+      // update redux store
+      this.props.setVehicles(soiData.vehicles);
+      this.props.setSpots(soiData.spots)
 
-  drawVehicles() {
-    let vehicles: any[] = [];
-    this.state.vehicles.forEach(vehicle => {
-      vehicles.push(
-        <Vehicle key={vehicle.imcid}
-        lastState={vehicle.lastState}
-        name={vehicle.name}
-        settings={vehicle.settings}></Vehicle>
-      )
-    })
-    if (this.state.drawAwareness) {
-      const deltaHours = this.state.sliderValue
-      this.state.soiAwareness.forEach(vehicle => {
-        vehicles.push(
-          <AssetAwareness awareness={vehicle} deltaHours={deltaHours}></AssetAwareness>
-        )
-      })
+    } catch (error) {
+      this._notificationSystem.addNotification({
+        message: 'Failed to fetch data',
+        level: 'warning'
+      });
     }
-    return vehicles;
   }
 
-  drawPlans() {
-    let plans: any[] = [];
-    let selectedPlan = this.state.selectedPlan;
-    this.state.vehicles.filter(vehicle => vehicle.plan.waypoints.length > 0).forEach(vehicle => {
-      const plan = vehicle.plan;
-      plans.push(
-        <VehiclePlan
-          key={"VehiclePlan" + plan.id}
-          plan={plan}
-          vehicle={vehicle.name}
-          isMovable={plan.id === selectedPlan}
-          handleMarkerClick={this.handleMarkerClick}
-          handleDeleteMarker={this.handleDeleteMarker}
-          wpSelected={this.state.wpSelected}
-        >
-        </VehiclePlan>
-      )
+  async updateAISData() {
+    const deltaHours = 12
+    let shipsData: IAisShip[] = await fetchAisData()
+    shipsData.forEach(ship => {
+      ship.awareness = estimatePositionsAtDeltaTime(ship, deltaHours)
     })
-    return plans;
-  }
+    // update redux store
+    this.props.setAis(shipsData)
 
-  drawSpots() {
-    let spots: any[] = [];
-    this.state.spots.forEach(spot => {
-      spots.push(
-        <Spot key={spot.imcid} data={spot}></Spot>
-      )
-    })
-    return spots;
-  }
-
-  drawProfiles() {
-    let profiles: any[] = [];
-    this.state.profiles.forEach((profile, i) => {
-      profiles.push(
-        <VerticalProfile key={"profile" + i} data={profile}></VerticalProfile>
-      )
-    })
-    return profiles;
-  }
-
-  drawAISData() {
-    let ships: any[] = [];
-    this.state.aisShips.forEach(ship => {
-      ships.push(
-        <AISShip key={"Ship_" + ship.mmsi} data={ship}></AISShip>
-      )
-    })
-    if (this.state.drawAwareness) {
-      const deltaHours = this.state.sliderValue
-      this.state.aisAwareness.forEach(ship => {
-        ships.push(
-          <AssetAwareness awareness={ship} deltaHours={deltaHours}></AssetAwareness>
-        )
-      })
-    }
-    return ships;
-  }
-
-  handleModeChange = (event: any) => {
-    console.log(event)
   }
 
   handleEditPlan = (planId: string) => {
-    console.log('Update plan: ', planId);
-    // enable drag on markers of the plan
-    this.setState({
-      selectedPlan: planId,
-      previousVehicles: JSON.parse(JSON.stringify(this.state.vehicles)),
-    })
+    this.props.editPlan(planId)
     this.stopUpdates();
   }
 
-  handleMarkerClick(planId: string, markerIdx: number, isMovable: boolean) {
-
-    if (isMovable && planId === this.state.selectedPlan) {
-      this.setState({
-        wpSelected: markerIdx,
-      })
-    }
-  }
-
-  handleDeleteMarker(planId: string, markerIdx: number) {
-    const selectedPlan = this.state.selectedPlan;
-    if (planId === selectedPlan) {
-      let vehicles = this.state.vehicles.slice();
-      const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
-      vehicles[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
-      this.updateWaypointsTimestampFromIndex(vehicles[vehicleIdx].plan.waypoints, markerIdx);
-      this.setState({ vehicles: vehicles });
-    }
-  }
-
-  handleMapClick(e: any) {
-    const selectedPlan = this.state.selectedPlan;
-    const wpSelected = this.state.wpSelected;
-    if (wpSelected >= 0 && selectedPlan != null) {
-      const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-      this.setState({ wpSelected: -1 })
-      // update waypoints locally
-      let vehicles = this.state.vehicles.slice();
-      const vehicleIdx = vehicles.findIndex(v => v.plan.id === selectedPlan);
-      vehicles[vehicleIdx].plan.waypoints[wpSelected] = Object.assign({}, newLocation, { timestamp: 0 })
-      this.updateWaypointsTimestampFromIndex(vehicles[vehicleIdx].plan.waypoints, wpSelected);
-      this.setState({ vehicles: vehicles })
-    }
-  }
-
-  getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {
-    if (waypoints.length < 2) return 1;
-    let firstWp = waypoints[0];
-    let secondWp = waypoints[1];
-    const distanceInMeters = distanceInKmBetweenCoords(firstWp, secondWp) * 1000;
-    const deltaSec = (secondWp.timestamp - firstWp.timestamp) / 1000;
-    return distanceInMeters / deltaSec;
-  }
-
-  updateWaypointsTimestampFromIndex(waypoints: IPositionAtTime[], firstIndex: number) {
-    if (firstIndex <= 0 || firstIndex >= waypoints.length) {
-      return;
-    }
-    const speed = this.getSpeedBetweenWaypoints(waypoints)
-    const lastIndex = waypoints.length - 1;
-    for (let i = firstIndex; i <= lastIndex; i++) {
-      let prevWp = waypoints[i - 1];
-      let currentWp = waypoints[i];
-      const distanceInMeters = distanceInKmBetweenCoords(prevWp, currentWp) * 1000;
-      currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000; // timestamp is saved in ms
-    }
-
-  }
-
   handleSendPlanToVehicle() {
-    sendPlanToVehicle(this.state.selectedPlan, this.state.vehicles)
+    sendPlanToVehicle(this.props.selectedVehicle)
       .then(([responseOk, body]: (boolean | any)) => {
         if (!responseOk) {
           this._notificationSystem.addNotification({
@@ -356,13 +157,8 @@ class Ripples extends Component<{}, stateType> {
   }
 
   handleCancelEditPlan() {
-    const prevVehicles = JSON.parse(JSON.stringify(this.state.previousVehicles))
     this.startUpdates();
-    this.setState({
-      vehicles: prevVehicles,
-      previousVehicles: [],
-      selectedPlan: '',
-    });
+    this.props.cancelEditPlan()
   }
 
   onSliderChange(event: ChangeEvent<HTMLInputElement>) {
@@ -370,13 +166,10 @@ class Ripples extends Component<{}, stateType> {
     if (sliderValue === 0) {
       // reset state
       this.startUpdates()
-      this.setState({ drawAwareness: false })
     } else {
       this.stopUpdates()
-      this.setState({ drawAwareness: true })
     }
-    this.setState({ sliderValue: sliderValue })
-    console.log("Slider new value", sliderValue)
+    this.props.setSlider(sliderValue)
   }
 
   freedrawRef = React.createRef();
@@ -386,65 +179,14 @@ class Ripples extends Component<{}, stateType> {
       <div>
         <div className="navbar">
           <TopNav
-            vehiclePlanPairs={this.state.vehiclePlanPairs}
             handleEditPlan={this.handleEditPlan}
             handleSendPlanToVehicle={this.handleSendPlanToVehicle}
             handleCancelEditPlan={this.handleCancelEditPlan}
-            >
+          >
           </TopNav>
         </div>
-        <div className="map">
-          <Map fullscreenControl center={this.initCoords} zoom={this.initZoom} onClick={this.handleMapClick}>
-            <LayersControl position="topright">
-              <BaseLayer checked name="OpenStreetMap.Mapnik">
-                <TileLayer
-                  attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-              </BaseLayer>
-              <Overlay checked name="Nautical charts">
-                <TileLayer
-                  url='http://wms.transas.com/TMS/1.0.0/TX97-transp/{z}/{x}/{y}.png?token=9e53bcb2-01d0-46cb-8aff-512e681185a4'
-                  attribution='Map data &copy; Transas Nautical Charts'
-                  tms={true}
-                  maxZoom={21}
-                  opacity={0.7}
-                  maxNativeZoom={17}>
-                </TileLayer>
-              </Overlay>
-              <Overlay checked name="Vehicles">
-                <LayerGroup>
-                  {this.drawVehicles()}
-                </LayerGroup>
-              </Overlay>
-              <Overlay checked name="Spots">
-                <LayerGroup>
-                  {this.drawSpots()}
-                </LayerGroup>
-              </Overlay>
-              <Overlay checked name="Plans">
-                <LayerGroup>
-                  {this.drawPlans()}
-                </LayerGroup>
-              </Overlay>
-              <Overlay checked name="Profiles">
-                <LayerGroup>
-                  {this.drawProfiles()}
-                </LayerGroup>
-              </Overlay>
-              <Overlay checked name="AIS Data">
-                <LayerGroup>
-                  {this.drawAISData()}
-                </LayerGroup>
-              </Overlay>
-            </LayersControl>
-            {/**
-            <MeasureArea></MeasureArea>
-             */}
-            
-          </Map>
-        </div>
-        <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.state.sliderValue}></Slider>
+        <RipplesMap></RipplesMap>
+        <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
         <NotificationSystem ref="notificationSystem" />
       </div>
 
@@ -452,9 +194,22 @@ class Ripples extends Component<{}, stateType> {
   }
 }
 
-const actionCreators = {
-  setUser,
-  removeUser,
+function mapStateToProps(state: IRipplesState) {
+  const {selectedVehicle, sliderValue} = state
+  return { 
+    selectedVehicle: selectedVehicle,
+    sliderValue: sliderValue
+  }
 }
 
-export default connect(null,actionCreators)(Ripples)
+
+const actionCreators = {
+  setVehicles,
+  setSpots,
+  setAis,
+  editPlan,
+  cancelEditPlan,
+  setSlider,
+}
+
+export default connect(mapStateToProps, actionCreators)(Ripples)

@@ -1,25 +1,14 @@
 import { createReducer, createAction } from 'redux-starter-kit'
-import { setUser, removeUser, setVehicles } from '../ripples.actions'
-import IRipplesState from '../../model/IRipplesState'
+import { setUser, removeUser, setVehicles, setAis, setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypoint, setVehicle } from '../ripples.actions'
+import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
-
-
+import IAsset, { EmptyAsset } from '../../model/IAsset';
 
 let startState: IRipplesState = {
-  vehiclePlanPairs: [],
-  vehicles: [],
-  previousVehicles: [],
-  spots: [],
-  profiles: [],
-  aisShips: [],
-  selectedPlan: '',
-  freeDrawPolygon: [],
-  sidebarOpen: true,
-  soiAwareness: [],
-  aisAwareness: [],
+  assets: defaultAssetsGroup,
+  selectedVehicle: EmptyAsset,
   sliderValue: 0,
-  drawAwareness: false,
-  wpSelected: -1,
+  selectedWaypointIdx: -1,
   auth: noAuth
 }
 
@@ -33,7 +22,33 @@ const ripplesReducer = createReducer(startState, {
     state.auth = noAuth;
   },
   [setVehicles.type]: (state, action) => {
-    state.vehicles = action.payload;
+    state.assets.vehicles = action.payload;
+  },
+  [setVehicle.type]: (state, action) => {
+    const vehicle: IAsset = action.payload;
+    const idx = state.assets.vehicles.findIndex(v => v.imcid == vehicle.imcid)
+    state.assets.vehicles[idx] = vehicle;
+  },
+  [setSpots.type]: (state, action) => {
+    state.assets.spots = action.payload;
+  },
+  [setAis.type]: (state, action) => {
+    state.assets.aisShips = action.payload;
+  },
+  [editPlan.type]: (state, action) => {
+    state.selectedVehicle = action.payload
+    state.assets.previousVehicles = JSON.parse(JSON.stringify(state.assets.vehicles))
+  },
+  [cancelEditPlan.type]: (state, action) => {
+    state.assets.vehicles = JSON.parse(JSON.stringify(state.assets.previousVehicles))
+    state.assets.previousVehicles = []
+    state.selectedVehicle = EmptyAsset
+  },
+  [setSlider.type]: (state, action) => {
+    state.sliderValue = action.payload
+  },
+  [setSelectedWaypoint.type]: (state, action) => {
+    state.selectedWaypointIdx = action.payload
   }
 })
 

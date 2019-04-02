@@ -2,9 +2,12 @@ import React, { Component } from 'react'
 import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
 import IPair from '../../../model/IPair';
 import Login from '../../../components/Login';
+import IRipplesState from '../../../model/IRipplesState';
+import { connect } from 'react-redux';
+import IAsset from '../../../model/IAsset';
 
 type propsType = {
-  vehiclePlanPairs: IPair<string>[]
+  vehicles: IAsset[]
   handleEditPlan: Function
   handleSendPlanToVehicle: Function
   handleCancelEditPlan: Function
@@ -18,7 +21,7 @@ type stateType = {
   dropdownText: string
 }
 
-export default class TopNav extends Component<propsType, stateType> {
+class TopNav extends Component<propsType, stateType> {
 
   constructor(props: propsType) {
     super(props)
@@ -48,12 +51,12 @@ export default class TopNav extends Component<propsType, stateType> {
     });
   }
 
-  handleEditPlan(p: IPair<string>) {
+  handleEditPlan(v: IAsset) {
     this.setState({
       isEditingPlan: true,
-      dropdownText: `Editing ${p.first}_${p.second}`
+      dropdownText: `Editing ${v.name} - ${v.plan.id}`
     })
-    this.props.handleEditPlan(p.second);
+    this.props.handleEditPlan(v);
   }
 
   handleSendToVehicle() {
@@ -83,11 +86,11 @@ export default class TopNav extends Component<propsType, stateType> {
       )
     }
     else {
-      return this.props.vehiclePlanPairs.map((p: IPair<string>) => {
+      return this.props.vehicles.map(v => {
         return <DropdownItem 
-          key={"dropdown-item-" + p}
-          onClick={() => this.handleEditPlan(p)}>
-          {p.first + "_" + p.second}
+          key={"dropdown-item-" + v.name}
+          onClick={() => this.handleEditPlan(v)}>
+          {v.name}
           </DropdownItem>
       })
     }
@@ -114,4 +117,12 @@ export default class TopNav extends Component<propsType, stateType> {
       </Navbar>)
   }
 }
+
+function mapStateToProps(state: IRipplesState) {
+  return { 
+    vehicles: state.assets.vehicles,
+  }
+}
+
+export default connect(mapStateToProps, null)(TopNav)
 

@@ -4,10 +4,24 @@ import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, A
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
 import IAisShip from '../../../model/IAisShip';
+import IRipplesState from '../../../model/IRipplesState';
+import { connect } from 'react-redux';
+import AssetAwareness from './AssetAwareness';
+import IAssetAwareness from '../../../model/IAssetAwareness';
 
 
-export default class AISShip extends Component<{data: IAisShip}, {}> {
+type propsType = {
+    data: IAisShip,
+    sliderValue: number
+}
 
+class AISShip extends Component<propsType, {}> {
+
+    constructor(props: propsType) {
+        super(props)
+        this.buildAisShipMarker = this.buildAisShipMarker.bind(this)
+        this.buildShipAwareness = this.buildShipAwareness.bind(this)
+    }
 
     getIcon(type: number) {
         const tenths = Math.floor(type / 10);
@@ -32,7 +46,16 @@ export default class AISShip extends Component<{data: IAisShip}, {}> {
         return 0.36 + (1.000 - 0.36)/(1 + Math.pow((deltaTimeSec/8000),0.9))
     }
 
-    render() {
+    buildShipAwareness() {
+        const deltaHours = this.props.sliderValue
+        const awareness: IAssetAwareness = {
+            name: this.props.data.name,
+            positions: this.props.data.awareness
+        }
+        return <AssetAwareness awareness={awareness} deltaHours={deltaHours}></AssetAwareness>
+    }
+
+    buildAisShipMarker() {
         let ship = this.props.data;
         return (
             <RotatedMarker
@@ -55,8 +78,28 @@ export default class AISShip extends Component<{data: IAisShip}, {}> {
                 </Popup>
             </RotatedMarker>
         );
-
     }
 
+    render() {
+        let shipAwareness: JSX.Element | null = null
+        if (this.props.sliderValue == 0) {
+            shipAwareness = this.buildShipAwareness()
+        }
+        return (
+            <>
+            {this.buildAisShipMarker()}
+            {shipAwareness}
+            </>
+        )
 
+    }
 }
+
+function mapStateToProps(state: IRipplesState) {
+    const { sliderValue } = state
+    return {
+        sliderValue: sliderValue
+    }
+}
+
+export default connect(mapStateToProps, null)(AISShip)
