@@ -27,10 +27,13 @@
     "react-leaflet-fullscreen-control": "^0.0.4",
     "react-leaflet-measure": "^2.1.1",
     "react-notification-system": "^0.2.17",
+    "react-redux": "^6.0.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "^2.1.5",
+    "react-scripts": "^2.1.8",
     "react-style-object-to-css": "^1.1.2",
     "reactstrap": "^7.1.0",
+    "redux": "^4.0.1",
+    "redux-starter-kit": "^0.4.3",
     "typescript": "^3.3.3333",
     "yarn": "^1.13.0"
   },
@@ -48,5 +51,8 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ]
+  ],
+  "devDependencies": {
+    "@types/react-redux": "^7.0.6"
+  }
 }
