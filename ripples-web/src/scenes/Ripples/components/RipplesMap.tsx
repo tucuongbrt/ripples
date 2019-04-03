@@ -9,7 +9,8 @@ import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
 import { updateWaypointsTimestampFromIndex } from "../../../services/PositionUtils";
-import { setVehicles, setSelectedWaypoint, setVehicle } from "../../../redux/ripples.actions";
+import { setSelectedWaypoint, setVehicle } from "../../../redux/ripples.actions";
+import 'react-leaflet-fullscreen-control'
 const { BaseLayer, Overlay } = LayersControl
 
 type propsType = {
@@ -25,10 +26,10 @@ type propsType = {
 type stateType = {
     initCoords: LatLngLiteral,
     initZoom: number
-
 }
 
 class RipplesMap extends Component<propsType, stateType> {
+    upgradedOptions: any;
 
     constructor(props: propsType) {
         super(props)
@@ -50,7 +51,7 @@ class RipplesMap extends Component<propsType, stateType> {
      * @param e 
      */
     handleMapClick(e: any) {
-        const selectedVehicle = this.props.selectedVehicle;
+        const selectedVehicle = JSON.parse(JSON.stringify(this.props.selectedVehicle));
         const wpSelected = this.props.selectedWaypointIdx;
         if (wpSelected >= 0 && !isEmptyAsset(selectedVehicle)) {
             const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
@@ -85,48 +86,43 @@ class RipplesMap extends Component<propsType, stateType> {
 
     render() {
         return (
-            <div className="map">
-                <Map fullscreenControl center={this.state.initCoords} zoom={this.state.initZoom}
-                    onClick={this.handleMapClick}>
-                    <LayersControl position="topright">
-                        <BaseLayer checked name="OpenStreetMap.Mapnik">
-                            <TileLayer
-                                attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-                        </BaseLayer>
-                        <Overlay checked name="Nautical charts">
-                            <TileLayer
-                                url='http://wms.transas.com/TMS/1.0.0/TX97-transp/{z}/{x}/{y}.png?token=9e53bcb2-01d0-46cb-8aff-512e681185a4'
-                                attribution='Map data &copy; Transas Nautical Charts'
-                                tms={true}
-                                maxZoom={21}
-                                opacity={0.7}
-                                maxNativeZoom={17}>
-                            </TileLayer>
-                        </Overlay>
-                        <Overlay checked name="Vehicles">
-                            <LayerGroup>
-                                {this.buildVehicles()}
-                            </LayerGroup>
-                        </Overlay>
-                        <Overlay checked name="Spots">
-                            <LayerGroup>
-                                {this.buildSpots()}
-                            </LayerGroup>
-                        </Overlay>
-                        <Overlay checked name="AIS Data">
-                            <LayerGroup>
-                                {this.buildAisShips()}
-                            </LayerGroup>
-                        </Overlay>
-                    </LayersControl>
-                    {/**
-            <MeasureArea></MeasureArea>
-             */}
-
-                </Map>
-            </div>
+            <Map fullscreenControl center={this.state.initCoords} zoom={this.state.initZoom}
+                onClick={this.handleMapClick}>
+                <LayersControl position="topright">
+                    <BaseLayer checked name="OpenStreetMap.Mapnik">
+                        <TileLayer
+                            attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                    </BaseLayer>
+                    <Overlay checked name="Nautical charts">
+                        <TileLayer
+                            url='http://wms.transas.com/TMS/1.0.0/TX97-transp/{z}/{x}/{y}.png?token=9e53bcb2-01d0-46cb-8aff-512e681185a4'
+                            attribution='Map data &copy; Transas Nautical Charts'
+                            tms={true}
+                            maxZoom={21}
+                            opacity={0.7}
+                            maxNativeZoom={17}>
+                        </TileLayer>
+                    </Overlay>
+                    <Overlay checked name="Vehicles">
+                        <LayerGroup>
+                            {this.buildVehicles()}
+                        </LayerGroup>
+                    </Overlay>
+                    <Overlay checked name="Spots">
+                        <LayerGroup>
+                            {this.buildSpots()}
+                        </LayerGroup>
+                    </Overlay>
+                    <Overlay checked name="AIS Data">
+                        <LayerGroup>
+                            {this.buildAisShips()}
+                        </LayerGroup>
+                    </Overlay>
+                </LayersControl>
+                />
+            </Map>
         )
 
     }
@@ -136,6 +132,7 @@ class RipplesMap extends Component<propsType, stateType> {
 function mapStateToProps(state: IRipplesState) {
     const { assets } = state
     return {
+        vehicles: assets.vehicles,
         spots: assets.spots,
         aisShips: assets.aisShips,
         selectedWaypointIdx: state.selectedWaypointIdx,

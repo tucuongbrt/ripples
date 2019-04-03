@@ -1,13 +1,14 @@
 import IPlan, { EmptyPlan } from "./IPlan";
 import IAssetState, { EmptyAssetState } from "./IAssetState";
 import IPositionAtTime from "./IPositionAtTime";
+import IPair from './IPair';
 
 export default interface IAsset {
     imcid: number
     name: string
     plan: IPlan
     lastState: IAssetState
-    settings: Map<string, string>
+    settings: string[][]
     awareness: IPositionAtTime[]
 }
 
@@ -16,7 +17,7 @@ export const EmptyAsset: IAsset = {
     name: '',
     plan: EmptyPlan,
     lastState: EmptyAssetState,
-    settings: new Map(),
+    settings: [],
     awareness: []
 }
 

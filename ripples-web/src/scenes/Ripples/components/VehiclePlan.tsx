@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Marker, Popup, Polyline } from 'react-leaflet'
-import { WaypointIcon } from './Icons'
+import { WaypointIcon, GhostIcon } from './Icons'
 import { timeFromNow, timestampMsToReadableDate } from '../../../services/DateUtils'
 import { renderToStaticMarkup } from 'react-dom/server';
 import { divIcon, LatLngLiteral } from 'leaflet';
@@ -12,14 +12,13 @@ import IPositionAtTime from '../../../model/IPositionAtTime';
 import VerticalProfile from './VerticalProfile';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
-import IAsset from '../../../model/IAsset';
+import IAsset, { EmptyAsset } from '../../../model/IAsset';
 import { setVehicles, setSelectedWaypoint } from '../../../redux/ripples.actions';
 
 type propsType = {
     vehicles: IAsset[]
     plan: IPlan
     vehicle: string
-    isMovable: boolean
     selectedVehicle: IAsset
     selectedWaypointIdx: number
     setVehicles: Function
@@ -47,6 +46,7 @@ class VehiclePlan extends Component<propsType, stateType> {
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
         this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
         this.handleMarkerClick = this.handleMarkerClick.bind(this)
+        this.isVehicleSelected = this.isVehicleSelected.bind(this)
     }
 
     componentDidMount() {
@@ -59,7 +59,7 @@ class VehiclePlan extends Component<propsType, stateType> {
     }
 
     handleMarkerClick(markerIdx: number, isMovable: boolean) {
-
+        console.log('Marker clicked', markerIdx, isMovable)
         if (isMovable && this.props.plan.id === this.props.selectedVehicle.plan.id) {
             this.props.setSelectedWaypoint(markerIdx)
         }
@@ -111,9 +111,17 @@ class VehiclePlan extends Component<propsType, stateType> {
         return popup
     }
 
+    isVehicleSelected(): boolean {
+        return this.props.selectedVehicle.imcid !== EmptyAsset.imcid
+    }
+    isThisPlanSelected(): boolean {
+        return this.isVehicleSelected() ? 
+            this.props.selectedVehicle.plan.id === this.props.plan.id ? true : false : false
+    }
+
     buildPlanWaypoints() {
-        const waypoints = this.props.plan.waypoints;
-        let positions = this.props.plan.waypoints.map(wp => {
+        const waypoints = [...this.props.plan.waypoints];
+        let positions = waypoints.map(wp => {
             return { lat: wp.latitude, lng: wp.longitude }
         })
         const iconMarkup = renderToStaticMarkup(<i className="editing-waypoint" />);
@@ -123,7 +131,7 @@ class VehiclePlan extends Component<propsType, stateType> {
 
         return positions.map((p, i) => {
             let eta = waypoints[i].timestamp;
-            let isMovable = this.props.isMovable && (eta - Date.now()) > 0;
+            let isMovable = this.isThisPlanSelected()  && (eta - Date.now()) > 0;
             let className = (this.props.selectedWaypointIdx === i && isMovable) ? 'editing-waypoint' : '';
             const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon();
 
@@ -171,7 +179,9 @@ class VehiclePlan extends Component<propsType, stateType> {
                 {this.buildProfiles()}
                 <EstimatedPosition
                     vehicle={this.props.vehicle}
-                    position={this.state.estimatedPos}>
+                    position={this.state.estimatedPos}
+                    icon={new GhostIcon()}
+                    >
                 </EstimatedPosition>
             </div>
 
@@ -183,7 +193,7 @@ function mapStateToProps(state: IRipplesState) {
     return {
         vehicles: state.assets.vehicles,
         selectedVehicle: state.selectedVehicle,
-        selectedWaypointIdx: state.selectedWaypointIdx
+        selectedWaypointIdx: state.selectedWaypointIdx,
     }
 }
 

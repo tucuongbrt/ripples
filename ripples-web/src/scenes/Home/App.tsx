@@ -6,10 +6,12 @@ import Home from './Home';
 import TextMessages from '../TextMessages/TextMessages';
 import OAuth2RedirectHandler from '../../components/OAuth2RedirectHandler'
 import NoLoginPermission from '../NoLoginPermission/NoLoginPermission';
+const {NotificationContainer} = require('react-notifications');
 
 class App extends Component {
   render() {
     return (
+      <>
       <Router>
         <Switch>
           <Route path='/' exact={true} component={Home}/>
@@ -20,6 +22,8 @@ class App extends Component {
           <Route path="/oauth2/redirect" component={OAuth2RedirectHandler}/>
         </Switch>
       </Router>
+      <NotificationContainer/>
+      </>
     )
   }
 }

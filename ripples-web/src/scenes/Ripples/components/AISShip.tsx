@@ -17,6 +17,8 @@ type propsType = {
 
 class AISShip extends Component<propsType, {}> {
 
+    awarenessMinSpeed: number = 0.2
+
     constructor(props: propsType) {
         super(props)
         this.buildAisShipMarker = this.buildAisShipMarker.bind(this)
@@ -81,8 +83,9 @@ class AISShip extends Component<propsType, {}> {
     }
 
     render() {
+        let ship = this.props.data
         let shipAwareness: JSX.Element | null = null
-        if (this.props.sliderValue == 0) {
+        if (this.props.sliderValue != 0 && ship.sog > this.awarenessMinSpeed) {
             shipAwareness = this.buildShipAwareness()
         }
         return (

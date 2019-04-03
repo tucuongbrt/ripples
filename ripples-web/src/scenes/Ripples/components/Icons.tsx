@@ -10,9 +10,8 @@ export const AuvIcon = L.Icon.extend({
 
 export const GhostIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/hqIGg6n.png',
-        //iconUrl: './src/icons/ico_auv.png',
-        iconSize: [32, 32]
+        iconUrl: 'https://png.pngtree.com/svg/20170817/ghost_1327317.png',
+        iconSize: [24, 24]
     }
 });
 
@@ -76,5 +75,13 @@ export const SensorIcon = L.Icon.extend({
     options: {
         iconUrl: 'http://icons.iconarchive.com/icons/google/noto-emoji-travel-places/256/42650-thermometer-icon.png',
         iconSize: [32, 32]
+    }
+})
+
+export const AwarenessIcon = L.Icon.extend({
+    options: {
+        iconUrl: 'https://image.flaticon.com/icons/svg/25/25678.svg',
+        iconSize: [20, 20]
+
     }
 })

@@ -1,16 +1,16 @@
 export default interface IUserState {
     authenticated: boolean
-    currentUser: User
+    currentUser: IUser
 }
 
-interface User {
+export interface IUser {
     id: number,
     name: string,
     email: string
     role: string
 }
 
-export const noUser: User = {
+export const noUser: IUser = {
     id: -1,
     name: '',
     email: '',

@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { Button } from "reactstrap";
 import IRipplesState from '../model/IRipplesState'
-import IAuthState from '../model/IAuthState'
+import IAuthState, { IUser } from '../model/IAuthState'
 import { connect } from "react-redux";
-import NotificationSystem from 'react-notification-system';
+const {NotificationManager} = require('react-notifications');
 import { removeUser, setUser } from "../redux/ripples.actions";
 import { getCurrentUser } from "../services/AuthUtils";
 
@@ -26,7 +26,9 @@ class Login extends Component<propsType, {}> {
     }
 
     componentDidMount() {
-        this.loadCurrentlyLoggedInUser()
+        if (localStorage.getItem("ACCESS_TOKEN")) {
+            this.loadCurrentlyLoggedInUser()
+        }
     }
 
     handleLoginClick() {
@@ -35,10 +37,11 @@ class Login extends Component<propsType, {}> {
 
     async loadCurrentlyLoggedInUser() {
         try {
-            const user = await getCurrentUser()
+            const user: IUser = await getCurrentUser()
             this.props.setUser(user)
+            NotificationManager.info(`${user.role.toLowerCase()}: ${user.email}`)
         } catch(error) {
-            console.error(error)
+            NotificationManager.error(`Invalid access token`)
         }
 
     }
@@ -50,7 +53,6 @@ class Login extends Component<propsType, {}> {
     }
 
     render() {
-        console.log(this.props)
         if (this.props.auth.authenticated) {
             return (
                 <Button color="info" size="sm" onClick={() => this.handleLogout()}>

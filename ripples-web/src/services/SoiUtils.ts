@@ -25,22 +25,30 @@ export async function fetchSoiData() {
             longitude: wp.longitude
           }))
       system.lastState.timestamp = system.lastState.timestamp * 1000
-      system.settings = new Map()
+      system.settings = []
+      system.plan.profiles = []
       vehicles.push(system)
     }
   });
   const assetSettings = await settingsPromise;
   assetSettings.forEach(entry => {
     const vehicle = vehicles.filter(v => v.name === entry.name)[0]
-    vehicle.settings = new Map(Object.entries(entry.params));
+    console.log("entry params: ", entry.params)
+    Object.keys(entry.params).sort().forEach(key => {
+      vehicle.settings.push([key, entry.params[key]])
+    });
   })
   console.log("soi vehicles", vehicles)
   return { vehicles: vehicles, spots: spots };
 }
 
+type paramsType = {
+  [key: string]: string;
+}
+
 type assetSettings = {
   name: string
-  params: Object
+  params: paramsType
 }
 
 async function fetchAssetsSettings() {

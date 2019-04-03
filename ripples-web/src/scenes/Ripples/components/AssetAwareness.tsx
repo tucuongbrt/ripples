@@ -4,6 +4,7 @@ import { interpolateTwoPoints, getPrevAndNextPoints } from '../../../services/Po
 import { timestampFromDeltaHours } from '../../../services/DateUtils'
 import IAssetAwareness from '../../../model/IAssetAwareness';
 import IPosHeadingAtTime from '../../../model/ILatLngHead';
+import { AwarenessIcon } from './Icons';
 
 type propsType = {
     awareness: IAssetAwareness,
@@ -25,11 +26,12 @@ export default class AssetAwareness extends Component<propsType, {}> {
 
     render() {
         let estimatedPos = this.estimatedPositionAtTime()
-        console.log(estimatedPos)
         return (
         <EstimatedPosition 
             vehicle={this.props.awareness.name}
-            position={estimatedPos}>
+            position={estimatedPos}
+            icon={new AwarenessIcon()}
+            >
         </EstimatedPosition>
         )
         

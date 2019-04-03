@@ -25,15 +25,13 @@ class Vehicle extends Component<propsType, {}> {
         this.buildVehicle = this.buildVehicle.bind(this)
     }
 
-    buildSettings(settings: Map<string, string>) {
-        let renderedSettings: JSX.Element[] = [];
-        settings.forEach((value, key) => {
-            renderedSettings.push(<li key={key}>{key}: {value}</li>)
+    buildSettings(settings: string[][]): JSX.Element[] {
+        return settings.map(pair => {
+            return <li key={pair[0]}>{pair[0]}: {pair[1]}</li>
         })
-        return renderedSettings;
     }
 
-    buildPlan() {
+    buildPlan(): JSX.Element {
         const vehicle = this.props.data;
         return (
             <VehiclePlan
@@ -46,7 +44,7 @@ class Vehicle extends Component<propsType, {}> {
 
     }
 
-    buildVehicleAwareness() {
+    buildVehicleAwareness(): JSX.Element {
         const currentVehicle = this.props.data
         const deltaHours = this.props.sliderValue
         const vehicleAwareness: IAssetAwareness = {
@@ -92,6 +90,7 @@ class Vehicle extends Component<propsType, {}> {
             planJSX = this.buildPlan()
         }
         if (this.props.sliderValue != 0) {
+            console.log("Building vehicle awareness")
             awarenessJSX = this.buildVehicleAwareness()
         }
         return (
@@ -105,9 +104,8 @@ class Vehicle extends Component<propsType, {}> {
 }
 
 function mapStateToProps(state: IRipplesState) {
-    const { sliderValue } = state
     return {
-        sliderValue: sliderValue,
+        sliderValue: state.sliderValue,
     }
 }
 

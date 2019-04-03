@@ -1,20 +1,18 @@
 import React, { Component, ChangeEvent } from 'react'
-
+import 'react-notifications/lib/notifications.css';
+const { NotificationManager } = require('react-notifications');
 import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
-import 'react-leaflet-fullscreen-control'
 import { fetchAisData } from '../../services/AISUtils';
 import { estimatePositionsAtDeltaTime } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
 import IAisShip from '../../model/IAisShip';
-import NotificationSystem from 'react-notification-system';
 import { connect } from 'react-redux';
 import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan } from '../../redux/ripples.actions';
 import IRipplesState from '../../model/IRipplesState';
 import RipplesMap from './components/RipplesMap';
-
 
 
 type stateType = {};
@@ -35,7 +33,6 @@ class Ripples extends Component<propsType, stateType> {
 
   soiTimer: number = 0
   aisTimer: number = 0
-  _notificationSystem: any = null
 
   constructor(props: any) {
     super(props);
@@ -51,16 +48,17 @@ class Ripples extends Component<propsType, stateType> {
   }
 
   componentDidMount() {
-    this._notificationSystem = this.refs.notificationSystem;
     this.startUpdates();
   }
 
   stopUpdates() {
+    console.log("Stop updates called")
     clearInterval(this.soiTimer);
     clearInterval(this.aisTimer);
   }
 
-  startUpdates() {
+  startUpdates(e?: any) {
+    console.log("Start updates called", e)
     this.updateSoiData();
     this.updateAISData();
     if (!this.soiTimer) {
@@ -104,12 +102,8 @@ class Ripples extends Component<propsType, stateType> {
       // update redux store
       this.props.setVehicles(soiData.vehicles);
       this.props.setSpots(soiData.spots)
-
     } catch (error) {
-      this._notificationSystem.addNotification({
-        message: 'Failed to fetch data',
-        level: 'warning'
-      });
+      NotificationManager.warning('Failed to fetch data')
     }
   }
 
@@ -133,25 +127,22 @@ class Ripples extends Component<propsType, stateType> {
     sendPlanToVehicle(this.props.selectedVehicle)
       .then(([responseOk, body]: (boolean | any)) => {
         if (!responseOk) {
-          this._notificationSystem.addNotification({
-            success: body.message,
-            level: 'warning'
-          });
+          NotificationManager.warning(
+            body.message, 
+          );
           this.handleCancelEditPlan();
         } else {
-          this._notificationSystem.addNotification({
-            success: body.message,
-            level: 'success'
-          });
+          NotificationManager.success(
+            body.message,
+          );
           this.startUpdates();
         }
       })
       .catch(error => {
         // handles fetch errors
-        this._notificationSystem.addNotification({
-          success: error.message,
-          level: 'warning'
-        });
+        NotificationManager.warning(
+          error.message, 
+        );
         this.handleCancelEditPlan();
       });
   }
@@ -187,7 +178,6 @@ class Ripples extends Component<propsType, stateType> {
         </div>
         <RipplesMap></RipplesMap>
         <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
-        <NotificationSystem ref="notificationSystem" />
       </div>
 
     )

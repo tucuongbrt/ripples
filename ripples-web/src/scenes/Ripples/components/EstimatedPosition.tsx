@@ -10,6 +10,7 @@ import { timestampMsToReadableDate } from '../../../services/DateUtils';
 type propsType = {
     vehicle: string
     position: IPosHeadingAtTime
+    icon: L.Class
 }
 export default class EstimatedPosition extends Component<propsType, {}> { 
     render() {
@@ -20,7 +21,7 @@ export default class EstimatedPosition extends Component<propsType, {}> {
                 rotationAngle={estimatedPos.heading}
                 rotationOrigin={'center'}
                 position={getLatLng(estimatedPos)}
-                icon={new GhostIcon()}
+                icon={this.props.icon}
                 opacity={0.7}>
                     <Popup>
                         <h3>Estimated Position of {this.props.vehicle}</h3>

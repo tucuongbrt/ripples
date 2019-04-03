@@ -3,8 +3,8 @@ import { Table } from 'reactstrap';
 import {fetchTextMessages} from '../../services/Rock7Utils'
 import hexToAscii from '../../services/HexToAscii';
 import { timestampMsToReadableDate } from '../../services/DateUtils';
-import NotificationSystem from 'react-notification-system';
 import ITextMessage from '../../model/ITextMessage';
+const { NotificationManager } = require('react-notifications');
 
 type stateType = {
     messages: ITextMessage[]
@@ -30,7 +30,6 @@ export default class TextMessages extends Component<{},stateType> {
     componentDidMount(){
         this.updateMessages();
         this.timerID = window.setInterval(this.updateMessages, 60000)
-        this._notificationSystem = this.refs.notificationSystem;
     }
 
     componentWillUnmount(){
@@ -49,11 +48,8 @@ export default class TextMessages extends Component<{},stateType> {
                     }))
             this.setState({messages: messages.reverse()})
         })
-        .catch(error => {
-            this._notificationSystem.addNotification({
-                message: 'Failed to fetch text messages',
-                level: 'warning'
-              });
+        .catch(_ => {
+            NotificationManager.warning('Failed to fetch text messages')
         })
     }
 
@@ -83,7 +79,6 @@ export default class TextMessages extends Component<{},stateType> {
                 {this.renderMessages()}
               </tbody>
             </Table>
-            <NotificationSystem ref="notificationSystem" />
         </div>
     )
     }
