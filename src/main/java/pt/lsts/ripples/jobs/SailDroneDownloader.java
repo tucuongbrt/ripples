@@ -1,5 +1,17 @@
-package pt.lsts.ripples.controllers;
+package pt.lsts.ripples.jobs;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import pt.lsts.ripples.domain.assets.SystemAddress;
+import pt.lsts.ripples.domain.wg.EnvDatum;
+import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.util.RipplesUtils;
+
+import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -10,21 +22,6 @@ import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.PostConstruct;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
-import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.jobs.UpdateAddresses;
-import pt.lsts.ripples.repo.EnvDataRepository;
-import pt.lsts.ripples.util.RipplesUtils;
 
 @Component
 public class SailDroneDownloader {

@@ -1,35 +1,4 @@
-package pt.lsts.ripples.controllers;
-
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.Authenticator;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.HttpURLConnection;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.StringJoiner;
-import java.util.TreeSet;
-
-import javax.annotation.PostConstruct;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.util.FileCopyUtils;
+package pt.lsts.ripples.jobs;
 
 import com.firebase.client.AuthData;
 import com.firebase.client.Firebase;
@@ -39,17 +8,24 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.util.FileCopyUtils;
 import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.domain.wg.AISDatum;
-import pt.lsts.ripples.domain.wg.PosDatum;
-import pt.lsts.ripples.domain.wg.ShipsDatum;
-import pt.lsts.ripples.domain.wg.WGAIS;
-import pt.lsts.ripples.domain.wg.WGCtd;
-import pt.lsts.ripples.domain.wg.WGPosition;
+import pt.lsts.ripples.domain.wg.*;
 import pt.lsts.ripples.repo.AISDataRepository;
 import pt.lsts.ripples.repo.EnvDataRepository;
 import pt.lsts.ripples.util.RipplesUtils;
+
+import javax.annotation.PostConstruct;
+import java.io.*;
+import java.net.*;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Component
 public class WGDownloader {

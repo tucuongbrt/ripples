@@ -1,15 +1,10 @@
 package pt.lsts.ripples.controllers.advices;
 
+import pt.lsts.ripples.util.HTTPResponse;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
+import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.exceptions.AssetNotFoundException;
 import pt.lsts.ripples.exceptions.SendSoiCommandException;
-import pt.lsts.ripples.util.HTTPResponse;
 
 @ControllerAdvice
 @RequestMapping(produces = "application/json")

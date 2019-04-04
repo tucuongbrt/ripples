@@ -3,6 +3,7 @@
 !gradle/wrapper/gradle-wrapper.jar
 application.yml
 spreadsheet-credentials.json
+src/main/resources/public/
 
 ### STS ###
 .apt_generated
