@@ -87,7 +87,7 @@ export async function sendPlanToVehicle(vehicle: IAsset) {
   plan.waypoints = plan.waypoints.map((wp: IPositionAtTime) => {
     let timestamp = wp.timestamp
     delete wp.timestamp
-    return Object.assign(wp, { eta: timestamp / 1000, duration: 60 })
+    return Object.assign({}, wp, { eta: timestamp / 1000, duration: 60 })
   })
   return postNewPlan(vehicle.name, plan)
 }

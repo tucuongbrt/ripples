@@ -165,9 +165,9 @@ class VehiclePlan extends Component<propsType, stateType> {
             const nextPoint = prevAndNext.next;
             this.setState({ estimatedPos: interpolateTwoPoints(now, prevPoint, nextPoint) })
         } else if (!planStarted) {
-            this.setState({ estimatedPos: Object.assign(waypoints[0], { heading: 0 }) })
+            this.setState({ estimatedPos: Object.assign({}, waypoints[0], { heading: 0 }) })
         } else { // plan ended
-            this.setState({ estimatedPos: Object.assign(waypoints[waypoints.length - 1], { heading: 0 }) })
+            this.setState({ estimatedPos: Object.assign({}, waypoints[waypoints.length - 1], { heading: 0 }) })
         }
     }
 

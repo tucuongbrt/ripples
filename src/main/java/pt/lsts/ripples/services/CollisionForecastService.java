@@ -50,13 +50,17 @@ public class CollisionForecastService {
                 ships.values().forEach(ship -> {
                     double distance = WGS84Utilities.distance(aState.getLatitude(), aState.getLongitude(),
                             ship.getLatDegs(), ship.getLonDegs());
-                    if (distance < collisionDistance)
+                    if (distance < collisionDistance) {
                         collisions.putIfAbsent(
-                        		new Pair<>(asset.getName(), ship.getLabel()),
-                        		new Pair<>(distance, t));
+                            new Pair<>(asset.getName(), ship.getLabel()),
+                            new Pair<>(distance, t));
+                    }
+                        
                 });
             });
         }
+
+        logger.info("Collisions size: " + collisions.size());
 
         state.forEachValue(1, s -> {
             s.clearCollisions();

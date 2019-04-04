@@ -40,7 +40,7 @@ export default class TextMessages extends Component<{},stateType> {
         fetchTextMessages()
         .then(data => {
             let messages = data.map((m:any) => 
-                Object.assign(
+                Object.assign({},
                     m,
                     {
                         date: timestampMsToReadableDate(m.updated_at),
