@@ -41,6 +41,7 @@ class Login extends Component<propsType, {}> {
             this.props.setUser(user)
             NotificationManager.info(`${user.role.toLowerCase()}: ${user.email}`)
         } catch(error) {
+            this.handleLogout()
             NotificationManager.error(`Invalid access token`)
         }
 
