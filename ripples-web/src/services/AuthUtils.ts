@@ -8,5 +8,5 @@ export function getCurrentUser(): Promise<IUser> {
         return Promise.reject("No access token set.");
     }
 
-    return request(apiURL + "/user/me");
+    return request({url: `${apiURL}/user/me`});
 }

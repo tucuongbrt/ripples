@@ -10,9 +10,11 @@ import { estimatePositionsAtDeltaTime } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
 import IAisShip from '../../model/IAisShip';
 import { connect } from 'react-redux';
-import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan } from '../../redux/ripples.actions';
+import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser } from '../../redux/ripples.actions';
 import IRipplesState from '../../model/IRipplesState';
 import RipplesMap from './components/RipplesMap';
+import UserState, { IUser } from '../../model/IAuthState';
+import { getCurrentUser } from '../../services/AuthUtils';
 
 
 type stateType = {};
@@ -23,9 +25,11 @@ type propsType = {
   setAis: Function
   setSlider: Function
   editPlan: Function
+  setUser: (user: IUser) => any
   cancelEditPlan: Function
   selectedVehicle: IAsset
   sliderValue: number
+  auth: UserState
 }
 
 
@@ -45,9 +49,21 @@ class Ripples extends Component<propsType, stateType> {
     this.startUpdates = this.startUpdates.bind(this)
     this.updateSoiData = this.updateSoiData.bind(this)
     this.updateAISData = this.updateAISData.bind(this)
+    this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
   }
 
-  componentDidMount() {
+  async loadCurrentlyLoggedInUser() {
+    try {
+      const user: IUser = await getCurrentUser()
+      this.props.setUser(user)
+      NotificationManager.info(`${user.role.toLowerCase()}: ${user.email}`)
+    } catch (error) {
+      localStorage.removeItem("ACCESS_TOKEN");
+    }
+  }
+
+  async componentDidMount() {
+    await this.loadCurrentlyLoggedInUser()
     this.startUpdates();
   }
 
@@ -76,7 +92,7 @@ class Ripples extends Component<propsType, stateType> {
 
   async updateSoiData() {
     try {
-      const soiData = await fetchSoiData()
+      const soiData = await fetchSoiData(this.props.auth)
       let vehicles = soiData.vehicles;
 
       // fetch profiles
@@ -104,6 +120,7 @@ class Ripples extends Component<propsType, stateType> {
       this.props.setSpots(soiData.spots)
     } catch (error) {
       NotificationManager.warning('Failed to fetch data')
+      console.error(error)
     }
   }
 
@@ -128,7 +145,7 @@ class Ripples extends Component<propsType, stateType> {
       .then(([responseOk, body]: (boolean | any)) => {
         if (!responseOk) {
           NotificationManager.warning(
-            body.message, 
+            body.message,
           );
           this.handleCancelEditPlan();
         } else {
@@ -141,7 +158,7 @@ class Ripples extends Component<propsType, stateType> {
       .catch(error => {
         // handles fetch errors
         NotificationManager.warning(
-          error.message, 
+          error.message,
         );
         this.handleCancelEditPlan();
       });
@@ -184,10 +201,10 @@ class Ripples extends Component<propsType, stateType> {
 }
 
 function mapStateToProps(state: IRipplesState) {
-  const {selectedVehicle, sliderValue} = state
-  return { 
-    selectedVehicle: selectedVehicle,
-    sliderValue: sliderValue
+  return {
+    selectedVehicle: state.selectedVehicle,
+    sliderValue: state.sliderValue,
+    auth: state.auth
   }
 }
 
@@ -199,6 +216,7 @@ const actionCreators = {
   editPlan,
   cancelEditPlan,
   setSlider,
+  setUser
 }
 
 export default connect(mapStateToProps, actionCreators)(Ripples)

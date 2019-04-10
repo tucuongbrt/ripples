@@ -1,4 +1,10 @@
-export const request = (url: string) => {
+type optionsType = {
+    url: string,
+    method?: string,
+    body?: string
+}
+
+export async function request(options: optionsType) {
     const headers = new Headers({
         'Content-Type': 'application/json',
     })
@@ -8,14 +14,12 @@ export const request = (url: string) => {
     }
 
     const defaults = {headers: headers};
+    options = Object.assign({}, defaults, options);
 
-    return fetch(url, defaults)
-    .then(response => 
-        response.json().then(json => {
-            if(!response.ok) {
-                return Promise.reject(json);
-            }
-            return json;
-        })
-    );
+    const response = await fetch(options.url, options);
+    const json = await response.json();
+    if (!response.ok) {
+        return Promise.reject(json);
+    }
+    return json;
 };

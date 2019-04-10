@@ -3,11 +3,12 @@ import IPlan from "../model/IPlan";
 import IProfile from "../model/IProfile";
 import IAssetAwareness from "../model/IAssetAwareness";
 import IPositionAtTime from "../model/IPositionAtTime";
+import IAuthState, { isScientist } from "../model/IAuthState";
+import { request } from "./RequestUtils";
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
-export async function fetchSoiData() {
-  const settingsPromise = fetchAssetsSettings();
+export async function fetchSoiData(authState: IAuthState) {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
   let vehicles: IAsset[] = [];
@@ -30,14 +31,19 @@ export async function fetchSoiData() {
       vehicles.push(system)
     }
   });
-  const assetSettings = await settingsPromise;
-  assetSettings.forEach(entry => {
-    const vehicle = vehicles.filter(v => v.name === entry.name)[0]
-    console.log("entry params: ", entry.params)
-    Object.keys(entry.params).sort().forEach(key => {
-      vehicle.settings.push([key, entry.params[key]])
-    });
-  })
+  console.log("Before calling settings", authState)
+  if (isScientist(authState)) {
+    console.log("Fetching settings")
+    const settingsPromise = fetchAssetsSettings();
+    const assetSettings = await settingsPromise;
+    assetSettings.forEach(entry => {
+      const vehicle = vehicles.filter(v => v.name === entry.name)[0]
+      console.log("entry params: ", entry.params)
+      Object.keys(entry.params).sort().forEach(key => {
+        vehicle.settings.push([key, entry.params[key]])
+      });
+    })
+  }
   console.log("soi vehicles", vehicles)
   return { vehicles: vehicles, spots: spots };
 }
@@ -52,8 +58,9 @@ type assetSettings = {
 }
 
 async function fetchAssetsSettings() {
-  const response = await fetch(`${apiURL}/assets/params`)
-  const data: assetSettings[] = await response.json()
+  const data: assetSettings[] =  await request({
+    url: `${apiURL}/assets/params`
+  })
   console.log('assets settings:', data)
   return data
 }

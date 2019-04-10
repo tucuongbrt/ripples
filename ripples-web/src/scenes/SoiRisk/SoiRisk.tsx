@@ -6,6 +6,7 @@ import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
 import ILatLng from '../../model/ILatLng';
 import IPositionAtTime from '../../model/IPositionAtTime';
+import { noAuth } from '../../model/IAuthState';
 
 
 type stateType = {
@@ -35,10 +36,9 @@ export default class SoiRisk extends Component<{}, stateType> {
         clearInterval(this.timerID);
     }
 
-    updateSoiData(){
-        fetchSoiData().then(soiData => {
-            this.setState({vehicles: soiData.vehicles})
-        })
+    async updateSoiData(){
+        const soiData = await fetchSoiData(noAuth)
+        this.setState({vehicles: soiData.vehicles})
     }
 
     getNextWaypoint(vehicle: IAsset){

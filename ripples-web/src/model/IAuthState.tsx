@@ -1,7 +1,23 @@
-export default interface IUserState {
-    authenticated: boolean
-    currentUser: IUser
+const OPERATOR = "operator"
+const SCIENTIST = "scientist"
+
+export default interface IAuthState {
+    authenticated: boolean;
+    currentUser: IUser;
 }
+
+export function isScientist(auth: IAuthState) {
+    console.log("Checking for scientist", auth)
+    return auth.authenticated && (
+        auth.currentUser.role.toLowerCase() == SCIENTIST ||
+        auth.currentUser.role.toLowerCase() == OPERATOR
+        ) 
+}
+
+export function isOperator(auth: IAuthState) {
+    return auth.authenticated && auth.currentUser.role == OPERATOR
+}
+
 
 export interface IUser {
     id: number,
@@ -18,7 +34,7 @@ export const noUser: IUser = {
 }
 
 
-export const noAuth: IUserState = {
+export const noAuth: IAuthState = {
     authenticated: false,
     currentUser: noUser
 }
