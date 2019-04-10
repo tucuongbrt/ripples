@@ -152,8 +152,7 @@ class Ripples extends Component<propsType, stateType> {
     this.props.cancelEditPlan()
   }
 
-  onSliderChange(event: ChangeEvent<HTMLInputElement>) {
-    let sliderValue = +event.target.value
+  onSliderChange(sliderValue: number) {
     if (sliderValue === 0) {
       // reset state
       this.startUpdates()
