@@ -1,16 +1,8 @@
 package pt.lsts.ripples.controllers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
@@ -19,6 +11,9 @@ import pt.lsts.ripples.repo.AssetsParamsRepository;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.PositionsRepository;
 import pt.lsts.ripples.services.AssetInfoService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class AssetsController {
@@ -77,6 +72,7 @@ public class AssetsController {
         return assets;
     }
 
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
     @RequestMapping(path = {"/assets/params"}, method = RequestMethod.GET)
     public List<AssetParams> listAssetParams() {
         ArrayList<AssetParams> assetsParams = new ArrayList<>();
