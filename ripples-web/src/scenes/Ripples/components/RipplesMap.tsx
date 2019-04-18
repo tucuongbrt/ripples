@@ -6,12 +6,13 @@ import Vehicle from "./Vehicle";
 import Spot from "./Spot";
 import IAisShip from "../../../model/IAisShip";
 import AISShip from "./AISShip";
-import { Map, TileLayer, LayerGroup, LayersControl } from 'react-leaflet'
+import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
 import { updateWaypointsTimestampFromIndex } from "../../../services/PositionUtils";
 import { setSelectedWaypoint, setVehicle } from "../../../redux/ripples.actions";
 import 'react-leaflet-fullscreen-control'
 const { BaseLayer, Overlay } = LayersControl
+import GeoData from '../../../assets/geojson/all.json';
 
 type propsType = {
     vehicles: IAsset[],
@@ -25,7 +26,8 @@ type propsType = {
 
 type stateType = {
     initCoords: LatLngLiteral,
-    initZoom: number
+    initZoom: number,
+    geojsonData: any[]
 }
 
 class RipplesMap extends Component<propsType, stateType> {
@@ -36,6 +38,7 @@ class RipplesMap extends Component<propsType, stateType> {
         this.state = {
             initCoords: { lat: 41.18, lng: -8.7, },
             initZoom: 10,
+            geojsonData: GeoData,
         }
         super(props)
         this.buildVehicles = this.buildVehicles.bind(this)
@@ -43,8 +46,6 @@ class RipplesMap extends Component<propsType, stateType> {
         this.buildAisShips = this.buildAisShips.bind(this)
         this.handleMapClick = this.handleMapClick.bind(this)
     }
-
-
 
     /**
      * Move waypoint if a vehicle and a waypoint are selected
@@ -84,6 +85,35 @@ class RipplesMap extends Component<propsType, stateType> {
         })
     }
 
+    onEachFeature(feature: any, layer: any) {
+        // does this feature have a property named popupContent?
+        if (feature.properties && feature.properties.Name) {
+            layer.bindPopup(feature.properties.Name);
+        }
+    }
+
+    buildGeoJSON() {
+        return this.state.geojsonData.map((json,i) => {
+            return <GeoJSON key={"geojson"+i} data={json} onEachFeature={this.onEachFeature} style={(feature: any) => {
+                console.log("Feature", feature);
+                let color;
+                switch (feature.properties.Name) {
+                    case 'PNLN': color = "#e5af3b"; break;
+                    case 'Inner Circle': color = "#e3e800"; break;
+                    case 'Outer Circle': color = "#961400"; break;
+                    default: color = "#48cc02"; break;
+                }
+                return {
+                    color: color,
+                    opacity: 0.5,
+                    weight: 2,
+                }
+            }
+                
+            }></GeoJSON>
+        })
+    }
+
     render() {
         return (
             <Map fullscreenControl center={this.state.initCoords} zoom={this.state.initZoom}
@@ -104,6 +134,11 @@ class RipplesMap extends Component<propsType, stateType> {
                             opacity={0.7}
                             maxNativeZoom={17}>
                         </TileLayer>
+                    </Overlay>
+                    <Overlay name="KML" checked>
+                        <FeatureGroup>
+                            {this.buildGeoJSON()}
+                        </FeatureGroup>
                     </Overlay>
                     <Overlay checked name="Vehicles">
                         <LayerGroup>
