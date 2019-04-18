@@ -1537,8 +1537,8 @@
                 "type": "Feature",
                 "properties": {
                     "Name": "PNLN",
-                    "description": "descriÃ§Ã£o: <br>DESIGNACAO: Litoral Norte<br>CATEGORIA: Parque Natural<br>LOCAL: Continente",
-                    "descri________o": "",
+                    "description": "descrição: <br>DESIGNACAO: Litoral Norte<br>CATEGORIA: Parque Natural<br>LOCAL: Continente",
+                    "descrição": "",
                     "DESIGNACAO": "Litoral Norte",
                     "CATEGORIA": "Parque Natural",
                     "LOCAL": "Continente"
