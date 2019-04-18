@@ -7,7 +7,6 @@ export default interface IAuthState {
 }
 
 export function isScientist(auth: IAuthState) {
-    console.log("Checking for scientist", auth)
     return auth.authenticated && (
         auth.currentUser.role.toLowerCase() == SCIENTIST ||
         auth.currentUser.role.toLowerCase() == OPERATOR
@@ -15,7 +14,8 @@ export function isScientist(auth: IAuthState) {
 }
 
 export function isOperator(auth: IAuthState) {
-    return auth.authenticated && auth.currentUser.role == OPERATOR
+    return auth.authenticated && 
+    auth.currentUser.role.toLowerCase() == OPERATOR
 }
 
 

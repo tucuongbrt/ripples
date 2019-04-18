@@ -17,7 +17,9 @@ import UserState, { IUser } from '../../model/IAuthState';
 import { getCurrentUser } from '../../services/AuthUtils';
 
 
-type stateType = {};
+type stateType = {
+  loading: boolean
+};
 
 type propsType = {
   setVehicles: Function
@@ -40,7 +42,9 @@ class Ripples extends Component<propsType, stateType> {
 
   constructor(props: any) {
     super(props);
-
+    this.state = {
+      loading: true
+    }
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
@@ -64,6 +68,7 @@ class Ripples extends Component<propsType, stateType> {
 
   async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
+    this.setState({loading: false})
     this.startUpdates();
   }
 
@@ -182,21 +187,23 @@ class Ripples extends Component<propsType, stateType> {
   freedrawRef = React.createRef();
 
   render() {
-    return (
-      <div>
-        <div className="navbar">
-          <TopNav
-            handleEditPlan={this.handleEditPlan}
-            handleSendPlanToVehicle={this.handleSendPlanToVehicle}
-            handleCancelEditPlan={this.handleCancelEditPlan}
-          >
-          </TopNav>
+    {if (!this.state.loading) {
+      return (
+        <div>
+          <div className="navbar">
+            <TopNav
+              handleEditPlan={this.handleEditPlan}
+              handleSendPlanToVehicle={this.handleSendPlanToVehicle}
+              handleCancelEditPlan={this.handleCancelEditPlan}
+            >
+            </TopNav>
+          </div>
+          <RipplesMap></RipplesMap>
+          <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
         </div>
-        <RipplesMap></RipplesMap>
-        <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
-      </div>
-
-    )
+      )
+    }}
+    return <></>
   }
 }
 

@@ -5,9 +5,11 @@ import Login from '../../../components/Login';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import IAsset from '../../../model/IAsset';
+import IAuthState, { isOperator } from '../../../model/IAuthState';
 
 type propsType = {
   vehicles: IAsset[]
+  auth: IAuthState
   handleEditPlan: Function
   handleSendPlanToVehicle: Function
   handleCancelEditPlan: Function
@@ -87,13 +89,30 @@ class TopNav extends Component<propsType, stateType> {
     }
     else {
       return this.props.vehicles.map(v => {
-        return <DropdownItem 
+        return <DropdownItem
           key={"dropdown-item-" + v.name}
           onClick={() => this.handleEditPlan(v)}>
           {v.name}
-          </DropdownItem>
+        </DropdownItem>
       })
     }
+  }
+
+  buildPlanEditDropdown() {
+    if (isOperator(this.props.auth)) {
+      return (
+        <Dropdown nav isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
+          <DropdownToggle nav caret>
+            {this.state.dropdownText}
+          </DropdownToggle>
+          <DropdownMenu>
+            {this.getPlans()}
+          </DropdownMenu>
+        </Dropdown>)
+    } else {
+      return <></>
+    }
+    
   }
 
   render() {
@@ -103,14 +122,7 @@ class TopNav extends Component<propsType, stateType> {
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar>
           <Nav className="ml-auto" navbar>
-            <Dropdown nav isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
-              <DropdownToggle nav caret>
-                {this.state.dropdownText}
-              </DropdownToggle>
-              <DropdownMenu>
-                {this.getPlans()}
-              </DropdownMenu>
-            </Dropdown>
+            {this.buildPlanEditDropdown()}
             <Login></Login>
           </Nav>
         </Collapse>
@@ -119,8 +131,9 @@ class TopNav extends Component<propsType, stateType> {
 }
 
 function mapStateToProps(state: IRipplesState) {
-  return { 
+  return {
     vehicles: state.assets.vehicles,
+    auth: state.auth
   }
 }
 
