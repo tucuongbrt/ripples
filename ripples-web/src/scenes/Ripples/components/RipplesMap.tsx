@@ -97,7 +97,6 @@ class RipplesMap extends Component<propsType, stateType> {
     buildGeoJSON() {
         return this.state.geojsonData.map((json,i) => {
             return <GeoJSON key={"geojson"+i} data={json} onEachFeature={this.onEachFeature} style={(feature: any) => {
-                console.log("Feature", feature);
                 let color;
                 switch (feature.properties.Name) {
                     case 'PNLN': color = "#e5af3b"; break;
