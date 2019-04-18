@@ -88,7 +88,9 @@ class RipplesMap extends Component<propsType, stateType> {
     onEachFeature(feature: any, layer: any) {
         // does this feature have a property named popupContent?
         if (feature.properties && feature.properties.Name) {
-            layer.bindPopup(feature.properties.Name);
+            let content = `<h5>${feature.properties.Name}</h5>`;
+            if (feature.properties.description) content += feature.properties.description;
+            layer.bindPopup(content);
         }
     }
 
