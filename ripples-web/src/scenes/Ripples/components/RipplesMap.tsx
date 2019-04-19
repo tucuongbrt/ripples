@@ -56,7 +56,7 @@ class RipplesMap extends Component<propsType, stateType> {
         const wpSelected = this.props.selectedWaypointIdx;
         if (wpSelected >= 0 && !isEmptyAsset(selectedVehicle)) {
             const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-            selectedVehicle.plan.waypoints[wpSelected] = Object.assign({}, newLocation, { timestamp: 0 })
+            Object.assign(selectedVehicle.plan.waypoints[wpSelected], newLocation)
             updateWaypointsTimestampFromIndex(selectedVehicle.plan.waypoints, wpSelected);
             this.props.setSelectedWaypoint(-1)
             this.props.setVehicle(selectedVehicle)

@@ -20,7 +20,7 @@ export function distanceInKmBetweenCoords(p1: ILatLng, p2: ILatLng) {
     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return earthRadiusKm * c;
+    return Math.abs(earthRadiusKm * c);
 }
 
 export function calculateNextPosition(p: IPositionAtTime, cog: number, speed: number, inSeconds: number): IPositionAtTime {
@@ -106,12 +106,16 @@ export function updateWaypointsTimestampFromIndex(waypoints: IPositionAtTime[], 
     if (firstIndex <= 0 || firstIndex >= waypoints.length) {
         return;
     }
+    console.log("Waypoints Before", waypoints);
     const speed = getSpeedBetweenWaypoints(waypoints)
     const lastIndex = waypoints.length - 1;
     for (let i = firstIndex; i <= lastIndex; i++) {
         let prevWp = waypoints[i - 1];
         let currentWp = waypoints[i];
         const distanceInMeters = distanceInKmBetweenCoords(prevWp, currentWp) * 1000;
-        currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000; // timestamp is saved in ms
+        console.log("speed", speed);
+        currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000;
+        
     }
+    console.log("Waypoints After", waypoints);
 }
