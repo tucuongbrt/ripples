@@ -58,7 +58,7 @@ type assetSettings = {
 }
 
 async function fetchAssetsSettings() {
-  const data: assetSettings[] =  await request({
+  const data: assetSettings[] = await request({
     url: `${apiURL}/assets/params`
   })
   console.log('assets settings:', data)
@@ -74,12 +74,13 @@ export async function fetchProfileData(): Promise<IProfile[]> {
 
 async function postNewPlan(vehicleName: string, newPlan: IPlan) {
   console.log("Called post new plan")
-  const response = await fetch(`${apiURL}/soi`, {
-    method: "POST",
-    headers: new Headers({ 'content-type': 'application/json' }),
-    body: JSON.stringify({ vehicleName: vehicleName, plan: newPlan }),
-  });
-  return await Promise.all([response.ok, response.json()]);
+  const response = request(
+    {
+      url: `${apiURL}/soi`,
+      method: 'POST',
+      body: JSON.stringify({ vehicleName: vehicleName, plan: newPlan })
+    })
+  return response;
 }
 
 export async function fetchAwareness(): Promise<IAssetAwareness[]> {

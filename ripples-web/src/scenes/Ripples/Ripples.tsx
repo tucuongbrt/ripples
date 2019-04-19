@@ -145,28 +145,19 @@ class Ripples extends Component<propsType, stateType> {
     this.stopUpdates();
   }
 
-  handleSendPlanToVehicle() {
-    sendPlanToVehicle(this.props.selectedVehicle)
-      .then(([responseOk, body]: (boolean | any)) => {
-        if (!responseOk) {
-          NotificationManager.warning(
-            body.message,
-          );
-          this.handleCancelEditPlan();
-        } else {
-          NotificationManager.success(
-            body.message,
-          );
-          this.startUpdates();
-        }
-      })
-      .catch(error => {
-        // handles fetch errors
-        NotificationManager.warning(
-          error.message,
-        );
-        this.handleCancelEditPlan();
-      });
+  async handleSendPlanToVehicle() {
+    try{
+      const body = await sendPlanToVehicle(this.props.selectedVehicle)
+      NotificationManager.success(
+        body.message,
+      );
+      this.startUpdates();
+    } catch (error) {
+      NotificationManager.warning(
+        error.message,
+      );
+      this.handleCancelEditPlan();
+    }
   }
 
   handleCancelEditPlan() {
