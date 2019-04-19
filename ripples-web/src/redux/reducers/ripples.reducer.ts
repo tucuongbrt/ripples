@@ -28,6 +28,7 @@ const ripplesReducer = createReducer(startState, {
     const vehicle: IAsset = action.payload;
     const idx = state.assets.vehicles.findIndex(v => v.imcid == vehicle.imcid)
     state.assets.vehicles[idx] = vehicle;
+    state.selectedVehicle = vehicle;
   },
   [setSpots.type]: (state, action) => {
     state.assets.spots = action.payload;
