@@ -1,8 +1,10 @@
 package pt.lsts.ripples.services;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import pt.lsts.aismanager.ShipAisSnapshot;
 import pt.lsts.aismanager.api.AisContactManager;
 import pt.lsts.ripples.domain.assets.AssetState;
+import pt.lsts.ripples.domain.soi.PotentialCollision;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.util.Pair;
@@ -31,16 +34,14 @@ public class CollisionForecastService {
 	
 	private ConcurrentHashMap<String, VehicleRiskAnalysis> state = new ConcurrentHashMap<>();
 	
-	public ConcurrentHashMap<String, VehicleRiskAnalysis> updateCollisions() {
+	public HashSet<PotentialCollision> updateCollisions() {
         long start = System.currentTimeMillis();
 
         // (vehicle, ship) -> (distance, timestamp)
-        final ConcurrentHashMap<Pair<String, String>, Pair<Double, Date>> collisions = new ConcurrentHashMap<>();
-
+        final HashSet<PotentialCollision> collisions = new HashSet<PotentialCollision>();
         for (long timeOffset = 0; timeOffset < 3_600 * 3_000; timeOffset += 1_000 * collisionDistance/4) {
             final long time = timeOffset;
             HashMap<String, ShipAisSnapshot> ships = AisContactManager.getInstance().getFutureSnapshots(time);
-
             assetsRepo.findAll().forEach(asset -> {
                 Date t = new Date(System.currentTimeMillis() + time);
                 AssetState aState = asset.stateAt(t);
@@ -51,9 +52,7 @@ public class CollisionForecastService {
                     double distance = WGS84Utilities.distance(aState.getLatitude(), aState.getLongitude(),
                             ship.getLatDegs(), ship.getLonDegs());
                     if (distance < collisionDistance) {
-                        collisions.putIfAbsent(
-                            new Pair<>(asset.getName(), ship.getLabel()),
-                            new Pair<>(distance, t));
+                        collisions.add(new PotentialCollision(asset.getName(), ship.getLabel(), distance, t));
                     }
                         
                 });
@@ -69,12 +68,12 @@ public class CollisionForecastService {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         
-        collisions.forEach((systems, info) -> {
-            String vehicle = systems.first();
-            String ship = systems.second();
-            Date when = info.second();
+        collisions.forEach((c) -> {
+            String vehicle = c.getAsset();
+            String ship = c.getShip();
+            Date when = c.getTimestamp();
 
-            double distance = info.first();
+            double distance = c.getDistance();
             
             VehicleRiskAnalysis analysis = state.get(vehicle);
             if (analysis != null) {
@@ -85,7 +84,7 @@ public class CollisionForecastService {
         long diff = System.currentTimeMillis() - start;
 
         logger.info("RiskAnalysis detected " + collisions.size() + " collisions in " + diff + " milliseconds.");
-        return state;
+        return collisions;
     }
 
 }

@@ -1,6 +1,9 @@
 package pt.lsts.ripples.controllers;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.imc.SoiCommand;
@@ -23,6 +27,7 @@ import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.soi.AwarenessData;
+import pt.lsts.ripples.domain.soi.PotentialCollision;
 import pt.lsts.ripples.domain.soi.NewPlanBody;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
@@ -35,6 +40,7 @@ import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
 import pt.lsts.ripples.services.SoiAwareness;
 import pt.lsts.ripples.util.HTTPResponse;
+import pt.lsts.ripples.util.Pair;
 
 @RestController
 public class SoiController {
@@ -74,10 +80,10 @@ public class SoiController {
 	}
 	
 	@RequestMapping(path = { "/soi/risk", "/soi/risk/" }, method = RequestMethod.GET)
-	public ConcurrentHashMap<String, VehicleRiskAnalysis> riskAnalysis() {
+	@ResponseBody
+	public HashSet<PotentialCollision> riskAnalysis() {
 		aisUpdater.fetchAISHub();
-		ConcurrentHashMap<String, VehicleRiskAnalysis> vehiclesRisk = collisionService.updateCollisions();
-		return vehiclesRisk;
+		return collisionService.updateCollisions();
 	}
 
 	@RequestMapping(path = { "/soi/awareness", "/soi/awareness/" }, method = RequestMethod.GET)

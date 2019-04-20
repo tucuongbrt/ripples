@@ -4,5 +4,4 @@ export default interface IProfile extends IPositionAtTime{
     samples: number[][]
     system: string
     type: string
-    uid: number
 }

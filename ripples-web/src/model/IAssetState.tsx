@@ -1,7 +1,7 @@
 import ILatLng from "./ILatLng";
+import IPositionAtTime from "./IPositionAtTime";
 
-export default interface IAssetState extends ILatLng {
-    timestamp: number
+export default interface IAssetState extends IPositionAtTime {
     fuel: number
     heading: number
 }

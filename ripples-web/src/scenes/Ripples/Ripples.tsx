@@ -1,7 +1,7 @@
 import React, { Component, ChangeEvent } from 'react'
 import 'react-notifications/lib/notifications.css';
 const { NotificationManager } = require('react-notifications');
-import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle } from '../../services/SoiUtils'
+import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
@@ -97,8 +97,9 @@ class Ripples extends Component<propsType, stateType> {
 
   async updateSoiData() {
     try {
-      const soiData = await fetchSoiData(this.props.auth)
+      const soiData = await fetchSoiData()
       let vehicles = soiData.vehicles;
+      mergeAssetSettings(vehicles, this.props.auth)
 
       // fetch profiles
       let profiles = await fetchProfileData();

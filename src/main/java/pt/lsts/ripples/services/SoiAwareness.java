@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.assets.Plan;
-import pt.lsts.ripples.domain.assets.Waypoint;
 import pt.lsts.ripples.domain.soi.AwarenessData;
 import pt.lsts.ripples.domain.soi.PositionAtTime;
 import pt.lsts.ripples.repo.AssetsRepository;

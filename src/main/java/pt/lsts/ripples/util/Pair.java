@@ -34,8 +34,12 @@
  */
 package pt.lsts.ripples.util;
 
-public class Pair<First, Second> {
+import java.io.Serializable;
+import com.eclipsesource.json.JsonObject;
 
+public class Pair<First, Second> implements Serializable{
+
+    private static final long serialVersionUID = -5438676308465412501L;
     First first;
     Second second;
     
@@ -44,17 +48,22 @@ public class Pair<First, Second> {
         this.second = second;
     }
     
-    public First first() {
+    public First getFirst() {
         return first;
     }
     
-    public Second second() {
+    public Second getSecond() {
         return second;
     }
     
     @Override
     public String toString() {
-        return first.toString()+"->"+second.toString();
+        JsonObject json = new JsonObject();
+
+		json.add("first", first.toString());
+		json.add("second", second.toString());
+
+		return json.toString();
     }
     
     @Override

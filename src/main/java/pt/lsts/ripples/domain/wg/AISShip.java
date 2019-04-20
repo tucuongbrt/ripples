@@ -7,6 +7,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import com.eclipsesource.json.JsonObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class AISShip {
@@ -30,8 +32,8 @@ public class AISShip {
 		ais.setMmsi(mmsi);
 		ais.setCog(0);
 		ais.setHeading(0);
-		ais.setLatitude(0);
-		ais.setLongitude(0);
+		ais.setLatitudeDegs(0);
+		ais.setLongitudeDegs(0);
 		ais.setName("unknown");
 		ais.setSog(0);
 		ais.setType("0");
@@ -118,19 +120,31 @@ public class AISShip {
 		this.heading = heading;
 	}
 
-	public double getLatitude() {
+	public double getLatitudeDegs() {
 		return latitude;
 	}
 
-	public void setLatitude(double latitude) {
+	@JsonIgnore
+	public double getLatitudeRads() {
+		return latitude * Math.PI / 180;
+	}
+	
+	@JsonProperty("latitude")
+	public void setLatitudeDegs(double latitude) {
 		this.latitude = latitude;
 	}
 
-	public double getLongitude() {
+	@JsonProperty("longitude")
+	public double getLongitudeDegs() {
 		return longitude;
 	}
 
-	public void setLongitude(double longitude) {
+	@JsonIgnore
+	public double getLongitudeRads() {
+		return longitude * Math.PI / 180;
+	}
+
+	public void setLongitudeDegs(double longitude) {
 		this.longitude = longitude;
 	}
 

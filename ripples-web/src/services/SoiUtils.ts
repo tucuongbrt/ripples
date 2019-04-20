@@ -5,10 +5,27 @@ import IAssetAwareness from "../model/IAssetAwareness";
 import IPositionAtTime from "../model/IPositionAtTime";
 import IAuthState, { isScientist } from "../model/IAuthState";
 import { request } from "./RequestUtils";
+import { IPotentialCollision, IPotentialCollisionPayload } from "../model/IPotentialCollision";
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
-export async function fetchSoiData(authState: IAuthState) {
+export async function mergeAssetSettings(vehicles: IAsset[], authState: IAuthState) {
+  if (isScientist(authState)) {
+    console.log("Fetching settings")
+    const settingsPromise = fetchAssetsSettings();
+    const assetSettings = await settingsPromise;
+    assetSettings.forEach(entry => {
+      const vehicle = vehicles.filter(v => v.name === entry.name)[0]
+      console.log("entry params: ", entry.params)
+      Object.keys(entry.params).sort().forEach(key => {
+        vehicle.settings.push([key, entry.params[key]])
+      });
+    })
+  }
+}
+
+
+export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
   let vehicles: IAsset[] = [];
@@ -31,19 +48,7 @@ export async function fetchSoiData(authState: IAuthState) {
       vehicles.push(system)
     }
   });
-  console.log("Before calling settings", authState)
-  if (isScientist(authState)) {
-    console.log("Fetching settings")
-    const settingsPromise = fetchAssetsSettings();
-    const assetSettings = await settingsPromise;
-    assetSettings.forEach(entry => {
-      const vehicle = vehicles.filter(v => v.name === entry.name)[0]
-      console.log("entry params: ", entry.params)
-      Object.keys(entry.params).sort().forEach(key => {
-        vehicle.settings.push([key, entry.params[key]])
-      });
-    })
-  }
+  
   console.log("soi vehicles", vehicles)
   return { vehicles: vehicles, spots: spots };
 }
@@ -98,4 +103,14 @@ export async function sendPlanToVehicle(vehicle: IAsset) {
     return Object.assign({}, wp, { eta: timestamp / 1000, duration: 60 })
   })
   return postNewPlan(vehicle.name, plan)
+}
+
+export async function fetchCollisions(): Promise<IPotentialCollision[]> {
+  const response = await fetch(`${apiURL}/soi/risk`)
+  const payload: IPotentialCollisionPayload[] = await response.json();
+  console.log("Collisions", payload);
+  const data: IPotentialCollision[] = payload.map(
+    p => Object.assign({}, p, {timestamp: new Date(p.timestamp).getTime()})
+  );
+  return data;
 }
