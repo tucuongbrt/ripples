@@ -44,7 +44,6 @@ export async function fetchSoiData() {
           }))
       system.lastState.timestamp = system.lastState.timestamp * 1000
       system.settings = []
-      system.plan.profiles = []
       vehicles.push(system)
     }
   });

@@ -13,11 +13,15 @@ import { setSelectedWaypoint, setVehicle } from "../../../redux/ripples.actions"
 import 'react-leaflet-fullscreen-control'
 const { BaseLayer, Overlay } = LayersControl
 import GeoData from '../../../assets/geojson/all.json';
+import { stat } from "fs";
+import IProfile from "../../../model/IProfile";
+import VerticalProfile from "./VerticalProfile";
 
 type propsType = {
     vehicles: IAsset[],
     spots: IAsset[],
     aisShips: IAisShip[],
+    profiles: IProfile[],
     selectedVehicle: IAsset,
     selectedWaypointIdx: number,
     setVehicle: Function
@@ -41,6 +45,7 @@ class RipplesMap extends Component<propsType, stateType> {
             geojsonData: GeoData,
         }
         super(props)
+        this.buildProfiles = this.buildProfiles.bind(this)
         this.buildVehicles = this.buildVehicles.bind(this)
         this.buildSpots = this.buildSpots.bind(this)
         this.buildAisShips = this.buildAisShips.bind(this)
@@ -61,6 +66,12 @@ class RipplesMap extends Component<propsType, stateType> {
             this.props.setSelectedWaypoint(-1)
             this.props.setVehicle(selectedVehicle)
         }
+    }
+
+    buildProfiles() {
+        return this.props.profiles.map((profile, i) => {
+            return <VerticalProfile key={"profile" + i} data={profile}></VerticalProfile>
+        })
     }
 
 
@@ -126,7 +137,7 @@ class RipplesMap extends Component<propsType, stateType> {
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
                     </BaseLayer>
-                    <Overlay checked name="Nautical charts">
+                    <Overlay name="Nautical charts">
                         <TileLayer
                             url='http://wms.transas.com/TMS/1.0.0/TX97-transp/{z}/{x}/{y}.png?token=9e53bcb2-01d0-46cb-8aff-512e681185a4'
                             attribution='Map data &copy; Transas Nautical Charts'
@@ -156,6 +167,11 @@ class RipplesMap extends Component<propsType, stateType> {
                             {this.buildAisShips()}
                         </LayerGroup>
                     </Overlay>
+                    <Overlay checked name="Profiles Data">
+                        <LayerGroup>
+                            {this.buildProfiles()}
+                        </LayerGroup>
+                    </Overlay>
                 </LayersControl>
                 />
             </Map>
@@ -173,6 +189,7 @@ function mapStateToProps(state: IRipplesState) {
         aisShips: assets.aisShips,
         selectedWaypointIdx: state.selectedWaypointIdx,
         selectedVehicle: state.selectedVehicle,
+        profiles: state.profiles,
     }
 }
 

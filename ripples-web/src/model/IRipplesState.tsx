@@ -1,8 +1,6 @@
 import IAsset from "./IAsset";
 import IProfile from "./IProfile";
-import IAssetAwareness from "./IAssetAwareness";
 import IAisShip from "./IAisShip";
-import IPair from "./IPair";
 import IUserState from "./IAuthState";
 
 
@@ -18,7 +16,8 @@ export default interface IRipplesState {
     selectedVehicle: IAsset, // vehicle name
     sliderValue: number
     selectedWaypointIdx: number
-    auth: IUserState
+    auth: IUserState,
+    profiles: IProfile[]
   };
 
 export const defaultAssetsGroup: IAssetsGroup = {

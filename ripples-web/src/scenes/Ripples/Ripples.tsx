@@ -10,11 +10,12 @@ import { estimatePositionsAtDeltaTime } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
 import IAisShip from '../../model/IAisShip';
 import { connect } from 'react-redux';
-import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser } from '../../redux/ripples.actions';
+import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser, setProfiles } from '../../redux/ripples.actions';
 import IRipplesState from '../../model/IRipplesState';
 import RipplesMap from './components/RipplesMap';
 import UserState, { IUser } from '../../model/IAuthState';
 import { getCurrentUser } from '../../services/AuthUtils';
+import IProfile from '../../model/IProfile';
 
 
 type stateType = {
@@ -27,6 +28,7 @@ type propsType = {
   setAis: Function
   setSlider: Function
   editPlan: Function
+  setProfiles: (profiles: IProfile[]) => any
   setUser: (user: IUser) => any
   cancelEditPlan: Function
   selectedVehicle: IAsset
@@ -103,15 +105,8 @@ class Ripples extends Component<propsType, stateType> {
 
       // fetch profiles
       let profiles = await fetchProfileData();
-      profiles = profiles.filter(p =>
-        p.samples.length > 0 &&
-        vehicles.filter(v => v.name == p.system).length == 1
-      )
-      // get vehicle which uploded profiles
-      profiles.forEach(p => {
-        const uploader = vehicles.filter((v) => v.name == p.system)[0];
-        uploader.plan.profiles.push(p)
-      })
+      profiles = profiles.filter(p => p.samples.length > 0)
+      this.props.setProfiles(profiles)
 
       // fetch soi awareness
       const assetsAwareness = await fetchAwareness()
@@ -209,6 +204,7 @@ function mapStateToProps(state: IRipplesState) {
 
 
 const actionCreators = {
+  setProfiles,
   setVehicles,
   setSpots,
   setAis,

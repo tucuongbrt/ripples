@@ -1,5 +1,5 @@
 import { createReducer, createAction } from 'redux-starter-kit'
-import { setUser, removeUser, setVehicles, setAis, setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypoint, setVehicle } from '../ripples.actions'
+import { setUser, removeUser, setVehicles, setAis, setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypoint, setVehicle, setProfiles } from '../ripples.actions'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
 import IAsset, { EmptyAsset } from '../../model/IAsset';
@@ -9,7 +9,8 @@ let startState: IRipplesState = {
   selectedVehicle: EmptyAsset,
   sliderValue: 0,
   selectedWaypointIdx: -1,
-  auth: noAuth
+  auth: noAuth,
+  profiles: []
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -50,6 +51,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [setSelectedWaypoint.type]: (state, action) => {
     state.selectedWaypointIdx = action.payload
+  },
+  [setProfiles.type]: (state, action) => {
+    state.profiles = action.payload;
   }
 })
 

@@ -42,7 +42,6 @@ class VehiclePlan extends Component<propsType, stateType> {
         }
         this.buildPlanLines = this.buildPlanLines.bind(this);
         this.buildPlanWaypoints = this.buildPlanWaypoints.bind(this);
-        this.buildProfiles = this.buildProfiles.bind(this);
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
         this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
         this.handleMarkerClick = this.handleMarkerClick.bind(this)
@@ -147,12 +146,6 @@ class VehiclePlan extends Component<propsType, stateType> {
         })
     }
 
-    buildProfiles() {
-        return this.props.plan.profiles.map((profile, i) => {
-            return <VerticalProfile key={"profile" + i} data={profile}></VerticalProfile>
-        })
-    }
-
     updateEstimatedPos() {
         const now = Date.now()
         const waypoints = this.props.plan.waypoints;
@@ -176,7 +169,6 @@ class VehiclePlan extends Component<propsType, stateType> {
             <div>
                 {this.buildPlanLines()}
                 {this.buildPlanWaypoints()}
-                {this.buildProfiles()}
                 <EstimatedPosition
                     vehicle={this.props.vehicle}
                     position={this.state.estimatedPos}
