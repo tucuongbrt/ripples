@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.time.Instant;
+import java.time.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,10 +74,19 @@ public class SoiController {
 		return assets;
 	}
 	
-	@RequestMapping(path = { "/soi/profiles", "/soi/profiles/" }, method = RequestMethod.GET)
-	public List<VerticalProfileData> listProfiles() {
+	@RequestMapping(path = { "/soi/all/profiles", "/soi/all/profiles/" }, method = RequestMethod.GET)
+	public List<VerticalProfileData> listAllProfiles() {
 		ArrayList<VerticalProfileData> profs = new ArrayList<>();
 		vertProfiles.findAll().forEach(profs::add);
+		return profs;
+	}
+
+	@RequestMapping(path = { "/soi/profiles", "/soi/profiles/" }, method = RequestMethod.GET)
+	public List<VerticalProfileData> listProfiles() {
+		Instant aDayAgo = Instant.now().minus(Duration.ofHours(24));
+		Date aDayAgoDate = Date.from(aDayAgo);
+		ArrayList<VerticalProfileData> profs = new ArrayList<>();
+		vertProfiles.findByTimestampAfter(aDayAgoDate).forEach(profs::add);
 		return profs;
 	}
 	
