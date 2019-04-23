@@ -1,5 +1,7 @@
 package pt.lsts.ripples.domain.wg;
 
+import java.util.Date;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
@@ -20,7 +22,7 @@ public class AISShip {
 
 	private String type;
 	private String name;
-	private long updated_at;
+	private Date timestamp;
 	private double cog;
 	private double heading;
 	private double latitude;
@@ -37,7 +39,7 @@ public class AISShip {
 		ais.setName("unknown");
 		ais.setSog(0);
 		ais.setType("0");
-		ais.setUpdated_at(0);
+		ais.setTimestamp(new Date());
 		return ais;
 	}
 
@@ -46,7 +48,7 @@ public class AISShip {
 		AISShip ais = new AISShip();
 		String[] parts = csvString.split(",");
 		ais.mmsi = Integer.valueOf(parts[0]);
-		ais.updated_at = sdf.parse(parts[1]).getTime();
+		ais.timestamp = new Date(sdf.parse(parts[1]).getTime());
 		ais.latitude = Double.valueOf(parts[2]);
 		ais.longitude = Double.valueOf(parts[3]);
 		ais.cog = Double.valueOf(parts[4]);
@@ -62,7 +64,7 @@ public class AISShip {
 		JsonObject json = new JsonObject();
 		json.add("mmsi", mmsi);
 		json.add("name", name);
-		json.add("updated_at", "" + updated_at);
+		json.add("timestamp", "" + timestamp.getTime());
 		json.add("type", type);
 		json.add("latitude", "" + latitude);
 		json.add("longitude", "" + longitude);
@@ -96,12 +98,12 @@ public class AISShip {
 		this.name = name;
 	}
 
-	public long getUpdated_at() {
-		return updated_at;
+	public Date getTimestamp() {
+		return timestamp;
 	}
 
-	public void setUpdated_at(long updated_at) {
-		this.updated_at = updated_at;
+	public void setTimestamp(Date updated_at) {
+		this.timestamp = updated_at;
 	}
 
 	public double getCog() {

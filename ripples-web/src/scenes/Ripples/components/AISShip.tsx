@@ -65,7 +65,7 @@ class AISShip extends Component<propsType, {}> {
                 rotationAngle={Math.round(ship.cog)}
                 rotationOrigin={'center'}
                 icon={this.getIcon(Number(ship.type))}
-                opacity={this.getOpacity(ship.updated_at)}>
+                opacity={this.getOpacity(ship.timestamp)}>
                 <Popup>
                     <h3>{ship.name} - {ship.mmsi}</h3>
                     <ul>
@@ -75,7 +75,7 @@ class AISShip extends Component<propsType, {}> {
                         <li>Cog: {ship.cog.toFixed(1)}</li>
                         <li>Sog: {(ship.sog).toFixed(1)} knots</li>
                         <li>Type: {ship.type}</li>
-                        <li>Last update: {timeFromNow(ship.updated_at)}</li>
+                        <li>Last update: {timeFromNow(ship.timestamp)}</li>
                     </ul>
                 </Popup>
             </RotatedMarker>

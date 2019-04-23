@@ -86,7 +86,7 @@ export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours:
     let currentPosition = {
         latitude: currentState.latitude,
         longitude: currentState.longitude,
-        timestamp: currentState.updated_at
+        timestamp: currentState.timestamp
     }
     let prevPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, -twelveHoursInSec)
     let nextPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, twelveHoursInSec)

@@ -9,6 +9,6 @@ export default interface IAisShip extends ILatLng {
     sog: number
     heading: number
     type: string
-    updated_at: number
+    timestamp: number
     awareness: IPositionAtTime[]
 }

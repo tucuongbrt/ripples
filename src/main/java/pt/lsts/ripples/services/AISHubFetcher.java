@@ -95,7 +95,7 @@ public class AISHubFetcher {
 				ais.getHeading(),
 				ais.getLatitudeRads(),
 				ais.getLongitudeRads(),
-				ais.getUpdated_at(),
+				ais.getTimestamp().getTime(),
 				ais.getName());
 	}
 }
