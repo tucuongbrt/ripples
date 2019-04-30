@@ -21,6 +21,10 @@ function formatDate(date: Date){
     return moment(date).format('h:mm:ss a, MMMM Do YYYY')
 }
 
+export function idFromDate(date: Date) {
+    return moment(date).format('YYYYMMDDhhmmss')
+}
+
 export function secondsToTime(secondsInput: number){
     let absSeconds = Math.abs(secondsInput);
     let hours = Math.floor(absSeconds/3600);

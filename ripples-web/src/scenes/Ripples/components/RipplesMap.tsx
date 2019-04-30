@@ -1,31 +1,38 @@
 import React, { Component } from "react";
 import IRipplesState from "../../../model/IRipplesState";
 import { connect } from "react-redux";
-import IAsset, { isEmptyAsset } from "../../../model/IAsset";
+import IAsset from "../../../model/IAsset";
 import Vehicle from "./Vehicle";
 import Spot from "./Spot";
 import IAisShip from "../../../model/IAisShip";
 import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
-import { updateWaypointsTimestampFromIndex } from "../../../services/PositionUtils";
-import { setSelectedWaypoint, setVehicle } from "../../../redux/ripples.actions";
+import { setSelectedWaypointIdx, setVehicle, updateWpLocation, addWpToPlan } from "../../../redux/ripples.actions";
 import 'react-leaflet-fullscreen-control'
 const { BaseLayer, Overlay } = LayersControl
 import GeoData from '../../../assets/geojson/all.json';
-import { stat } from "fs";
 import IProfile from "../../../model/IProfile";
 import VerticalProfile from "./VerticalProfile";
+import IPlan from "../../../model/IPlan";
+import VehiclePlan from "./VehiclePlan";
+import { ToolSelected } from "../../../model/ToolSelected";
+import IPositionAtTime from "../../../model/IPositionAtTime";
+import ILatLng from "../../../model/ILatLng";
 
 type propsType = {
-    vehicles: IAsset[],
-    spots: IAsset[],
-    aisShips: IAisShip[],
-    profiles: IProfile[],
-    selectedVehicle: IAsset,
-    selectedWaypointIdx: number,
+    vehicles: IAsset[]
+    spots: IAsset[]
+    aisShips: IAisShip[]
+    profiles: IProfile[]
+    plans: IPlan[]
+    selectedPlan: IPlan
+    selectedWaypointIdx: number
+    toolSelected: ToolSelected
     setVehicle: Function
-    setSelectedWaypoint: Function
+    setSelectedWaypointIdx: (_: number) => void
+    updateWpLocation: (_: ILatLng) => void
+    addWpToPlan: (_: IPositionAtTime) => void
 }
 
 type stateType = {
@@ -53,18 +60,21 @@ class RipplesMap extends Component<propsType, stateType> {
     }
 
     /**
-     * Move waypoint if a vehicle and a waypoint are selected
+     * Move waypoint if a plan and a waypoint are selected
      * @param e 
      */
     handleMapClick(e: any) {
-        const selectedVehicle = JSON.parse(JSON.stringify(this.props.selectedVehicle));
-        const wpSelected = this.props.selectedWaypointIdx;
-        if (wpSelected >= 0 && !isEmptyAsset(selectedVehicle)) {
-            const newLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-            Object.assign(selectedVehicle.plan.waypoints[wpSelected], newLocation)
-            updateWaypointsTimestampFromIndex(selectedVehicle.plan.waypoints, wpSelected);
-            this.props.setSelectedWaypoint(-1)
-            this.props.setVehicle(selectedVehicle)
+        if (this.props.selectedPlan.id.length == 0) return
+        const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
+        switch(this.props.toolSelected) {
+            case ToolSelected.ADD: {
+                this.props.addWpToPlan(Object.assign({}, clickLocation, {timestamp: 0}))
+                break
+            }
+            case ToolSelected.MOVE: {
+                this.props.updateWpLocation(clickLocation)
+                this.props.setSelectedWaypointIdx(-1)
+            }
         }
     }
 
@@ -79,6 +89,19 @@ class RipplesMap extends Component<propsType, stateType> {
     buildSpots() {
         return this.props.spots.map(spot => {
             return <Spot key={spot.imcid} data={spot}></Spot>
+        })
+    }
+
+    buildPlans(): JSX.Element[] {
+        return this.props.plans.map(p => {
+            return (
+                <VehiclePlan
+                    key={"VehiclePlan" + p.id}
+                    plan={p}
+                    vehicle={p.assignedTo}
+                >
+                </VehiclePlan>
+            )
         })
     }
 
@@ -157,6 +180,11 @@ class RipplesMap extends Component<propsType, stateType> {
                             {this.buildVehicles()}
                         </LayerGroup>
                     </Overlay>
+                    <Overlay checked name="Plans">
+                        <LayerGroup>
+                            {this.buildPlans()}
+                        </LayerGroup>
+                    </Overlay>
                     <Overlay checked name="Spots">
                         <LayerGroup>
                             {this.buildSpots()}
@@ -188,14 +216,18 @@ function mapStateToProps(state: IRipplesState) {
         spots: assets.spots,
         aisShips: assets.aisShips,
         selectedWaypointIdx: state.selectedWaypointIdx,
-        selectedVehicle: state.selectedVehicle,
+        selectedPlan: state.selectedPlan,
         profiles: state.profiles,
+        plans: state.planSet,
+        toolSelected: state.toolSelected
     }
 }
 
 const actionCreators = {
     setVehicle,
-    setSelectedWaypoint
+    setSelectedWaypointIdx,
+    updateWpLocation,
+    addWpToPlan,
 }
 
 

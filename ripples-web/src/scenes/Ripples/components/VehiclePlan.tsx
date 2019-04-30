@@ -9,20 +9,19 @@ import { interpolateTwoPoints, getPrevAndNextPoints, updateWaypointsTimestampFro
 import IPosHeadingAtTime from '../../../model/ILatLngHead';
 import IPlan from '../../../model/IPlan';
 import IPositionAtTime from '../../../model/IPositionAtTime';
-import VerticalProfile from './VerticalProfile';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
-import IAsset, { EmptyAsset } from '../../../model/IAsset';
-import { setVehicles, setSelectedWaypoint } from '../../../redux/ripples.actions';
+import { setSelectedWaypointIdx, deleteWp } from '../../../redux/ripples.actions';
+import { ToolSelected } from '../../../model/ToolSelected';
 
 type propsType = {
-    vehicles: IAsset[]
     plan: IPlan
     vehicle: string
-    selectedVehicle: IAsset
+    selectedPlan: IPlan
     selectedWaypointIdx: number
-    setVehicles: Function
+    deleteWp: (wpIdx: number) => void
     setSelectedWaypoint: Function
+    toolSelected: ToolSelected
 }
 
 type stateType = {
@@ -43,12 +42,11 @@ class VehiclePlan extends Component<propsType, stateType> {
         this.buildPlanLines = this.buildPlanLines.bind(this);
         this.buildPlanWaypoints = this.buildPlanWaypoints.bind(this);
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
-        this.handleDeleteMarker = this.handleDeleteMarker.bind(this)
         this.handleMarkerClick = this.handleMarkerClick.bind(this)
-        this.isVehicleSelected = this.isVehicleSelected.bind(this)
     }
 
     componentDidMount() {
+        if (this.props.plan.waypoints.length == 0) return
         this.updateEstimatedPos();
         this.timerID = window.setInterval(this.updateEstimatedPos, 1000);
     }
@@ -58,21 +56,19 @@ class VehiclePlan extends Component<propsType, stateType> {
     }
 
     handleMarkerClick(markerIdx: number, isMovable: boolean) {
-        console.log('Marker clicked', markerIdx, isMovable)
-        if (isMovable && this.props.plan.id === this.props.selectedVehicle.plan.id) {
-            this.props.setSelectedWaypoint(markerIdx)
-        }
-    }
+        console.log("handle marker click called: isMovable: ", isMovable)
+        if (isMovable && this.props.plan.id === this.props.selectedPlan.id)
+            switch (this.props.toolSelected) {
+                case ToolSelected.MOVE: {
+                    this.props.setSelectedWaypoint(markerIdx)
+                    break;
+                }
+                case ToolSelected.DELETE: {
+                    this.props.deleteWp(markerIdx)
+                    break;
+                }
+            }
 
-    handleDeleteMarker(markerIdx: number) {
-        const selectedVehicle = this.props.selectedVehicle
-        if (this.props.plan.id === selectedVehicle.plan.id) {
-            let vehiclesCopy = this.props.vehicles.slice();
-            const vehicleIdx = vehiclesCopy.findIndex(v => v.name == selectedVehicle.name);
-            vehiclesCopy[vehicleIdx].plan.waypoints.splice(markerIdx, 1);
-            updateWaypointsTimestampFromIndex(vehiclesCopy[vehicleIdx].plan.waypoints, markerIdx);
-            this.props.setVehicles(vehiclesCopy)
-        }
     }
 
     /**
@@ -95,31 +91,28 @@ class VehiclePlan extends Component<propsType, stateType> {
         return polylines;
     }
 
-    buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
-        let popup = isMovable ? <Popup>
-            <div>Click on the map to move me</div>
-            <button onClick={() => this.handleDeleteMarker(wpIndex)}>Delete me</button>
-        </Popup> :
-            (<Popup><h4>Waypoint {wpIndex} of {this.props.plan.id}</h4>
-                <div>
-                    <li>ETA: {timeFromNow(wp.timestamp)}</li>
-                    <li>Exact ETA: {timestampMsToReadableDate(wp.timestamp)}</li>
-                    <li>Lat: {wp.latitude.toFixed(5)}</li>
-                    <li>Lng: {wp.longitude.toFixed(5)}</li>
-                </div></Popup>)
-        return popup
+    buildWaypointEta(timestamp: number) {
+        return timestamp != 0 ?
+            <>  <li>ETA: {timeFromNow(timestamp)}</li>
+                <li>Exact ETA: {timestampMsToReadableDate(timestamp)}</li></> : <></>
     }
 
-    isVehicleSelected(): boolean {
-        return this.props.selectedVehicle.imcid !== EmptyAsset.imcid
-    }
-    isThisPlanSelected(): boolean {
-        return this.isVehicleSelected() ? 
-            this.props.selectedVehicle.plan.id === this.props.plan.id ? true : false : false
+    buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
+        return (
+            <Popup><h4>Waypoint {wpIndex} of {this.props.plan.id}</h4>
+                <div>
+                    {this.buildWaypointEta(wp.timestamp)}
+                    <li>Lat: {wp.latitude.toFixed(5)}</li>
+                    <li>Lng: {wp.longitude.toFixed(5)}</li>
+                </div>
+            </Popup>
+        )
+
     }
 
     buildPlanWaypoints() {
-        const waypoints = [...this.props.plan.waypoints];
+        const plan = this.props.plan;
+        const waypoints = [...plan.waypoints];
         let positions = waypoints.map(wp => {
             return { lat: wp.latitude, lng: wp.longitude }
         })
@@ -129,13 +122,14 @@ class VehiclePlan extends Component<propsType, stateType> {
         });
 
         return positions.map((p, i) => {
+            let isPlanSelected = this.props.selectedPlan.id == plan.id
             let eta = waypoints[i].timestamp;
-            let isMovable = this.isThisPlanSelected()  && (eta - Date.now()) > 0;
+            let isMovable = isPlanSelected && ((eta - Date.now()) > 0 || plan.assignedTo.length == 0);
             let className = (this.props.selectedWaypointIdx === i && isMovable) ? 'editing-waypoint' : '';
             const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon();
 
             return <Marker
-                key={"Waypoint" + i + "_" + this.props.plan.id}
+                key={"Waypoint" + i + "_" + plan.id}
                 index={i}
                 position={p}
                 icon={icon}
@@ -165,6 +159,7 @@ class VehiclePlan extends Component<propsType, stateType> {
     }
 
     render() {
+        if (this.props.plan.waypoints.length == 0) return null
         return (
             <div>
                 {this.buildPlanLines()}
@@ -173,25 +168,24 @@ class VehiclePlan extends Component<propsType, stateType> {
                     vehicle={this.props.vehicle}
                     position={this.state.estimatedPos}
                     icon={new GhostIcon()}
-                    >
+                >
                 </EstimatedPosition>
             </div>
-
         );
     }
 }
 
 function mapStateToProps(state: IRipplesState) {
     return {
-        vehicles: state.assets.vehicles,
-        selectedVehicle: state.selectedVehicle,
+        selectedPlan: state.selectedPlan,
         selectedWaypointIdx: state.selectedWaypointIdx,
+        toolSelected: state.toolSelected
     }
 }
 
 const actionCreators = {
-    setVehicles,
-    setSelectedWaypoint,
+    deleteWp: deleteWp,
+    setSelectedWaypoint: setSelectedWaypointIdx,
 }
 
 

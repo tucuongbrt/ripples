@@ -8,10 +8,12 @@ import ILatLng from '../../model/ILatLng';
 import IPositionAtTime from '../../model/IPositionAtTime';
 import { IPotentialCollision } from '../../model/IPotentialCollision';
 import './styles/SoiRisk.css';
+import IPlan from '../../model/IPlan';
 
 
 type stateType = {
     vehicles: IAsset[],
+    plans: IPlan[],
     collisions: IPotentialCollision[],
     collisionsModal: boolean
 }
@@ -25,6 +27,7 @@ export default class SoiRisk extends Component<{}, stateType> {
         super(props);
         this.state = {
             vehicles: [],
+            plans: [],
             collisions: [],
             collisionsModal: false
         }
@@ -48,13 +51,13 @@ export default class SoiRisk extends Component<{}, stateType> {
         const collisions = await fetchCollisions()
         this.setState({
             vehicles: soiData.vehicles,
+            plans: soiData.plans,
             collisions: collisions
         })
     }
 
-    getNextWaypointIdx(vehicle: IAsset) {
-        console.log("Vehicle", vehicle);
-        const waypoints = vehicle.plan.waypoints;
+    getNextWaypointIdx(vehicle: IAsset, plan: IPlan) {
+        const waypoints = plan.waypoints;
         if (waypoints.length == 0) return -1;
         const lastCommTimestamp = vehicle.lastState.timestamp;
         const timeIntervals = waypoints.map(wp => Math.abs(wp.timestamp - lastCommTimestamp))
@@ -98,13 +101,15 @@ export default class SoiRisk extends Component<{}, stateType> {
     }
 
     buildVehicle(vehicle: IAsset) {
-        const nextWaypointIdx = this.getNextWaypointIdx(vehicle);
+        const vehiclePlan: IPlan|undefined = this.state.plans.find(p => p.id == vehicle.planId)
+        if (vehiclePlan == undefined) return
+        const nextWaypointIdx = this.getNextWaypointIdx(vehicle, vehiclePlan);
         console.log("next wp index: ", nextWaypointIdx)
         return (
             <tr key={vehicle.name}>
                 <th scope="row">{vehicle.name}</th>
                 {this.buildLastCommunication(vehicle.lastState.timestamp)}
-                {this.buildTimeForNextWaypoint(vehicle.plan.waypoints, nextWaypointIdx)}
+                {this.buildTimeForNextWaypoint(vehiclePlan.waypoints, nextWaypointIdx)}
                 {this.buildFuel(vehicle.lastState.fuel)}
                 <td>{this.getDistanceToVehicle(vehicle)}</td>
                 {this.buildVehicleCollisions(vehicle.name)}

@@ -6,6 +6,7 @@ import IPositionAtTime from "../model/IPositionAtTime";
 import IAuthState, { isScientist } from "../model/IAuthState";
 import { request } from "./RequestUtils";
 import { IPotentialCollision, IPotentialCollisionPayload } from "../model/IPotentialCollision";
+import IAssetState from "../model/IAssetState";
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
@@ -24,18 +25,29 @@ export async function mergeAssetSettings(vehicles: IAsset[], authState: IAuthSta
   }
 }
 
+type IAssetPayload = {
+  name: string
+  plan: IPlan
+  imcid: number
+  lastState: IAssetState
+  settings: string[][]
+  awareness: IPositionAtTime[]
+}
 
 export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
   let vehicles: IAsset[] = [];
   let spots: IAsset[] = [];
-  data.forEach((system: IAsset) => {
+  let plans: IPlan[] = [];
+  data.forEach((system: IAssetPayload) => {
+    let plan: IPlan = JSON.parse(JSON.stringify(system.plan))
+    delete system.plan
     if (system.name.startsWith('spot')) {
-      spots.push(system);
+      spots.push(Object.assign({}, system, {planId: ''}))
     }
     else {
-      system.plan.waypoints = system.plan.waypoints.map((wp: any) =>
+      plan.waypoints = plan.waypoints.map((wp: any) =>
         Object.assign({},
           {
             timestamp: new Date(wp.arrivalDate).getTime(),
@@ -44,12 +56,14 @@ export async function fetchSoiData() {
           }))
       system.lastState.timestamp = system.lastState.timestamp * 1000
       system.settings = []
-      vehicles.push(system)
+      vehicles.push(Object.assign({}, system, {planId: plan.id}))
+      plan.assignedTo = system.name
+      plans.push(plan)
     }
   });
   
   console.log("soi vehicles", vehicles)
-  return { vehicles: vehicles, spots: spots };
+  return { vehicles, spots, plans };
 }
 
 type paramsType = {
@@ -94,14 +108,13 @@ export async function fetchAwareness(): Promise<IAssetAwareness[]> {
   return data
 }
 
-export async function sendPlanToVehicle(vehicle: IAsset) {
-  let plan = JSON.parse(JSON.stringify(vehicle.plan));
+export async function sendPlanToVehicle(plan: IPlan) {
   plan.waypoints = plan.waypoints.map((wp: IPositionAtTime) => {
     let timestamp = wp.timestamp
     delete wp.timestamp
     return Object.assign({}, wp, { eta: timestamp / 1000, duration: 60 })
   })
-  return postNewPlan(vehicle.name, plan)
+  return postNewPlan(plan.assignedTo, plan)
 }
 
 export async function fetchCollisions(): Promise<IPotentialCollision[]> {

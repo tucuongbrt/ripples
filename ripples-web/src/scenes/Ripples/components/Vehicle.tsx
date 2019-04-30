@@ -20,7 +20,6 @@ class Vehicle extends Component<propsType, {}> {
 
     constructor(props: propsType) {
         super(props);
-        this.buildPlan = this.buildPlan.bind(this)
         this.buildVehicleAwareness = this.buildVehicleAwareness.bind(this)
         this.buildVehicle = this.buildVehicle.bind(this)
     }
@@ -29,19 +28,6 @@ class Vehicle extends Component<propsType, {}> {
         return settings.map(pair => {
             return <li key={pair[0]}>{pair[0]}: {pair[1]}</li>
         })
-    }
-
-    buildPlan(): JSX.Element {
-        const vehicle = this.props.data;
-        return (
-            <VehiclePlan
-                key={"VehiclePlan" + vehicle.plan.id}
-                plan={vehicle.plan}
-                vehicle={vehicle.name}
-            >
-            </VehiclePlan>
-        )
-
     }
 
     buildVehicleAwareness(): JSX.Element {
@@ -86,9 +72,6 @@ class Vehicle extends Component<propsType, {}> {
         const vehicle = this.props.data
         let planJSX: JSX.Element | null = null
         let awarenessJSX: JSX.Element | null = null
-        if (vehicle.plan && vehicle.plan.waypoints.length > 0) {
-            planJSX = this.buildPlan()
-        }
         if (this.props.sliderValue != 0) {
             console.log("Building vehicle awareness")
             awarenessJSX = this.buildVehicleAwareness()

@@ -1,12 +1,13 @@
 import IPositionAtTime from "./IPositionAtTime";
-import IProfile from "./IProfile";
 
 export default interface IPlan {
     id: string
     waypoints: IPositionAtTime[]
+    assignedTo: string //asset name
 }
 
 export const EmptyPlan: IPlan = {
     id: '',
     waypoints: [],
+    assignedTo: ''
 }

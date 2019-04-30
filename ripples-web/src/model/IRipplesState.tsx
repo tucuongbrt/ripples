@@ -2,27 +2,30 @@ import IAsset from "./IAsset";
 import IProfile from "./IProfile";
 import IAisShip from "./IAisShip";
 import IUserState from "./IAuthState";
+import IPlan from "./IPlan";
+import { ToolSelected } from "./ToolSelected";
 
 
 export interface IAssetsGroup {
   vehicles: IAsset[],
-  previousVehicles: IAsset[],
   spots: IAsset[],
   aisShips: IAisShip[], 
 }
 
 export default interface IRipplesState {
     assets: IAssetsGroup,
-    selectedVehicle: IAsset, // vehicle name
+    selectedPlan: IPlan, // plan id
     sliderValue: number
     selectedWaypointIdx: number
     auth: IUserState,
-    profiles: IProfile[]
+    profiles: IProfile[],
+    planSet: IPlan[],
+    previousPlanSet: IPlan[],
+    toolSelected: ToolSelected
   };
 
 export const defaultAssetsGroup: IAssetsGroup = {
   vehicles: [],
-  previousVehicles: [],
   spots: [],
   aisShips: []
 }

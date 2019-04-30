@@ -102,20 +102,24 @@ export function getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {
     return distanceInMeters / deltaSec;
 }
 
+/**
+ * Returns true if waypoints were updated, false otherwise
+ * @param waypoints 
+ * @param firstIndex 
+ */
 export function updateWaypointsTimestampFromIndex(waypoints: IPositionAtTime[], firstIndex: number) {
     if (firstIndex <= 0 || firstIndex >= waypoints.length) {
-        return;
+        return false;
     }
-    console.log("Waypoints Before", waypoints);
+    if (waypoints[0].timestamp == waypoints[1].timestamp) return false
     const speed = getSpeedBetweenWaypoints(waypoints)
     const lastIndex = waypoints.length - 1;
     for (let i = firstIndex; i <= lastIndex; i++) {
         let prevWp = waypoints[i - 1];
         let currentWp = waypoints[i];
         const distanceInMeters = distanceInKmBetweenCoords(prevWp, currentWp) * 1000;
-        console.log("speed", speed);
         currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000;
         
     }
-    console.log("Waypoints After", waypoints);
+    return true
 }

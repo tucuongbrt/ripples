@@ -6,7 +6,7 @@ import IPair from './IPair';
 export default interface IAsset {
     imcid: number
     name: string
-    plan: IPlan
+    planId: string
     lastState: IAssetState
     settings: string[][]
     awareness: IPositionAtTime[]
@@ -15,7 +15,7 @@ export default interface IAsset {
 export const EmptyAsset: IAsset = {
     imcid: -1,
     name: '',
-    plan: EmptyPlan,
+    planId: '',
     lastState: EmptyAssetState,
     settings: [],
     awareness: []

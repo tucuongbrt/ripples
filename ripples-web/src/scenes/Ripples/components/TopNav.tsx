@@ -1,18 +1,25 @@
 import React, { Component } from 'react'
-import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu } from 'reactstrap';
-import IPair from '../../../model/IPair';
+import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavItem, Button } from 'reactstrap';
 import Login from '../../../components/Login';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import IAsset from '../../../model/IAsset';
-import IAuthState, { isOperator } from '../../../model/IAuthState';
+import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState';
+import { idFromDate } from '../../../services/DateUtils';
+import IPlan from '../../../model/IPlan';
+import { ToolSelected } from '../../../model/ToolSelected';
+import { setToolSelected } from '../../../redux/ripples.actions';
 
 type propsType = {
-  vehicles: IAsset[]
+  plans: IPlan[]
   auth: IAuthState
-  handleEditPlan: Function
-  handleSendPlanToVehicle: Function
-  handleCancelEditPlan: Function
+  toolSelected: ToolSelected
+  handleEditPlan: (_: IPlan) => void
+  handleSendPlanToVehicle: () => void
+  handleCancelEditPlan: () => void
+  handleStartNewPlan: (_: string) => void
+  handleSavePlan: () => void
+  setToolSelected: (_: ToolSelected) => void
 }
 
 type stateType = {
@@ -25,22 +32,29 @@ type stateType = {
 
 class TopNav extends Component<propsType, stateType> {
 
+  private dropdownDefaultText = 'Plan Editor';
+
   constructor(props: propsType) {
     super(props)
+
 
     this.state = {
       isNavOpen: true,
       isDropdownOpen: false,
       isExecPlanDisabled: true,
       isEditingPlan: false,
-      dropdownText: 'Edit Plan'
+      dropdownText: this.dropdownDefaultText,
     }
 
-    this.onNavToggle = this.onNavToggle.bind(this);
+    this.onNavToggle = this.onNavToggle.bind(this)
+    this.onToolbarClick = this.onToolbarClick.bind(this)
     this.toggleDropdown = this.toggleDropdown.bind(this)
     this.handleSendToVehicle = this.handleSendToVehicle.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
-    this.handleCancelEditing = this.handleCancelEditing.bind(this);
+    this.handleCancelEditing = this.handleCancelEditing.bind(this)
+    this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
+    this.handleSavePlan = this.handleSavePlan.bind(this)
+    this.resetDropdown = this.resetDropdown.bind(this)
   }
 
   onNavToggle() {
@@ -53,66 +67,94 @@ class TopNav extends Component<propsType, stateType> {
     });
   }
 
-  handleEditPlan(v: IAsset) {
+  resetDropdown() {
     this.setState({
-      isEditingPlan: true,
-      dropdownText: `Editing ${v.name} - ${v.plan.id}`
+      isEditingPlan: false,
+      dropdownText: this.dropdownDefaultText
     })
-    this.props.handleEditPlan(v);
   }
 
   handleSendToVehicle() {
-    this.setState({
-      isEditingPlan: false,
-      dropdownText: `Edit Plan`
-    })
+    this.resetDropdown()
     this.props.handleSendPlanToVehicle();
   }
 
   handleCancelEditing() {
-    this.setState({
-      isEditingPlan: false,
-      dropdownText: `Edit Plan`
-    })
+    this.resetDropdown()
     this.props.handleCancelEditPlan();
   }
+
+  handleSavePlan() {
+    this.resetDropdown()
+    this.props.handleSavePlan()
+  }
+
+  handleEditPlan(plan: IPlan) {
+    this.setState({
+      isEditingPlan: true,
+      dropdownText: `Editing ${plan.assignedTo} - ${plan.id}`
+    })
+    this.props.handleEditPlan(plan);
+  }
+
+  handleStartNewPlan() {
+    const planId = `${this.props.auth.currentUser.name}-${idFromDate(new Date())}`
+    this.setState({
+      isEditingPlan: true,
+      dropdownText: `Editing ${planId}`
+    })
+    this.props.handleStartNewPlan(planId)
+  }
+
 
   getPlans() {
     const editingPlan = this.state.isEditingPlan;
     if (editingPlan) {
       return (
         <div>
+          <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>
           <DropdownItem key="send" onClick={this.handleSendToVehicle}>Send plan to vehicle</DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
         </div>
       )
     }
-    else {
-      return this.props.vehicles.map(v => {
-        return <DropdownItem
-          key={"dropdown-item-" + v.name}
-          onClick={() => this.handleEditPlan(v)}>
-          {v.name}
-        </DropdownItem>
-      })
-    }
+    return this.props.plans.map(v => {
+      return <DropdownItem
+        key={"dropdown-item-" + v.assignedTo}
+        onClick={() => this.handleEditPlan(v)}>
+        {v.assignedTo}-{v.id}
+      </DropdownItem>
+    })
+
   }
 
-  buildPlanEditDropdown() {
-    if (isOperator(this.props.auth)) {
+  onToolbarClick(tool: ToolSelected) {
+    this.props.setToolSelected(tool)
+  }
+
+  buildPlanEditToolbar() {
+    if (isScientist(this.props.auth)) {
       return (
-        <Dropdown nav isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
-          <DropdownToggle nav caret>
-            {this.state.dropdownText}
-          </DropdownToggle>
-          <DropdownMenu>
-            {this.getPlans()}
-          </DropdownMenu>
-        </Dropdown>)
-    } else {
-      return <></>
+        <>
+          {this.state.isEditingPlan ?
+            <NavItem className="mr-2">
+              <Button color="primary" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.ADD)} active={this.props.toolSelected === ToolSelected.ADD}>Add</Button>
+              <Button color="warning" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.MOVE)} active={this.props.toolSelected === ToolSelected.MOVE}>Move</Button>
+              <Button color="danger" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.DELETE)} active={this.props.toolSelected === ToolSelected.DELETE}>Delete</Button>
+            </NavItem> : <></>}
+          <Dropdown className="mr-4" nav isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
+            <DropdownToggle nav caret>
+              {this.state.dropdownText}
+            </DropdownToggle>
+            <DropdownMenu>
+              {this.state.isEditingPlan ? <></> :
+                <DropdownItem key="new" onClick={() => this.handleStartNewPlan()}>New Plan</DropdownItem>}
+              {isOperator(this.props.auth) ? this.getPlans() : <></>}
+            </DropdownMenu>
+          </Dropdown>
+        </>)
     }
-    
+    return <></>
   }
 
   render() {
@@ -122,7 +164,7 @@ class TopNav extends Component<propsType, stateType> {
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar>
           <Nav className="ml-auto" navbar>
-            {this.buildPlanEditDropdown()}
+            {this.buildPlanEditToolbar()}
             <Login></Login>
           </Nav>
         </Collapse>
@@ -133,9 +175,15 @@ class TopNav extends Component<propsType, stateType> {
 function mapStateToProps(state: IRipplesState) {
   return {
     vehicles: state.assets.vehicles,
-    auth: state.auth
+    plans: state.planSet,
+    auth: state.auth,
+    toolSelected: state.toolSelected
   }
 }
 
-export default connect(mapStateToProps, null)(TopNav)
+const actionCreators = {
+  setToolSelected,
+}
+
+export default connect(mapStateToProps, actionCreators)(TopNav)
 

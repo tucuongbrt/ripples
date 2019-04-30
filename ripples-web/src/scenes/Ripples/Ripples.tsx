@@ -7,15 +7,15 @@ import TopNav from './components/TopNav';
 import Slider from './components/Slider';
 import { fetchAisData } from '../../services/AISUtils';
 import { estimatePositionsAtDeltaTime } from '../../services/PositionUtils';
-import IAsset from '../../model/IAsset';
 import IAisShip from '../../model/IAisShip';
 import { connect } from 'react-redux';
-import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser, setProfiles } from '../../redux/ripples.actions';
+import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser, setProfiles, addNewPlan, savePlan, setPlans } from '../../redux/ripples.actions';
 import IRipplesState from '../../model/IRipplesState';
 import RipplesMap from './components/RipplesMap';
 import UserState, { IUser } from '../../model/IAuthState';
 import { getCurrentUser } from '../../services/AuthUtils';
 import IProfile from '../../model/IProfile';
+import IPlan from '../../model/IPlan';
 
 
 type stateType = {
@@ -26,12 +26,15 @@ type propsType = {
   setVehicles: Function
   setSpots: Function
   setAis: Function
+  setPlans: (_: IPlan[]) => void
   setSlider: Function
-  editPlan: Function
+  editPlan: (_:IPlan) => void
+  addNewPlan: (_: IPlan) => void
   setProfiles: (profiles: IProfile[]) => any
   setUser: (user: IUser) => any
+  savePlan: () => void
   cancelEditPlan: Function
-  selectedVehicle: IAsset
+  selectedPlan: IPlan
   sliderValue: number
   auth: UserState
 }
@@ -49,6 +52,8 @@ class Ripples extends Component<propsType, stateType> {
     }
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
+    this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
+    this.handleSavePlan = this.handleSavePlan.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
     this.handleSendPlanToVehicle = this.handleSendPlanToVehicle.bind(this)
     this.stopUpdates = this.stopUpdates.bind(this)
@@ -119,6 +124,7 @@ class Ripples extends Component<propsType, stateType> {
       // update redux store
       this.props.setVehicles(soiData.vehicles);
       this.props.setSpots(soiData.spots)
+      this.props.setPlans(soiData.plans)
     } catch (error) {
       NotificationManager.warning('Failed to fetch data')
       console.error(error)
@@ -136,14 +142,24 @@ class Ripples extends Component<propsType, stateType> {
 
   }
 
-  handleEditPlan = (planId: string) => {
-    this.props.editPlan(planId)
+  handleEditPlan = (p: IPlan) => {
+    this.props.editPlan(p)
+    this.stopUpdates();
+  }
+
+  handleStartNewPlan = (planId: string) => {
+    let plan: IPlan = {
+      id: planId,
+      assignedTo: '',
+      waypoints: []
+    }
+    this.props.addNewPlan(plan)
     this.stopUpdates();
   }
 
   async handleSendPlanToVehicle() {
     try{
-      const body = await sendPlanToVehicle(this.props.selectedVehicle)
+      const body = await sendPlanToVehicle(this.props.selectedPlan)
       NotificationManager.success(
         body.message,
       );
@@ -159,6 +175,11 @@ class Ripples extends Component<propsType, stateType> {
   handleCancelEditPlan() {
     this.startUpdates();
     this.props.cancelEditPlan()
+  }
+
+  handleSavePlan() {
+    this.startUpdates()
+    this.props.savePlan()
   }
 
   onSliderChange(sliderValue: number) {
@@ -182,6 +203,8 @@ class Ripples extends Component<propsType, stateType> {
               handleEditPlan={this.handleEditPlan}
               handleSendPlanToVehicle={this.handleSendPlanToVehicle}
               handleCancelEditPlan={this.handleCancelEditPlan}
+              handleStartNewPlan={this.handleStartNewPlan}
+              handleSavePlan={this.handleSavePlan}
             >
             </TopNav>
           </div>
@@ -196,7 +219,7 @@ class Ripples extends Component<propsType, stateType> {
 
 function mapStateToProps(state: IRipplesState) {
   return {
-    selectedVehicle: state.selectedVehicle,
+    selectedPlan: state.selectedPlan,
     sliderValue: state.sliderValue,
     auth: state.auth
   }
@@ -207,11 +230,14 @@ const actionCreators = {
   setProfiles,
   setVehicles,
   setSpots,
+  setPlans,
   setAis,
   editPlan,
   cancelEditPlan,
   setSlider,
-  setUser
+  setUser,
+  addNewPlan,
+  savePlan,
 }
 
 export default connect(mapStateToProps, actionCreators)(Ripples)
