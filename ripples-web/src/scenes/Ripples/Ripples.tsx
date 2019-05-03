@@ -160,7 +160,9 @@ class Ripples extends Component<propsType, stateType> {
 
   async handleSendPlanToVehicle() {
     try{
-      const body = await sendPlanToVehicle(this.props.selectedPlan)
+      const plan: IPlan | undefined = this.props.plans.find(p => p.id == this.props.selectedPlan.id)
+      if (plan == undefined) return
+      const body = await sendPlanToVehicle(plan)
       NotificationManager.success(
         body.message,
       );
@@ -174,8 +176,8 @@ class Ripples extends Component<propsType, stateType> {
   }
 
   handleCancelEditPlan() {
-    this.startUpdates();
     this.props.cancelEditPlan()
+    this.startUpdates();
   }
 
   async handleSavePlan() {

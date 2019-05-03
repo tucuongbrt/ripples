@@ -13,6 +13,7 @@ type propsType = {
   plans: IPlan[]
   auth: IAuthState
   toolSelected: ToolSelected
+  selectedPlan: IPlan
   handleEditPlan: (_: IPlan) => void
   handleSendPlanToVehicle: () => void
   handleCancelEditPlan: () => void
@@ -110,9 +111,11 @@ class TopNav extends Component<propsType, stateType> {
   getPlans() {
     const editingPlan = this.state.isEditingPlan;
     if (editingPlan) {
+      const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
       return (
         <div>
-          <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>
+          {isPlanAssigned ? <></> : 
+          <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>}
           <DropdownItem key="send" onClick={this.handleSendToVehicle}>Send plan to vehicle</DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
         </div>
@@ -177,7 +180,8 @@ function mapStateToProps(state: IRipplesState) {
     vehicles: state.assets.vehicles,
     plans: state.planSet,
     auth: state.auth,
-    toolSelected: state.toolSelected
+    toolSelected: state.toolSelected,
+    selectedPlan: state.selectedPlan,
   }
 }
 
