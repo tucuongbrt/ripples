@@ -43,6 +43,7 @@ class VehiclePlan extends Component<propsType, stateType> {
         this.buildPlanWaypoints = this.buildPlanWaypoints.bind(this);
         this.updateEstimatedPos = this.updateEstimatedPos.bind(this);
         this.handleMarkerClick = this.handleMarkerClick.bind(this)
+        this.buildEstimatedPosition = this.buildEstimatedPosition.bind(this)
     }
 
     componentDidMount() {
@@ -76,7 +77,7 @@ class VehiclePlan extends Component<propsType, stateType> {
      * @param {} positions Positions of waypoints
      */
     buildPlanLines() {
-
+        const lineColor = this.props.selectedPlan.id == this.props.plan.id ? '#fe2900' : '#008000'
         let positions = this.props.plan.waypoints.map(wp => {
             return { lat: wp.latitude, lng: wp.longitude }
         })
@@ -85,7 +86,7 @@ class VehiclePlan extends Component<propsType, stateType> {
             let current: LatLngLiteral = positions[i];
             let next: LatLngLiteral = positions[i + 1];
             polylines.push(
-                <Polyline key={"Polyline_" + i + "_" + this.props.plan.id} positions={[current, next]} color='#008000'></Polyline>
+                <Polyline key={"Polyline_" + i + "_" + this.props.plan.id} positions={[current, next]} color={lineColor}></Polyline>
             )
         }
         return polylines;
@@ -158,18 +159,25 @@ class VehiclePlan extends Component<propsType, stateType> {
         }
     }
 
+    buildEstimatedPosition() {
+        if (this.props.plan.assignedTo.length == 0) return <></>
+        return (
+            <EstimatedPosition
+                vehicle={this.props.vehicle}
+                position={this.state.estimatedPos}
+                icon={new GhostIcon()}
+            >
+            </EstimatedPosition>
+        )
+    }
+
     render() {
         if (this.props.plan.waypoints.length == 0) return null
         return (
             <div>
                 {this.buildPlanLines()}
                 {this.buildPlanWaypoints()}
-                <EstimatedPosition
-                    vehicle={this.props.vehicle}
-                    position={this.state.estimatedPos}
-                    icon={new GhostIcon()}
-                >
-                </EstimatedPosition>
+                {this.buildEstimatedPosition()}
             </div>
         );
     }

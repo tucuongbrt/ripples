@@ -72,8 +72,10 @@ class RipplesMap extends Component<propsType, stateType> {
                 break
             }
             case ToolSelected.MOVE: {
-                this.props.updateWpLocation(clickLocation)
-                this.props.setSelectedWaypointIdx(-1)
+                if (this.props.selectedWaypointIdx != -1) {
+                    this.props.updateWpLocation(clickLocation)
+                    this.props.setSelectedWaypointIdx(-1)
+                }
             }
         }
     }

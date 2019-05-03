@@ -34,9 +34,20 @@ type IAssetPayload = {
   awareness: IPositionAtTime[]
 }
 
+// Converts waypoints read from the server to our type of waypoints
+function convertWaypoint(wp: any) {
+  return Object.assign({},
+    {
+      timestamp: new Date(wp.arrivalDate).getTime(),
+      latitude: wp.latitude,
+      longitude: wp.longitude
+    })
+}
+
 export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
+  const unassignedPlansPromise = fetchUnassignedPlans();
   let vehicles: IAsset[] = [];
   let spots: IAsset[] = [];
   let plans: IPlan[] = [];
@@ -47,13 +58,7 @@ export async function fetchSoiData() {
       spots.push(Object.assign({}, system, {planId: ''}))
     }
     else {
-      plan.waypoints = plan.waypoints.map((wp: any) =>
-        Object.assign({},
-          {
-            timestamp: new Date(wp.arrivalDate).getTime(),
-            latitude: wp.latitude,
-            longitude: wp.longitude
-          }))
+      plan.waypoints = plan.waypoints.map(wp => convertWaypoint(wp))
       system.lastState.timestamp = system.lastState.timestamp * 1000
       system.settings = []
       vehicles.push(Object.assign({}, system, {planId: plan.id}))
@@ -61,7 +66,11 @@ export async function fetchSoiData() {
       plans.push(plan)
     }
   });
-  
+  let unassignedPlans: IPlan[] = await unassignedPlansPromise
+  unassignedPlans = unassignedPlans.map(p => Object.assign(p, {assignedTo: ''}));
+  unassignedPlans.forEach(p => p.waypoints = p.waypoints.map(wp => convertWaypoint(wp)))
+  console.log("unassignedPlans: ", unassignedPlans)
+  plans = plans.concat(unassignedPlans);
   console.log("soi vehicles", vehicles)
   return { vehicles, spots, plans };
 }
@@ -90,15 +99,30 @@ export async function fetchProfileData(): Promise<IProfile[]> {
   return data;
 }
 
-async function postNewPlan(vehicleName: string, newPlan: IPlan) {
+async function postNewPlan(plan: IPlan) {
   console.log("Called post new plan")
   const response = request(
     {
       url: `${apiURL}/soi`,
       method: 'POST',
-      body: JSON.stringify({ vehicleName: vehicleName, plan: newPlan })
+      body: JSON.stringify(plan)
     })
   return response;
+}
+
+export async function sendUnassignedPlan(plan: IPlan) {
+  console.log("Sending plan", plan);
+  return request({
+    url: `${apiURL}/soi/unassigned/plans/`,
+    method: 'POST',
+    body: JSON.stringify(plan)
+  })
+}
+
+export async function fetchUnassignedPlans() {
+  return request({
+    url: `${apiURL}/soi/unassigned/plans/`
+  })
 }
 
 export async function fetchAwareness(): Promise<IAssetAwareness[]> {
@@ -114,7 +138,7 @@ export async function sendPlanToVehicle(plan: IPlan) {
     delete wp.timestamp
     return Object.assign({}, wp, { eta: timestamp / 1000, duration: 60 })
   })
-  return postNewPlan(plan.assignedTo, plan)
+  return postNewPlan(plan)
 }
 
 export async function fetchCollisions(): Promise<IPotentialCollision[]> {

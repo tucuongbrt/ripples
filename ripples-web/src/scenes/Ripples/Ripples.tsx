@@ -1,7 +1,7 @@
 import React, { Component, ChangeEvent } from 'react'
 import 'react-notifications/lib/notifications.css';
 const { NotificationManager } = require('react-notifications');
-import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings } from '../../services/SoiUtils'
+import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
@@ -23,6 +23,7 @@ type stateType = {
 };
 
 type propsType = {
+  plans: IPlan[]
   setVehicles: Function
   setSpots: Function
   setAis: Function
@@ -177,9 +178,24 @@ class Ripples extends Component<propsType, stateType> {
     this.props.cancelEditPlan()
   }
 
-  handleSavePlan() {
-    this.startUpdates()
-    this.props.savePlan()
+  async handleSavePlan() {
+    // send plan to server
+    const plan: IPlan | undefined = this.props.plans.find(p => p.id == this.props.selectedPlan.id)
+    if (plan != undefined) {
+      console.log("Trying to save plan: ", plan);
+      try {
+        const response = await sendUnassignedPlan(plan);
+        this.startUpdates()
+        this.props.savePlan()
+        NotificationManager.success(
+          response.message,
+        );
+      } catch(error) {
+        NotificationManager.warning(
+          error.message,
+        );
+      }
+    } 
   }
 
   onSliderChange(sliderValue: number) {
@@ -221,7 +237,8 @@ function mapStateToProps(state: IRipplesState) {
   return {
     selectedPlan: state.selectedPlan,
     sliderValue: state.sliderValue,
-    auth: state.auth
+    auth: state.auth,
+    plans: state.planSet,
   }
 }
 

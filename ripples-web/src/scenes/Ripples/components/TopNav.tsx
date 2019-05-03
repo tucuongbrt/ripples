@@ -118,11 +118,11 @@ class TopNav extends Component<propsType, stateType> {
         </div>
       )
     }
-    return this.props.plans.map(v => {
+    return this.props.plans.map(p => {
       return <DropdownItem
-        key={"dropdown-item-" + v.assignedTo}
-        onClick={() => this.handleEditPlan(v)}>
-        {v.assignedTo}-{v.id}
+        key={"dropdown-item-" + p.id}
+        onClick={() => this.handleEditPlan(p)}>
+        {p.assignedTo}-{p.id}
       </DropdownItem>
     })
 
@@ -146,7 +146,7 @@ class TopNav extends Component<propsType, stateType> {
             <DropdownToggle nav caret>
               {this.state.dropdownText}
             </DropdownToggle>
-            <DropdownMenu>
+            <DropdownMenu right>
               {this.state.isEditingPlan ? <></> :
                 <DropdownItem key="new" onClick={() => this.handleStartNewPlan()}>New Plan</DropdownItem>}
               {isOperator(this.props.auth) ? this.getPlans() : <></>}

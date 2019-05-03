@@ -1,19 +1,16 @@
 package pt.lsts.ripples.domain.assets;
 
+import pt.lsts.imc.SoiPlan;
+import pt.lsts.imc.SoiWaypoint;
+import pt.lsts.ripples.util.CRC16Util;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
-
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
-import pt.lsts.imc.SoiPlan;
-import pt.lsts.imc.SoiWaypoint;
-import pt.lsts.ripples.util.CRC16Util;
 
 @Entity
 public class Plan implements Serializable {
@@ -22,11 +19,13 @@ public class Plan implements Serializable {
 
 	
 	@Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
 	private Long uid;	
 	
     private String id;
 
     @ElementCollection
+    @OneToMany(cascade = {CascadeType.ALL})
     private List<Waypoint> waypoints = new ArrayList<>();
 
     public Plan() {

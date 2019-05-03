@@ -98,7 +98,7 @@ const ripplesReducer = createReducer(startState, {
   [addNewPlan.type]: (state, action) => {
     state.selectedPlan = action.payload
     state.previousPlanSet = JSON.parse(JSON.stringify(state.planSet))
-    state.planSet.push(action.payload)
+    state.planSet.push(state.selectedPlan)
   },
   [setToolSelected.type]: (state, action) => {
     state.toolSelected = action.payload
