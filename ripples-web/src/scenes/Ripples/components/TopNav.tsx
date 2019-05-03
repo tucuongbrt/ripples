@@ -3,7 +3,6 @@ import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownIt
 import Login from '../../../components/Login';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
-import IAsset from '../../../model/IAsset';
 import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState';
 import { idFromDate } from '../../../services/DateUtils';
 import IPlan from '../../../model/IPlan';
@@ -94,7 +93,8 @@ class TopNav extends Component<propsType, stateType> {
       isEditingPlan: true,
       dropdownText: `Editing ${plan.assignedTo} - ${plan.id}`
     })
-    this.props.handleEditPlan(plan);
+    this.props.handleEditPlan(plan)
+    this.props.setToolSelected(ToolSelected.ADD)
   }
 
   handleStartNewPlan() {
