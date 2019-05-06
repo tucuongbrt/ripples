@@ -163,7 +163,7 @@ class TopNav extends Component<propsType, stateType> {
         <DropdownToggle nav caret>
           {this.state.vehiclesDropdownText}
         </DropdownToggle>
-        <DropdownMenu>
+        <DropdownMenu right>
           {vehicleItems}
         </DropdownMenu>
       </Dropdown>
