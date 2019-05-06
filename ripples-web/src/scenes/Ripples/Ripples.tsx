@@ -165,7 +165,8 @@ class Ripples extends Component<propsType, stateType> {
     let plan: IPlan = {
       id: planId,
       assignedTo: '',
-      waypoints: []
+      waypoints: [],
+      description: '',
     }
     this.props.addNewPlan(plan)
     this.stopUpdates();

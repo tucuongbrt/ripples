@@ -1,7 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
 import { setUser, removeUser, setVehicles, setAis,
 setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx, setProfiles, addNewPlan, setPlans, deleteWp,
-updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle } from '../ripples.actions'
+updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription } from '../ripples.actions'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
 import { EmptyPlan } from '../../model/IPlan';
@@ -99,6 +99,12 @@ const ripplesReducer = createReducer(startState, {
   [selectVehicle.type]: (state, action) => {
     state.vehicleSelected = action.payload
   },
+  [setPlanDescription.type]: (state, action) => {
+    state.selectedPlan.description = action.payload
+    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
+    if (plan == undefined) return
+    plan.description = action.payload
+  }
 })
 
 export default ripplesReducer

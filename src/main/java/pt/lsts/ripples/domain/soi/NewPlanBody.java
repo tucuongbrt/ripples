@@ -14,8 +14,18 @@ public class NewPlanBody {
 
 	private String assignedTo;
 
+	private String description;
+
 	public String getId() {
 		return id;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public void setId(String id) {
@@ -42,6 +52,7 @@ public class NewPlanBody {
 		Plan p = new Plan();
 		p.setId(id);
 		p.setWaypoints(waypoints);
+		p.setDescription(description);
 		return p;
 	}
 }

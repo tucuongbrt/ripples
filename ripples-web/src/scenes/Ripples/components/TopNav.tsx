@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavItem, Button } from 'reactstrap';
+import { Navbar, NavbarBrand, Collapse, NavbarToggler, Nav, Dropdown, DropdownItem, DropdownToggle, DropdownMenu, NavItem, Button, Modal, ModalHeader, ModalBody, ModalFooter, Input } from 'reactstrap';
 import Login from '../../../components/Login';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
@@ -7,7 +7,7 @@ import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState';
 import { idFromDate } from '../../../services/DateUtils';
 import IPlan from '../../../model/IPlan';
 import { ToolSelected } from '../../../model/ToolSelected';
-import { setToolSelected, selectVehicle } from '../../../redux/ripples.actions';
+import { setToolSelected, selectVehicle, setPlanDescription } from '../../../redux/ripples.actions';
 import IAsset from '../../../model/IAsset';
 
 type propsType = {
@@ -24,6 +24,7 @@ type propsType = {
   handleSavePlan: () => void
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
+  setPlanDescription: (_: string) => void
 }
 
 type stateType = {
@@ -31,6 +32,7 @@ type stateType = {
   isPlansDropdownOpen: boolean
   isExecPlanDisabled: boolean
   isEditingPlan: boolean
+  isModalOpen: boolean
   plansDropdownText: string
   isVehiclesDropdownOpen: boolean
   vehiclesDropdownText: string
@@ -50,6 +52,7 @@ class TopNav extends Component<propsType, stateType> {
       isPlansDropdownOpen: false,
       isExecPlanDisabled: true,
       isEditingPlan: false,
+      isModalOpen: false,
       plansDropdownText: this.plansDropdownDefaultText,
       vehiclesDropdownText: this.vehiclesDropdownDefaultText,
       isVehiclesDropdownOpen: false,
@@ -67,10 +70,17 @@ class TopNav extends Component<propsType, stateType> {
     this.resetPlansDropdown = this.resetPlansDropdown.bind(this)
     this.buildVehicleSelector = this.buildVehicleSelector.bind(this)
     this.onVehicleSelected = this.onVehicleSelected.bind(this)
+    this.toggleModal = this.toggleModal.bind(this)
+    this.buildEditDescriptionModal = this.buildEditDescriptionModal.bind(this)
+    this.updatePlanDescription = this.updatePlanDescription.bind(this)
   }
 
   onNavToggle() {
     this.setState({ isNavOpen: !this.state.isNavOpen });
+  }
+
+  toggleModal() {
+    this.setState({isModalOpen: !this.state.isModalOpen})
   }
 
   togglePlansDropdown() {
@@ -136,6 +146,8 @@ class TopNav extends Component<propsType, stateType> {
             <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>}
           <DropdownItem key="send" disabled={this.props.vehicleSelected.length == 0} onClick={this.handleSendToVehicle}>Send plan to {this.props.vehicleSelected}</DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
+          <DropdownItem key="description" onClick={this.toggleModal}>View/Edit description</DropdownItem>
+          {this.buildEditDescriptionModal()}
         </div>
       )
     }
@@ -169,6 +181,23 @@ class TopNav extends Component<propsType, stateType> {
       </Dropdown>
     )
   }
+
+  buildEditDescriptionModal() {
+    return (
+      <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
+          <ModalHeader toggle={this.toggleModal}>View/Edit description</ModalHeader>
+          <ModalBody>
+          <Input type="textarea" placeholder="Set plan description" value={this.props.selectedPlan.description} onChange={evt => this.updatePlanDescription(evt)} />
+          </ModalBody>
+        </Modal>
+    )
+  }
+
+  updatePlanDescription(evt: any) {
+    console.log(evt.target.value)
+    this.props.setPlanDescription(evt.target.value);
+  }
+
 
   onToolbarClick(tool: ToolSelected) {
     this.props.setToolSelected(tool)
@@ -229,6 +258,7 @@ function mapStateToProps(state: IRipplesState) {
 const actionCreators = {
   setToolSelected,
   selectVehicle,
+  setPlanDescription,
 }
 
 export default connect(mapStateToProps, actionCreators)(TopNav)

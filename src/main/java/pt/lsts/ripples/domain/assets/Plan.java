@@ -28,8 +28,18 @@ public class Plan implements Serializable {
     @OneToMany(cascade = {CascadeType.ALL})
     private List<Waypoint> waypoints = new ArrayList<>();
 
+    private String description;
+
     public Plan() {
         this.id = "idle";
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getId() {

@@ -5,7 +5,6 @@ import { AuvIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { getLatLng } from '../../../services/PositionUtils';
 import IAsset from '../../../model/IAsset';
-import VehiclePlan from './VehiclePlan';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import IAssetAwareness from '../../../model/IAssetAwareness';
