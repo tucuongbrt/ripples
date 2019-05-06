@@ -7,32 +7,39 @@ import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState';
 import { idFromDate } from '../../../services/DateUtils';
 import IPlan from '../../../model/IPlan';
 import { ToolSelected } from '../../../model/ToolSelected';
-import { setToolSelected } from '../../../redux/ripples.actions';
+import { setToolSelected, selectVehicle } from '../../../redux/ripples.actions';
+import IAsset from '../../../model/IAsset';
 
 type propsType = {
+  vehicles: IAsset[],
   plans: IPlan[]
   auth: IAuthState
   toolSelected: ToolSelected
   selectedPlan: IPlan
+  vehicleSelected: string
   handleEditPlan: (_: IPlan) => void
   handleSendPlanToVehicle: () => void
   handleCancelEditPlan: () => void
   handleStartNewPlan: (_: string) => void
   handleSavePlan: () => void
   setToolSelected: (_: ToolSelected) => void
+  selectVehicle: (_: string) => void
 }
 
 type stateType = {
   isNavOpen: boolean
-  isDropdownOpen: boolean
+  isPlansDropdownOpen: boolean
   isExecPlanDisabled: boolean
   isEditingPlan: boolean
-  dropdownText: string
+  plansDropdownText: string
+  isVehiclesDropdownOpen: boolean
+  vehiclesDropdownText: string
 }
 
 class TopNav extends Component<propsType, stateType> {
 
-  private dropdownDefaultText = 'Plan Editor';
+  private plansDropdownDefaultText = 'Plan Editor';
+  private vehiclesDropdownDefaultText = 'Select Vehicle'
 
   constructor(props: propsType) {
     super(props)
@@ -40,59 +47,70 @@ class TopNav extends Component<propsType, stateType> {
 
     this.state = {
       isNavOpen: true,
-      isDropdownOpen: false,
+      isPlansDropdownOpen: false,
       isExecPlanDisabled: true,
       isEditingPlan: false,
-      dropdownText: this.dropdownDefaultText,
+      plansDropdownText: this.plansDropdownDefaultText,
+      vehiclesDropdownText: this.vehiclesDropdownDefaultText,
+      isVehiclesDropdownOpen: false,
     }
 
     this.onNavToggle = this.onNavToggle.bind(this)
     this.onToolbarClick = this.onToolbarClick.bind(this)
-    this.toggleDropdown = this.toggleDropdown.bind(this)
+    this.togglePlansDropdown = this.togglePlansDropdown.bind(this)
+    this.toggleVehiclesDropdown = this.toggleVehiclesDropdown.bind(this)
     this.handleSendToVehicle = this.handleSendToVehicle.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleCancelEditing = this.handleCancelEditing.bind(this)
     this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
-    this.resetDropdown = this.resetDropdown.bind(this)
+    this.resetPlansDropdown = this.resetPlansDropdown.bind(this)
+    this.buildVehicleSelector = this.buildVehicleSelector.bind(this)
+    this.onVehicleSelected = this.onVehicleSelected.bind(this)
   }
 
   onNavToggle() {
     this.setState({ isNavOpen: !this.state.isNavOpen });
   }
 
-  toggleDropdown() {
+  togglePlansDropdown() {
     this.setState({
-      isDropdownOpen: !this.state.isDropdownOpen
+      isPlansDropdownOpen: !this.state.isPlansDropdownOpen
     });
   }
 
-  resetDropdown() {
+  toggleVehiclesDropdown() {
+    this.setState({
+      isVehiclesDropdownOpen: !this.state.isVehiclesDropdownOpen
+    });
+  }
+
+  resetPlansDropdown() {
     this.setState({
       isEditingPlan: false,
-      dropdownText: this.dropdownDefaultText
+      plansDropdownText: this.plansDropdownDefaultText
     })
   }
 
   handleSendToVehicle() {
-    this.resetDropdown()
+    this.resetPlansDropdown()
     this.props.handleSendPlanToVehicle();
   }
 
   handleCancelEditing() {
-    this.resetDropdown()
+    this.resetPlansDropdown()
     this.props.handleCancelEditPlan();
   }
 
   handleSavePlan() {
-    this.resetDropdown()
+    this.resetPlansDropdown()
     this.props.handleSavePlan()
   }
 
   handleEditPlan(plan: IPlan) {
     this.setState({
       isEditingPlan: true,
-      dropdownText: `Editing ${plan.assignedTo} - ${plan.id}`
+      plansDropdownText: `Editing ${plan.assignedTo} - ${plan.id}`
     })
     this.props.handleEditPlan(plan)
     this.props.setToolSelected(ToolSelected.ADD)
@@ -102,7 +120,7 @@ class TopNav extends Component<propsType, stateType> {
     const planId = `${this.props.auth.currentUser.name}-${idFromDate(new Date())}`
     this.setState({
       isEditingPlan: true,
-      dropdownText: `Editing ${planId}`
+      plansDropdownText: `Editing ${planId}`
     })
     this.props.handleStartNewPlan(planId)
   }
@@ -114,9 +132,9 @@ class TopNav extends Component<propsType, stateType> {
       const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
       return (
         <div>
-          {isPlanAssigned ? <></> : 
-          <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>}
-          <DropdownItem key="send" onClick={this.handleSendToVehicle}>Send plan to vehicle</DropdownItem>
+          {isPlanAssigned ? <></> :
+            <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>}
+          <DropdownItem key="send" disabled={this.props.vehicleSelected.length == 0} onClick={this.handleSendToVehicle}>Send plan to {this.props.vehicleSelected}</DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
         </div>
       )
@@ -128,7 +146,28 @@ class TopNav extends Component<propsType, stateType> {
         {p.assignedTo}-{p.id}
       </DropdownItem>
     })
+  }
 
+  onVehicleSelected(name: string) {
+    // update dropdown text
+    this.setState({ vehiclesDropdownText: name })
+    // set vehicle selected on redux state
+    this.props.selectVehicle(name)
+  }
+
+  buildVehicleSelector() {
+    const vehicleItems = this.props.vehicles.map(v =>
+      <DropdownItem key={v.name} onClick={() => this.onVehicleSelected(v.name)}>{v.name}</DropdownItem>)
+    return (
+      <Dropdown className="mr-4" nav isOpen={this.state.isVehiclesDropdownOpen} toggle={this.toggleVehiclesDropdown}>
+        <DropdownToggle nav caret>
+          {this.state.vehiclesDropdownText}
+        </DropdownToggle>
+        <DropdownMenu>
+          {vehicleItems}
+        </DropdownMenu>
+      </Dropdown>
+    )
   }
 
   onToolbarClick(tool: ToolSelected) {
@@ -145,9 +184,9 @@ class TopNav extends Component<propsType, stateType> {
               <Button color="warning" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.MOVE)} active={this.props.toolSelected === ToolSelected.MOVE}>Move</Button>
               <Button color="danger" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.DELETE)} active={this.props.toolSelected === ToolSelected.DELETE}>Delete</Button>
             </NavItem> : <></>}
-          <Dropdown className="mr-4" nav isOpen={this.state.isDropdownOpen} toggle={this.toggleDropdown}>
+          <Dropdown className="mr-4" nav isOpen={this.state.isPlansDropdownOpen} toggle={this.togglePlansDropdown}>
             <DropdownToggle nav caret>
-              {this.state.dropdownText}
+              {this.state.plansDropdownText}
             </DropdownToggle>
             <DropdownMenu right>
               {this.state.isEditingPlan ? <></> :
@@ -155,6 +194,7 @@ class TopNav extends Component<propsType, stateType> {
               {isOperator(this.props.auth) ? this.getPlans() : <></>}
             </DropdownMenu>
           </Dropdown>
+          {this.buildVehicleSelector()}
         </>)
     }
     return <></>
@@ -182,11 +222,13 @@ function mapStateToProps(state: IRipplesState) {
     auth: state.auth,
     toolSelected: state.toolSelected,
     selectedPlan: state.selectedPlan,
+    vehicleSelected: state.vehicleSelected,
   }
 }
 
 const actionCreators = {
   setToolSelected,
+  selectVehicle,
 }
 
 export default connect(mapStateToProps, actionCreators)(TopNav)

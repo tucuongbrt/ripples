@@ -1,7 +1,7 @@
 import React, { Component, ChangeEvent } from 'react'
 import 'react-notifications/lib/notifications.css';
 const { NotificationManager } = require('react-notifications');
-import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan } from '../../services/SoiUtils'
+import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan, fetchUnassignedPlans } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser, setProfiles, addNewPlan, savePlan, setPlans } from '../../redux/ripples.actions';
 import IRipplesState from '../../model/IRipplesState';
 import RipplesMap from './components/RipplesMap';
-import UserState, { IUser } from '../../model/IAuthState';
+import UserState, { IUser, isOperator, isScientist } from '../../model/IAuthState';
 import { getCurrentUser } from '../../services/AuthUtils';
 import IProfile from '../../model/IProfile';
 import IPlan from '../../model/IPlan';
@@ -38,6 +38,7 @@ type propsType = {
   selectedPlan: IPlan
   sliderValue: number
   auth: UserState
+  vehicleSelected: string
 }
 
 
@@ -105,23 +106,35 @@ class Ripples extends Component<propsType, stateType> {
 
   async updateSoiData() {
     try {
-      const soiData = await fetchSoiData()
+      const soiPromise = fetchSoiData()
+      const profilesPromise = fetchProfileData()
+      const awarenessPromise = fetchAwareness()
+      let unassignedPlansPromise;
+      if (isScientist(this.props.auth)) {
+        unassignedPlansPromise = fetchUnassignedPlans()
+      }
+      const soiData = await soiPromise
       let vehicles = soiData.vehicles;
-      mergeAssetSettings(vehicles, this.props.auth)
+      await mergeAssetSettings(vehicles, this.props.auth)
 
       // fetch profiles
-      let profiles = await fetchProfileData();
+      let profiles = await profilesPromise;
       profiles = profiles.filter(p => p.samples.length > 0)
       this.props.setProfiles(profiles)
 
       // fetch soi awareness
-      const assetsAwareness = await fetchAwareness()
+      const assetsAwareness = await awarenessPromise
       assetsAwareness.forEach(assetAwareness => {
         let vehicle = vehicles.find(v => v.name === assetAwareness.name)
         if (vehicle) {
           vehicle.awareness = assetAwareness.positions
         }
       })
+
+      if (unassignedPlansPromise != undefined) {
+        const unassignedPlans: IPlan[] = await unassignedPlansPromise
+        soiData.plans = soiData.plans.concat(unassignedPlans)
+      }
       // update redux store
       this.props.setVehicles(soiData.vehicles);
       this.props.setSpots(soiData.spots)
@@ -161,8 +174,9 @@ class Ripples extends Component<propsType, stateType> {
   async handleSendPlanToVehicle() {
     try{
       const plan: IPlan | undefined = this.props.plans.find(p => p.id == this.props.selectedPlan.id)
+      const vehicle = this.props.vehicleSelected;
       if (plan == undefined) return
-      const body = await sendPlanToVehicle(plan)
+      const body = await sendPlanToVehicle(plan, vehicle)
       NotificationManager.success(
         body.message,
       );
@@ -241,6 +255,7 @@ function mapStateToProps(state: IRipplesState) {
     sliderValue: state.sliderValue,
     auth: state.auth,
     plans: state.planSet,
+    vehicleSelected: state.vehicleSelected,
   }
 }
 

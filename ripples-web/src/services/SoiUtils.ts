@@ -47,7 +47,6 @@ function convertWaypoint(wp: any) {
 export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`);
   const data = await response.json();
-  const unassignedPlansPromise = fetchUnassignedPlans();
   let vehicles: IAsset[] = [];
   let spots: IAsset[] = [];
   let plans: IPlan[] = [];
@@ -66,11 +65,6 @@ export async function fetchSoiData() {
       plans.push(plan)
     }
   });
-  let unassignedPlans: IPlan[] = await unassignedPlansPromise
-  unassignedPlans = unassignedPlans.map(p => Object.assign(p, {assignedTo: ''}));
-  unassignedPlans.forEach(p => p.waypoints = p.waypoints.map(wp => convertWaypoint(wp)))
-  console.log("unassignedPlans: ", unassignedPlans)
-  plans = plans.concat(unassignedPlans);
   console.log("soi vehicles", vehicles)
   return { vehicles, spots, plans };
 }
@@ -120,9 +114,12 @@ export async function sendUnassignedPlan(plan: IPlan) {
 }
 
 export async function fetchUnassignedPlans() {
-  return request({
+  let plans: IPlan[] = await request({
     url: `${apiURL}/soi/unassigned/plans/`
   })
+  plans = plans.map(p => Object.assign(p, {assignedTo: ''}));
+  plans.forEach(p => p.waypoints = p.waypoints.map(wp => convertWaypoint(wp)))
+  return plans
 }
 
 export async function fetchAwareness(): Promise<IAssetAwareness[]> {
@@ -132,13 +129,15 @@ export async function fetchAwareness(): Promise<IAssetAwareness[]> {
   return data
 }
 
-export async function sendPlanToVehicle(plan: IPlan) {
-  plan.waypoints = plan.waypoints.map((wp: IPositionAtTime) => {
+export async function sendPlanToVehicle(plan: IPlan, vehicleName: string) {
+  let planCopy = JSON.parse(JSON.stringify(plan))
+  planCopy.assignedTo = vehicleName
+  planCopy.waypoints = planCopy.waypoints.map((wp: IPositionAtTime) => {
     let timestamp = wp.timestamp
     delete wp.timestamp
     return Object.assign({}, wp, { eta: timestamp / 1000, duration: 60 })
   })
-  return postNewPlan(plan)
+  return postNewPlan(planCopy)
 }
 
 export async function fetchCollisions(): Promise<IPotentialCollision[]> {

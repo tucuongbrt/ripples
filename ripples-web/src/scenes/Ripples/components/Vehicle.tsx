@@ -25,9 +25,7 @@ class Vehicle extends Component<propsType, {}> {
     }
 
     buildSettings(settings: string[][]): JSX.Element[] {
-        return settings.map(pair => {
-            return <li key={pair[0]}>{pair[0]}: {pair[1]}</li>
-        })
+        return settings.map(pair => <li key={pair[0]} > {pair[0]}: {pair[1]}</li>)
     }
 
     buildVehicleAwareness(): JSX.Element {
@@ -69,8 +67,6 @@ class Vehicle extends Component<propsType, {}> {
     }
 
     render() {
-        const vehicle = this.props.data
-        let planJSX: JSX.Element | null = null
         let awarenessJSX: JSX.Element | null = null
         if (this.props.sliderValue != 0) {
             console.log("Building vehicle awareness")
@@ -78,9 +74,8 @@ class Vehicle extends Component<propsType, {}> {
         }
         return (
             <>
-            {this.buildVehicle()}
-            {planJSX}
-            {awarenessJSX}
+                {this.buildVehicle()}
+                {awarenessJSX}
             </>
         )
     }

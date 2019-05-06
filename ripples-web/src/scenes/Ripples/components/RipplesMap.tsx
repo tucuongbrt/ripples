@@ -8,7 +8,7 @@ import IAisShip from "../../../model/IAisShip";
 import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
-import { setSelectedWaypointIdx, setVehicle, updateWpLocation, addWpToPlan } from "../../../redux/ripples.actions";
+import { setSelectedWaypointIdx, updateWpLocation, addWpToPlan } from "../../../redux/ripples.actions";
 import 'react-leaflet-fullscreen-control'
 const { BaseLayer, Overlay } = LayersControl
 import GeoData from '../../../assets/geojson/all.json';
@@ -29,7 +29,6 @@ type propsType = {
     selectedPlan: IPlan
     selectedWaypointIdx: number
     toolSelected: ToolSelected
-    setVehicle: Function
     setSelectedWaypointIdx: (_: number) => void
     updateWpLocation: (_: ILatLng) => void
     addWpToPlan: (_: IPositionAtTime) => void
@@ -212,11 +211,10 @@ class RipplesMap extends Component<propsType, stateType> {
 }
 
 function mapStateToProps(state: IRipplesState) {
-    const { assets } = state
     return {
-        vehicles: assets.vehicles,
-        spots: assets.spots,
-        aisShips: assets.aisShips,
+        vehicles: state.assets.vehicles,
+        spots: state.assets.spots,
+        aisShips: state.assets.aisShips,
         selectedWaypointIdx: state.selectedWaypointIdx,
         selectedPlan: state.selectedPlan,
         profiles: state.profiles,
@@ -226,7 +224,6 @@ function mapStateToProps(state: IRipplesState) {
 }
 
 const actionCreators = {
-    setVehicle,
     setSelectedWaypointIdx,
     updateWpLocation,
     addWpToPlan,

@@ -1,11 +1,9 @@
 import { createReducer } from 'redux-starter-kit'
 import { setUser, removeUser, setVehicles, setAis,
-setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx,
-setVehicle, setProfiles, addNewPlan, setPlans, deleteWp,
-updateWpLocation, setToolSelected, addWpToPlan, savePlan } from '../ripples.actions'
+setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx, setProfiles, addNewPlan, setPlans, deleteWp,
+updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle } from '../ripples.actions'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
-import IAsset from '../../model/IAsset';
 import { EmptyPlan } from '../../model/IPlan';
 import { ToolSelected } from '../../model/ToolSelected';
 import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils';
@@ -19,7 +17,8 @@ let startState: IRipplesState = {
   profiles: [],
   planSet: [],
   previousPlanSet: [],
-  toolSelected: ToolSelected.ADD 
+  toolSelected: ToolSelected.ADD, 
+  vehicleSelected: '',
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -33,12 +32,6 @@ const ripplesReducer = createReducer(startState, {
   },
   [setVehicles.type]: (state, action) => {
     state.assets.vehicles = action.payload
-  },
-  [setVehicle.type]: (state, action) => {
-    const vehicle: IAsset = action.payload
-    const idx = state.assets.vehicles.findIndex(v => v.imcid == vehicle.imcid)
-    state.assets.vehicles[idx] = vehicle
-    //state.selectedVehicle = vehicle
   },
   [setSpots.type]: (state, action) => {
     state.assets.spots = action.payload
@@ -102,7 +95,10 @@ const ripplesReducer = createReducer(startState, {
   },
   [setToolSelected.type]: (state, action) => {
     state.toolSelected = action.payload
-  }
+  },
+  [selectVehicle.type]: (state, action) => {
+    state.vehicleSelected = action.payload
+  },
 })
 
 export default ripplesReducer
