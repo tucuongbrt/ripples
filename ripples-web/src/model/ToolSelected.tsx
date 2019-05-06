@@ -1,3 +1,3 @@
 export enum ToolSelected {
-    ADD, MOVE, DELETE
+    ADD, MOVE, DELETE, EDIT
 }

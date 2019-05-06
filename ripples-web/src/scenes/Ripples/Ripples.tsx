@@ -16,6 +16,7 @@ import UserState, { IUser, isOperator, isScientist } from '../../model/IAuthStat
 import { getCurrentUser } from '../../services/AuthUtils';
 import IProfile from '../../model/IProfile';
 import IPlan from '../../model/IPlan';
+import { timestampMsToReadableDate } from '../../services/DateUtils';
 
 
 type stateType = {
@@ -166,7 +167,7 @@ class Ripples extends Component<propsType, stateType> {
       id: planId,
       assignedTo: '',
       waypoints: [],
-      description: '',
+      description: `Plan created by ${this.props.auth.currentUser.email} on ${timestampMsToReadableDate(Date.now())}`,
     }
     this.props.addNewPlan(plan)
     this.stopUpdates();

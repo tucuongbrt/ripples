@@ -3,12 +3,12 @@
     width: 100%;
 }
 
-.navbar{
+.navbar {
     width: 100%;
 }
 
-.chartwrapper{
-    height:300px;
+.chartwrapper {
+    height: 300px;
     width: 100%;
 }
 
@@ -45,21 +45,25 @@ path.leaflet-polygon {
 
 .editing-waypoint {
     height: 16px;
-  width: 16px;
-  transform: translate(-2px, -2px);
-  background-color:red;
-  border-radius: 50%;
-  border: 2px solid #000;
-  display: inline-block;
+    width: 16px;
+    transform: translate(-2px, -2px);
+    background-color: red;
+    border-radius: 50%;
+    border: 2px solid #000;
+    display: inline-block;
 }
 
 .leaflet-div-icon {
     background: transparent;
     border: none;
-}       
+}
 
 .leaflet-popup-content {
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
+}
+
+.react-datepicker {
+    display: flex !important;
 }

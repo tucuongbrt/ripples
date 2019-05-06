@@ -212,6 +212,7 @@ class TopNav extends Component<propsType, stateType> {
               <Button color="primary" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.ADD)} active={this.props.toolSelected === ToolSelected.ADD}>Add</Button>
               <Button color="warning" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.MOVE)} active={this.props.toolSelected === ToolSelected.MOVE}>Move</Button>
               <Button color="danger" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.DELETE)} active={this.props.toolSelected === ToolSelected.DELETE}>Delete</Button>
+              <Button color="primary" className="mr-1" onClick={() => this.onToolbarClick(ToolSelected.EDIT)} active={this.props.toolSelected === ToolSelected.EDIT}>Edit</Button>
             </NavItem> : <></>}
           <Dropdown className="mr-4" nav isOpen={this.state.isPlansDropdownOpen} toggle={this.togglePlansDropdown}>
             <DropdownToggle nav caret>

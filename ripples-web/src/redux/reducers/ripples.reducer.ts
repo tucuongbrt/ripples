@@ -1,7 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
 import { setUser, removeUser, setVehicles, setAis,
 setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx, setProfiles, addNewPlan, setPlans, deleteWp,
-updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription } from '../ripples.actions'
+updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription, updateWpTimestamp } from '../ripples.actions'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
 import { EmptyPlan } from '../../model/IPlan';
@@ -54,6 +54,15 @@ const ripplesReducer = createReducer(startState, {
       wp.latitude = newLocation.latitude
       wp.longitude = newLocation.longitude
       updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx)
+    }
+  },
+  [updateWpTimestamp.type]: (state, action) => {
+    const {timestamp, wpIndex} = action.payload
+    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
+    if (plan != undefined) {
+      const wp = plan.waypoints[wpIndex]
+      wp.timestamp = timestamp
+      updateWaypointsTimestampFromIndex(plan.waypoints, wpIndex+1)
     }
   },
   [deleteWp.type]: (state, action) => {

@@ -11,8 +11,10 @@ import IPlan from '../../../model/IPlan';
 import IPositionAtTime from '../../../model/IPositionAtTime';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
-import { setSelectedWaypointIdx, deleteWp } from '../../../redux/ripples.actions';
+import { setSelectedWaypointIdx, deleteWp, updateWpTimestamp } from '../../../redux/ripples.actions';
 import { ToolSelected } from '../../../model/ToolSelected';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 
 type propsType = {
     plan: IPlan
@@ -22,6 +24,7 @@ type propsType = {
     deleteWp: (wpIdx: number) => void
     setSelectedWaypoint: Function
     toolSelected: ToolSelected
+    updateWpTimestamp: (_: any) => void
 }
 
 type stateType = {
@@ -98,17 +101,40 @@ class VehiclePlan extends Component<propsType, stateType> {
                 <li>Exact ETA: {timestampMsToReadableDate(timestamp)}</li></> : <></>
     }
 
-    buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
-        return (
-            <Popup><h4>Waypoint {wpIndex} of {this.props.plan.id}</h4>
-                <div>
-                    {this.buildWaypointEta(wp.timestamp)}
-                    <li>Lat: {wp.latitude.toFixed(5)}</li>
-                    <li>Lng: {wp.longitude.toFixed(5)}</li>
-                </div>
-            </Popup>
-        )
+    onWpChange(newDate: Date | null, wpIndex: number) {
+        if (newDate == undefined) return
+        console.log(newDate)
+        console.log(wpIndex)
+        this.props.updateWpTimestamp({timestamp: newDate.getTime(),wpIndex: wpIndex});
+    }
 
+    buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
+        const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
+        if (this.props.toolSelected == ToolSelected.EDIT && isMovable && isPlanAssigned) {
+            return (
+                <Popup>
+                    <DatePicker
+                        selected={new Date(wp.timestamp)}
+                        onChange={(newDate) => this.onWpChange(newDate, wpIndex)}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        dateFormat="MMMM d, yyyy h:mm aa"
+                        timeCaption="time"
+                    />
+                </Popup>
+            )
+        } else {
+            return (
+                <Popup><h4>Waypoint {wpIndex} of {this.props.plan.id}</h4>
+                    <div>
+                        {this.buildWaypointEta(wp.timestamp)}
+                        <li>Lat: {wp.latitude.toFixed(5)}</li>
+                        <li>Lng: {wp.longitude.toFixed(5)}</li>
+                    </div>
+                </Popup>
+            )
+        }
     }
 
     buildPlanWaypoints() {
@@ -194,6 +220,7 @@ function mapStateToProps(state: IRipplesState) {
 const actionCreators = {
     deleteWp: deleteWp,
     setSelectedWaypoint: setSelectedWaypointIdx,
+    updateWpTimestamp,
 }
 
 
