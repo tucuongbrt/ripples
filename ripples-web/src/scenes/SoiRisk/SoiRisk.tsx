@@ -72,7 +72,7 @@ export default class SoiRisk extends Component<{}, stateType> {
         return minIntervalIdx
     }
 
-    getDistanceToVehicle(vehicle: IAsset) {
+    getDistanceToVehicle(vehicle: IAsset): string {
         return distanceInKmBetweenCoords(
             vehicle.lastState,
             this.rootCoords).toFixed(3)
@@ -144,7 +144,7 @@ export default class SoiRisk extends Component<{}, stateType> {
                                 <div>
                                     <ul>
                                         <li>Ship: {c.ship}</li>
-                                        <li>Distance: {c.distance}</li>
+                                        <li>Distance: {c.distance.toFixed(2)}m</li>
                                         <li>time: {timestampMsToReadableDate(c.timestamp)}</li>
                                     </ul>
                                     <hr></hr>
