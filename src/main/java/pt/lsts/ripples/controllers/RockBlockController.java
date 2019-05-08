@@ -95,7 +95,7 @@ public class RockBlockController {
 		try {
 			rockBlockService.sendMessage(msg); // redirect message to rockBlock
 		} catch(Exception e){
-			e.printStackTrace();
+			logger.warn(e.getLocalizedMessage());
 			return new ResponseEntity<String>(e.getClass().getSimpleName() + ": redirect Iridium message error",
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
