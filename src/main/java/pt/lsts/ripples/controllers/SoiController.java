@@ -33,7 +33,7 @@ public class SoiController {
 
 	@Autowired
 	AssetsRepository repo;
-	
+
 	@Autowired
 	CollisionForecastService collisionService;
 
@@ -42,7 +42,7 @@ public class SoiController {
 
 	@Autowired
 	AISHubFetcher aisUpdater;
-	
+
 	@Autowired
 	SoiInteraction soiInteraction;
 
@@ -60,7 +60,7 @@ public class SoiController {
 		repo.findAll().forEach(assets::add);
 		return assets;
 	}
-	
+
 	@RequestMapping(path = { "/soi/all/profiles", "/soi/all/profiles/" }, method = RequestMethod.GET)
 	public List<VerticalProfileData> listAllProfiles() {
 		ArrayList<VerticalProfileData> profs = new ArrayList<>();
@@ -94,8 +94,8 @@ public class SoiController {
 		return awarenessDataList;
 	}
 
-	@PreAuthorize("hasRole('OPERATOR')")	 
-	@PostMapping(path = {"/soi", "/soi/"}, consumes = "application/json", produces = "application/json")
+	@PreAuthorize("hasRole('OPERATOR')")
+	@PostMapping(path = { "/soi", "/soi/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updatePlan(@RequestBody NewPlanBody message)
 			throws SendSoiCommandException, AssetNotFoundException {
 		Optional<Asset> optAsset = repo.findById(message.getAssignedTo());
@@ -103,27 +103,28 @@ public class SoiController {
 			Asset asset = optAsset.get();
 			Plan plan = message.buildPlan();
 			SoiCommand cmd = new SoiCommand();
-            cmd.setCommand(COMMAND.EXEC);
-            cmd.setType(TYPE.REQUEST);
-            cmd.setPlan(plan.asImc());
-            try {
-            	soiInteraction.sendCommand(cmd,  asset);
-            	asset.setPlan(plan);
-    			repo.save(asset);
+			cmd.setCommand(COMMAND.EXEC);
+			cmd.setType(TYPE.REQUEST);
+			cmd.setPlan(plan.asImc());
+			try {
+				soiInteraction.sendCommand(cmd, asset);
+				asset.setPlan(plan);
+				repo.save(asset);
 			} catch (Exception e) {
 				logger.warn(e.getMessage());
 				throw new SendSoiCommandException(e.getMessage());
 			}
-            return new ResponseEntity<>(
-            		new HTTPResponse("success", "Plan for " + asset.getName() + " was updated."),
-            		HttpStatus.OK);
+			return new ResponseEntity<>(new HTTPResponse("success", "Plan for " + asset.getName() + " was updated."),
+					HttpStatus.OK);
 		}
 		throw new AssetNotFoundException(message.getAssignedTo());
 	}
 
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
-	@PostMapping(path = {"/soi/unassigned/plans", "/soi/unassigned/plans/"}, consumes = "application/json", produces = "application/json")
-	public ResponseEntity<HTTPResponse> addUnassignedPlan(@RequestBody NewPlanBody message) throws SendSoiCommandException {
+	@PostMapping(path = { "/soi/unassigned/plans",
+			"/soi/unassigned/plans/" }, consumes = "application/json", produces = "application/json")
+	public ResponseEntity<HTTPResponse> addUnassignedPlan(@RequestBody NewPlanBody message)
+			throws SendSoiCommandException {
 		try {
 			Plan plan = message.buildPlan();
 			logger.info("new plan id: " + plan.getId());
@@ -133,10 +134,8 @@ public class SoiController {
 				unassignedPlansRepo.delete(p.get());
 			}
 			unassignedPlansRepo.save(plan);
-			return new ResponseEntity<>(
-					new HTTPResponse("success", "Plan added"),
-					HttpStatus.OK);
-		} catch(Exception e) {
+			return new ResponseEntity<>(new HTTPResponse("success", "Plan added"), HttpStatus.OK);
+		} catch (Exception e) {
 			logger.warn(e.getMessage());
 			throw new SendSoiCommandException(e.getMessage());
 		}
@@ -150,6 +149,19 @@ public class SoiController {
 		return plans;
 	}
 
-
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.DELETE)
+	public ResponseEntity<HTTPResponse> deleteUnassignedPlan(@RequestBody EntityWithId body) {
+		
+		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
+		if (planOptional.isPresent()) {
+			logger.info("Deleting Plan with id: " + body.getId());
+			unassignedPlansRepo.deleteById(body.getId());
+			return new ResponseEntity<>(new HTTPResponse("success", "Plan deleted"), HttpStatus.OK);
+		} else {
+			logger.info("Plan with id: " + body.getId() + " not found");
+			return new ResponseEntity<>(new HTTPResponse("not found", "Plan not found"), HttpStatus.NOT_FOUND);
+		}
+	}
 
 }

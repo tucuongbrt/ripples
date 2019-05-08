@@ -104,6 +104,14 @@ async function postNewPlan(plan: IPlan) {
   return response;
 }
 
+export async function deleteUnassignedPlan(planId: string) {
+  return request({
+    url: `${apiURL}/soi/unassigned/plans`,
+    method: 'DELETE',
+    body: JSON.stringify({id: planId})
+  })
+}
+
 export async function sendUnassignedPlan(plan: IPlan) {
   console.log("Sending plan", plan);
   return request({

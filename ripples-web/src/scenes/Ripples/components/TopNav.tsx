@@ -22,6 +22,7 @@ type propsType = {
   handleCancelEditPlan: () => void
   handleStartNewPlan: (_: string) => void
   handleSavePlan: () => void
+  handleDeletePlan: () => void
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
   setPlanDescription: (_: string) => void
@@ -73,6 +74,7 @@ class TopNav extends Component<propsType, stateType> {
     this.toggleModal = this.toggleModal.bind(this)
     this.buildEditDescriptionModal = this.buildEditDescriptionModal.bind(this)
     this.updatePlanDescription = this.updatePlanDescription.bind(this)
+    this.onDeletePlan = this.onDeletePlan.bind(this)
   }
 
   onNavToggle() {
@@ -135,15 +137,23 @@ class TopNav extends Component<propsType, stateType> {
     this.props.handleStartNewPlan(planId)
   }
 
+  onDeletePlan() {
+    this.resetPlansDropdown()
+    this.props.handleDeletePlan()
+  }
 
-  getPlans() {
+  buildPlanList() {
     const editingPlan = this.state.isEditingPlan;
     if (editingPlan) {
       const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
       return (
         <div>
           {isPlanAssigned ? <></> :
-            <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>}
+            <>
+            <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>
+            <DropdownItem key="delete" onClick={this.onDeletePlan}>Delete plan</DropdownItem>
+            </>
+          }
           <DropdownItem key="send" disabled={this.props.vehicleSelected.length == 0} onClick={this.handleSendToVehicle}>Send plan to {this.props.vehicleSelected}</DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
           <DropdownItem key="description" onClick={this.toggleModal}>View/Edit description</DropdownItem>
@@ -221,7 +231,7 @@ class TopNav extends Component<propsType, stateType> {
             <DropdownMenu right>
               {this.state.isEditingPlan ? <></> :
                 <DropdownItem key="new" onClick={() => this.handleStartNewPlan()}>New Plan</DropdownItem>}
-              {isOperator(this.props.auth) ? this.getPlans() : <></>}
+              {isOperator(this.props.auth) ? this.buildPlanList() : <></>}
             </DropdownMenu>
           </Dropdown>
           {this.buildVehicleSelector()}

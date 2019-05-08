@@ -1,7 +1,7 @@
 import React, { Component, ChangeEvent } from 'react'
 import 'react-notifications/lib/notifications.css';
 const { NotificationManager } = require('react-notifications');
-import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan, fetchUnassignedPlans } from '../../services/SoiUtils'
+import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan, fetchUnassignedPlans, deleteUnassignedPlan } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
@@ -30,7 +30,7 @@ type propsType = {
   setAis: Function
   setPlans: (_: IPlan[]) => void
   setSlider: Function
-  editPlan: (_:IPlan) => void
+  editPlan: (_: IPlan) => void
   addNewPlan: (_: IPlan) => void
   setProfiles: (profiles: IProfile[]) => any
   setUser: (user: IUser) => any
@@ -57,6 +57,7 @@ class Ripples extends Component<propsType, stateType> {
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
+    this.handleDeletePlan = this.handleDeletePlan.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
     this.handleSendPlanToVehicle = this.handleSendPlanToVehicle.bind(this)
     this.stopUpdates = this.stopUpdates.bind(this)
@@ -78,7 +79,7 @@ class Ripples extends Component<propsType, stateType> {
 
   async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
-    this.setState({loading: false})
+    this.setState({ loading: false })
     this.startUpdates();
   }
 
@@ -174,7 +175,7 @@ class Ripples extends Component<propsType, stateType> {
   }
 
   async handleSendPlanToVehicle() {
-    try{
+    try {
       const plan: IPlan | undefined = this.props.plans.find(p => p.id == this.props.selectedPlan.id)
       const vehicle = this.props.vehicleSelected;
       if (plan == undefined) return
@@ -208,12 +209,29 @@ class Ripples extends Component<propsType, stateType> {
         NotificationManager.success(
           response.message,
         );
-      } catch(error) {
+      } catch (error) {
         NotificationManager.warning(
           error.message,
         );
       }
-    } 
+    }
+  }
+
+  async handleDeletePlan() {
+    try {
+      await deleteUnassignedPlan(this.props.selectedPlan.id)
+      NotificationManager.success(
+        `Plan ${this.props.selectedPlan.id} has been deleted`,
+      );
+    } catch (error) {
+      NotificationManager.warning(
+        error.message,
+      );
+    } finally {
+      this.props.savePlan() // used to deselect the plan
+      this.startUpdates()
+    }
+
   }
 
   onSliderChange(sliderValue: number) {
@@ -229,24 +247,27 @@ class Ripples extends Component<propsType, stateType> {
   freedrawRef = React.createRef();
 
   render() {
-    {if (!this.state.loading) {
-      return (
-        <div>
-          <div className="navbar">
-            <TopNav
-              handleEditPlan={this.handleEditPlan}
-              handleSendPlanToVehicle={this.handleSendPlanToVehicle}
-              handleCancelEditPlan={this.handleCancelEditPlan}
-              handleStartNewPlan={this.handleStartNewPlan}
-              handleSavePlan={this.handleSavePlan}
-            >
-            </TopNav>
+    {
+      if (!this.state.loading) {
+        return (
+          <div>
+            <div className="navbar">
+              <TopNav
+                handleEditPlan={this.handleEditPlan}
+                handleSendPlanToVehicle={this.handleSendPlanToVehicle}
+                handleCancelEditPlan={this.handleCancelEditPlan}
+                handleStartNewPlan={this.handleStartNewPlan}
+                handleSavePlan={this.handleSavePlan}
+                handleDeletePlan={this.handleDeletePlan}
+              >
+              </TopNav>
+            </div>
+            <RipplesMap></RipplesMap>
+            <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
           </div>
-          <RipplesMap></RipplesMap>
-          <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
-        </div>
-      )
-    }}
+        )
+      }
+    }
     return <></>
   }
 }
