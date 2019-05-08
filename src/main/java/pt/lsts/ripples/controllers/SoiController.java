@@ -17,6 +17,7 @@ import pt.lsts.ripples.exceptions.AssetNotFoundException;
 import pt.lsts.ripples.exceptions.SendSoiCommandException;
 import pt.lsts.ripples.iridium.SoiInteraction;
 import pt.lsts.ripples.repo.AssetsRepository;
+import pt.lsts.ripples.repo.IncomingMessagesRepository;
 import pt.lsts.ripples.repo.UnassignedPlansRepository;
 import pt.lsts.ripples.repo.VertProfilesRepo;
 import pt.lsts.ripples.services.AISHubFetcher;
@@ -51,6 +52,9 @@ public class SoiController {
 
 	@Autowired
 	UnassignedPlansRepository unassignedPlansRepo;
+
+	@Autowired
+	IncomingMessagesRepository messagesRepository;
 
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
 
@@ -106,6 +110,11 @@ public class SoiController {
 			cmd.setCommand(COMMAND.EXEC);
 			cmd.setType(TYPE.REQUEST);
 			cmd.setPlan(plan.asImc());
+			IncomingMessage incomingMsg = new IncomingMessage();
+			incomingMsg.setMessage(cmd.asJSON());
+			incomingMsg.setAssetName(asset.getName());
+			incomingMsg.setTimestampMs(cmd.getTimestampMillis());
+			messagesRepository.save(incomingMsg);
 			try {
 				soiInteraction.sendCommand(cmd, asset);
 				asset.setPlan(plan);
@@ -178,6 +187,19 @@ public class SoiController {
 			logger.info("Plan with id: " + body.getPreviousId() + " not found");
 			return new ResponseEntity<>(new HTTPResponse("not found", "Plan not found"), HttpStatus.NOT_FOUND);
 		}
+	}
+
+	@RequestMapping(path = {"/soi/incoming/{name}"}, method = RequestMethod.GET)
+	@ResponseBody
+	public List<String> getIncomingMessagesForAsset(
+		@PathVariable("name") String assetName,
+		@RequestParam("since") long sinceMs
+		) {
+		ArrayList<String> messages = new ArrayList<>();
+		messagesRepository.findAllSinceDateForAsset(sinceMs, assetName).forEach(m -> {
+			messages.add(m.getMessage());
+		});
+		return messages;
 	}
 
 }
