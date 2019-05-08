@@ -68,13 +68,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
+import pt.lsts.ripples.domain.soi.IncomingMessage;
 import pt.lsts.ripples.repo.AddressesRepository;
+import pt.lsts.ripples.repo.IncomingMessagesRepository;
 import pt.lsts.ripples.util.ByteUtil;
-
+import org.apache.commons.codec.binary.Hex;
 
 /**
- * This class uses the RockBlock HTTP API (directly) to send messages to Iridium destinations and a gmail inbox to poll
- * for incoming messages
+ * This class uses the RockBlock HTTP API (directly) to send messages to Iridium
+ * destinations and a gmail inbox to poll for incoming messages
  * 
  * @see http://rockblock.rock7mobile.com/downloads/RockBLOCK-Web-Services-User-Guide.pdf
  * @author zp
@@ -88,21 +90,37 @@ public class RockBlockIridiumSender {
     private static long lastSuccess = -1;
 
     private static Logger logger = LoggerFactory.getLogger(RockBlockIridiumSender.class);
-   
+
     @Value("${rockblock.password}")
     private String rockBlockPassword;
     @Value("${rockblock.username}")
     private String rockBlockUsername;
 
-    
     @Autowired
     AddressesRepository addressesRepo;
 
+    @Autowired
+    IncomingMessagesRepository messagesRepository;
+
+    // save message for simulation purposes
+    private void saveMessage(IridiumMessage msg, String assetName) {
+        IncomingMessage incomingMsg = new IncomingMessage();
+        try {
+            incomingMsg.setMessage(Hex.encodeHexString(msg.serialize()));
+            incomingMsg.setAssetName(assetName);
+            incomingMsg.setTimestampMs(msg.timestampMillis);
+            messagesRepository.save(incomingMsg);
+        } catch (Exception e) {
+            logger.warn(e.getLocalizedMessage());
+        }
+
+    }
 
     public void sendMessage(IridiumMessage msg) throws Exception {
 
         SystemAddress system = addressesRepo.findByImcId(msg.getDestination());
         if (system == null || system.getImei() == null) return;
+        saveMessage(msg, system.getName());
         String result = sendToRockBlockHttp(system.getImei(), rockBlockUsername, rockBlockPassword,
                 msg.serialize());
 

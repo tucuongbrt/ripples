@@ -110,11 +110,7 @@ public class SoiController {
 			cmd.setCommand(COMMAND.EXEC);
 			cmd.setType(TYPE.REQUEST);
 			cmd.setPlan(plan.asImc());
-			IncomingMessage incomingMsg = new IncomingMessage();
-			incomingMsg.setMessage(cmd.asJSON());
-			incomingMsg.setAssetName(asset.getName());
-			incomingMsg.setTimestampMs(cmd.getTimestampMillis());
-			messagesRepository.save(incomingMsg);
+
 			try {
 				soiInteraction.sendCommand(cmd, asset);
 				asset.setPlan(plan);
@@ -161,7 +157,7 @@ public class SoiController {
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteUnassignedPlan(@RequestBody EntityWithId body) {
-		
+
 		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
 		if (planOptional.isPresent()) {
 			logger.info("Deleting Plan with id: " + body.getId());
@@ -176,7 +172,7 @@ public class SoiController {
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans/id", "/soi/unassigned/plans/id/" }, method = RequestMethod.PATCH)
 	public ResponseEntity<HTTPResponse> updatePlanId(@RequestBody UpdateId body) {
-		
+
 		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getPreviousId());
 		if (planOptional.isPresent()) {
 			Plan plan = planOptional.get();
@@ -189,17 +185,17 @@ public class SoiController {
 		}
 	}
 
-	@RequestMapping(path = {"/soi/incoming/{name}"}, method = RequestMethod.GET)
+	@RequestMapping(path = { "/soi/incoming/{name}" }, method = RequestMethod.GET, produces = "text/plain")
 	@ResponseBody
-	public List<String> getIncomingMessagesForAsset(
-		@PathVariable("name") String assetName,
-		@RequestParam("since") long sinceMs
-		) {
+	public String getIncomingMessagesForAsset(@PathVariable("name") String assetName,
+			@RequestParam(value = "since", required = false) Long sinceMs) {
+		if (sinceMs == null) sinceMs = 0L;
 		ArrayList<String> messages = new ArrayList<>();
 		messagesRepository.findAllSinceDateForAsset(sinceMs, assetName).forEach(m -> {
 			messages.add(m.getMessage());
 		});
-		return messages;
+		logger.info("Found " + messages.size() + " for asset " + assetName);
+		return String.join("\n", messages);
 	}
 
 }
