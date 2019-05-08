@@ -164,4 +164,20 @@ public class SoiController {
 		}
 	}
 
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@RequestMapping(path = { "/soi/unassigned/plans/id", "/soi/unassigned/plans/id/" }, method = RequestMethod.PATCH)
+	public ResponseEntity<HTTPResponse> updatePlanId(@RequestBody UpdateId body) {
+		
+		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getPreviousId());
+		if (planOptional.isPresent()) {
+			Plan plan = planOptional.get();
+			plan.setId(body.getNewId());
+			unassignedPlansRepo.save(plan);
+			return new ResponseEntity<>(new HTTPResponse("success", "Plan id updated"), HttpStatus.OK);
+		} else {
+			logger.info("Plan with id: " + body.getPreviousId() + " not found");
+			return new ResponseEntity<>(new HTTPResponse("not found", "Plan not found"), HttpStatus.NOT_FOUND);
+		}
+	}
+
 }

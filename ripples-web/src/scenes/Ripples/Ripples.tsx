@@ -1,7 +1,7 @@
 import React, { Component, ChangeEvent } from 'react'
 import 'react-notifications/lib/notifications.css';
 const { NotificationManager } = require('react-notifications');
-import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan, fetchUnassignedPlans, deleteUnassignedPlan } from '../../services/SoiUtils'
+import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan, fetchUnassignedPlans, deleteUnassignedPlan, updatePlanId } from '../../services/SoiUtils'
 import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
@@ -60,6 +60,7 @@ class Ripples extends Component<propsType, stateType> {
     this.handleDeletePlan = this.handleDeletePlan.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
     this.handleSendPlanToVehicle = this.handleSendPlanToVehicle.bind(this)
+    this.handleUpdatePlanId = this.handleUpdatePlanId.bind(this)
     this.stopUpdates = this.stopUpdates.bind(this)
     this.startUpdates = this.startUpdates.bind(this)
     this.updateSoiData = this.updateSoiData.bind(this)
@@ -217,6 +218,19 @@ class Ripples extends Component<propsType, stateType> {
     }
   }
 
+  async handleUpdatePlanId(previousId: string, newId: string) {
+    try {
+      await updatePlanId(previousId, newId)
+      NotificationManager.success(
+        `Plan id has been updated`,
+      );
+    } catch(error) {
+      NotificationManager.warning(
+        error.message,
+      );
+    }
+  }
+
   async handleDeletePlan() {
     try {
       await deleteUnassignedPlan(this.props.selectedPlan.id)
@@ -259,6 +273,7 @@ class Ripples extends Component<propsType, stateType> {
                 handleStartNewPlan={this.handleStartNewPlan}
                 handleSavePlan={this.handleSavePlan}
                 handleDeletePlan={this.handleDeletePlan}
+                handleUpdatePlanId={this.handleUpdatePlanId}
               >
               </TopNav>
             </div>

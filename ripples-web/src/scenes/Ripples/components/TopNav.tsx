@@ -7,7 +7,7 @@ import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState';
 import { idFromDate } from '../../../services/DateUtils';
 import IPlan from '../../../model/IPlan';
 import { ToolSelected } from '../../../model/ToolSelected';
-import { setToolSelected, selectVehicle, setPlanDescription } from '../../../redux/ripples.actions';
+import { setToolSelected, selectVehicle, setPlanDescription, updatePlanId } from '../../../redux/ripples.actions';
 import IAsset from '../../../model/IAsset';
 
 type propsType = {
@@ -23,9 +23,11 @@ type propsType = {
   handleStartNewPlan: (_: string) => void
   handleSavePlan: () => void
   handleDeletePlan: () => void
+  handleUpdatePlanId: (prevId: string, newId: string) => void
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
   setPlanDescription: (_: string) => void
+  updatePlanId: (_: string) => void
 }
 
 type stateType = {
@@ -33,10 +35,12 @@ type stateType = {
   isPlansDropdownOpen: boolean
   isExecPlanDisabled: boolean
   isEditingPlan: boolean
-  isModalOpen: boolean
+  isDescriptionModalOpen: boolean
+  isEditPlanIdModalOpen: boolean
   plansDropdownText: string
   isVehiclesDropdownOpen: boolean
   vehiclesDropdownText: string
+  previousPlanId: string
 }
 
 class TopNav extends Component<propsType, stateType> {
@@ -53,10 +57,12 @@ class TopNav extends Component<propsType, stateType> {
       isPlansDropdownOpen: false,
       isExecPlanDisabled: true,
       isEditingPlan: false,
-      isModalOpen: false,
+      isDescriptionModalOpen: false,
+      isEditPlanIdModalOpen: false,
       plansDropdownText: this.plansDropdownDefaultText,
       vehiclesDropdownText: this.vehiclesDropdownDefaultText,
       isVehiclesDropdownOpen: false,
+      previousPlanId: '',
     }
 
     this.onNavToggle = this.onNavToggle.bind(this)
@@ -68,10 +74,12 @@ class TopNav extends Component<propsType, stateType> {
     this.handleCancelEditing = this.handleCancelEditing.bind(this)
     this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
+    this.handleUpdatePlanId = this.handleUpdatePlanId.bind(this)
     this.resetPlansDropdown = this.resetPlansDropdown.bind(this)
     this.buildVehicleSelector = this.buildVehicleSelector.bind(this)
     this.onVehicleSelected = this.onVehicleSelected.bind(this)
-    this.toggleModal = this.toggleModal.bind(this)
+    this.toggleDescriptionModal = this.toggleDescriptionModal.bind(this)
+    this.toggleEditPlanIdModal = this.toggleEditPlanIdModal.bind(this)
     this.buildEditDescriptionModal = this.buildEditDescriptionModal.bind(this)
     this.updatePlanDescription = this.updatePlanDescription.bind(this)
     this.onDeletePlan = this.onDeletePlan.bind(this)
@@ -81,8 +89,15 @@ class TopNav extends Component<propsType, stateType> {
     this.setState({ isNavOpen: !this.state.isNavOpen });
   }
 
-  toggleModal() {
-    this.setState({isModalOpen: !this.state.isModalOpen})
+  toggleDescriptionModal() {
+    this.setState({ isDescriptionModalOpen: !this.state.isDescriptionModalOpen })
+  }
+
+  toggleEditPlanIdModal() {
+    if (!this.state.isEditPlanIdModalOpen) {
+      this.setState({previousPlanId: this.props.selectedPlan.id})
+    }
+    this.setState({ isEditPlanIdModalOpen: !this.state.isEditPlanIdModalOpen })
   }
 
   togglePlansDropdown() {
@@ -137,6 +152,16 @@ class TopNav extends Component<propsType, stateType> {
     this.props.handleStartNewPlan(planId)
   }
 
+  handleUpdatePlanId() {
+    this.setState({plansDropdownText: `Editing - ${this.props.selectedPlan.id}`})
+    if (this.props.selectedPlan.waypoints.length > 0) {
+      // only try to update the plan id if the plan has any waypoints
+      // if the plan has no waypoints it was created just now, 
+      // and so it does not exist in the server yet
+      this.props.handleUpdatePlanId(this.state.previousPlanId, this.props.selectedPlan.id)
+    }
+  }
+
   onDeletePlan() {
     this.resetPlansDropdown()
     this.props.handleDeletePlan()
@@ -150,14 +175,17 @@ class TopNav extends Component<propsType, stateType> {
         <div>
           {isPlanAssigned ? <></> :
             <>
-            <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>
-            <DropdownItem key="delete" onClick={this.onDeletePlan}>Delete plan</DropdownItem>
+              <DropdownItem key="save" onClick={this.handleSavePlan}>Save plan</DropdownItem>
+              <DropdownItem key="delete" onClick={this.onDeletePlan}>Delete plan</DropdownItem>
+              <DropdownItem key="editDescription" onClick={this.toggleDescriptionModal}>View/Edit description</DropdownItem>
+              <DropdownItem key="editId" onClick={this.toggleEditPlanIdModal}>Edit plan id</DropdownItem>
             </>
           }
           <DropdownItem key="send" disabled={this.props.vehicleSelected.length == 0} onClick={this.handleSendToVehicle}>Send plan to {this.props.vehicleSelected}</DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>Cancel</DropdownItem>
-          <DropdownItem key="description" onClick={this.toggleModal}>View/Edit description</DropdownItem>
+
           {this.buildEditDescriptionModal()}
+          {this.buildEditPlanIdModal()}
         </div>
       )
     }
@@ -194,20 +222,36 @@ class TopNav extends Component<propsType, stateType> {
 
   buildEditDescriptionModal() {
     return (
-      <Modal isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
-          <ModalHeader toggle={this.toggleModal}>View/Edit description</ModalHeader>
-          <ModalBody>
+      <Modal isOpen={this.state.isDescriptionModalOpen} toggle={this.toggleDescriptionModal}>
+        <ModalHeader toggle={this.toggleDescriptionModal}>View/Edit description</ModalHeader>
+        <ModalBody>
           <Input type="textarea" placeholder="Set plan description" value={this.props.selectedPlan.description} onChange={evt => this.updatePlanDescription(evt)} />
-          </ModalBody>
-        </Modal>
+        </ModalBody>
+      </Modal>
+    )
+  }
+
+  buildEditPlanIdModal() {
+    return (
+      <Modal isOpen={this.state.isEditPlanIdModalOpen} toggle={this.toggleEditPlanIdModal}>
+        <ModalHeader toggle={this.toggleEditPlanIdModal}>Update plan id</ModalHeader>
+        <ModalBody>
+          <Input type="textarea" placeholder="Set plan id" value={this.props.selectedPlan.id} onChange={evt => this.updatePlanId(evt)} />
+        </ModalBody>
+        <ModalFooter>
+        <Button color="primary" onClick={this.handleUpdatePlanId}>Save</Button>
+        </ModalFooter>
+      </Modal>
     )
   }
 
   updatePlanDescription(evt: any) {
-    console.log(evt.target.value)
-    this.props.setPlanDescription(evt.target.value);
+    this.props.setPlanDescription(evt.target.value)
   }
 
+  updatePlanId(evt: any) {
+    this.props.updatePlanId(evt.target.value)
+  }
 
   onToolbarClick(tool: ToolSelected) {
     this.props.setToolSelected(tool)
@@ -270,6 +314,7 @@ const actionCreators = {
   setToolSelected,
   selectVehicle,
   setPlanDescription,
+  updatePlanId,
 }
 
 export default connect(mapStateToProps, actionCreators)(TopNav)

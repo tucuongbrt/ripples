@@ -7,6 +7,7 @@ import IAuthState, { isScientist } from "../model/IAuthState";
 import { request } from "./RequestUtils";
 import { IPotentialCollision, IPotentialCollisionPayload } from "../model/IPotentialCollision";
 import IAssetState from "../model/IAssetState";
+import { string } from "prop-types";
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
@@ -109,6 +110,14 @@ export async function deleteUnassignedPlan(planId: string) {
     url: `${apiURL}/soi/unassigned/plans`,
     method: 'DELETE',
     body: JSON.stringify({id: planId})
+  })
+}
+
+export async function updatePlanId(previousId: string, newId: string) {
+  return request({
+    url: `${apiURL}/soi/unassigned/plans/id`,
+    method: 'PATCH',
+    body: JSON.stringify({previousId, newId})
   })
 }
 

@@ -1,7 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
 import { setUser, removeUser, setVehicles, setAis,
 setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx, setProfiles, addNewPlan, setPlans, deleteWp,
-updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription, updateWpTimestamp } from '../ripples.actions'
+updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription, updateWpTimestamp, updatePlanId } from '../ripples.actions'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
 import { EmptyPlan } from '../../model/IPlan';
@@ -83,6 +83,13 @@ const ripplesReducer = createReducer(startState, {
     state.planSet = JSON.parse(JSON.stringify(state.previousPlanSet))
     state.previousPlanSet = []
     state.selectedPlan = EmptyPlan
+  },
+  [updatePlanId.type]: (state, action) => {
+    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
+    if (plan == undefined) return
+    state.selectedPlan.id = action.payload
+    plan.id = action.payload
+    console.log("Update plan id reducer", plan.id)
   },
   [savePlan.type]: (state, _) => {
     state.previousPlanSet = []
