@@ -90,8 +90,8 @@ class Ripples extends Component<propsType, stateType> {
     clearInterval(this.aisTimer);
   }
 
-  startUpdates(e?: any) {
-    console.log("Start updates called", e)
+  startUpdates() {
+    console.log("Start updates called")
     this.updateSoiData();
     this.updateAISData();
     if (!this.soiTimer) {
