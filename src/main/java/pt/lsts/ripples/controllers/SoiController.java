@@ -33,7 +33,7 @@ import java.util.*;
 public class SoiController {
 
 	@Autowired
-	AssetsRepository repo;
+	AssetsRepository assetsRepo;
 
 	@Autowired
 	CollisionForecastService collisionService;
@@ -61,7 +61,7 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
 	public List<Asset> listAssets() {
 		ArrayList<Asset> assets = new ArrayList<>();
-		repo.findAll().forEach(assets::add);
+		assetsRepo.findAll().forEach(assets::add);
 		return assets;
 	}
 
@@ -102,7 +102,7 @@ public class SoiController {
 	@PostMapping(path = { "/soi", "/soi/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updatePlan(@RequestBody NewPlanBody message)
 			throws SendSoiCommandException, AssetNotFoundException {
-		Optional<Asset> optAsset = repo.findById(message.getAssignedTo());
+		Optional<Asset> optAsset = assetsRepo.findById(message.getAssignedTo());
 		if (optAsset.isPresent()) {
 			Asset asset = optAsset.get();
 			Plan plan = message.buildPlan();
@@ -114,7 +114,7 @@ public class SoiController {
 			try {
 				soiInteraction.sendCommand(cmd, asset);
 				asset.setPlan(plan);
-				repo.save(asset);
+				assetsRepo.save(asset);
 			} catch (Exception e) {
 				logger.warn(e.getMessage());
 				throw new SendSoiCommandException(e.getMessage());
