@@ -1,36 +1,22 @@
 import IPosHeadingAtTime from "../model/ILatLngHead";
 import IPositionAtTime from "../model/IPositionAtTime";
 import ILatLng from "../model/ILatLng";
-import AISShip from "../scenes/Ripples/components/AISShip";
 import IAisShip from "../model/IAisShip";
+const wgs84 = require("wgs84-util");
 
-function degreesToRadians(degrees: number) {
-    return degrees * Math.PI / 180;
-}
-
-export function distanceInKmBetweenCoords(p1: ILatLng, p2: ILatLng) {
-    const earthRadiusKm = 6371;
-
-    const dLat = degreesToRadians(p2.latitude - p1.latitude);
-    const dLon = degreesToRadians(p2.longitude - p1.longitude);
-
-    const lat1 = degreesToRadians(p1.latitude);
-    const lat2 = degreesToRadians(p2.latitude);
-
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.abs(earthRadiusKm * c);
+export function distanceInMetersBetweenCoords(p1: ILatLng, p2: ILatLng) {
+    const pointA = {coordinates: [p1.longitude, p1.latitude]}
+    const pointB = {coordinates: [p2.longitude, p2.latitude]}
+    return wgs84.distanceBetween(pointA, pointB);
 }
 
 export function calculateNextPosition(p: IPositionAtTime, cog: number, speed: number, inSeconds: number): IPositionAtTime {
-    let oneDegreeToMeters = 111139;
-    let cogInRads = cog * Math.PI / 180;
-    let directionVector = [Math.sin(cogInRads), Math.cos(cogInRads)]
-    let deltaMoveInMeters = [directionVector[0] * speed * inSeconds, directionVector[1] * speed * inSeconds]
+    const pointA = {coordinates: [p.longitude, p.latitude]}
+    const distance = speed * inSeconds;
+    const nextPoint = wgs84.destination(pointA, cog, distance)
     return {
-        longitude: p.longitude + deltaMoveInMeters[0] / oneDegreeToMeters,
-        latitude: p.latitude + deltaMoveInMeters[1] / oneDegreeToMeters,
+        latitude: nextPoint.point.coordinates[1],
+        longitude: nextPoint.point.coordinates[0],
         timestamp: p.timestamp + inSeconds * 1000
     }
 }
@@ -43,19 +29,19 @@ export function interpolateTwoPoints(
     if (prevPoint.timestamp !== nextPoint.timestamp) {
         ratioCompleted = (date - prevPoint.timestamp) / (nextPoint.timestamp - prevPoint.timestamp)
     }
-    const latDelta = nextPoint.latitude - prevPoint.latitude
-    const lngDelta = nextPoint.longitude - prevPoint.longitude
-    const totalDelta = Math.sqrt(Math.pow(latDelta, 2) + Math.pow(lngDelta, 2))
-    let cosAlpha = 1
-    if (totalDelta !== 0) {
-        cosAlpha = latDelta / totalDelta;
+    const pointA = {coordinates: [prevPoint.longitude, prevPoint.latitude]}
+    const pointB = {coordinates: [nextPoint.longitude, nextPoint.latitude]}
+    const distance = wgs84.distanceBetween(pointA, pointB)*ratioCompleted;
+    let heading = 0;
+    if (distance != 0) {
+        const bearings = wgs84.bearingsBetween(pointA, pointB)
+        heading = (bearings.initialBearing + bearings.finalBearing) / 2
     }
-    let heading = Math.round(Math.acos(cosAlpha) * 180 / Math.PI)
-    if (lngDelta < 0) heading = 360 - heading
+    const midPoint = wgs84.destination(pointA, heading, distance)
     return {
-        latitude: prevPoint.latitude + ratioCompleted * latDelta,
-        longitude: prevPoint.longitude + ratioCompleted * lngDelta,
-        heading: heading,
+        latitude: midPoint.point.coordinates[1],
+        longitude: midPoint.point.coordinates[0],
+        heading: 0 | midPoint.finalBearing,
         timestamp: date
     }
 }
@@ -80,7 +66,8 @@ export function getLatLng(position: ILatLng) {
 }
 
 export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours: number): IPositionAtTime[] {
-    const twelveHoursInSec = deltaHours * 3600;
+    const hourInSec = 3600;
+    const twelveHoursInSec = deltaHours * hourInSec;
     const knotsToMetersPerSec = 0.514
     let speedMetersPerSec = currentState.sog * knotsToMetersPerSec
     let currentPosition = {
@@ -88,16 +75,18 @@ export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours:
         longitude: currentState.longitude,
         timestamp: currentState.timestamp
     }
-    let prevPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, -twelveHoursInSec)
-    let nextPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, twelveHoursInSec)
-    return [prevPos, nextPos]
+    let firstPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, -twelveHoursInSec)
+    let oneHourAgoPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, -hourInSec)
+    let oneHourAfterPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, hourInSec)
+    let lastPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, twelveHoursInSec)
+    return [firstPos, oneHourAgoPos, currentPosition, oneHourAfterPos, lastPos]
 }
 
 export function getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {
     if (waypoints.length < 2) return 1;
     let firstWp = waypoints[0];
     let secondWp = waypoints[1];
-    const distanceInMeters = distanceInKmBetweenCoords(firstWp, secondWp) * 1000;
+    const distanceInMeters = distanceInMetersBetweenCoords(firstWp, secondWp);
     const deltaSec = (secondWp.timestamp - firstWp.timestamp) / 1000;
     return distanceInMeters / deltaSec;
 }
@@ -117,7 +106,7 @@ export function updateWaypointsTimestampFromIndex(waypoints: IPositionAtTime[], 
     for (let i = firstIndex; i <= lastIndex; i++) {
         let prevWp = waypoints[i - 1];
         let currentWp = waypoints[i];
-        const distanceInMeters = distanceInKmBetweenCoords(prevWp, currentWp) * 1000;
+        const distanceInMeters = distanceInMetersBetweenCoords(prevWp, currentWp);
         currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000;
         
     }

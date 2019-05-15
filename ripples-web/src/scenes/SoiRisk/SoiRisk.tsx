@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Table, Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 import { fetchSoiData, fetchCollisions } from '../../services/SoiUtils';
 import { timeFromNow, timestampMsToReadableDate } from '../../services/DateUtils';
-import { distanceInKmBetweenCoords } from '../../services/PositionUtils';
+import { distanceInMetersBetweenCoords } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
 import ILatLng from '../../model/ILatLng';
 import IPositionAtTime from '../../model/IPositionAtTime';
@@ -65,7 +65,7 @@ export default class SoiRisk extends Component<{}, stateType> {
         const minIntervalIdx = timeIntervals.findIndex(d => d == minInterval);
         const minIntervalWP = waypoints[minIntervalIdx];
         // distance in meters
-        const distanceToMinInterval = distanceInKmBetweenCoords(minIntervalWP, vehicle.lastState) * 1000;
+        const distanceToMinInterval = distanceInMetersBetweenCoords(minIntervalWP, vehicle.lastState);
         // if distance is less than 100m, let's consider that the vehicle already arrived to that waypoint
         if (distanceToMinInterval < 100)
             return waypoints.length > minIntervalIdx + 1 ? minIntervalIdx + 1 : minIntervalIdx;
@@ -73,7 +73,7 @@ export default class SoiRisk extends Component<{}, stateType> {
     }
 
     getDistanceToVehicle(vehicle: IAsset): string {
-        return distanceInKmBetweenCoords(
+        return distanceInMetersBetweenCoords(
             vehicle.lastState,
             this.rootCoords).toFixed(3)
     }

@@ -1,4 +1,4 @@
-import { interpolateTwoPoints, getPrevAndNextPoints } from './PositionUtils'
+import { interpolateTwoPoints, getPrevAndNextPoints, calculateNextPosition } from './PositionUtils'
 import IPositionAtTime from '../model/IPositionAtTime';
 
 describe("interpolate two points", () => {
@@ -7,8 +7,10 @@ describe("interpolate two points", () => {
         const point2 = {latitude: 10, longitude: 10, timestamp: 10000}
         const date = 5000
         const result = interpolateTwoPoints(date, point1, point2)
-        expect(result.latitude).toEqual(5)
-        expect(result.longitude).toEqual(5)
+        expect(result.latitude).toBeGreaterThan(4.9)
+        expect(result.latitude).toBeLessThan(5.1)
+        expect(result.longitude).toBeGreaterThan(4.9)
+        expect(result.longitude).toBeLessThan(5.1)
     });
 
     it("returns the date given", () => {
@@ -55,7 +57,8 @@ describe("interpolate two points", () => {
         const point2 = {latitude: 10, longitude: -10, timestamp: 10000}
         const date = 5000
         const result = interpolateTwoPoints(date, point1, point2)
-        expect(result.heading).toEqual(315)
+        expect(result.heading).toBeGreaterThanOrEqual(314)
+        expect(result.heading).toBeLessThanOrEqual(316)
     });
 
     it("finds the correct heading NW", () => {
@@ -121,5 +124,32 @@ describe("get prev and next points", () => {
         let result = getPrevAndNextPoints(points, 2000)
         expect(result.prev).toEqual(p1)
         expect(result.next).toEqual(p2)
+    })
+})
+
+describe("get next position", () => {
+    it("calculates next position move North", () => {
+        const p1 = {latitude: 0, longitude: 0, timestamp: 0}
+        const result = calculateNextPosition(p1, 0, 10, 1000);
+        expect(result.longitude).toBeCloseTo(0)
+        expect(result.latitude).toBeGreaterThan(0)
+    })
+    it("calculates next position move West", () => {
+        const p1 = {latitude: 0, longitude: 0, timestamp: 0}
+        const result = calculateNextPosition(p1, 270, 10, 1000);
+        expect(result.latitude).toBeCloseTo(0)
+        expect(result.longitude).toBeLessThan(0)
+    })
+    it("calculates next position move South", () => {
+        const p1 = {latitude: 0, longitude: 0, timestamp: 0}
+        const result = calculateNextPosition(p1, 180, 10, 1000);
+        expect(result.longitude).toBeCloseTo(0)
+        expect(result.latitude).toBeLessThan(0)
+    })
+    it("calculates next position move East", () => {
+        const p1 = {latitude: 0, longitude: 0, timestamp: 0}
+        const result = calculateNextPosition(p1, 90, 10, 1000);
+        expect(result.latitude).toBeCloseTo(0)
+        expect(result.longitude).toBeGreaterThan(0)
     })
 })

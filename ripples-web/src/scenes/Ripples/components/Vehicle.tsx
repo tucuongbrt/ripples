@@ -68,7 +68,6 @@ class Vehicle extends Component<propsType, {}> {
     render() {
         let awarenessJSX: JSX.Element | null = null
         if (this.props.sliderValue != 0) {
-            console.log("Building vehicle awareness")
             awarenessJSX = this.buildVehicleAwareness()
         }
         return (
