@@ -9,6 +9,11 @@ import IPositionAtTime from '../../model/IPositionAtTime';
 import { IPotentialCollision } from '../../model/IPotentialCollision';
 import './styles/SoiRisk.css';
 import IPlan from '../../model/IPlan';
+import TopNav from './components/TopNav';
+import { getCurrentUser } from '../../services/AuthUtils';
+import { IUser } from '../../model/IAuthState';
+import { setUser } from '../../redux/ripples.actions';
+import { connect } from 'react-redux';
 
 
 type stateType = {
@@ -16,9 +21,14 @@ type stateType = {
     plans: IPlan[],
     collisions: IPotentialCollision[],
     collisionsModal: boolean
+    loading: boolean
 }
 
-export default class SoiRisk extends Component<{}, stateType> {
+type propsType = {
+    setUser: (user: IUser) => any,
+}
+
+class SoiRisk extends Component<propsType, stateType> {
 
     timerID: number = 0
     rootCoords: ILatLng = { latitude: 41.18, longitude: -8.7 }
@@ -29,15 +39,26 @@ export default class SoiRisk extends Component<{}, stateType> {
             vehicles: [],
             plans: [],
             collisions: [],
-            collisionsModal: false
+            collisionsModal: false,
+            loading: true,
         }
         this.updateSoiData = this.updateSoiData.bind(this)
         this.buildAllVehicles = this.buildAllVehicles.bind(this)
         this.buildVehicleCollisions = this.buildVehicleCollisions.bind(this)
         this.toggleCollisionsModal = this.toggleCollisionsModal.bind(this)
+        this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     }
-
-    componentDidMount() {
+    async loadCurrentlyLoggedInUser() {
+        try {
+          const user: IUser = await getCurrentUser()
+          this.props.setUser(user)
+        } catch (error) {
+          localStorage.removeItem("ACCESS_TOKEN");
+        }
+      }
+    async componentDidMount() {
+        await this.loadCurrentlyLoggedInUser()
+        this.setState({ loading: false })
         this.updateSoiData();
         this.timerID = window.setInterval(this.updateSoiData, 60000); //get Soi data every minute
     }
@@ -101,7 +122,7 @@ export default class SoiRisk extends Component<{}, stateType> {
     }
 
     buildVehicle(vehicle: IAsset) {
-        const vehiclePlan: IPlan|undefined = this.state.plans.find(p => p.id == vehicle.planId)
+        const vehiclePlan: IPlan | undefined = this.state.plans.find(p => p.id == vehicle.planId)
         if (vehiclePlan == undefined) return
         const nextWaypointIdx = this.getNextWaypointIdx(vehicle, vehiclePlan);
         console.log("next wp index: ", nextWaypointIdx)
@@ -131,7 +152,7 @@ export default class SoiRisk extends Component<{}, stateType> {
     buildVehicleCollisions(assetName: string) {
         const allCollisions = this.state.collisions;
         const assetCollisions = allCollisions.filter(c => c.asset == assetName)
-        assetCollisions.sort((a,b) => a.timestamp - b.timestamp);
+        assetCollisions.sort((a, b) => a.timestamp - b.timestamp);
         console.log("Asset collisions length", assetCollisions.length);
         return <td className={assetCollisions.length == 0 ? 'bg-green' : 'bg-red'}>
             <div>
@@ -163,22 +184,30 @@ export default class SoiRisk extends Component<{}, stateType> {
 
     render() {
         return (
-            <Table responsive>
-                <thead>
-                    <tr>
-                        <th>Vehicle Name</th>
-                        <th>Last Comm</th>
-                        <th>Next Comm</th>
-                        <th>Fuel</th>
-                        <th>Distance (Km)</th>
-                        <th>Collisions</th>
-                        <th>Errors</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {this.buildAllVehicles()}
-                </tbody>
-            </Table>
+            <>
+                <TopNav></TopNav>
+                <Table responsive>
+                    <thead>
+                        <tr>
+                            <th>Vehicle Name</th>
+                            <th>Last Comm</th>
+                            <th>Next Comm</th>
+                            <th>Fuel</th>
+                            <th>Distance (Km)</th>
+                            <th>Collisions</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {this.buildAllVehicles()}
+                    </tbody>
+                </Table>
+            </>
         )
     }
 }
+const actionCreators = {
+    setUser,
+  }
+
+export default connect(null, actionCreators)(SoiRisk)

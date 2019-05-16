@@ -55,13 +55,13 @@ export async function fetchSoiData() {
     let plan: IPlan = JSON.parse(JSON.stringify(system.plan))
     delete system.plan
     if (system.name.startsWith('spot')) {
-      spots.push(Object.assign({}, system, {planId: ''}))
+      spots.push(Object.assign({}, system, { planId: '' }))
     }
     else {
       plan.waypoints = plan.waypoints.map(wp => convertWaypoint(wp))
       system.lastState.timestamp = system.lastState.timestamp * 1000
       system.settings = []
-      vehicles.push(Object.assign({}, system, {planId: plan.id}))
+      vehicles.push(Object.assign({}, system, { planId: plan.id }))
       plan.assignedTo = system.name
       plans.push(plan)
     }
@@ -77,6 +77,14 @@ type paramsType = {
 type assetSettings = {
   name: string
   params: paramsType
+}
+
+async function subscribeToSms(phoneNumber: String) {
+  return request({
+    url: `${apiURL}/sms/subscribe`,
+    method: 'POST',
+    body: JSON.stringify({ phoneNumber })
+  })
 }
 
 async function fetchAssetsSettings() {
@@ -109,7 +117,7 @@ export async function deleteUnassignedPlan(planId: string) {
   return request({
     url: `${apiURL}/soi/unassigned/plans`,
     method: 'DELETE',
-    body: JSON.stringify({id: planId})
+    body: JSON.stringify({ id: planId })
   })
 }
 
@@ -117,7 +125,7 @@ export async function updatePlanId(previousId: string, newId: string) {
   return request({
     url: `${apiURL}/soi/unassigned/plans/id`,
     method: 'PATCH',
-    body: JSON.stringify({previousId, newId})
+    body: JSON.stringify({ previousId, newId })
   })
 }
 
@@ -134,7 +142,7 @@ export async function fetchUnassignedPlans() {
   let plans: IPlan[] = await request({
     url: `${apiURL}/soi/unassigned/plans/`
   })
-  plans = plans.map(p => Object.assign(p, {assignedTo: ''}));
+  plans = plans.map(p => Object.assign(p, { assignedTo: '' }));
   plans.forEach(p => p.waypoints = p.waypoints.map(wp => convertWaypoint(wp)))
   return plans
 }
@@ -162,7 +170,7 @@ export async function fetchCollisions(): Promise<IPotentialCollision[]> {
   const payload: IPotentialCollisionPayload[] = await response.json();
   console.log("Collisions", payload);
   const data: IPotentialCollision[] = payload.map(
-    p => Object.assign({}, p, {timestamp: new Date(p.timestamp).getTime()})
+    p => Object.assign({}, p, { timestamp: new Date(p.timestamp).getTime() })
   );
   return data;
 }
