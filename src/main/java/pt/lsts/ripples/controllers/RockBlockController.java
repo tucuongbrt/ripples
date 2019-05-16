@@ -60,7 +60,7 @@ public class RockBlockController {
     }
 
 	/**
-	 * Gateway that saves a messages and redirects it to the rockBlock HTTP API.
+	 * Gateway that saves a message and redirects it to the rockBlock HTTP API.
 	 * @param body
 	 * @return
 	 */

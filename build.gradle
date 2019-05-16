@@ -29,6 +29,7 @@ repositories {
 
 dependencies {
 	
+	compile group: "com.twilio.sdk", name: "twilio", version: "7.37.4"
 	compile('org.springframework.boot:spring-boot-starter-data-jpa')
 	compile('org.springframework.boot:spring-boot-starter-data-rest')
 	compile('org.springframework.boot:spring-boot-starter-web')
