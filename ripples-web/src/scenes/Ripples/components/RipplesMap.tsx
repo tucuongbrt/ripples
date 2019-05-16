@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import IAsset from "../../../model/IAsset";
 import Vehicle from "./Vehicle";
 import Spot from "./Spot";
-import IAisShip from "../../../model/IAisShip";
+import IAisShip, { AisShip } from "../../../model/IAisShip";
 import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
@@ -19,6 +19,8 @@ import VehiclePlan from "./VehiclePlan";
 import { ToolSelected } from "../../../model/ToolSelected";
 import IPositionAtTime from "../../../model/IPositionAtTime";
 import ILatLng from "../../../model/ILatLng";
+import { calculateNextPosition, KNOTS_TO_MS } from "../../../services/PositionUtils";
+const CanvasLayer = require('react-leaflet-canvas-layer');
 
 type propsType = {
     vehicles: IAsset[]
@@ -38,6 +40,7 @@ type stateType = {
     initCoords: LatLngLiteral,
     initZoom: number,
     geojsonData: any[]
+    perpLinesSize: number
 }
 
 class RipplesMap extends Component<propsType, stateType> {
@@ -49,6 +52,7 @@ class RipplesMap extends Component<propsType, stateType> {
             initCoords: { lat: 41.18, lng: -8.7, },
             initZoom: 10,
             geojsonData: GeoData,
+            perpLinesSize: 10,
         }
         super(props)
         this.buildProfiles = this.buildProfiles.bind(this)
@@ -56,6 +60,9 @@ class RipplesMap extends Component<propsType, stateType> {
         this.buildSpots = this.buildSpots.bind(this)
         this.buildAisShips = this.buildAisShips.bind(this)
         this.handleMapClick = this.handleMapClick.bind(this)
+        this.drawCanvas = this.drawCanvas.bind(this)
+        this.getPerpendicularLines = this.getPerpendicularLines.bind(this)
+        this.handleZoom = this.handleZoom.bind(this)
     }
 
     /**
@@ -65,9 +72,9 @@ class RipplesMap extends Component<propsType, stateType> {
     handleMapClick(e: any) {
         if (this.props.selectedPlan.id.length == 0) return
         const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
-        switch(this.props.toolSelected) {
+        switch (this.props.toolSelected) {
             case ToolSelected.ADD: {
-                this.props.addWpToPlan(Object.assign({}, clickLocation, {timestamp: 0}))
+                this.props.addWpToPlan(Object.assign({}, clickLocation, { timestamp: 0 }))
                 break
             }
             case ToolSelected.MOVE: {
@@ -130,8 +137,8 @@ class RipplesMap extends Component<propsType, stateType> {
     }
 
     buildGeoJSON() {
-        return this.state.geojsonData.map((json,i) => {
-            return <GeoJSON key={"geojson"+i} data={json} onEachFeature={this.onEachFeature} style={(feature: any) => {
+        return this.state.geojsonData.map((json, i) => {
+            return <GeoJSON key={"geojson" + i} data={json} onEachFeature={this.onEachFeature} style={(feature: any) => {
                 let color;
                 switch (feature.properties.Name) {
                     case 'PNLN': color = "#e5af3b"; break;
@@ -145,15 +152,73 @@ class RipplesMap extends Component<propsType, stateType> {
                     weight: 2,
                 }
             }
-                
+
             }></GeoJSON>
         })
     }
 
+    drawCanvas(info: any) {
+        const ctx = info.canvas.getContext('2d');
+        ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
+        ctx.fillStyle = 'rgba(255,116,0, 0.2)';
+        this.props.aisShips.filter(s => s.sog > 0.2).forEach(ship => {
+            let speed = ship.sog * KNOTS_TO_MS
+            let posIn1H = calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)
+            let pointA = info.map.latLngToContainerPoint([ship.latitude, ship.longitude])
+            let pointB = info.map.latLngToContainerPoint([posIn1H.latitude, posIn1H.longitude])
+            this.getPerpendicularLines(ship).forEach((line: IPositionAtTime[]) => {
+                let pointA = info.map.latLngToContainerPoint([line[0].latitude, line[0].longitude])
+                let pointB = info.map.latLngToContainerPoint([line[1].latitude, line[1].longitude])
+                ctx.beginPath();
+                ctx.moveTo(pointA.x, pointA.y);
+                ctx.lineTo(pointB.x, pointB.y);
+                ctx.stroke();
+            })
+            ctx.beginPath();
+            ctx.moveTo(pointA.x, pointA.y);
+            ctx.lineTo(pointB.x, pointB.y);
+            ctx.stroke();
+        })
+    }
+
+    getPerpendicularLines(ship: IAisShip): IPositionAtTime[][] {
+        const tenMinutes = 600
+        const lines: IPositionAtTime[][] = []
+        const aisCurrentPos = AisShip.getPositionAtTime(ship)
+        const shipSpeed = ship.sog * KNOTS_TO_MS
+        const pointBCog = ship.cog > 90 ? ship.cog - 90 : 360 + ship.cog - 90
+        for (let i = 1; i <= 6; i++) {
+            const time = i*tenMinutes
+            const pointC = calculateNextPosition(
+                aisCurrentPos,
+                ship.cog,
+                shipSpeed,
+                time)
+            const pointA = calculateNextPosition(
+                pointC, (ship.cog + 90) % 360, this.state.perpLinesSize, 1)
+                if (ship.cog < 90) {
+                    let cog = 360 - Math.abs((ship.cog - 90) % 360)
+                }
+            const pointB = calculateNextPosition(
+                pointC, pointBCog, this.state.perpLinesSize, 1)
+            lines.push([pointA,pointB])
+        }
+        return lines
+    }
+
+    handleZoom(e: any) {
+        const newZoom = e.target._animateToZoom
+        let newLineLength = 0;
+        if (newZoom > 7) {
+            newLineLength = 138598*Math.pow(newZoom,-2.9)
+        }
+        this.setState({perpLinesSize: newLineLength}) 
+    }
+
     render() {
         return (
-            <Map fullscreenControl center={this.state.initCoords} zoom={this.state.initZoom}
-                onClick={this.handleMapClick}>
+            <Map fullscreenControl center={this.state.initCoords} zoom={this.state.initZoom} maxZoom={20}
+                onClick={this.handleMapClick} onZoomend={this.handleZoom}>
                 <LayersControl position="topright">
                     <BaseLayer checked name="OpenStreetMap.Mapnik">
                         <TileLayer
@@ -194,7 +259,9 @@ class RipplesMap extends Component<propsType, stateType> {
                     <Overlay checked name="AIS Data">
                         <LayerGroup>
                             {this.buildAisShips()}
+                            <CanvasLayer drawMethod={this.drawCanvas} />
                         </LayerGroup>
+                        
                     </Overlay>
                     <Overlay checked name="Profiles Data">
                         <LayerGroup>

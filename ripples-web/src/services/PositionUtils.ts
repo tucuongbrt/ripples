@@ -4,12 +4,21 @@ import ILatLng from "../model/ILatLng";
 import IAisShip from "../model/IAisShip";
 const wgs84 = require("wgs84-util");
 
+export const KNOTS_TO_MS = 0.514444
+
 export function distanceInMetersBetweenCoords(p1: ILatLng, p2: ILatLng) {
     const pointA = {coordinates: [p1.longitude, p1.latitude]}
     const pointB = {coordinates: [p2.longitude, p2.latitude]}
     return wgs84.distanceBetween(pointA, pointB);
 }
 
+/**
+ * 
+ * @param p Initial position
+ * @param cog Course over ground
+ * @param speed In meters per second 
+ * @param inSeconds Delta time in secods
+ */
 export function calculateNextPosition(p: IPositionAtTime, cog: number, speed: number, inSeconds: number): IPositionAtTime {
     const pointA = {coordinates: [p.longitude, p.latitude]}
     const distance = speed * inSeconds;

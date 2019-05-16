@@ -12,3 +12,19 @@ export default interface IAisShip extends ILatLng {
     timestamp: number
     awareness: IPositionAtTime[]
 }
+
+export class AisShip {
+    static getPositionAtTime(ship: IAisShip): IPositionAtTime {
+        return {
+            latitude: ship.latitude,
+            longitude: ship.longitude,
+            timestamp: ship.timestamp
+        }
+    }
+    static getLocation(ship: IAisShip): ILatLng {
+        return {
+            latitude: ship.latitude,
+            longitude: ship.longitude
+        }
+    }
+}

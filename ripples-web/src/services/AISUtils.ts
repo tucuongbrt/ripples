@@ -1,16 +1,13 @@
 import IAisShip from "../model/IAisShip";
 
-const fourHoursInMs = 14400000; 
+const oneHourInMs = 3600000; 
 
 function isRecent(ship: IAisShip): boolean {
-  return ship.timestamp > (Date.now() - fourHoursInMs);
+  return ship.timestamp > (Date.now() - oneHourInMs);
 }
-
-export function fetchAisData(): Promise<IAisShip[]> {
-  return fetch(`${process.env.REACT_APP_API_BASE_URL}/ais`)
-    .then(response => response.json())
-    .then((ships: IAisShip[]) => {
-      ships.forEach(s => s.timestamp = new Date(s.timestamp).getTime())
-      return ships.filter(ship => isRecent(ship))
-    }); 
+export async function fetchAisData(): Promise<IAisShip[]> {
+  const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/ais`);
+  const ships = await response.json();
+  ships.forEach((s: IAisShip) => s.timestamp = new Date(s.timestamp).getTime());
+  return ships.filter((s: IAisShip) => isRecent(s)); 
 };

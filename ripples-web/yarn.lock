@@ -8525,6 +8525,11 @@ react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.2:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.8.6.tgz#5bbc1e2d29141c9fbdfed456343fe2bc430a6a16"
   integrity sha512-aUk3bHfZ2bRSVFFbbeVS4i+lNPZr3/WM5jT2J5omUVV1zzcs1nAaf3l51ctA5FFvCRbhrH0bdAsRRQddFJZPtA==
 
+react-leaflet-canvas-layer@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/react-leaflet-canvas-layer/-/react-leaflet-canvas-layer-1.0.0.tgz#fdd1c4009d349150b974934a6a6af5ad24241c95"
+  integrity sha512-pwpxY0Jz4dWkYyCddUDNICigqLdEKlMrvBOxBslAuQrsIAnRLELLSIsslnPn1FCH4fuWEJ03tULArjrbfn2qsg==
+
 react-leaflet-fullscreen-control@^0.0.4:
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/react-leaflet-fullscreen-control/-/react-leaflet-fullscreen-control-0.0.4.tgz#b2543cb5306f8936f4db2e7de4184b90e7b2eabb"
