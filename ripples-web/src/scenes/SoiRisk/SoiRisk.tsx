@@ -157,7 +157,8 @@ class SoiRisk extends Component<propsType, stateType> {
         return <td className={assetCollisions.length == 0 ? 'bg-green' : 'bg-red'}>
             <div>
                 <Button onClick={this.toggleCollisionsModal}>{assetCollisions.length}</Button>
-                <Modal isOpen={this.state.collisionsModal} toggle={this.toggleCollisionsModal}>
+                <Modal key={assetName + "_collisionsModal"}
+                isOpen={this.state.collisionsModal} toggle={this.toggleCollisionsModal}>
                     <ModalHeader toggle={this.toggleCollisionsModal}>{assetName} collisions</ModalHeader>
                     <ModalBody>
                         {assetCollisions.map((c: IPotentialCollision) => {

@@ -79,7 +79,7 @@ type assetSettings = {
   params: paramsType
 }
 
-async function subscribeToSms(phoneNumber: String) {
+export async function subscribeToSms(phoneNumber: String) {
   return request({
     url: `${apiURL}/sms/subscribe`,
     method: 'POST',
