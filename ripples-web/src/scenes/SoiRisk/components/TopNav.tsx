@@ -13,15 +13,20 @@ import Input from "reactstrap/lib/Input";
 import Button from "reactstrap/lib/Button";
 import { subscribeToSms } from "../../../services/SoiUtils";
 import 'react-notifications/lib/notifications.css';
+import IRipplesState from "../../../model/IRipplesState";
+import { connect } from "react-redux";
+import IAuthState, { isScientist, isOperator } from "../../../model/IAuthState";
 const { NotificationManager } = require('react-notifications');
 
-type propsType = {}
+type propsType = {
+    auth: IAuthState
+}
 type stateType = {
     isNavOpen: boolean
     phoneNumber: string
 }
 
-export default class TopNav extends Component<propsType, stateType>{
+class TopNav extends Component<propsType, stateType>{
 
     constructor(props: propsType) {
         super(props)
@@ -32,6 +37,7 @@ export default class TopNav extends Component<propsType, stateType>{
         this.buildSmsSubscriber = this.buildSmsSubscriber.bind(this)
         this.onPhoneSubmit = this.onPhoneSubmit.bind(this)
         this.onPhoneChanged = this.onPhoneChanged.bind(this)
+        this.onNavToggle = this.onNavToggle.bind(this)
     }
 
     onNavToggle() {
@@ -55,14 +61,19 @@ export default class TopNav extends Component<propsType, stateType>{
 
 
     buildSmsSubscriber() {
-        return <NavItem>
-            <Form inline>
-                <FormGroup>
-                    <Input placeholder="phone number" onChange={this.onPhoneChanged} value={this.state.phoneNumber} />
-                </FormGroup>
-                <Button onClick={this.onPhoneSubmit}>Submit</Button>
-            </Form>
-        </NavItem>
+        if (isOperator(this.props.auth)) {
+            return <NavItem className="mr-2">
+                <Form inline>
+                    <FormGroup>
+                        <Input className="mr-2" placeholder="phone number"
+                            onChange={this.onPhoneChanged} value={this.state.phoneNumber} />
+                    </FormGroup>
+                    <Button onClick={this.onPhoneSubmit}>Submit</Button>
+                </Form>
+            </NavItem>
+        }
+        return <></>
+
     }
 
     render() {
@@ -79,3 +90,12 @@ export default class TopNav extends Component<propsType, stateType>{
             </Navbar>)
     }
 }
+
+
+function mapStateToProps(state: IRipplesState) {
+    return {
+        auth: state.auth,
+    }
+}
+
+export default connect(mapStateToProps, null)(TopNav)
