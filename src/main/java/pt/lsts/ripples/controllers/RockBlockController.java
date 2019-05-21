@@ -1,28 +1,22 @@
 package pt.lsts.ripples.controllers;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
-
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.iridium.RockBlockIridiumSender;
 import pt.lsts.ripples.repo.Rock7Repository;
 import pt.lsts.ripples.services.MessageProcessor;
+
+import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.TimeZone;
 
 
 @RestController
@@ -73,10 +67,11 @@ public class RockBlockController {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-		    return new ResponseEntity<String>(e.getClass().getSimpleName() + ": deserialize Iridium message error",
+		    return new ResponseEntity<>(e.getClass().getSimpleName() + ": deserialize Iridium message error",
 			HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		logger.info(msg.toString());
+		logger.info("api/v1/iridium: " + msg.toString());
+		logger.info("msgType:" + msg.message_type);
 		int dst = msg.getDestination();
 		int src = msg.getSource();
 		logger.info("Message dst: " + dst + "; msg src: "  + src);
@@ -96,10 +91,10 @@ public class RockBlockController {
 			rockBlockService.sendMessage(msg); // redirect message to rockBlock
 		} catch(Exception e){
 			logger.warn(e.getLocalizedMessage());
-			return new ResponseEntity<String>(e.getClass().getSimpleName() + ": redirect Iridium message error",
+			return new ResponseEntity<>(e.getClass().getSimpleName() + ": redirect Iridium message error",
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		return new ResponseEntity<String>("Message posted to Ripples", HttpStatus.OK);
+		return new ResponseEntity<>("Message posted to Ripples", HttpStatus.OK);
 	} 	
 
 
@@ -108,7 +103,7 @@ public class RockBlockController {
 			@RequestParam String transmit_time, @RequestParam String data) {
 
 		if (data.isEmpty()){
-			return new ResponseEntity<String>("Received empty message", HttpStatus.OK);
+			return new ResponseEntity<>("Received empty message", HttpStatus.OK);
 		}
 
 		Date timestamp = new Date();

@@ -17,6 +17,11 @@ public class PotentialCollision {
     }
 
     @Override
+    public String toString() {
+        return "Potential collision between " + asset + " and " + ship + " at " + timestamp.toString() + ";";
+    }
+
+    @Override
     public boolean equals(Object o) { 
   
         if (o == this) { 
