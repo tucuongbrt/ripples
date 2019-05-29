@@ -207,6 +207,7 @@ public class SoiController {
 		return errors;
 	}
 
+	@PreAuthorize("hasRole('OPERATOR')")
 	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteAssetErrors(@PathVariable("name") String assetName) {
 		assetErrorRepository.deleteAllByName(assetName);
