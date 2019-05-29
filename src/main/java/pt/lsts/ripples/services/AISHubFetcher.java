@@ -1,11 +1,5 @@
 package pt.lsts.ripples.services;
 
-import java.net.URL;
-import java.text.ParseException;
-import java.util.Scanner;
-
-import javax.annotation.PostConstruct;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +8,11 @@ import org.springframework.stereotype.Component;
 import pt.lsts.aismanager.api.AisContactManager;
 import pt.lsts.ripples.domain.wg.AISShip;
 import pt.lsts.ripples.repo.AISRepository;
+
+import javax.annotation.PostConstruct;
+import java.net.URL;
+import java.text.ParseException;
+import java.util.Scanner;
 
 
 @Component
@@ -50,6 +49,8 @@ public class AISHubFetcher {
 				+ "&format=1&output=csv&latmin=" + latMin + "&lonmin=" + lonMin + "&latmax=" 
 				+ latMax + "&lonmax=" + lonMax;
 		logger.info("AISHubFetcher url: " + url);
+		lastRequest = 0;
+		fetchAISHub();
 	}
 	
 	

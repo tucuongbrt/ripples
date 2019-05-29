@@ -20,7 +20,6 @@ import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.IncomingMessagesRepository;
 import pt.lsts.ripples.repo.UnassignedPlansRepository;
 import pt.lsts.ripples.repo.VertProfilesRepo;
-import pt.lsts.ripples.services.AISHubFetcher;
 import pt.lsts.ripples.services.CollisionForecastService;
 import pt.lsts.ripples.services.SoiAwareness;
 import pt.lsts.ripples.util.HTTPResponse;
@@ -41,8 +40,6 @@ public class SoiController {
 	@Autowired
 	VertProfilesRepo vertProfiles;
 
-	@Autowired
-	AISHubFetcher aisUpdater;
 
 	@Autowired
 	SoiInteraction soiInteraction;
@@ -84,7 +81,6 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/risk", "/soi/risk/" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HashSet<PotentialCollision> riskAnalysis() {
-		aisUpdater.fetchAISHub();
 		return collisionService.updateCollisions();
 	}
 

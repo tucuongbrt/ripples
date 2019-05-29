@@ -3,7 +3,6 @@ import { Button } from "reactstrap";
 import IRipplesState from '../model/IRipplesState'
 import IAuthState, { IUser } from '../model/IAuthState'
 import { connect } from "react-redux";
-const {NotificationManager} = require('react-notifications');
 import { removeUser } from "../redux/ripples.actions";
 
 const GOOGLE_AUTH_URL = process.env.REACT_APP_API_BASE_URL +

@@ -1,32 +1,32 @@
 package pt.lsts.ripples.services;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import pt.lsts.aismanager.ShipAisSnapshot;
 import pt.lsts.aismanager.api.AisContactManager;
 import pt.lsts.ripples.domain.assets.AssetState;
 import pt.lsts.ripples.domain.soi.PotentialCollision;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
 import pt.lsts.ripples.repo.AssetsRepository;
-import pt.lsts.ripples.util.Pair;
 import pt.lsts.util.WGS84Utilities;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class CollisionForecastService {
 
 	@Autowired
 	AssetsRepository assetsRepo;
+
+	@Autowired
+    AISHubFetcher aisHubFetcher;
 	
 	private final int collisionDistance = 100;
 	
@@ -35,6 +35,7 @@ public class CollisionForecastService {
 	private ConcurrentHashMap<String, VehicleRiskAnalysis> state = new ConcurrentHashMap<>();
 	
 	public HashSet<PotentialCollision> updateCollisions() {
+	    aisHubFetcher.fetchAISHub();
         long start = System.currentTimeMillis();
 
         // (vehicle, ship) -> (distance, timestamp)

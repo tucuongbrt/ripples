@@ -287,7 +287,7 @@ class TopNav extends Component<propsType, stateType> {
   render() {
     return (
       <Navbar color="faded" light expand="md">
-        <NavbarBrand className="mr-auto">Ripples</NavbarBrand>
+        <NavbarBrand href="/" className="mr-auto">Ripples</NavbarBrand>
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar>
           <Nav className="ml-auto" navbar>
