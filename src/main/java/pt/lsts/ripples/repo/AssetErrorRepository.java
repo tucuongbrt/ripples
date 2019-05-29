@@ -5,5 +5,7 @@ import org.springframework.stereotype.Repository;
 import pt.lsts.ripples.domain.assets.AssetError;
 
 @Repository
-public interface AssetErrorRepository extends CrudRepository<AssetError, String> {
+public interface AssetErrorRepository extends CrudRepository<AssetError, Long> {
+    Iterable<AssetError> findAllByName(String name);
+    void deleteAllByName(String name);
 }

@@ -16,6 +16,7 @@ import pt.lsts.ripples.domain.soi.*;
 import pt.lsts.ripples.exceptions.AssetNotFoundException;
 import pt.lsts.ripples.exceptions.SendSoiCommandException;
 import pt.lsts.ripples.iridium.SoiInteraction;
+import pt.lsts.ripples.repo.AssetErrorRepository;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.IncomingMessagesRepository;
 import pt.lsts.ripples.repo.UnassignedPlansRepository;
@@ -52,6 +53,9 @@ public class SoiController {
 
 	@Autowired
 	IncomingMessagesRepository messagesRepository;
+
+	@Autowired
+	AssetErrorRepository assetErrorRepository;
 
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
 
@@ -192,6 +196,21 @@ public class SoiController {
 		});
 		logger.info("Found " + messages.size() + " for asset " + assetName);
 		return String.join("\n", messages);
+	}
+
+	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.GET)
+	public List<String> getAssetErrors(@PathVariable("name") String assetName) {
+		List<String> errors = new ArrayList<>();
+		assetErrorRepository.findAllByName(assetName).forEach((error) -> {
+			errors.add(error.getError());
+		});
+		return errors;
+	}
+
+	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.DELETE)
+	public ResponseEntity<HTTPResponse> deleteAssetErrors(@PathVariable("name") String assetName) {
+		assetErrorRepository.deleteAllByName(assetName);
+		return new ResponseEntity<>(new HTTPResponse("success", "Plan id updated"), HttpStatus.OK);
 	}
 
 }
