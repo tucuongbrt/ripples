@@ -22,7 +22,7 @@ public class MessageProcessor {
     AssetsRepository assets;
 
     @Autowired
-    AssetErrorRepository assetErrorRepository;
+    AssetsErrorsRepository assetsErrorsRepository;
 
     @Autowired
     AddressesRepository addresses;
@@ -103,8 +103,16 @@ public class MessageProcessor {
         Asset vehicle = assets.findByImcid(msg.getSource());
         if (vehicle != null) {
             logger.info("Iridium command: " + msg.getCommand() + " for asset " + vehicle.getName());
-            AssetError error = new AssetError(vehicle.getName(), msg.getCommand());
-            assetErrorRepository.save(error);
+            AssetErrors error = new AssetErrors(vehicle.getName(), msg.getCommand());
+            Optional<AssetErrors> assetErrorOpt = assetsErrorsRepository.findById(vehicle.getName());
+            if (assetErrorOpt.isPresent()) {
+                AssetErrors assetErrors = assetErrorOpt.get();
+                assetErrors.addError(msg.getCommand());
+                assetsErrorsRepository.save(assetErrors);
+            } else {
+                assetsErrorsRepository.save(error);
+            }
+            
             // send sms message to all subscribers
             smsService.sendMessage(vehicle.getName() + ": " + msg.getCommand());
         }

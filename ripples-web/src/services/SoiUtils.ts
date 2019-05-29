@@ -7,7 +7,7 @@ import IAuthState, { isScientist } from "../model/IAuthState";
 import { request } from "./RequestUtils";
 import { IPotentialCollision, IPotentialCollisionPayload } from "../model/IPotentialCollision";
 import IAssetState from "../model/IAssetState";
-import { string } from "prop-types";
+import { AssetErrors, AssetError } from "../model/AssetErrors";
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
@@ -173,4 +173,19 @@ export async function fetchCollisions(): Promise<IPotentialCollision[]> {
     p => Object.assign({}, p, { timestamp: new Date(p.timestamp).getTime() })
   );
   return data;
+}
+
+export async function fetchAssetsErrors(): Promise<AssetErrors[]> {
+  const response: any[] = await request({url: `${apiURL}/soi/errors`})
+  console.log("asset errors", response);
+  return response.map((r) => {
+    return new AssetErrors(r.name, r.errors.sort(
+      (a: AssetError,b: AssetError) => a.timestamp < b.timestamp));
+  });
+}
+
+export async function deleteAssetErrors(assetName: String) {
+  await request(
+    {url: `${apiURL}/soi/errors/${assetName}`,
+    method: 'DELETE'})
 }

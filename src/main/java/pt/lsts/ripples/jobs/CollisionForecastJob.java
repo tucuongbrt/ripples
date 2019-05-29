@@ -19,7 +19,7 @@ public class CollisionForecastJob {
     SMSService smsService;
 
 
-    @Scheduled(fixedRate = 180_000)
+    @Scheduled(fixedRate = 900_000)
     public void calculateCollisions() {
         HashSet<PotentialCollision> collisions = collisionService.updateCollisions();
         if (collisions.size() > 0) {

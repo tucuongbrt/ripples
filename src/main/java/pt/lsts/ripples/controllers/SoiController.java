@@ -11,12 +11,13 @@ import pt.lsts.imc.SoiCommand;
 import pt.lsts.imc.SoiCommand.COMMAND;
 import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.AssetErrors;
 import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.soi.*;
 import pt.lsts.ripples.exceptions.AssetNotFoundException;
 import pt.lsts.ripples.exceptions.SendSoiCommandException;
 import pt.lsts.ripples.iridium.SoiInteraction;
-import pt.lsts.ripples.repo.AssetErrorRepository;
+import pt.lsts.ripples.repo.AssetsErrorsRepository;
 import pt.lsts.ripples.repo.AssetsRepository;
 import pt.lsts.ripples.repo.IncomingMessagesRepository;
 import pt.lsts.ripples.repo.UnassignedPlansRepository;
@@ -28,6 +29,8 @@ import pt.lsts.ripples.util.HTTPResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+
+import javax.transaction.Transactional;
 
 @RestController
 public class SoiController {
@@ -55,7 +58,7 @@ public class SoiController {
 	IncomingMessagesRepository messagesRepository;
 
 	@Autowired
-	AssetErrorRepository assetErrorRepository;
+	AssetsErrorsRepository assetsErrorsRepository;
 
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
 
@@ -199,19 +202,28 @@ public class SoiController {
 	}
 
 	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.GET)
-	public List<String> getAssetErrors(@PathVariable("name") String assetName) {
-		List<String> errors = new ArrayList<>();
-		assetErrorRepository.findAllByName(assetName).forEach((error) -> {
-			errors.add(error.getError());
-		});
+	public AssetErrors getAssetErrors(@PathVariable("name") String assetName) {
+		Optional<AssetErrors> opt = assetsErrorsRepository.findByName(assetName);
+		if (opt.isPresent()) {
+			return opt.get();
+		}
+		return new AssetErrors(assetName);
+	}
+
+	@RequestMapping(path = {"/soi/errors","/soi/errors/"}, method = RequestMethod.GET)
+	public List<AssetErrors> getAssetsErrors() {
+		List<AssetErrors> errors = new ArrayList<>();
+		assetsErrorsRepository.findAll().forEach(errors::add);
 		return errors;
 	}
 
 	@PreAuthorize("hasRole('OPERATOR')")
+	@Transactional
 	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteAssetErrors(@PathVariable("name") String assetName) {
-		assetErrorRepository.deleteAllByName(assetName);
-		return new ResponseEntity<>(new HTTPResponse("success", "Plan id updated"), HttpStatus.OK);
+		logger.info("Delete errors called for asset: " + assetName);
+		assetsErrorsRepository.deleteByName(assetName);
+		return new ResponseEntity<>(new HTTPResponse("success", "Asset errors cleared"), HttpStatus.OK);
 	}
 
 }

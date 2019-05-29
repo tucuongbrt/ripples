@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Table, Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import { fetchSoiData, fetchCollisions } from '../../services/SoiUtils';
+import { fetchSoiData, fetchCollisions, fetchAssetsErrors, deleteAssetErrors } from '../../services/SoiUtils';
 import { timeFromNow, timestampMsToReadableDate } from '../../services/DateUtils';
 import { distanceInMetersBetweenCoords } from '../../services/PositionUtils';
 import IAsset from '../../model/IAsset';
@@ -11,21 +11,25 @@ import './styles/SoiRisk.css';
 import IPlan from '../../model/IPlan';
 import TopNav from './components/TopNav';
 import { getCurrentUser } from '../../services/AuthUtils';
-import { IUser } from '../../model/IAuthState';
+import IAuthState, { IUser, isOperator } from '../../model/IAuthState';
 import { setUser } from '../../redux/ripples.actions';
 import { connect } from 'react-redux';
+import { AssetErrors } from '../../model/AssetErrors';
+import IRipplesState from '../../model/IRipplesState';
 
 
 type stateType = {
-    vehicles: IAsset[],
-    plans: IPlan[],
-    collisions: IPotentialCollision[],
-    collisionsModal: boolean
+    vehicles: IAsset[]
+    plans: IPlan[]
+    collisions: IPotentialCollision[]
+    assetErrors: AssetErrors[]
+    isModalOpen: boolean
     loading: boolean
 }
 
 type propsType = {
-    setUser: (user: IUser) => any,
+    setUser: (user: IUser) => any
+    auth: IAuthState
 }
 
 class SoiRisk extends Component<propsType, stateType> {
@@ -39,13 +43,15 @@ class SoiRisk extends Component<propsType, stateType> {
             vehicles: [],
             plans: [],
             collisions: [],
-            collisionsModal: false,
+            assetErrors: [],
+            isModalOpen: false,
             loading: true,
         }
         this.updateSoiData = this.updateSoiData.bind(this)
         this.buildAllVehicles = this.buildAllVehicles.bind(this)
         this.buildVehicleCollisions = this.buildVehicleCollisions.bind(this)
-        this.toggleCollisionsModal = this.toggleCollisionsModal.bind(this)
+        this.buildVehicleErrors = this.buildVehicleErrors.bind(this)
+        this.toggleModal = this.toggleModal.bind(this)
         this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     }
     async loadCurrentlyLoggedInUser() {
@@ -67,13 +73,27 @@ class SoiRisk extends Component<propsType, stateType> {
         clearInterval(this.timerID);
     }
 
+    async clearAssetErrors(assetName: string) {
+        try {
+            console.log("Clear assets errors called")
+            await deleteAssetErrors(assetName)
+            this.updateSoiData();
+        } catch(e) {
+            
+        }
+        
+    }
+
+
     async updateSoiData() {
         const soiData = await fetchSoiData()
         const collisions = await fetchCollisions()
+        const errors = await fetchAssetsErrors();
         this.setState({
             vehicles: soiData.vehicles,
             plans: soiData.plans,
-            collisions: collisions
+            collisions: collisions,
+            assetErrors: errors,
         })
     }
 
@@ -134,7 +154,7 @@ class SoiRisk extends Component<propsType, stateType> {
                 {this.buildFuel(vehicle.lastState.fuel)}
                 <td>{this.getDistanceToVehicle(vehicle)}</td>
                 {this.buildVehicleCollisions(vehicle.name)}
-                <td>N/D</td>
+                {this.buildVehicleErrors(vehicle.name)}
             </tr>
         )
     }
@@ -143,9 +163,9 @@ class SoiRisk extends Component<propsType, stateType> {
         return this.state.vehicles.map(vehicle => this.buildVehicle(vehicle))
     }
 
-    toggleCollisionsModal() {
+    toggleModal() {
         this.setState(prevState => ({
-            collisionsModal: !prevState.collisionsModal
+            isModalOpen: !prevState.isModalOpen
         }));
     }
 
@@ -156,14 +176,14 @@ class SoiRisk extends Component<propsType, stateType> {
         console.log("Asset collisions length", assetCollisions.length);
         return <td className={assetCollisions.length == 0 ? 'bg-green' : 'bg-red'}>
             <div>
-                <Button onClick={this.toggleCollisionsModal}>{assetCollisions.length}</Button>
+                <Button onClick={this.toggleModal}>{assetCollisions.length}</Button>
                 <Modal key={assetName + "_collisionsModal"}
-                isOpen={this.state.collisionsModal} toggle={this.toggleCollisionsModal}>
-                    <ModalHeader toggle={this.toggleCollisionsModal}>{assetName} collisions</ModalHeader>
+                isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
+                    <ModalHeader toggle={this.toggleModal}>{assetName} collisions</ModalHeader>
                     <ModalBody>
                         {assetCollisions.map((c: IPotentialCollision) => {
                             return (
-                                <div>
+                                <div key={`collision_at_${c.timestamp}`}>
                                     <ul>
                                         <li>Ship: {c.ship}</li>
                                         <li>Distance: {c.distance.toFixed(2)}m</li>
@@ -175,7 +195,43 @@ class SoiRisk extends Component<propsType, stateType> {
                         })}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="secondary" onClick={this.toggleCollisionsModal}>Close</Button>
+                        <Button color="secondary" onClick={this.toggleModal}>Close</Button>
+                    </ModalFooter>
+                </Modal>
+            </div>
+
+        </td>;
+    }
+
+    buildVehicleErrors(assetName: string) {
+        const allErrors = this.state.assetErrors;
+        const assetErrors = allErrors.find((e) => e.getName() == assetName);
+        if (assetErrors == undefined) return <td className='bg-green'>0</td>
+        const errors = assetErrors.getErrors();
+        return <td className={errors.length == 0 ? 'bg-green' : 'bg-red'}>
+            <div>
+                <Button onClick={this.toggleModal}>{errors.length}</Button>
+                <Modal key={assetName + "_errorsModal"}
+                isOpen={this.state.isModalOpen} toggle={this.toggleModal}>
+                    <ModalHeader toggle={this.toggleModal}>{assetName} errors</ModalHeader>
+                    <ModalBody>
+                        {errors.map( (e) => {
+                            return (
+                                <div key={`error_at_${e.timestamp}`}>
+                                    <ul>
+                                        <li>Message: {e.message}</li>
+                                        <li>Date: {timestampMsToReadableDate(e.timestamp)}</li>
+                                    </ul>
+                                    <hr></hr>
+                                </div>
+                            )
+                        })}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="secondary" onClick={this.toggleModal}>Close</Button>
+                        {isOperator(this.props.auth) ? 
+                        <Button color="primary" onClick={() => this.clearAssetErrors(assetName)}>Clear</Button>
+                        : <></> }
                     </ModalFooter>
                 </Modal>
             </div>
@@ -207,8 +263,15 @@ class SoiRisk extends Component<propsType, stateType> {
         )
     }
 }
+
+function mapStateToProps(state: IRipplesState) {
+    return {
+      auth: state.auth,
+    }
+  }
+
 const actionCreators = {
     setUser,
   }
 
-export default connect(null, actionCreators)(SoiRisk)
+export default connect(mapStateToProps, actionCreators)(SoiRisk)
