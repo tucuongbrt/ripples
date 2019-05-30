@@ -95,6 +95,21 @@ public class MessageProcessor {
         }
     }
 
+    private void addError(String assetName, String message) {
+        AssetErrors error = new AssetErrors(assetName, message);
+        Optional<AssetErrors> assetErrorOpt = assetsErrorsRepository.findById(assetName);
+        if (assetErrorOpt.isPresent()) {
+            AssetErrors assetErrors = assetErrorOpt.get();
+            assetErrors.addError(message);
+            assetsErrorsRepository.save(assetErrors);
+        } else {
+            assetsErrorsRepository.save(error);
+        }
+        
+        // send sms message to all subscribers
+        smsService.sendMessage(assetName + ": " + message);
+    }
+
     /**
      * Errors are sent as iridium commands
      * @param msg
@@ -103,20 +118,10 @@ public class MessageProcessor {
         Asset vehicle = assets.findByImcid(msg.getSource());
         if (vehicle != null) {
             logger.info("Iridium command: " + msg.getCommand() + " for asset " + vehicle.getName());
-            AssetErrors error = new AssetErrors(vehicle.getName(), msg.getCommand());
-            Optional<AssetErrors> assetErrorOpt = assetsErrorsRepository.findById(vehicle.getName());
-            if (assetErrorOpt.isPresent()) {
-                AssetErrors assetErrors = assetErrorOpt.get();
-                assetErrors.addError(msg.getCommand());
-                assetsErrorsRepository.save(assetErrors);
-            } else {
-                assetsErrorsRepository.save(error);
+            if (msg.getCommand().startsWith("ERROR")) {
+                addError(vehicle.getName(), msg.getCommand());
             }
-            
-            // send sms message to all subscribers
-            smsService.sendMessage(vehicle.getName() + ": " + msg.getCommand());
         }
-
     }
 
     public void onPlainTextReport(PlainTextReport msg) {
