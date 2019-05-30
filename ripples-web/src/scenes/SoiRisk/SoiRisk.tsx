@@ -237,7 +237,7 @@ class SoiRisk extends Component<propsType, stateType> {
                         })}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="secondary" onClick={this.toggleCollisionsModal}>Close</Button>
+                        <Button color="secondary" onClick={this.toggleErrorsModal}>Close</Button>
                         {isOperator(this.props.auth) ? 
                         <Button color="primary" onClick={() => this.clearAssetErrors(assetName)}>Clear</Button>
                         : <></> }
