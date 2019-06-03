@@ -28,6 +28,10 @@ public class AISShip {
 	private double latitude;
 	private double longitude;
 	private double sog;
+	private double bow; // distance to bow (meters)
+	private double stern; // distance to stern (meters)
+	private double port; // distance to port (meters)
+	private double starboard; // distance to startboard (meters)
 
 	public static AISShip getDefault(int mmsi) {
 		AISShip ais = new AISShip();
@@ -40,9 +44,12 @@ public class AISShip {
 		ais.setSog(0);
 		ais.setType("0");
 		ais.setTimestamp(new Date());
+		ais.setBow(0);
+		ais.setStern(0);
+		ais.setPort(0);
+		ais.setStarboard(0);
 		return ais;
 	}
-
 
 	public static AISShip parseCSV(String csvString) throws ParseException {
 		AISShip ais = new AISShip();
@@ -54,8 +61,12 @@ public class AISShip {
 		ais.cog = Double.valueOf(parts[4]);
 		ais.sog = Double.valueOf(parts[5]);
 		ais.heading = Double.valueOf(parts[6]);
-		ais.name = parts[9].replaceAll("\"", "").replaceAll("\\.","");
+		ais.name = parts[9].replaceAll("\"", "").replaceAll("\\.", "");
 		ais.type = parts[11];
+		ais.bow = Double.valueOf(parts[13]);
+		ais.stern = Double.valueOf(parts[14]);
+		ais.port = Double.valueOf(parts[15]);
+		ais.starboard = Double.valueOf(parts[16]);
 		return ais;
 	}
 
@@ -70,7 +81,11 @@ public class AISShip {
 		json.add("longitude", "" + longitude);
 		json.add("cog", "" + cog);
 		json.add("sog", "" + sog);
-		json.add("heading", "" + heading); 	
+		json.add("heading", "" + heading);
+		json.add("bow", "" + bow);
+		json.add("stern", "" + stern);
+		json.add("port", "" + port);
+		json.add("starboard", "" + starboard);
 		return json.toString();
 	}
 
@@ -156,6 +171,38 @@ public class AISShip {
 
 	public void setSog(double sog) {
 		this.sog = sog;
+	}
+
+	public double getStarboard() {
+		return starboard;
+	}
+
+	public void setStarboard(double startboard) {
+		this.starboard = startboard;
+	}
+
+	public double getPort() {
+		return port;
+	}
+
+	public void setPort(double port) {
+		this.port = port;
+	}
+
+	public double getStern() {
+		return stern;
+	}
+
+	public void setStern(double stern) {
+		this.stern = stern;
+	}
+
+	public double getBow() {
+		return bow;
+	}
+
+	public void setBow(double bow) {
+		this.bow = bow;
 	}
 
 }
