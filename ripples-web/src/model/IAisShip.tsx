@@ -2,7 +2,22 @@ import ILatLng from "./ILatLng";
 import IAssetAwareness from "./IAssetAwareness";
 import IPositionAtTime from "./IPositionAtTime";
 
-export default interface IAisShip extends ILatLng {
+export interface IShipLocation {
+    bowStarboard: ILatLng
+    sternStarboard: ILatLng
+    bowPort: ILatLng
+    sternPort: ILatLng
+    bow: ILatLng
+}
+
+export interface IShipDimensions {
+    bow: number
+    stern: number
+    port: number
+    starboard: number
+}
+
+export default interface IAisShip extends ILatLng, IShipDimensions {
     name: string
     mmsi: string
     cog: number
@@ -27,4 +42,12 @@ export class AisShip {
             longitude: ship.longitude
         }
     }
+    static getDimensions(ship: IAisShip): IShipDimensions {
+        return {
+            bow: ship.bow,
+            stern: ship.stern,
+            starboard: ship.starboard,
+            port: ship.port
+        }
+    } 
 }

@@ -3,13 +3,14 @@ import { Popup } from 'react-leaflet'
 import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
-import IAisShip, { AisShip } from '../../../model/IAisShip';
+import IAisShip, { AisShip, IShipDimensions, IShipLocation } from '../../../model/IAisShip';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import AssetAwareness from './AssetAwareness';
 import IAssetAwareness from '../../../model/IAssetAwareness';
-import { KNOTS_TO_MS, calculateNextPosition } from '../../../services/PositionUtils';
+import { KNOTS_TO_MS, calculateNextPosition, getShipLocation } from '../../../services/PositionUtils';
 import IPositionAtTime from '../../../model/IPositionAtTime';
+import ILatLng from '../../../model/ILatLng';
 const CanvasLayer = require('react-leaflet-canvas-layer');
 
 type propsType = {
@@ -81,6 +82,10 @@ class AISShip extends Component<propsType, {}> {
                         <li>Sog: {(ship.sog).toFixed(1)} knots</li>
                         <li>Type: {ship.type}</li>
                         <li>Last update: {timeFromNow(ship.timestamp)}</li>
+                        <li>Port: {ship.port}m</li>
+                        <li>Starboard: {ship.starboard}m</li>
+                        <li>Bow: {ship.bow}m</li>
+                        <li>Stern: {ship.stern}m</li>
                     </ul>
                 </Popup>
             </RotatedMarker>
@@ -89,20 +94,54 @@ class AISShip extends Component<propsType, {}> {
 
     drawCanvas(info: any) {
         let ship = this.props.data;
-        
-        if (this.props.data.sog > 0.2) {
-            this.drawAisLines(info, ship)
-        }
-        
-
-    }
-
-    drawAisLines(info: any, ship: IAisShip) {
         const ctx = info.canvas.getContext('2d');
         ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
         ctx.fillStyle = 'rgba(255,116,0, 0.2)';
-        let speed = ship.sog * KNOTS_TO_MS
-        let posIn1H = calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)
+        this.drawShip(info, ctx, ship)
+        
+        if (ship.sog > 0.2) {
+            this.drawAisLines(info, ctx, ship)
+        }
+        
+    }
+
+    /**
+     * Ship design
+     * ----B----
+     * --P   S--
+     * --|   |--
+     * --|   |--
+     * --L___R--
+     */
+    drawShip(info: any, ctx:any, ship: IAisShip) {
+        const shipLocation: IShipLocation = getShipLocation(ship);
+        ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
+        let center = info.map.latLngToContainerPoint([ship.latitude, ship.longitude])
+        const canvasPoints = this.shipLocationToCanvasPoints(info, shipLocation);
+        ctx.beginPath();
+        // start in l (port-stern) and draw clockwise
+        ctx.moveTo(canvasPoints.l.x, canvasPoints.l.y)
+        ctx.lineTo(canvasPoints.p.x, canvasPoints.p.y)
+        ctx.lineTo(canvasPoints.b.x, canvasPoints.b.y)
+        ctx.lineTo(canvasPoints.s.x, canvasPoints.s.y)
+        ctx.lineTo(canvasPoints.r.x, canvasPoints.r.y)
+        ctx.lineTo(canvasPoints.l.x, canvasPoints.l.y)
+        ctx.stroke()
+    }
+
+    shipLocationToCanvasPoints(info: any, location: IShipLocation) {
+        return {
+            b: info.map.latLngToContainerPoint([location.bow.latitude, location.bow.longitude]),
+            p: info.map.latLngToContainerPoint([location.bowPort.latitude, location.bowPort.longitude]),
+            s: info.map.latLngToContainerPoint([location.bowStarboard.latitude, location.bowStarboard.longitude]),
+            l: info.map.latLngToContainerPoint([location.sternPort.latitude, location.sternPort.longitude]),
+            r: info.map.latLngToContainerPoint([location.sternStarboard.latitude, location.sternStarboard.longitude]),
+        }
+    }
+
+    drawAisLines(info:any, ctx:any, ship: IAisShip) {
+        const speed = ship.sog * KNOTS_TO_MS
+        const posIn1H = calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)
         let pointA = info.map.latLngToContainerPoint([ship.latitude, ship.longitude])
         let pointB = info.map.latLngToContainerPoint([posIn1H.latitude, posIn1H.longitude])
         this.getPerpendicularLines(ship).forEach((line: IPositionAtTime[]) => {

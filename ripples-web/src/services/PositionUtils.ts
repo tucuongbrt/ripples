@@ -1,7 +1,7 @@
 import IPosHeadingAtTime from "../model/ILatLngHead";
 import IPositionAtTime from "../model/IPositionAtTime";
-import ILatLng from "../model/ILatLng";
-import IAisShip from "../model/IAisShip";
+import ILatLng, { LatLng } from "../model/ILatLng";
+import IAisShip, { IShipLocation } from "../model/IAisShip";
 const wgs84 = require("wgs84-util");
 
 export const KNOTS_TO_MS = 0.514444
@@ -10,6 +10,60 @@ export function distanceInMetersBetweenCoords(p1: ILatLng, p2: ILatLng) {
     const pointA = {coordinates: [p1.longitude, p1.latitude]}
     const pointB = {coordinates: [p2.longitude, p2.latitude]}
     return wgs84.distanceBetween(pointA, pointB);
+}
+
+/**
+ * Returns the most important points that define a ship, so that it can be drawn
+ */
+export function getShipLocation(aisShip: IAisShip): IShipLocation {
+    const aisPos = new LatLng(aisShip.latitude, aisShip.longitude);
+    let aisCoordinates = {coordinates: [aisPos.longitude, aisPos.latitude]}
+    let sbVecEnd = aisPos;
+    let portVecEnd = aisPos;
+    let bowVecEnd = aisPos;
+    let sternVecEnd = aisPos;
+    const cog = aisShip.cog;
+    if (aisShip.starboard > 0) {
+        const point = wgs84.destination(aisCoordinates, 90 + cog, aisShip.starboard).point.coordinates;
+        sbVecEnd = new LatLng(point[1], point[0])
+    } 
+    if (aisShip.port > 0) {
+        const point = wgs84.destination(aisCoordinates, 270 + cog, aisShip.port).point.coordinates; 
+        portVecEnd = new LatLng(point[1], point[0])
+    }
+    if (aisShip.bow > 0) {
+        const point = wgs84.destination(aisCoordinates, cog, aisShip.bow).point.coordinates; 
+        bowVecEnd = new LatLng(point[1], point[0]) 
+    }
+    if (aisShip.stern > 0) {
+        const point = wgs84.destination(aisCoordinates, 180 + cog, aisShip.stern).point.coordinates; 
+        sternVecEnd = new LatLng(point[1], point[0]) 
+    }
+    const halfBreadthVec = vecFromPoints(sbVecEnd, portVecEnd, 0.5);
+    const starboardVec = vecFromPoints(aisPos, sbVecEnd);
+    const portVec = vecFromPoints(aisPos, portVecEnd);
+    const sternStarboard = sumLatLngVectors(sternVecEnd, starboardVec);
+    const sternPort = sumLatLngVectors(sternVecEnd, portVec);
+    const lengthReducer = 0.75
+    const center = sumLatLngVectors(sbVecEnd, halfBreadthVec);
+    const bowVec = vecFromPoints(aisPos, bowVecEnd)
+    // length overall reduced by lengthReducer
+    const loaVec = vecFromPoints(sternVecEnd, bowVecEnd, lengthReducer);
+    return {
+        bowStarboard: sumLatLngVectors(sternStarboard, loaVec),
+        bowPort: sumLatLngVectors(sternPort, loaVec),
+        bow: sumLatLngVectors(center, bowVec),
+        sternPort,
+        sternStarboard,
+    }
+}
+
+function sumLatLngVectors(v1: LatLng, v2:LatLng) {
+    return new LatLng(v1.latitude + v2.latitude, v1.longitude + v2.longitude)
+}
+
+function vecFromPoints(p1: LatLng, p2: LatLng, mult = 1) {
+    return new LatLng(mult * (p2.latitude - p1.latitude), mult * (p2.longitude - p1.longitude))
 }
 
 /**
