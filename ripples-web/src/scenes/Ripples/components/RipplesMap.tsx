@@ -52,7 +52,7 @@ class RipplesMap extends Component<propsType, stateType> {
         super(props)
         this.state = {
             initCoords: { lat: 41.18, lng: -8.7, },
-            isToDrawAisLocations: true,
+            isToDrawAisLocations: false,
             geojsonData: GeoData,
             perpLinesSize: 10,
         }
@@ -187,7 +187,7 @@ class RipplesMap extends Component<propsType, stateType> {
             this.setState({
                 perpLinesSize: Math.round(newLineLength),
             })
-            if (newZoom > 14) {
+            if (newZoom > 12) {
                 if (!this.state.isToDrawAisLocations) {
                     this.toggleDrawAisLocations()
                 }
