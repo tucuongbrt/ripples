@@ -1,4 +1,4 @@
-import React, { Component, ChangeEvent } from 'react'
+import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css';
 const { NotificationManager } = require('react-notifications');
 import { fetchSoiData, fetchProfileData, fetchAwareness, sendPlanToVehicle, mergeAssetSettings, sendUnassignedPlan, fetchUnassignedPlans, deleteUnassignedPlan, updatePlanId } from '../../services/SoiUtils'
@@ -6,13 +6,12 @@ import './styles/Ripples.css'
 import TopNav from './components/TopNav';
 import Slider from './components/Slider';
 import { fetchAisData } from '../../services/AISUtils';
-import { estimatePositionsAtDeltaTime } from '../../services/PositionUtils';
 import IAisShip from '../../model/IAisShip';
 import { connect } from 'react-redux';
 import { setVehicles, setSpots, setAis, editPlan, setSlider, cancelEditPlan, setUser, setProfiles, addNewPlan, savePlan, setPlans } from '../../redux/ripples.actions';
 import IRipplesState from '../../model/IRipplesState';
 import RipplesMap from './components/RipplesMap';
-import UserState, { IUser, isOperator, isScientist } from '../../model/IAuthState';
+import UserState, { IUser, isScientist } from '../../model/IAuthState';
 import { getCurrentUser } from '../../services/AuthUtils';
 import IProfile from '../../model/IProfile';
 import IPlan from '../../model/IPlan';

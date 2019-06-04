@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import IAsset from "../../../model/IAsset";
 import Vehicle from "./Vehicle";
 import Spot from "./Spot";
-import IAisShip, { AisShip, IShipLocation } from "../../../model/IAisShip";
+import IAisShip, { IShipLocation } from "../../../model/IAisShip";
 import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
@@ -19,7 +19,8 @@ import VehiclePlan from "./VehiclePlan";
 import { ToolSelected } from "../../../model/ToolSelected";
 import IPositionAtTime from "../../../model/IPositionAtTime";
 import ILatLng from "../../../model/ILatLng";
-
+import AISCanvas from "./AISCanvas";
+const CanvasLayer = require('react-leaflet-canvas-layer');
 
 type propsType = {
     aisLocations: IShipLocation[]
@@ -38,7 +39,7 @@ type propsType = {
 
 type stateType = {
     initCoords: LatLngLiteral
-    drawAisLocations: boolean
+    isToDrawAisLocations: boolean
     perpLinesSize: number
     geojsonData: any[]
 }
@@ -51,7 +52,7 @@ class RipplesMap extends Component<propsType, stateType> {
         super(props)
         this.state = {
             initCoords: { lat: 41.18, lng: -8.7, },
-            drawAisLocations: false,
+            isToDrawAisLocations: true,
             geojsonData: GeoData,
             perpLinesSize: 10,
         }
@@ -62,6 +63,8 @@ class RipplesMap extends Component<propsType, stateType> {
         this.buildAisShips = this.buildAisShips.bind(this)
         this.handleMapClick = this.handleMapClick.bind(this)
         this.handleZoom = this.handleZoom.bind(this)
+        this.drawCanvas = this.drawCanvas.bind(this)
+        this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
     }
 
     /**
@@ -121,8 +124,27 @@ class RipplesMap extends Component<propsType, stateType> {
     }
 
     buildAisShips() {
-        return this.props.aisShips.map(ship => {
-            return <AISShip key={"Ship_" + ship.mmsi} ship={ship} drawLocation={this.state.drawAisLocations} perpLinesSize={this.state.perpLinesSize}></AISShip>
+        return this.props.aisShips.map((ship) => {
+            return <AISShip
+                key={"Ship_" + ship.mmsi}
+                ship={ship}
+            >
+
+            </AISShip>
+        })
+    }
+
+    drawCanvas(info: any) {
+        const ctx = info.canvas.getContext('2d');
+        ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
+        ctx.fillStyle = 'rgba(255,116,0, 0.2)';
+        this.props.aisShips.forEach((ship) => {
+            const aisCanvas = new AISCanvas({
+                ship,
+                perpLinesSize: this.state.perpLinesSize,
+                drawLocation: this.state.isToDrawAisLocations,
+            })
+            aisCanvas.drawInCanvas(info)
         })
     }
 
@@ -156,21 +178,21 @@ class RipplesMap extends Component<propsType, stateType> {
         })
     }
 
-    
+
     handleZoom(e: any) {
         const newZoom = e.target._animateToZoom
         let newLineLength = 0;
         if (newZoom > 7) {
-            newLineLength = 138598*Math.pow(newZoom,-2.9)
+            newLineLength = 138598 * Math.pow(newZoom, -2.9)
             this.setState({
-                perpLinesSize: newLineLength,
+                perpLinesSize: Math.round(newLineLength),
             })
             if (newZoom > 14) {
-                if (!this.state.drawAisLocations) {
+                if (!this.state.isToDrawAisLocations) {
                     this.toggleDrawAisLocations()
                 }
             } else {
-                if (this.state.drawAisLocations) {
+                if (this.state.isToDrawAisLocations) {
                     this.toggleDrawAisLocations()
                 }
             }
@@ -179,7 +201,7 @@ class RipplesMap extends Component<propsType, stateType> {
 
     toggleDrawAisLocations() {
         this.setState({
-            drawAisLocations: !this.state.drawAisLocations
+            isToDrawAisLocations: !this.state.isToDrawAisLocations
         })
     }
 
@@ -227,8 +249,8 @@ class RipplesMap extends Component<propsType, stateType> {
                     <Overlay checked name="AIS Data">
                         <LayerGroup>
                             {this.buildAisShips()}
+                            <CanvasLayer drawMethod={this.drawCanvas} />
                         </LayerGroup>
-                        
                     </Overlay>
                     <Overlay checked name="Profiles Data">
                         <LayerGroup>
