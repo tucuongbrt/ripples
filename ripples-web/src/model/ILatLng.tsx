@@ -3,6 +3,11 @@ export default interface ILatLng {
     longitude: number
 }
 
-export class LatLng implements ILatLng {
-    constructor(public latitude: number, public longitude: number) {}
+export class LatLngFactory {
+    static build(latitude: number, longitude: number): ILatLng {
+        return {
+            latitude: +latitude.toFixed(7),
+            longitude: +longitude.toFixed(7)
+        }
+    }
 }

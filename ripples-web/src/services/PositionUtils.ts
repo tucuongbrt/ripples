@@ -1,6 +1,6 @@
 import IPosHeadingAtTime from "../model/ILatLngHead";
 import IPositionAtTime from "../model/IPositionAtTime";
-import ILatLng, { LatLng } from "../model/ILatLng";
+import ILatLng, { LatLngFactory } from "../model/ILatLng";
 import IAisShip, { IShipLocation } from "../model/IAisShip";
 const wgs84 = require("wgs84-util");
 
@@ -15,8 +15,8 @@ export function distanceInMetersBetweenCoords(p1: ILatLng, p2: ILatLng) {
 /**
  * Returns the most important points that define a ship, so that it can be drawn
  */
-export function getShipLocation(aisShip: IAisShip): IShipLocation {
-    const aisPos = new LatLng(aisShip.latitude, aisShip.longitude);
+export function calculateShipLocation(aisShip: IAisShip): IShipLocation {
+    const aisPos = LatLngFactory.build(aisShip.latitude, aisShip.longitude);
     let aisCoordinates = {coordinates: [aisPos.longitude, aisPos.latitude]}
     let sbVecEnd = aisPos;
     let portVecEnd = aisPos;
@@ -25,19 +25,19 @@ export function getShipLocation(aisShip: IAisShip): IShipLocation {
     const cog = aisShip.cog;
     if (aisShip.starboard > 0) {
         const point = wgs84.destination(aisCoordinates, 90 + cog, aisShip.starboard).point.coordinates;
-        sbVecEnd = new LatLng(point[1], point[0])
+        sbVecEnd = LatLngFactory.build(point[1], point[0])
     } 
     if (aisShip.port > 0) {
         const point = wgs84.destination(aisCoordinates, 270 + cog, aisShip.port).point.coordinates; 
-        portVecEnd = new LatLng(point[1], point[0])
+        portVecEnd = LatLngFactory.build(point[1], point[0])
     }
     if (aisShip.bow > 0) {
         const point = wgs84.destination(aisCoordinates, cog, aisShip.bow).point.coordinates; 
-        bowVecEnd = new LatLng(point[1], point[0]) 
+        bowVecEnd = LatLngFactory.build(point[1], point[0]) 
     }
     if (aisShip.stern > 0) {
         const point = wgs84.destination(aisCoordinates, 180 + cog, aisShip.stern).point.coordinates; 
-        sternVecEnd = new LatLng(point[1], point[0]) 
+        sternVecEnd = LatLngFactory.build(point[1], point[0]) 
     }
     const halfBreadthVec = vecFromPoints(sbVecEnd, portVecEnd, 0.5);
     const starboardVec = vecFromPoints(aisPos, sbVecEnd);
@@ -58,12 +58,12 @@ export function getShipLocation(aisShip: IAisShip): IShipLocation {
     }
 }
 
-function sumLatLngVectors(v1: LatLng, v2:LatLng) {
-    return new LatLng(v1.latitude + v2.latitude, v1.longitude + v2.longitude)
+function sumLatLngVectors(v1: ILatLng, v2: ILatLng) {
+    return LatLngFactory.build(v1.latitude + v2.latitude, v1.longitude + v2.longitude)
 }
 
-function vecFromPoints(p1: LatLng, p2: LatLng, mult = 1) {
-    return new LatLng(mult * (p2.latitude - p1.latitude), mult * (p2.longitude - p1.longitude))
+function vecFromPoints(p1: ILatLng, p2: ILatLng, mult = 1) {
+    return LatLngFactory.build(mult * (p2.latitude - p1.latitude), mult * (p2.longitude - p1.longitude))
 }
 
 /**

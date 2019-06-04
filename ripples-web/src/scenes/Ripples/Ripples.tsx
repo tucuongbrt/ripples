@@ -149,14 +149,9 @@ class Ripples extends Component<propsType, stateType> {
   }
 
   async updateAISData() {
-    const deltaHours = 12
     let shipsData: IAisShip[] = await fetchAisData()
-    shipsData.forEach(ship => {
-      ship.awareness = estimatePositionsAtDeltaTime(ship, deltaHours)
-    })
     // update redux store
     this.props.setAis(shipsData)
-
   }
 
   handleEditPlan = (p: IPlan) => {

@@ -4,7 +4,7 @@ import { connect } from "react-redux";
 import IAsset from "../../../model/IAsset";
 import Vehicle from "./Vehicle";
 import Spot from "./Spot";
-import IAisShip, { AisShip } from "../../../model/IAisShip";
+import IAisShip, { AisShip, IShipLocation } from "../../../model/IAisShip";
 import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
@@ -19,10 +19,10 @@ import VehiclePlan from "./VehiclePlan";
 import { ToolSelected } from "../../../model/ToolSelected";
 import IPositionAtTime from "../../../model/IPositionAtTime";
 import ILatLng from "../../../model/ILatLng";
-import { calculateNextPosition, KNOTS_TO_MS } from "../../../services/PositionUtils";
 
 
 type propsType = {
+    aisLocations: IShipLocation[]
     vehicles: IAsset[]
     spots: IAsset[]
     aisShips: IAisShip[]
@@ -37,20 +37,21 @@ type propsType = {
 }
 
 type stateType = {
-    initCoords: LatLngLiteral,
-    initZoom: number,
-    geojsonData: any[]
+    initCoords: LatLngLiteral
+    drawAisLocations: boolean
     perpLinesSize: number
+    geojsonData: any[]
 }
 
 class RipplesMap extends Component<propsType, stateType> {
     upgradedOptions: any;
+    initZoom = 10;
 
     constructor(props: propsType) {
         super(props)
         this.state = {
             initCoords: { lat: 41.18, lng: -8.7, },
-            initZoom: 10,
+            drawAisLocations: false,
             geojsonData: GeoData,
             perpLinesSize: 10,
         }
@@ -121,7 +122,7 @@ class RipplesMap extends Component<propsType, stateType> {
 
     buildAisShips() {
         return this.props.aisShips.map(ship => {
-            return <AISShip key={"Ship_" + ship.mmsi} data={ship} perpLinesSize={this.state.perpLinesSize}></AISShip>
+            return <AISShip key={"Ship_" + ship.mmsi} ship={ship} drawLocation={this.state.drawAisLocations} perpLinesSize={this.state.perpLinesSize}></AISShip>
         })
     }
 
@@ -161,13 +162,30 @@ class RipplesMap extends Component<propsType, stateType> {
         let newLineLength = 0;
         if (newZoom > 7) {
             newLineLength = 138598*Math.pow(newZoom,-2.9)
+            this.setState({
+                perpLinesSize: newLineLength,
+            })
+            if (newZoom > 14) {
+                if (!this.state.drawAisLocations) {
+                    this.toggleDrawAisLocations()
+                }
+            } else {
+                if (this.state.drawAisLocations) {
+                    this.toggleDrawAisLocations()
+                }
+            }
         }
-        this.setState({perpLinesSize: newLineLength}) 
+    }
+
+    toggleDrawAisLocations() {
+        this.setState({
+            drawAisLocations: !this.state.drawAisLocations
+        })
     }
 
     render() {
         return (
-            <Map fullscreenControl center={this.state.initCoords} zoom={this.state.initZoom} maxZoom={20}
+            <Map fullscreenControl center={this.state.initCoords} zoom={this.initZoom} maxZoom={20}
                 onClick={this.handleMapClick} onZoomend={this.handleZoom}>
                 <LayersControl position="topright">
                     <BaseLayer checked name="OpenStreetMap.Mapnik">
@@ -235,7 +253,8 @@ function mapStateToProps(state: IRipplesState) {
         selectedPlan: state.selectedPlan,
         profiles: state.profiles,
         plans: state.planSet,
-        toolSelected: state.toolSelected
+        toolSelected: state.toolSelected,
+        aisLocations: state.assets.aisDrawableLocations,
     }
 }
 

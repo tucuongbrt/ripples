@@ -1,6 +1,6 @@
 import IAsset from "./IAsset";
 import IProfile from "./IProfile";
-import IAisShip from "./IAisShip";
+import IAisShip, { IShipLocation } from "./IAisShip";
 import IUserState from "./IAuthState";
 import IPlan from "./IPlan";
 import { ToolSelected } from "./ToolSelected";
@@ -9,7 +9,8 @@ import { ToolSelected } from "./ToolSelected";
 export interface IAssetsGroup {
   vehicles: IAsset[],
   spots: IAsset[],
-  aisShips: IAisShip[], 
+  aisShips: IAisShip[],
+  aisDrawableLocations: IShipLocation[]
 }
 
 export default interface IRipplesState {
@@ -28,5 +29,6 @@ export default interface IRipplesState {
 export const defaultAssetsGroup: IAssetsGroup = {
   vehicles: [],
   spots: [],
-  aisShips: []
+  aisShips: [],
+  aisDrawableLocations: [],
 }

@@ -1,5 +1,4 @@
 import ILatLng from "./ILatLng";
-import IAssetAwareness from "./IAssetAwareness";
 import IPositionAtTime from "./IPositionAtTime";
 
 export interface IShipLocation {
@@ -26,6 +25,7 @@ export default interface IAisShip extends ILatLng, IShipDimensions {
     type: string
     timestamp: number
     awareness: IPositionAtTime[]
+    location: IShipLocation
 }
 
 export class AisShip {

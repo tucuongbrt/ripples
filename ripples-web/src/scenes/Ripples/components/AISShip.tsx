@@ -3,21 +3,22 @@ import { Popup } from 'react-leaflet'
 import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
-import IAisShip, { AisShip, IShipDimensions, IShipLocation } from '../../../model/IAisShip';
+import IAisShip, { AisShip, IShipLocation } from '../../../model/IAisShip';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import AssetAwareness from './AssetAwareness';
 import IAssetAwareness from '../../../model/IAssetAwareness';
-import { KNOTS_TO_MS, calculateNextPosition, getShipLocation } from '../../../services/PositionUtils';
+import { KNOTS_TO_MS, calculateNextPosition, calculateShipLocation } from '../../../services/PositionUtils';
 import IPositionAtTime from '../../../model/IPositionAtTime';
-import ILatLng from '../../../model/ILatLng';
 const CanvasLayer = require('react-leaflet-canvas-layer');
 
 type propsType = {
-    data: IAisShip,
+    ship: IAisShip,
     sliderValue: number
+    drawLocation: boolean
     perpLinesSize: number
 }
+
 
 class AISShip extends Component<propsType, {}> {
 
@@ -57,14 +58,22 @@ class AISShip extends Component<propsType, {}> {
     buildShipAwareness() {
         const deltaHours = this.props.sliderValue
         const awareness: IAssetAwareness = {
-            name: this.props.data.name,
-            positions: this.props.data.awareness
+            name: this.props.ship.name,
+            positions: this.props.ship.awareness
         }
         return <AssetAwareness awareness={awareness} deltaHours={deltaHours}></AssetAwareness>
     }
 
+    private calculatePerpLinesSize(mapZoom: number): number {
+        let newLineLength = 0;
+        if (mapZoom > 7) {
+            newLineLength = 138598 * Math.pow(mapZoom, -2.9)
+        }
+        return newLineLength;
+    }
+
     buildAisShipMarker() {
-        let ship = this.props.data;
+        let ship = this.props.ship;
         return (
             <RotatedMarker
                 position={{ lat: ship.latitude, lng: ship.longitude }}
@@ -93,16 +102,17 @@ class AISShip extends Component<propsType, {}> {
     }
 
     drawCanvas(info: any) {
-        let ship = this.props.data;
+        let ship = this.props.ship;
         const ctx = info.canvas.getContext('2d');
         ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
         ctx.fillStyle = 'rgba(255,116,0, 0.2)';
-        this.drawShip(info, ctx, ship)
-        
+        if (this.props.drawLocation) {
+            this.drawShip(info, ctx, ship)
+        }
         if (ship.sog > 0.2) {
             this.drawAisLines(info, ctx, ship)
         }
-        
+
     }
 
     /**
@@ -113,11 +123,10 @@ class AISShip extends Component<propsType, {}> {
      * --|   |--
      * --L___R--
      */
-    drawShip(info: any, ctx:any, ship: IAisShip) {
-        const shipLocation: IShipLocation = getShipLocation(ship);
+    drawShip(info: any, ctx: any, ship: IAisShip) {
+
         ctx.clearRect(0, 0, info.canvas.width, info.canvas.height);
-        let center = info.map.latLngToContainerPoint([ship.latitude, ship.longitude])
-        const canvasPoints = this.shipLocationToCanvasPoints(info, shipLocation);
+        const canvasPoints = this.shipLocationToCanvasPoints(info, ship.location);
         ctx.beginPath();
         // start in l (port-stern) and draw clockwise
         ctx.moveTo(canvasPoints.l.x, canvasPoints.l.y)
@@ -127,6 +136,8 @@ class AISShip extends Component<propsType, {}> {
         ctx.lineTo(canvasPoints.r.x, canvasPoints.r.y)
         ctx.lineTo(canvasPoints.l.x, canvasPoints.l.y)
         ctx.stroke()
+
+
     }
 
     shipLocationToCanvasPoints(info: any, location: IShipLocation) {
@@ -139,7 +150,7 @@ class AISShip extends Component<propsType, {}> {
         }
     }
 
-    drawAisLines(info:any, ctx:any, ship: IAisShip) {
+    drawAisLines(info: any, ctx: any, ship: IAisShip) {
         const speed = ship.sog * KNOTS_TO_MS
         const posIn1H = calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)
         let pointA = info.map.latLngToContainerPoint([ship.latitude, ship.longitude])
@@ -185,7 +196,7 @@ class AISShip extends Component<propsType, {}> {
 
 
     render() {
-        let ship = this.props.data
+        let ship = this.props.ship
         let shipAwareness: JSX.Element | null = null
         if (this.props.sliderValue != 0 && ship.sog > this.awarenessMinSpeed) {
             shipAwareness = this.buildShipAwareness()

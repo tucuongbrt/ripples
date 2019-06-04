@@ -1,7 +1,5 @@
-import IPlan, { EmptyPlan } from "./IPlan";
 import IAssetState, { EmptyAssetState } from "./IAssetState";
 import IPositionAtTime from "./IPositionAtTime";
-import IPair from './IPair';
 
 export default interface IAsset {
     imcid: number
