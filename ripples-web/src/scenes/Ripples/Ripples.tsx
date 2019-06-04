@@ -16,6 +16,7 @@ import { getCurrentUser } from '../../services/AuthUtils';
 import IProfile from '../../model/IProfile';
 import IPlan from '../../model/IPlan';
 import { timestampMsToReadableDate } from '../../services/DateUtils';
+import SidePanel from './components/SidePanel';
 
 
 type stateType = {
@@ -272,6 +273,7 @@ class Ripples extends Component<propsType, stateType> {
               </TopNav>
             </div>
             <RipplesMap></RipplesMap>
+            <SidePanel></SidePanel>
             <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue}></Slider>
           </div>
         )

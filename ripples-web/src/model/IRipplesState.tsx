@@ -24,6 +24,7 @@ export default interface IRipplesState {
     previousPlanSet: IPlan[],
     toolSelected: ToolSelected
     vehicleSelected: string
+    sidePanelTitle: string 
   };
 
 export const defaultAssetsGroup: IAssetsGroup = {

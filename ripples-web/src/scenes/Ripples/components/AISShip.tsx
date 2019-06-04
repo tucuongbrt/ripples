@@ -3,13 +3,11 @@ import { Popup } from 'react-leaflet'
 import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
-import IAisShip, { AisShip, IShipLocation } from '../../../model/IAisShip';
+import IAisShip, {  } from '../../../model/IAisShip';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import AssetAwareness from './AssetAwareness';
 import IAssetAwareness from '../../../model/IAssetAwareness';
-import { KNOTS_TO_MS, calculateNextPosition } from '../../../services/PositionUtils';
-import IPositionAtTime from '../../../model/IPositionAtTime';
 
 type propsType = {
     ship: IAisShip,

@@ -67,3 +67,13 @@ path.leaflet-polygon {
 .react-datepicker {
     display: flex !important;
 }
+
+.side-panel {
+    position: absolute;
+    height: 50%;
+    top: 25%;
+    right: 0.5em;
+    z-index: 500;
+    opacity: 0.8;
+    border-radius: 0.5em;
+}
