@@ -8,6 +8,7 @@ import { connect } from "react-redux";
 
 type propsType = {
     title: string
+    content: Map<string, string>
 }
 
 class SidePanel extends Component<propsType, {}> {
@@ -16,12 +17,20 @@ class SidePanel extends Component<propsType, {}> {
         super(props);
     }
 
+    buildContent(content: Map<string, string>) {
+        const items = Array.from(content, ([key, value]) => {
+            return <li>{key}: {value}</li>
+        })
+        return <ul>{items}</ul>
+    }
+
     render() {
+        const content = this.buildContent(this.props.content)
         return (
             <Card className="side-panel">
                 <CardBody>
                     <CardTitle>{this.props.title}</CardTitle>
-                    <CardText>Random text</CardText>
+                    <CardText>{content}</CardText>
                 </CardBody>
             </Card>
         )
@@ -29,9 +38,10 @@ class SidePanel extends Component<propsType, {}> {
 }
 
 function mapStateToProps(state: IRipplesState) {
-    const { sidePanelTitle } = state
+    const { sidePanelTitle, sidePanelContent } = state
     return {
         title: sidePanelTitle,
+        content: sidePanelContent,
     }
 }
 

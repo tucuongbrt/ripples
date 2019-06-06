@@ -22,46 +22,12 @@ export default class AISCanvas {
     public drawInCanvas(info: any) {
         let ship = this.props.ship;
         const ctx = info.canvas.getContext('2d');
-        if (this.props.drawLocation) {
-            this.drawShip(info, ctx, ship)
-        }
         if (ship.sog > 0.2) {
             this.drawAisLines(info, ctx, ship)
         }
 
     }
-
-    /**
-     * Ship design
-     * ----B----
-     * --P   S--
-     * --|   |--
-     * --|   |--
-     * --L___R--
-     */
-    private drawShip(info: any, ctx: any, ship: IAisShip) {
-        const canvasPoints = this.shipLocationToCanvasPoints(info, ship.location);
-        ctx.beginPath();
-        // start in l (port-stern) and draw clockwise
-        ctx.moveTo(canvasPoints.l.x, canvasPoints.l.y)
-        ctx.lineTo(canvasPoints.p.x, canvasPoints.p.y)
-        ctx.lineTo(canvasPoints.b.x, canvasPoints.b.y)
-        ctx.lineTo(canvasPoints.s.x, canvasPoints.s.y)
-        ctx.lineTo(canvasPoints.r.x, canvasPoints.r.y)
-        ctx.lineTo(canvasPoints.l.x, canvasPoints.l.y)
-        ctx.stroke()
-    }
-
-    private shipLocationToCanvasPoints(info: any, location: IShipLocation) {
-        return {
-            b: info.map.latLngToContainerPoint([location.bow.latitude, location.bow.longitude]),
-            p: info.map.latLngToContainerPoint([location.bowPort.latitude, location.bowPort.longitude]),
-            s: info.map.latLngToContainerPoint([location.bowStarboard.latitude, location.bowStarboard.longitude]),
-            l: info.map.latLngToContainerPoint([location.sternPort.latitude, location.sternPort.longitude]),
-            r: info.map.latLngToContainerPoint([location.sternStarboard.latitude, location.sternStarboard.longitude]),
-        }
-    }
-
+    
     private drawAisLines(info: any, ctx: any, ship: IAisShip) {
         const speed = ship.sog * KNOTS_TO_MS
         const posIn1H = calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)

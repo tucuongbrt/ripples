@@ -1,17 +1,21 @@
 import React, { Component } from 'react'
-import { Popup } from 'react-leaflet'
+import { Popup, Polygon} from 'react-leaflet'
 import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { timeFromNow } from '../../../services/DateUtils';
-import IAisShip, {  } from '../../../model/IAisShip';
+import IAisShip, { AisShip } from '../../../model/IAisShip';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import AssetAwareness from './AssetAwareness';
 import IAssetAwareness from '../../../model/IAssetAwareness';
+import { LatLng } from 'leaflet';
+import { setSidePanelTitle, setSidePanelContent } from '../../../redux/ripples.actions';
 
 type propsType = {
     ship: IAisShip,
     sliderValue: number
+    setSidePanelTitle: (title: string) => void
+    setSidePanelContent: (content: Map<string, string>) => void
 }
 
 
@@ -23,6 +27,7 @@ class AISShip extends Component<propsType, {}> {
         super(props)
         this.buildAisShipMarker = this.buildAisShipMarker.bind(this)
         this.buildShipAwareness = this.buildShipAwareness.bind(this)
+        this.onShipClick = this.onShipClick.bind(this)
     }
 
     getIcon(type: number) {
@@ -57,8 +62,41 @@ class AISShip extends Component<propsType, {}> {
         return <AssetAwareness awareness={awareness} deltaHours={deltaHours}></AssetAwareness>
     }
 
+    getDisplayableProperties(ship: IAisShip) {
+        return new Map<string, string>(
+            [
+                ["mmssi", ship.mmsi],
+                ["last update", timeFromNow(ship.timestamp)],
+                ["latitude", ship.latitude.toFixed(5)],
+                ["longitude", ship.longitude.toFixed(5)],
+                ["speed (knots)", ship.sog.toFixed(1)],
+                ["cog", ship.cog.toFixed(1)],
+                ["heading", ship.heading != 511 ? ship.heading.toFixed(1) : "not available"]
+            ]
+        )
+    }
+
+    onShipClick(ship: IAisShip) {
+        this.props.setSidePanelTitle(ship.name)
+        this.props.setSidePanelContent(this.getDisplayableProperties(ship))
+    }
+
     buildAisShipMarker() {
-        let ship = this.props.ship;
+        const ship = this.props.ship;
+        const location = ship.location;
+        let positions = [
+            new LatLng(location.bow.latitude, location.bow.longitude),
+            new LatLng(location.bowPort.latitude, location.bowPort.longitude),
+            new LatLng(location.sternPort.latitude, location.sternPort.longitude),
+            new LatLng(location.sternStarboard.latitude, location.sternStarboard.longitude),
+            new LatLng(location.bowStarboard.latitude, location.bowStarboard.longitude)
+        ] 
+        return <Polygon positions={positions} color="red" onClick={() => this.onShipClick(ship)}>
+
+        </Polygon>
+
+        /*
+
         return (
             <RotatedMarker
                 position={{ lat: ship.latitude, lng: ship.longitude }}
@@ -83,7 +121,7 @@ class AISShip extends Component<propsType, {}> {
                     </ul>
                 </Popup>
             </RotatedMarker>
-        );
+        );*/
     }
 
 
@@ -103,6 +141,11 @@ class AISShip extends Component<propsType, {}> {
     }
 }
 
+const actionCreators = {
+    setSidePanelTitle,
+    setSidePanelContent,
+}
+
 function mapStateToProps(state: IRipplesState) {
     const { sliderValue } = state
     return {
@@ -110,4 +153,4 @@ function mapStateToProps(state: IRipplesState) {
     }
 }
 
-export default connect(mapStateToProps, null)(AISShip)
+export default connect(mapStateToProps, actionCreators)(AISShip)

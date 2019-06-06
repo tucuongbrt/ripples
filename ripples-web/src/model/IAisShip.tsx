@@ -29,6 +29,7 @@ export default interface IAisShip extends ILatLng, IShipDimensions {
 }
 
 export class AisShip {
+
     static getPositionAtTime(ship: IAisShip): IPositionAtTime {
         return {
             latitude: ship.latitude,
