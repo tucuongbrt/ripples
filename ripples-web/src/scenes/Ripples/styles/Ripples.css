@@ -77,3 +77,7 @@ path.leaflet-polygon {
     opacity: 0.8;
     border-radius: 0.5em;
 }
+
+.side-panel ul {
+    padding-left: 1em
+}

@@ -8,7 +8,8 @@ import { AwarenessIcon } from './Icons';
 
 type propsType = {
     awareness: IAssetAwareness,
-    deltaHours: number
+    deltaHours: number,
+    icon: any
 }
 
 
@@ -30,7 +31,7 @@ export default class AssetAwareness extends Component<propsType, {}> {
         <EstimatedPosition 
             vehicle={this.props.awareness.name}
             position={estimatedPos}
-            icon={new AwarenessIcon()}
+            icon={this.props.icon}
             >
         </EstimatedPosition>
         )

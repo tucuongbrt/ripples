@@ -1,15 +1,15 @@
 import React, { Component } from 'react'
-import { Popup, Polygon} from 'react-leaflet'
-import { AISOrangeShipIcon, AISGreenShipIcon, AISRedShipIcon, AISBlueShipIcon, AISAntennaIcon, AISYellowShipIcon } from './Icons'
-import RotatedMarker from './RotatedMarker'
+import { Polygon } from 'react-leaflet'
+import { YellowTriangleIcon, RedTriangleIcon, AwarenessIcon } from './Icons'
 import { timeFromNow } from '../../../services/DateUtils';
-import IAisShip, { AisShip } from '../../../model/IAisShip';
+import IAisShip from '../../../model/IAisShip';
 import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import AssetAwareness from './AssetAwareness';
 import IAssetAwareness from '../../../model/IAssetAwareness';
 import { LatLng } from 'leaflet';
-import { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility} from '../../../redux/ripples.actions';
+import { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility } from '../../../redux/ripples.actions';
+import RotatedMarker from './RotatedMarker';
 
 type propsType = {
     ship: IAisShip,
@@ -23,30 +23,15 @@ type propsType = {
 class AISShip extends Component<propsType, {}> {
 
     awarenessMinSpeed: number = 0.2
+    icon = new RedTriangleIcon()
+    awarenessIcon = new AwarenessIcon()
 
     constructor(props: propsType) {
         super(props)
+        this.buildAisShipPolygon = this.buildAisShipPolygon.bind(this)
         this.buildAisShipMarker = this.buildAisShipMarker.bind(this)
         this.buildShipAwareness = this.buildShipAwareness.bind(this)
         this.onShipClick = this.onShipClick.bind(this)
-    }
-
-    getIcon(type: number) {
-        const tenths = Math.floor(type / 10);
-        switch (tenths) {
-            case 0: // antenna
-                return new AISAntennaIcon();
-            case 3: // orange - fishing
-                return new AISOrangeShipIcon();
-            case 6: // blue - passenger
-                return new AISBlueShipIcon();
-            case 7: // green - cargo
-                return new AISGreenShipIcon();
-            case 8: // red - tanker
-                return new AISRedShipIcon();
-            default: // yellow - others
-                return new AISYellowShipIcon();
-        }
     }
 
     getOpacity(lastUpdate: number) {
@@ -60,30 +45,36 @@ class AISShip extends Component<propsType, {}> {
             name: this.props.ship.name,
             positions: this.props.ship.awareness
         }
-        return <AssetAwareness awareness={awareness} deltaHours={deltaHours}></AssetAwareness>
+        return <AssetAwareness
+        awareness={awareness}
+        deltaHours={deltaHours}
+        icon={this.awarenessIcon}
+        >
+
+        </AssetAwareness>
     }
 
     getDisplayableProperties(ship: IAisShip) {
         return {
-                mmssi: ship.mmsi,
-                "last update": timeFromNow(ship.timestamp),
-                latitude: ship.latitude.toFixed(5),
-                longitude: ship.longitude.toFixed(5),
-                "speed (knots)": ship.sog.toFixed(1),
-                cog: ship.cog.toFixed(1),
-                heading: ship.heading != 511 ? ship.heading.toFixed(1) : "not available"
+            mmssi: ship.mmsi,
+            "last update": timeFromNow(ship.timestamp),
+            latitude: ship.latitude.toFixed(5),
+            longitude: ship.longitude.toFixed(5),
+            "speed (knots)": ship.sog.toFixed(1),
+            cog: ship.cog.toFixed(1),
+            heading: ship.heading != 511 ? ship.heading.toFixed(1) : "not available"
         }
     }
 
     onShipClick(evt: any, ship: IAisShip) {
         evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-        
+
         this.props.setSidePanelTitle(ship.name)
         this.props.setSidePanelContent(this.getDisplayableProperties(ship))
         this.props.setSidePanelVisibility(true)
     }
 
-    buildAisShipMarker() {
+    buildAisShipPolygon() {
         const ship = this.props.ship;
         const location = ship.location;
         let positions = [
@@ -92,38 +83,24 @@ class AISShip extends Component<propsType, {}> {
             new LatLng(location.sternPort.latitude, location.sternPort.longitude),
             new LatLng(location.sternStarboard.latitude, location.sternStarboard.longitude),
             new LatLng(location.bowStarboard.latitude, location.bowStarboard.longitude)
-        ] 
+        ]
         return <Polygon positions={positions} color="red" onClick={(e: any) => this.onShipClick(e, ship)}>
 
         </Polygon>
+    }
 
-        /*
+    buildAisShipMarker() {
+        const ship = this.props.ship;
+        return <RotatedMarker
+            position={{ lat: ship.latitude, lng: ship.longitude }}
+            rotationAngle={Math.round(ship.cog)}
+            rotationOrigin={'center'}
+            icon={this.icon}
+            opacity={this.getOpacity(ship.timestamp)}
+            onClick={(e: any) => this.onShipClick(e, ship)}
+            >
 
-        return (
-            <RotatedMarker
-                position={{ lat: ship.latitude, lng: ship.longitude }}
-                rotationAngle={Math.round(ship.cog)}
-                rotationOrigin={'center'}
-                icon={this.getIcon(Number(ship.type))}
-                opacity={this.getOpacity(ship.timestamp)}>
-                <Popup>
-                    <h3>{ship.name} - {ship.mmsi}</h3>
-                    <ul>
-                        <li>Lat: {ship.latitude.toFixed(5)}</li>
-                        <li>Lng: {ship.longitude.toFixed(5)}</li>
-                        <li>Heading: {ship.heading.toFixed(1)}</li>
-                        <li>Cog: {ship.cog.toFixed(1)}</li>
-                        <li>Sog: {(ship.sog).toFixed(1)} knots</li>
-                        <li>Type: {ship.type}</li>
-                        <li>Last update: {timeFromNow(ship.timestamp)}</li>
-                        <li>Port: {ship.port}m</li>
-                        <li>Starboard: {ship.starboard}m</li>
-                        <li>Bow: {ship.bow}m</li>
-                        <li>Stern: {ship.stern}m</li>
-                    </ul>
-                </Popup>
-            </RotatedMarker>
-        );*/
+        </RotatedMarker>
     }
 
 
@@ -135,6 +112,7 @@ class AISShip extends Component<propsType, {}> {
         }
         return (
             <>
+                {this.buildAisShipPolygon()}
                 {this.buildAisShipMarker()}
                 {shipAwareness}
             </>

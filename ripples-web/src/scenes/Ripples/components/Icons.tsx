@@ -1,13 +1,5 @@
 import L from 'leaflet'
 
-export const AuvIcon = L.Icon.extend({
-    options: {
-        iconUrl: 'https://image.flaticon.com/icons/png/128/190/190006.png',
-        //iconUrl: './src/icons/ico_auv.png',
-        iconSize: [32, 32]
-    }
-});
-
 export const GhostIcon = L.Icon.extend({
     options: {
         iconUrl: 'https://png.pngtree.com/svg/20170817/ghost_1327317.png',
@@ -15,48 +7,35 @@ export const GhostIcon = L.Icon.extend({
     }
 });
 
-export const AISRedShipIcon = L.Icon.extend({
-    options: {
-        iconUrl: 'https://i.imgur.com/hqIGg6n.png',
-        iconSize: [16, 16]
-    }
-})
 
-export const AISBlueShipIcon = L.Icon.extend({
+export const AuvIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/bvJIiOM.png',
-        iconSize: [16, 16]
+        iconUrl: 'https://image.flaticon.com/icons/png/128/190/190006.png',
+        iconSize: [32, 32]
     }
-})
+});
 
-export const AISOrangeShipIcon = L.Icon.extend({
-    options: {
-        iconUrl: 'https://i.imgur.com/CKsgR2Q.png',
-        iconSize: [16, 16]
-    }
-})
 
-export const AISGreenShipIcon = L.Icon.extend({
+export const GreenTriangleIcon = L.Icon.extend({
     options: {
         iconUrl: 'https://i.imgur.com/HCNwjyG.png',
         iconSize: [16, 16]
     }
 })
 
-export const AISYellowShipIcon = L.Icon.extend({
+export const YellowTriangleIcon = L.Icon.extend({
     options: {
         iconUrl: 'https://i.imgur.com/F2VhR2Q.png',
         iconSize: [16, 16]
     }
 })
 
-export const AISAntennaIcon = L.Icon.extend({
+export const RedTriangleIcon = L.Icon.extend({
     options: {
-        iconUrl: 'https://i.imgur.com/gfNRrPz.png',
-        iconSize: [32,32]
+        iconUrl: 'https://i.imgur.com/hqIGg6n.png',
+        iconSize: [16, 16]
     }
 })
-
 export const WaypointIcon = L.Icon.extend({
     options: {
         iconUrl: 'http://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Green-icon.png',

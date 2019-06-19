@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
-import { Popup } from 'react-leaflet'
-import { timestampMsToReadableDate } from '../../../services/DateUtils'
+import { timeFromNow } from '../../../services/DateUtils'
 import { AuvIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 import { getLatLng } from '../../../services/PositionUtils';
@@ -9,13 +8,20 @@ import IRipplesState from '../../../model/IRipplesState';
 import { connect } from 'react-redux';
 import IAssetAwareness from '../../../model/IAssetAwareness';
 import AssetAwareness from './AssetAwareness';
+import { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility} from '../../../redux/ripples.actions';
+
 
 type propsType = {
     data: IAsset,
     sliderValue: number
+    setSidePanelTitle: (title: string) => void
+    setSidePanelContent: (content: any) => void
+    setSidePanelVisibility: (v: boolean) => void
 }
 
 class Vehicle extends Component<propsType, {}> {
+
+    icon = new AuvIcon()
 
     constructor(props: propsType) {
         super(props);
@@ -23,8 +29,12 @@ class Vehicle extends Component<propsType, {}> {
         this.buildVehicle = this.buildVehicle.bind(this)
     }
 
-    buildSettings(settings: string[][]): JSX.Element[] {
-        return settings.map(pair => <li key={pair[0]} > {pair[0]}: {pair[1]}</li>)
+    buildSettings(settings: string[][]): any {
+        let object: any = {}
+        for (let pair of settings) {
+            object[pair[0]] = pair[1];
+        }
+        return object
     }
 
     buildVehicleAwareness(): JSX.Element {
@@ -34,7 +44,31 @@ class Vehicle extends Component<propsType, {}> {
             name: currentVehicle.name,
             positions: currentVehicle.awareness
         }
-        return <AssetAwareness awareness={vehicleAwareness} deltaHours={deltaHours}></AssetAwareness>
+        return <AssetAwareness
+        awareness={vehicleAwareness}
+        deltaHours={deltaHours}
+        icon={this.icon}
+        >
+        </AssetAwareness>
+    }
+
+    getDisplayableProperties(vehicle: IAsset) {
+        let mainProps = {
+                "last update": timeFromNow(vehicle.lastState.timestamp),
+                latitude: vehicle.lastState.latitude.toFixed(5),
+                longitude: vehicle.lastState.longitude.toFixed(5),
+                plan: vehicle.planId,
+                heading: vehicle.lastState.heading.toFixed(2)
+        }
+        let settingsProps = this.buildSettings(vehicle.settings)
+        return Object.assign({}, mainProps, settingsProps)
+    }
+
+    handleClick(vehicle: IAsset) {
+        //evt.originalEvent.view.L.DomEvent.stop(evt)
+        this.props.setSidePanelTitle(vehicle.name)
+        this.props.setSidePanelContent(this.getDisplayableProperties(vehicle))
+        this.props.setSidePanelVisibility(true)
     }
 
     buildVehicle() {
@@ -43,24 +77,11 @@ class Vehicle extends Component<propsType, {}> {
         return (
             <RotatedMarker
                 position={systemPosition}
-                icon={new AuvIcon()}
+                icon={this.icon}
                 rotationAngle={0}
-                rotationOrigin={'center'}>
-                <Popup>
-                    <h3>{vehicle.name}</h3>
-                    <h5>State</h5>
-                    <ul>
-                        <li>Lat: {vehicle.lastState.latitude.toFixed(5)}</li>
-                        <li>Lng: {vehicle.lastState.longitude.toFixed(5)}</li>
-                        <li>Fuel: {vehicle.lastState.fuel.toFixed(2)}</li>
-                        <li>Heading: {vehicle.lastState.heading.toFixed(2)}</li>
-                        <li>Date: {timestampMsToReadableDate(vehicle.lastState.timestamp)}</li>
-                    </ul>
-                    <h5>Settings</h5>
-                    <ul>
-                        {this.buildSettings(vehicle.settings)}
-                    </ul>
-                </Popup>
+                rotationOrigin={'center'}
+                onClick={(evt: any) => this.handleClick(vehicle)}
+                >
             </RotatedMarker>
         );
     }
@@ -79,6 +100,12 @@ class Vehicle extends Component<propsType, {}> {
     }
 }
 
+const actionCreators = {
+    setSidePanelTitle,
+    setSidePanelContent,
+    setSidePanelVisibility,
+}
+
 function mapStateToProps(state: IRipplesState) {
     return {
         sliderValue: state.sliderValue,
@@ -86,4 +113,4 @@ function mapStateToProps(state: IRipplesState) {
 }
 
 
-export default connect(mapStateToProps, null)(Vehicle)
+export default connect(mapStateToProps, actionCreators)(Vehicle)

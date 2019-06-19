@@ -32,7 +32,7 @@ class SidePanel extends Component<propsType, {}> {
             return (
                 <Card className="side-panel">
                     <CardBody>
-                        <CardTitle>{this.props.title}</CardTitle>
+                        <CardTitle><h4>{this.props.title}</h4></CardTitle>
                         <div>{content}</div>
                     </CardBody>
                 </Card>
