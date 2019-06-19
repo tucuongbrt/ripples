@@ -9,13 +9,14 @@ import { connect } from 'react-redux';
 import AssetAwareness from './AssetAwareness';
 import IAssetAwareness from '../../../model/IAssetAwareness';
 import { LatLng } from 'leaflet';
-import { setSidePanelTitle, setSidePanelContent } from '../../../redux/ripples.actions';
+import { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility} from '../../../redux/ripples.actions';
 
 type propsType = {
     ship: IAisShip,
     sliderValue: number
     setSidePanelTitle: (title: string) => void
-    setSidePanelContent: (content: Map<string, string>) => void
+    setSidePanelContent: (content: any) => void
+    setSidePanelVisibility: (v: boolean) => void
 }
 
 
@@ -63,22 +64,23 @@ class AISShip extends Component<propsType, {}> {
     }
 
     getDisplayableProperties(ship: IAisShip) {
-        return new Map<string, string>(
-            [
-                ["mmssi", ship.mmsi],
-                ["last update", timeFromNow(ship.timestamp)],
-                ["latitude", ship.latitude.toFixed(5)],
-                ["longitude", ship.longitude.toFixed(5)],
-                ["speed (knots)", ship.sog.toFixed(1)],
-                ["cog", ship.cog.toFixed(1)],
-                ["heading", ship.heading != 511 ? ship.heading.toFixed(1) : "not available"]
-            ]
-        )
+        return {
+                mmssi: ship.mmsi,
+                "last update": timeFromNow(ship.timestamp),
+                latitude: ship.latitude.toFixed(5),
+                longitude: ship.longitude.toFixed(5),
+                "speed (knots)": ship.sog.toFixed(1),
+                cog: ship.cog.toFixed(1),
+                heading: ship.heading != 511 ? ship.heading.toFixed(1) : "not available"
+        }
     }
 
-    onShipClick(ship: IAisShip) {
+    onShipClick(evt: any, ship: IAisShip) {
+        evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+        
         this.props.setSidePanelTitle(ship.name)
         this.props.setSidePanelContent(this.getDisplayableProperties(ship))
+        this.props.setSidePanelVisibility(true)
     }
 
     buildAisShipMarker() {
@@ -91,7 +93,7 @@ class AISShip extends Component<propsType, {}> {
             new LatLng(location.sternStarboard.latitude, location.sternStarboard.longitude),
             new LatLng(location.bowStarboard.latitude, location.bowStarboard.longitude)
         ] 
-        return <Polygon positions={positions} color="red" onClick={() => this.onShipClick(ship)}>
+        return <Polygon positions={positions} color="red" onClick={(e: any) => this.onShipClick(e, ship)}>
 
         </Polygon>
 
@@ -144,6 +146,7 @@ class AISShip extends Component<propsType, {}> {
 const actionCreators = {
     setSidePanelTitle,
     setSidePanelContent,
+    setSidePanelVisibility,
 }
 
 function mapStateToProps(state: IRipplesState) {

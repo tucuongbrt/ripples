@@ -25,7 +25,8 @@ export default interface IRipplesState {
     toolSelected: ToolSelected
     vehicleSelected: string
     sidePanelTitle: string
-    sidePanelContent: Map<string, string>
+    sidePanelContent: any
+    isSidePanelVisible: boolean
   };
 
 export const defaultAssetsGroup: IAssetsGroup = {

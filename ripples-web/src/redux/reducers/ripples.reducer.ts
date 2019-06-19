@@ -1,13 +1,12 @@
 import { createReducer } from 'redux-starter-kit'
 import { setUser, removeUser, setVehicles, setAis,
 setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx, setProfiles, addNewPlan, setPlans, deleteWp,
-updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription, updateWpTimestamp, updatePlanId, setSidePanelTitle, setSidePanelContent } from '../ripples.actions'
+updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription, updateWpTimestamp, updatePlanId, setSidePanelTitle, setSidePanelContent, setSidePanelVisibility } from '../ripples.actions'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import {noAuth} from '../../model/IAuthState';
 import { EmptyPlan } from '../../model/IPlan';
 import { ToolSelected } from '../../model/ToolSelected';
 import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils';
-import { string } from 'prop-types';
 
 let startState: IRipplesState = {
   assets: defaultAssetsGroup,
@@ -21,7 +20,8 @@ let startState: IRipplesState = {
   toolSelected: ToolSelected.ADD, 
   vehicleSelected: '',
   sidePanelTitle: 'Click on something to get info',
-  sidePanelContent: new Map<string, string>(),
+  sidePanelContent: {},
+  isSidePanelVisible: false,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -130,6 +130,9 @@ const ripplesReducer = createReducer(startState, {
   [setSidePanelContent.type]: (state, action) => {
     state.sidePanelContent = action.payload
   },
+  [setSidePanelVisibility.type]: (state, action) => {
+    state.isSidePanelVisible = action.payload
+  }
 })
 
 export default ripplesReducer

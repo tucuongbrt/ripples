@@ -8,7 +8,7 @@ import IAisShip, { IShipLocation } from "../../../model/IAisShip";
 import AISShip from "./AISShip";
 import { Map, TileLayer, LayerGroup, LayersControl, GeoJSON, FeatureGroup } from 'react-leaflet'
 import { LatLngLiteral } from "leaflet";
-import { setSelectedWaypointIdx, updateWpLocation, addWpToPlan } from "../../../redux/ripples.actions";
+import { setSelectedWaypointIdx, updateWpLocation, addWpToPlan, setSidePanelVisibility} from "../../../redux/ripples.actions";
 import 'react-leaflet-fullscreen-control'
 const { BaseLayer, Overlay } = LayersControl
 import GeoData from '../../../assets/geojson/all.json';
@@ -35,6 +35,7 @@ type propsType = {
     setSelectedWaypointIdx: (_: number) => void
     updateWpLocation: (_: ILatLng) => void
     addWpToPlan: (_: IPositionAtTime) => void
+    setSidePanelVisibility: (_: boolean) => void
 }
 
 type stateType = {
@@ -72,6 +73,7 @@ class RipplesMap extends Component<propsType, stateType> {
      * @param e 
      */
     handleMapClick(e: any) {
+        this.props.setSidePanelVisibility(false)
         if (this.props.selectedPlan.id.length == 0) return
         const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng };
         switch (this.props.toolSelected) {
@@ -284,6 +286,7 @@ const actionCreators = {
     setSelectedWaypointIdx,
     updateWpLocation,
     addWpToPlan,
+    setSidePanelVisibility,
 }
 
 

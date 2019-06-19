@@ -9,6 +9,7 @@ import { connect } from "react-redux";
 type propsType = {
     title: string
     content: Map<string, string>
+    visibility: boolean
 }
 
 class SidePanel extends Component<propsType, {}> {
@@ -17,31 +18,36 @@ class SidePanel extends Component<propsType, {}> {
         super(props);
     }
 
-    buildContent(content: Map<string, string>) {
-        const items = Array.from(content, ([key, value]) => {
-            return <li>{key}: {value}</li>
-        })
+    buildContent(content: any) {
+        let items: JSX.Element[] = [];
+        for (let key in content) {
+            items.push(<li key={key}>{key}: {content[key]}</li>)
+        }
         return <ul>{items}</ul>
     }
 
     render() {
-        const content = this.buildContent(this.props.content)
-        return (
-            <Card className="side-panel">
-                <CardBody>
-                    <CardTitle>{this.props.title}</CardTitle>
-                    <CardText>{content}</CardText>
-                </CardBody>
-            </Card>
-        )
+        if (this.props.visibility) {
+            const content = this.buildContent(this.props.content)
+            return (
+                <Card className="side-panel">
+                    <CardBody>
+                        <CardTitle>{this.props.title}</CardTitle>
+                        <div>{content}</div>
+                    </CardBody>
+                </Card>
+            )
+        }
+        return <></>
     }
 }
 
 function mapStateToProps(state: IRipplesState) {
-    const { sidePanelTitle, sidePanelContent } = state
+    const { sidePanelTitle, sidePanelContent, isSidePanelVisible } = state
     return {
         title: sidePanelTitle,
         content: sidePanelContent,
+        visibility: isSidePanelVisible,
     }
 }
 
