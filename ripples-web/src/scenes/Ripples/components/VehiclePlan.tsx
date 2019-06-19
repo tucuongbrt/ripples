@@ -14,6 +14,7 @@ import { connect } from 'react-redux';
 import { setSelectedWaypointIdx, deleteWp, updateWpTimestamp } from '../../../redux/ripples.actions';
 import { ToolSelected } from '../../../model/ToolSelected';
 import DatePicker from 'react-datepicker';
+import { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility } from '../../../redux/ripples.actions';
 import "react-datepicker/dist/react-datepicker.css";
 
 type propsType = {
@@ -25,6 +26,9 @@ type propsType = {
     setSelectedWaypoint: Function
     toolSelected: ToolSelected
     updateWpTimestamp: (_: any) => void
+    setSidePanelTitle: (title: string) => void
+    setSidePanelContent: (content: any) => void
+    setSidePanelVisibility: (v: boolean) => void
 }
 
 type stateType = {
@@ -61,7 +65,7 @@ class VehiclePlan extends Component<propsType, stateType> {
 
     handleMarkerClick(markerIdx: number, isMovable: boolean) {
         console.log("handle marker click called: isMovable: ", isMovable)
-        if (isMovable && this.props.plan.id === this.props.selectedPlan.id)
+        if (isMovable && this.props.plan.id === this.props.selectedPlan.id) {
             switch (this.props.toolSelected) {
                 case ToolSelected.MOVE: {
                     this.props.setSelectedWaypoint(markerIdx)
@@ -72,7 +76,20 @@ class VehiclePlan extends Component<propsType, stateType> {
                     break;
                 }
             }
+        }
+        this.props.setSidePanelTitle(`Waypoint ${markerIdx} of ${this.props.plan.id}`)
+        this.props.setSidePanelContent(this.getWaypointSidePanelProperties(this.props.plan.waypoints[markerIdx]))
+        this.props.setSidePanelVisibility(true);
+    }
 
+    getWaypointSidePanelProperties(wp: IPositionAtTime) {
+        return {
+            "eta": timeFromNow(wp.timestamp),
+            "exact eta": timestampMsToReadableDate(wp.timestamp),
+            "lat": wp.latitude.toFixed(5),
+            "lng": wp.longitude.toFixed(5)
+
+        }
     }
 
     /**
@@ -105,7 +122,7 @@ class VehiclePlan extends Component<propsType, stateType> {
         if (newDate == undefined) return
         console.log(newDate)
         console.log(wpIndex)
-        this.props.updateWpTimestamp({timestamp: newDate.getTime(),wpIndex: wpIndex});
+        this.props.updateWpTimestamp({ timestamp: newDate.getTime(), wpIndex: wpIndex });
     }
 
     buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
@@ -124,17 +141,8 @@ class VehiclePlan extends Component<propsType, stateType> {
                     />
                 </Popup>
             )
-        } else {
-            return (
-                <Popup><h4>Waypoint {wpIndex} of {this.props.plan.id}</h4>
-                    <div>
-                        {this.buildWaypointEta(wp.timestamp)}
-                        <li>Lat: {wp.latitude.toFixed(5)}</li>
-                        <li>Lng: {wp.longitude.toFixed(5)}</li>
-                    </div>
-                </Popup>
-            )
-        }
+        } 
+        return <></>
     }
 
     buildPlanWaypoints() {
@@ -221,6 +229,9 @@ const actionCreators = {
     deleteWp: deleteWp,
     setSelectedWaypoint: setSelectedWaypointIdx,
     updateWpTimestamp,
+    setSidePanelTitle,
+    setSidePanelContent,
+    setSidePanelVisibility,
 }
 
 
