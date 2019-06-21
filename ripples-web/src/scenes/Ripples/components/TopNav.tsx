@@ -9,6 +9,8 @@ import IPlan from '../../../model/IPlan';
 import { ToolSelected } from '../../../model/ToolSelected';
 import { setToolSelected, selectVehicle, setPlanDescription, updatePlanId } from '../../../redux/ripples.actions';
 import IAsset from '../../../model/IAsset';
+import { Link } from 'react-router-dom';
+import TopNavLinks from '../../../components/TopNavLinks';
 
 type propsType = {
   vehicles: IAsset[],
@@ -95,7 +97,7 @@ class TopNav extends Component<propsType, stateType> {
 
   toggleEditPlanIdModal() {
     if (!this.state.isEditPlanIdModalOpen) {
-      this.setState({previousPlanId: this.props.selectedPlan.id})
+      this.setState({ previousPlanId: this.props.selectedPlan.id })
     }
     this.setState({ isEditPlanIdModalOpen: !this.state.isEditPlanIdModalOpen })
   }
@@ -153,7 +155,7 @@ class TopNav extends Component<propsType, stateType> {
   }
 
   handleUpdatePlanId() {
-    this.setState({plansDropdownText: `Editing - ${this.props.selectedPlan.id}`})
+    this.setState({ plansDropdownText: `Editing - ${this.props.selectedPlan.id}` })
     if (this.props.selectedPlan.waypoints.length > 0) {
       // only try to update the plan id if the plan has any waypoints
       // if the plan has no waypoints it was created just now, 
@@ -239,7 +241,7 @@ class TopNav extends Component<propsType, stateType> {
           <Input type="textarea" placeholder="Set plan id" value={this.props.selectedPlan.id} onChange={evt => this.updatePlanId(evt)} />
         </ModalBody>
         <ModalFooter>
-        <Button color="primary" onClick={this.handleUpdatePlanId}>Save</Button>
+          <Button color="primary" onClick={this.handleUpdatePlanId}>Save</Button>
         </ModalFooter>
       </Modal>
     )
@@ -287,9 +289,9 @@ class TopNav extends Component<propsType, stateType> {
   render() {
     return (
       <Navbar color="faded" light expand="md">
-        <NavbarBrand href="/" className="mr-auto">Ripples</NavbarBrand>
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar>
+          <TopNavLinks></TopNavLinks>
           <Nav className="ml-auto" navbar>
             {this.buildPlanEditToolbar()}
             <Login></Login>
