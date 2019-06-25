@@ -1,15 +1,15 @@
-import IPositionAtTime from "./IPositionAtTime";
+import IPositionAtTime from './IPositionAtTime'
 
 export default interface IPlan {
-    id: string
-    waypoints: IPositionAtTime[]
-    assignedTo: string //asset name
-    description: string
+  id: string
+  waypoints: IPositionAtTime[]
+  assignedTo: string // asset name
+  description: string
 }
 
 export const EmptyPlan: IPlan = {
-    id: '',
-    waypoints: [],
-    assignedTo: '',
-    description: '',
+  assignedTo: '',
+  description: '',
+  id: '',
+  waypoints: [],
 }

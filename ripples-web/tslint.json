@@ -1,0 +1,18 @@
+{
+    "extends": [
+      "tslint:recommended",
+      "tslint-react",
+      "tslint-config-prettier"
+    ],
+    "rulesDirectory": [
+      "tslint-plugin-prettier"
+    ],
+    "rules": {
+      "prettier": true,
+      "interface-name": false,
+      "jsx-no-lambda": false,
+      "no-var-requires": false,
+      "forin": false,
+      "max-classes-per-file": false
+    }
+  }

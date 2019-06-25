@@ -1,6 +1,6 @@
-import IPositionAtTime from "./IPositionAtTime";
+import IPositionAtTime from './IPositionAtTime'
 
 export default interface IAssetAwareness {
-    name: string // vehicle name
-    positions: IPositionAtTime[]
+  name: string // vehicle name
+  positions: IPositionAtTime[]
 }

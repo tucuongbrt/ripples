@@ -1,32 +1,54 @@
 import { createReducer } from 'redux-starter-kit'
-import { setUser, removeUser, setVehicles, setAis,
-setSpots, editPlan, setSlider, cancelEditPlan, setSelectedWaypointIdx, setProfiles, addNewPlan, setPlans, deleteWp,
-updateWpLocation, setToolSelected, addWpToPlan, savePlan, selectVehicle, setPlanDescription, updateWpTimestamp, updatePlanId, setSidePanelTitle, setSidePanelContent, setSidePanelVisibility } from '../ripples.actions'
+import { noAuth } from '../../model/IAuthState'
+import { EmptyPlan } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
-import {noAuth} from '../../model/IAuthState';
-import { EmptyPlan } from '../../model/IPlan';
-import { ToolSelected } from '../../model/ToolSelected';
-import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils';
+import { ToolSelected } from '../../model/ToolSelected'
+import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils'
+import {
+  addNewPlan,
+  addWpToPlan,
+  cancelEditPlan,
+  deleteWp,
+  editPlan,
+  removeUser,
+  savePlan,
+  selectVehicle,
+  setAis,
+  setPlanDescription,
+  setPlans,
+  setProfiles,
+  setSelectedWaypointIdx,
+  setSidePanelContent,
+  setSidePanelTitle,
+  setSidePanelVisibility,
+  setSlider,
+  setSpots,
+  setToolSelected,
+  setUser,
+  setVehicles,
+  updatePlanId,
+  updateWpLocation,
+  updateWpTimestamp,
+} from '../ripples.actions'
 
-let startState: IRipplesState = {
+const startState: IRipplesState = {
   assets: defaultAssetsGroup,
-  selectedPlan: EmptyPlan,
-  sliderValue: 0,
-  selectedWaypointIdx: -1,
   auth: noAuth,
-  profiles: [],
+  isSidePanelVisible: false,
   planSet: [],
   previousPlanSet: [],
-  toolSelected: ToolSelected.ADD, 
-  vehicleSelected: '',
-  sidePanelTitle: 'Click on something to get info',
+  profiles: [],
+  selectedPlan: EmptyPlan,
+  selectedWaypointIdx: -1,
   sidePanelContent: {},
-  isSidePanelVisible: false,
+  sidePanelTitle: 'Click on something to get info',
+  sliderValue: 0,
+  toolSelected: ToolSelected.ADD,
+  vehicleSelected: '',
 }
 
 const ripplesReducer = createReducer(startState, {
   [setUser.type]: (state, action) => {
-    console.log('Called Set user reducer with action: ', action)
     state.auth.currentUser = action.payload
     state.auth.authenticated = true
   },
@@ -51,8 +73,8 @@ const ripplesReducer = createReducer(startState, {
   },
   [updateWpLocation.type]: (state, action) => {
     const newLocation = action.payload
-    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
-    if (plan != undefined) {
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (plan) {
       const wp = plan.waypoints[state.selectedWaypointIdx]
       wp.latitude = newLocation.latitude
       wp.longitude = newLocation.longitude
@@ -60,26 +82,28 @@ const ripplesReducer = createReducer(startState, {
     }
   },
   [updateWpTimestamp.type]: (state, action) => {
-    const {timestamp, wpIndex} = action.payload
-    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
-    if (plan != undefined) {
+    const { timestamp, wpIndex } = action.payload
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (plan) {
       const wp = plan.waypoints[wpIndex]
       wp.timestamp = timestamp
-      updateWaypointsTimestampFromIndex(plan.waypoints, wpIndex+1)
+      updateWaypointsTimestampFromIndex(plan.waypoints, wpIndex + 1)
     }
   },
   [deleteWp.type]: (state, action) => {
     const markerIdx = action.payload
-    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
-    if (plan == undefined) return
-    plan.waypoints.splice(markerIdx, 1);
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (!plan) {
+      return
+    }
+    plan.waypoints.splice(markerIdx, 1)
     updateWaypointsTimestampFromIndex(plan.waypoints, markerIdx)
   },
   [addWpToPlan.type]: (state, action) => {
-    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
-    if (plan != undefined) {
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (plan) {
       plan.waypoints.push(action.payload)
-      updateWaypointsTimestampFromIndex(plan.waypoints, plan.waypoints.length-1)
+      updateWaypointsTimestampFromIndex(plan.waypoints, plan.waypoints.length - 1)
     }
   },
   [cancelEditPlan.type]: (state, _) => {
@@ -88,11 +112,12 @@ const ripplesReducer = createReducer(startState, {
     state.selectedPlan = EmptyPlan
   },
   [updatePlanId.type]: (state, action) => {
-    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
-    if (plan == undefined) return
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (!plan) {
+      return
+    }
     state.selectedPlan.id = action.payload
     plan.id = action.payload
-    console.log("Update plan id reducer", plan.id)
   },
   [savePlan.type]: (state, _) => {
     state.previousPlanSet = []
@@ -120,9 +145,10 @@ const ripplesReducer = createReducer(startState, {
   },
   [setPlanDescription.type]: (state, action) => {
     state.selectedPlan.description = action.payload
-    const plan = state.planSet.find(p => p.id == state.selectedPlan.id)
-    if (plan == undefined) return
-    plan.description = action.payload
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (plan) {
+      plan.description = action.payload
+    }
   },
   [setSidePanelTitle.type]: (state, action) => {
     state.sidePanelTitle = action.payload
@@ -132,7 +158,7 @@ const ripplesReducer = createReducer(startState, {
   },
   [setSidePanelVisibility.type]: (state, action) => {
     state.isSidePanelVisible = action.payload
-  }
+  },
 })
 
 export default ripplesReducer

@@ -34,7 +34,7 @@
     "reactstrap": "^7.1.0",
     "redux": "^4.0.1",
     "redux-starter-kit": "^0.4.3",
-    "typescript": "^3.3.3333",
+    "typescript": "^3.5.2",
     "wgs84-util": "^3.0.0",
     "yarn": "^1.13.0"
   },
@@ -43,7 +43,9 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "test:debug": "react-scripts --inspect-brk test --runInBand --no-cache"
+    "test:debug": "react-scripts --inspect-brk test --runInBand --no-cache",
+    "tslint-check": "tslint-config-prettier-check ./tslint.json",
+    "lint": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -55,6 +57,11 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@types/react-redux": "^7.0.6"
+    "@types/react-redux": "^7.0.6",
+    "prettier": "^1.18.2",
+    "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.0.1",
+    "tslint-react": "^4.0.0"
   }
 }

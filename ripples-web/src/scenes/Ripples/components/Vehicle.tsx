@@ -1,116 +1,110 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
+import IAsset from '../../../model/IAsset'
+import IAssetAwareness from '../../../model/IAssetAwareness'
+import IRipplesState from '../../../model/IRipplesState'
+import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { timeFromNow } from '../../../services/DateUtils'
+import { getLatLng } from '../../../services/PositionUtils'
+import AssetAwareness from './AssetAwareness'
 import { AuvIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
-import { getLatLng } from '../../../services/PositionUtils';
-import IAsset from '../../../model/IAsset';
-import IRipplesState from '../../../model/IRipplesState';
-import { connect } from 'react-redux';
-import IAssetAwareness from '../../../model/IAssetAwareness';
-import AssetAwareness from './AssetAwareness';
-import { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility} from '../../../redux/ripples.actions';
 
-
-type propsType = {
-    data: IAsset,
-    sliderValue: number
-    setSidePanelTitle: (title: string) => void
-    setSidePanelContent: (content: any) => void
-    setSidePanelVisibility: (v: boolean) => void
+interface PropsType {
+  data: IAsset
+  sliderValue: number
+  setSidePanelTitle: (title: string) => void
+  setSidePanelContent: (content: any) => void
+  setSidePanelVisibility: (v: boolean) => void
 }
 
-class Vehicle extends Component<propsType, {}> {
+class Vehicle extends Component<PropsType, {}> {
+  public icon = new AuvIcon()
 
-    icon = new AuvIcon()
+  constructor(props: PropsType) {
+    super(props)
+    this.buildVehicleAwareness = this.buildVehicleAwareness.bind(this)
+    this.buildVehicle = this.buildVehicle.bind(this)
+  }
 
-    constructor(props: propsType) {
-        super(props);
-        this.buildVehicleAwareness = this.buildVehicleAwareness.bind(this)
-        this.buildVehicle = this.buildVehicle.bind(this)
+  public buildSettings(settings: string[][]): any {
+    const object: any = {}
+    for (const pair of settings) {
+      object[pair[0]] = pair[1]
     }
+    return object
+  }
 
-    buildSettings(settings: string[][]): any {
-        let object: any = {}
-        for (let pair of settings) {
-            object[pair[0]] = pair[1];
-        }
-        return object
+  public buildVehicleAwareness(): JSX.Element {
+    const currentVehicle = this.props.data
+    const deltaHours = this.props.sliderValue
+    const vehicleAwareness: IAssetAwareness = {
+      name: currentVehicle.name,
+      positions: currentVehicle.awareness,
     }
+    return <AssetAwareness awareness={vehicleAwareness} deltaHours={deltaHours} icon={this.icon} />
+  }
 
-    buildVehicleAwareness(): JSX.Element {
-        const currentVehicle = this.props.data
-        const deltaHours = this.props.sliderValue
-        const vehicleAwareness: IAssetAwareness = {
-            name: currentVehicle.name,
-            positions: currentVehicle.awareness
-        }
-        return <AssetAwareness
-        awareness={vehicleAwareness}
-        deltaHours={deltaHours}
+  public getDisplayableProperties(vehicle: IAsset) {
+    const mainProps = {
+      heading: vehicle.lastState.heading.toFixed(2),
+      'last update': timeFromNow(vehicle.lastState.timestamp),
+      latitude: vehicle.lastState.latitude.toFixed(5),
+      longitude: vehicle.lastState.longitude.toFixed(5),
+      plan: vehicle.planId,
+    }
+    const settingsProps = this.buildSettings(vehicle.settings)
+    return Object.assign({}, mainProps, settingsProps)
+  }
+
+  public handleClick(vehicle: IAsset) {
+    // evt.originalEvent.view.L.DomEvent.stop(evt)
+    this.props.setSidePanelTitle(vehicle.name)
+    this.props.setSidePanelContent(this.getDisplayableProperties(vehicle))
+    this.props.setSidePanelVisibility(true)
+  }
+
+  public buildVehicle() {
+    const vehicle = this.props.data
+    const systemPosition = getLatLng(vehicle.lastState)
+    return (
+      <RotatedMarker
+        position={systemPosition}
         icon={this.icon}
-        >
-        </AssetAwareness>
-    }
+        rotationAngle={0}
+        rotationOrigin={'center'}
+        onClick={(evt: any) => this.handleClick(vehicle)}
+      />
+    )
+  }
 
-    getDisplayableProperties(vehicle: IAsset) {
-        let mainProps = {
-                "last update": timeFromNow(vehicle.lastState.timestamp),
-                latitude: vehicle.lastState.latitude.toFixed(5),
-                longitude: vehicle.lastState.longitude.toFixed(5),
-                plan: vehicle.planId,
-                heading: vehicle.lastState.heading.toFixed(2)
-        }
-        let settingsProps = this.buildSettings(vehicle.settings)
-        return Object.assign({}, mainProps, settingsProps)
+  public render() {
+    let awarenessJSX: JSX.Element | null = null
+    if (this.props.sliderValue !== 0) {
+      awarenessJSX = this.buildVehicleAwareness()
     }
-
-    handleClick(vehicle: IAsset) {
-        //evt.originalEvent.view.L.DomEvent.stop(evt)
-        this.props.setSidePanelTitle(vehicle.name)
-        this.props.setSidePanelContent(this.getDisplayableProperties(vehicle))
-        this.props.setSidePanelVisibility(true)
-    }
-
-    buildVehicle() {
-        let vehicle = this.props.data;
-        const systemPosition = getLatLng(vehicle.lastState)
-        return (
-            <RotatedMarker
-                position={systemPosition}
-                icon={this.icon}
-                rotationAngle={0}
-                rotationOrigin={'center'}
-                onClick={(evt: any) => this.handleClick(vehicle)}
-                >
-            </RotatedMarker>
-        );
-    }
-
-    render() {
-        let awarenessJSX: JSX.Element | null = null
-        if (this.props.sliderValue != 0) {
-            awarenessJSX = this.buildVehicleAwareness()
-        }
-        return (
-            <>
-                {this.buildVehicle()}
-                {awarenessJSX}
-            </>
-        )
-    }
+    return (
+      <>
+        {this.buildVehicle()}
+        {awarenessJSX}
+      </>
+    )
+  }
 }
 
 const actionCreators = {
-    setSidePanelTitle,
-    setSidePanelContent,
-    setSidePanelVisibility,
+  setSidePanelContent,
+  setSidePanelTitle,
+  setSidePanelVisibility,
 }
 
 function mapStateToProps(state: IRipplesState) {
-    return {
-        sliderValue: state.sliderValue,
-    }
+  return {
+    sliderValue: state.sliderValue,
+  }
 }
 
-
-export default connect(mapStateToProps, actionCreators)(Vehicle)
+export default connect(
+  mapStateToProps,
+  actionCreators
+)(Vehicle)

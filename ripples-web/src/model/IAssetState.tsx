@@ -1,15 +1,15 @@
-import ILatLng from "./ILatLng";
-import IPositionAtTime from "./IPositionAtTime";
+import ILatLng from './ILatLng'
+import IPositionAtTime from './IPositionAtTime'
 
 export default interface IAssetState extends IPositionAtTime {
-    fuel: number
-    heading: number
+  fuel: number
+  heading: number
 }
 
 export const EmptyAssetState: IAssetState = {
-    timestamp: 0,
-    fuel: 0,
-    heading: 0,
-    latitude: 0,
-    longitude: 0
+  fuel: 0,
+  heading: 0,
+  latitude: 0,
+  longitude: 0,
+  timestamp: 0,
 }
