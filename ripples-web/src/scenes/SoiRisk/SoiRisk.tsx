@@ -17,6 +17,7 @@ import { deleteAssetErrors, fetchAssetsErrors, fetchCollisions, fetchSoiData } f
 import TopNav from './components/TopNav'
 import './styles/SoiRisk.css'
 const { NotificationManager } = require('react-notifications')
+import { geolocated, GeolocatedProps } from 'react-geolocated'
 
 interface StateType {
   vehicles: IAsset[]
@@ -34,11 +35,11 @@ interface PropsType {
   auth: IAuthState
 }
 
-class SoiRisk extends Component<PropsType, StateType> {
+class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   public timerID: number = 0
-  public rootCoords: ILatLng = { latitude: 41.18, longitude: -8.7 }
+  public defaultCoords: ILatLng = { latitude: 41.18, longitude: -8.7 }
 
-  constructor(props: any) {
+  constructor(props: PropsType & GeolocatedProps) {
     super(props)
     this.state = {
       assetErrors: [],
@@ -118,7 +119,10 @@ class SoiRisk extends Component<PropsType, StateType> {
   }
 
   public getDistanceToVehicle(vehicle: IAsset): string {
-    return distanceInMetersBetweenCoords(vehicle.lastState, this.rootCoords).toFixed(3)
+    const rootCoords = this.props.coords
+      ? { latitude: this.props.coords.latitude, longitude: this.props.coords.longitude }
+      : this.defaultCoords
+    return distanceInMetersBetweenCoords(vehicle.lastState, rootCoords).toFixed(1)
   }
 
   public buildTimeForNextWaypoint(waypoints: IPositionAtTime[], nextWaypointIdx: number) {
@@ -278,7 +282,7 @@ class SoiRisk extends Component<PropsType, StateType> {
               <th>Last Comm</th>
               <th>Next Comm</th>
               <th>Fuel</th>
-              <th>Distance (Km)</th>
+              <th>Distance (m)</th>
               <th>Collisions</th>
               <th>Errors</th>
             </tr>
@@ -303,4 +307,4 @@ const actionCreators = {
 export default connect(
   mapStateToProps,
   actionCreators
-)(SoiRisk)
+)(geolocated()(SoiRisk))
