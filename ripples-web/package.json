@@ -23,6 +23,7 @@
     "react": "^16.7.0",
     "react-datepicker": "^2.5.0",
     "react-dom": "^16.7.0",
+    "react-geolocated": "^2.5.0",
     "react-leaflet": "^2.2.0",
     "react-leaflet-canvas-layer": "^1.0.0",
     "react-leaflet-fullscreen-control": "^0.0.4",
