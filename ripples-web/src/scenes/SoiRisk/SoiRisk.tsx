@@ -25,6 +25,7 @@ interface StateType {
   assetErrors: AssetErrors[]
   isCollisionsModalOpen: boolean
   isErrorsModalOpen: boolean
+  vehicleSelected: string
   loading: boolean
 }
 
@@ -46,6 +47,7 @@ class SoiRisk extends Component<PropsType, StateType> {
       isErrorsModalOpen: false,
       loading: true,
       plans: [],
+      vehicleSelected: '',
       vehicles: [],
     }
     this.updateSoiData = this.updateSoiData.bind(this)
@@ -164,15 +166,17 @@ class SoiRisk extends Component<PropsType, StateType> {
     return this.state.vehicles.map(vehicle => this.buildVehicle(vehicle))
   }
 
-  public toggleCollisionsModal() {
+  public toggleCollisionsModal(assetName: string) {
     this.setState(prevState => ({
       isCollisionsModalOpen: !prevState.isCollisionsModalOpen,
+      vehicleSelected: assetName,
     }))
   }
 
-  public toggleErrorsModal() {
+  public toggleErrorsModal(assetName: string) {
     this.setState(prevState => ({
       isErrorsModalOpen: !prevState.isErrorsModalOpen,
+      vehicleSelected: assetName,
     }))
   }
 
@@ -183,13 +187,13 @@ class SoiRisk extends Component<PropsType, StateType> {
     return (
       <td className={assetCollisions.length === 0 ? 'bg-green' : 'bg-red'}>
         <div>
-          <Button onClick={this.toggleCollisionsModal}>{assetCollisions.length}</Button>
+          <Button onClick={() => this.toggleCollisionsModal(assetName)}>{assetCollisions.length}</Button>
           <Modal
             key={assetName + '_collisionsModal'}
-            isOpen={this.state.isCollisionsModalOpen}
-            toggle={this.toggleCollisionsModal}
+            isOpen={this.state.isCollisionsModalOpen && this.state.vehicleSelected === assetName}
+            toggle={() => this.toggleCollisionsModal(assetName)}
           >
-            <ModalHeader toggle={this.toggleCollisionsModal}>{assetName} collisions</ModalHeader>
+            <ModalHeader toggle={() => this.toggleCollisionsModal(assetName)}>{assetName} collisions</ModalHeader>
             <ModalBody>
               {assetCollisions.map((c: IPotentialCollision) => {
                 return (
@@ -205,7 +209,7 @@ class SoiRisk extends Component<PropsType, StateType> {
               })}
             </ModalBody>
             <ModalFooter>
-              <Button color="secondary" onClick={this.toggleCollisionsModal}>
+              <Button color="secondary" onClick={() => this.toggleCollisionsModal(assetName)}>
                 Close
               </Button>
             </ModalFooter>
@@ -225,9 +229,13 @@ class SoiRisk extends Component<PropsType, StateType> {
     return (
       <td className={errors.length === 0 ? 'bg-green' : 'bg-red'}>
         <div>
-          <Button onClick={this.toggleErrorsModal}>{errors.length}</Button>
-          <Modal key={assetName + '_errorsModal'} isOpen={this.state.isErrorsModalOpen} toggle={this.toggleErrorsModal}>
-            <ModalHeader toggle={this.toggleErrorsModal}>{assetName} errors</ModalHeader>
+          <Button onClick={() => this.toggleErrorsModal(assetName)}>{errors.length}</Button>
+          <Modal
+            key={assetName + '_errorsModal'}
+            isOpen={this.state.isErrorsModalOpen && this.state.vehicleSelected === assetName}
+            toggle={() => this.toggleErrorsModal(assetName)}
+          >
+            <ModalHeader toggle={() => this.toggleErrorsModal(assetName)}>{assetName} errors</ModalHeader>
             <ModalBody>
               {errors.map(e => {
                 return (
@@ -242,7 +250,7 @@ class SoiRisk extends Component<PropsType, StateType> {
               })}
             </ModalBody>
             <ModalFooter>
-              <Button color="secondary" onClick={this.toggleErrorsModal}>
+              <Button color="secondary" onClick={() => this.toggleErrorsModal(assetName)}>
                 Close
               </Button>
               {isOperator(this.props.auth) ? (
