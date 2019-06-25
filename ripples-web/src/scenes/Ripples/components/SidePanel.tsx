@@ -34,7 +34,7 @@ class SidePanel extends Component<PropsType, {}> {
       const content = this.buildContent(this.props.content)
       return (
         <Card className="side-panel">
-          <CardBody>
+          <CardBody className="scrollable">
             <CardTitle>
               <h4>{this.props.title}</h4>
             </CardTitle>
