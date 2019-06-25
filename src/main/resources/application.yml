@@ -30,6 +30,7 @@ app:
       - "http://localhost:3000/oauth2/redirect"
       - "http://localhost:9090/oauth2/redirect"
       - "http://falkor.lsts.pt:9090/oauth2/redirect"
+      - "https://falkor.lsts.pt/oauth2/redirect"
 
 #logging.level.org.hibernate.SQL=debug
   jackson:
