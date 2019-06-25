@@ -1,5 +1,12 @@
 import L from 'leaflet'
 
+export const PCIcon = L.Icon.extend({
+  options: {
+    iconSize: [16, 16],
+    iconUrl: 'http://cdn.onlinewebfonts.com/svg/img_365376.png',
+  },
+})
+
 export const GhostIcon = L.Icon.extend({
   options: {
     iconSize: [24, 24],

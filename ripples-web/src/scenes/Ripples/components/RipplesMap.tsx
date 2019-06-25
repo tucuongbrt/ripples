@@ -23,6 +23,7 @@ import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
 import { ToolSelected } from '../../../model/ToolSelected'
 import AISCanvas from './AISCanvas'
+import ClientLocation from './ClientLocation'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
 const CanvasLayer = require('react-leaflet-canvas-layer')
@@ -56,9 +57,10 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   constructor(props: PropsType) {
     super(props)
+    const initCoords = { lat: 41.18, lng: -8.7 }
     this.state = {
       geojsonData: GeoData,
-      initCoords: { lat: 41.18, lng: -8.7 },
+      initCoords,
       isToDrawAisLocations: false,
       perpLinesSize: 10,
     }
@@ -258,6 +260,11 @@ class RipplesMap extends Component<PropsType, StateType> {
           </Overlay>
           <Overlay checked={true} name="Profiles Data">
             <LayerGroup>{this.buildProfiles()}</LayerGroup>
+          </Overlay>
+          <Overlay checked={true} name="Current Location">
+            <LayerGroup>
+              <ClientLocation />
+            </LayerGroup>
           </Overlay>
         </LayersControl>
         />

@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import Card from 'reactstrap/lib/Card'
 import CardBody from 'reactstrap/lib/CardBody'
-import CardText from 'reactstrap/lib/CardText'
 import CardTitle from 'reactstrap/lib/CardTitle'
 import IRipplesState from '../../../model/IRipplesState'
 
