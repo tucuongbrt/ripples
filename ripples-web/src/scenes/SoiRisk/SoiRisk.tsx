@@ -126,8 +126,12 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public buildTimeForNextWaypoint(waypoints: IPositionAtTime[], nextWaypointIdx: number) {
+    const now = Date.now()
+    const oneHourAgo = now - 3600000
+    const nextWPTimestamp = waypoints[nextWaypointIdx].timestamp
+    const color = nextWPTimestamp > now ? 'bg-green' : nextWPTimestamp > oneHourAgo ? 'bg-orange' : 'bg-red'
     if (nextWaypointIdx >= 0 && nextWaypointIdx < waypoints.length) {
-      return <td className="bg-green">{timeFromNow(waypoints[nextWaypointIdx].timestamp)}</td>
+      return <td className={color}>{timeFromNow(nextWPTimestamp)}</td>
     }
     return <td className="bg-red">N/D</td>
   }
