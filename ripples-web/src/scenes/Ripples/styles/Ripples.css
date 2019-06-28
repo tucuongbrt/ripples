@@ -75,6 +75,7 @@ path.leaflet-polygon {
   z-index: 500;
   opacity: 0.8;
   border-radius: 0.5em;
+  max-width: 40%;
 }
 
 .side-panel ul {

@@ -9,6 +9,8 @@ import IRipplesState from '../../../model/IRipplesState'
 import {
   addWpToPlan,
   setSelectedWaypointIdx,
+  setSidePanelContent,
+  setSidePanelTitle,
   setSidePanelVisibility,
   updateWpLocation,
 } from '../../../redux/ripples.actions'
@@ -42,6 +44,8 @@ interface PropsType {
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
   setSidePanelVisibility: (_: boolean) => void
+  setSidePanelTitle: (_: string) => void
+  setSidePanelContent: (_: any) => void
 }
 
 interface StateType {
@@ -72,6 +76,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleZoom = this.handleZoom.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
+    this.onEachFeature = this.onEachFeature.bind(this)
   }
 
   /**
@@ -145,11 +150,12 @@ class RipplesMap extends Component<PropsType, StateType> {
   public onEachFeature(feature: any, layer: any) {
     // does this feature have a property named popupContent?
     if (feature.properties && feature.properties.Name) {
-      let content = `<h5>${feature.properties.Name}</h5>`
-      if (feature.properties.description) {
-        content += feature.properties.description
-      }
-      layer.bindPopup(content)
+      layer.on('click', (evt: any) => {
+        evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+        this.props.setSidePanelTitle(feature.properties.name)
+        this.props.setSidePanelContent(feature.properties)
+        this.props.setSidePanelVisibility(true)
+      })
     }
   }
 
@@ -290,6 +296,8 @@ function mapStateToProps(state: IRipplesState) {
 const actionCreators = {
   addWpToPlan,
   setSelectedWaypointIdx,
+  setSidePanelContent,
+  setSidePanelTitle,
   setSidePanelVisibility,
   updateWpLocation,
 }
