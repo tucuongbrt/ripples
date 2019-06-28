@@ -69,7 +69,7 @@ path.leaflet-polygon {
 
 .side-panel {
   position: absolute;
-  height: 50%;
+  max-height: 50%;
   top: 25%;
   right: 0.5em;
   z-index: 500;

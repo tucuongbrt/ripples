@@ -152,7 +152,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (feature.properties && feature.properties.Name) {
       layer.on('click', (evt: any) => {
         evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-        this.props.setSidePanelTitle(feature.properties.name)
+        this.props.setSidePanelTitle(feature.properties.Name)
         this.props.setSidePanelContent(feature.properties)
         this.props.setSidePanelVisibility(true)
       })
