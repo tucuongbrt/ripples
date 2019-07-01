@@ -1,6 +1,6 @@
 import { LatLngLiteral } from 'leaflet'
 import React, { Component } from 'react'
-import { FeatureGroup, GeoJSON, LayerGroup, LayersControl, Map, TileLayer } from 'react-leaflet'
+import { GeoJSON, LayerGroup, LayersControl, Map, TileLayer } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
 import { connect } from 'react-redux'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
@@ -18,7 +18,6 @@ import AISShip from './AISShip'
 import Spot from './Spot'
 import Vehicle from './Vehicle'
 const { BaseLayer, Overlay } = LayersControl
-import GeoData from '../../../assets/geojson/all.json'
 import ILatLng from '../../../model/ILatLng'
 import IPlan from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
@@ -29,10 +28,9 @@ import ClientLocation from './ClientLocation'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
 const CanvasLayer = require('react-leaflet-canvas-layer')
-const toGeojson = require('@mapbox/togeojson')
-const L = require('leaflet')
 
 interface PropsType {
+  myMapsData: any
   aisLocations: IShipLocation[]
   vehicles: IAsset[]
   spots: IAsset[]
@@ -54,19 +52,16 @@ interface StateType {
   initCoords: LatLngLiteral
   isToDrawAisLocations: boolean
   perpLinesSize: number
-  geojsonData: any[]
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
   public upgradedOptions: any
   public initZoom = 10
-  public map: any
 
   constructor(props: PropsType) {
     super(props)
     const initCoords = { lat: 41.18, lng: -8.7 }
     this.state = {
-      geojsonData: GeoData,
       initCoords,
       isToDrawAisLocations: false,
       perpLinesSize: 10,
@@ -79,7 +74,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleZoom = this.handleZoom.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
-    this.loadKMLData = this.loadKMLData.bind(this)
+    this.buildMyMaps = this.buildMyMaps.bind(this)
   }
 
   /**
@@ -120,39 +115,28 @@ class RipplesMap extends Component<PropsType, StateType> {
     return obj
   }
 
-  public loadKMLData() {
-    const apiURL = process.env.REACT_APP_API_BASE_URL
-    fetch(`${apiURL}/kml`)
-      .then(res => res.text())
-      .then(xml => {
-        // Create new kml overlay
-        const dom = new DOMParser().parseFromString(xml, 'text/xml')
-        const featureCollection = toGeojson.kml(dom, { styles: true })
-        const context = this
-        L.geoJSON(featureCollection, {
-          style(feature: any) {
-            return {
-              color: feature.properties.stroke,
-              weight: feature.properties['stroke-width'],
-            }
-          },
-          onEachFeature(feature: any, layer: any) {
-            if (feature.properties && feature.properties.name) {
-              layer.on('click', (evt: any) => {
-                evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-                context.props.setSidePanelTitle(feature.properties.name)
-                context.props.setSidePanelContent(context.getGeoJSONSidePanelProperties(feature.properties))
-                context.props.setSidePanelVisibility(true)
-              })
-            }
-          },
-        }).addTo(this.map.leafletElement)
-        // this.map.addLayer(geojson)
-      })
-  }
-
-  public componentDidMount() {
-    this.loadKMLData()
+  public buildMyMaps() {
+    return (
+      <GeoJSON
+        data={this.props.myMapsData}
+        style={(feature: any) => {
+          return {
+            color: feature.properties.stroke,
+            weight: feature.properties['stroke-width'],
+          }
+        }}
+        onEachFeature={(feature, layer) => {
+          if (feature.properties && feature.properties.name) {
+            layer.on('click', (evt: any) => {
+              evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+              this.props.setSidePanelTitle(feature.properties.name)
+              this.props.setSidePanelContent(this.getGeoJSONSidePanelProperties(feature.properties))
+              this.props.setSidePanelVisibility(true)
+            })
+          }
+        }}
+      />
+    )
   }
 
   public buildProfiles() {
@@ -234,7 +218,6 @@ class RipplesMap extends Component<PropsType, StateType> {
         maxZoom={20}
         onClick={this.handleMapClick}
         onZoomend={this.handleZoom}
-        ref={currentMap => (this.map = currentMap)}
       >
         <LayersControl position="topright">
           <BaseLayer checked={true} name="OpenStreetMap.Mapnik">
@@ -252,6 +235,9 @@ class RipplesMap extends Component<PropsType, StateType> {
               opacity={0.7}
               maxNativeZoom={17}
             />
+          </Overlay>
+          <Overlay checked={true} name="MyMaps">
+            <LayerGroup>{this.buildMyMaps()}</LayerGroup>
           </Overlay>
           <Overlay checked={true} name="Vehicles">
             <LayerGroup>{this.buildVehicles()}</LayerGroup>

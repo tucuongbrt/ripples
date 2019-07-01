@@ -40,9 +40,11 @@ import SidePanel from './components/SidePanel'
 import Slider from './components/Slider'
 import TopNav from './components/TopNav'
 import './styles/Ripples.css'
+const toGeojson = require('@mapbox/togeojson')
 
 interface StateType {
   loading: boolean
+  myMapsData: any
 }
 
 interface PropsType {
@@ -74,6 +76,7 @@ class Ripples extends Component<PropsType, StateType> {
     super(props)
     this.state = {
       loading: true,
+      myMapsData: {},
     }
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
@@ -102,6 +105,8 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
+    const myMaps = await this.loadMyMapsData()
+    this.setState({ myMapsData: myMaps })
     this.setState({ loading: false })
     this.startUpdates()
   }
@@ -125,6 +130,16 @@ class Ripples extends Component<PropsType, StateType> {
   public componentWillUnmount() {
     clearInterval(this.soiTimer)
     clearInterval(this.aisTimer)
+  }
+
+  public async loadMyMapsData() {
+    const apiURL = process.env.REACT_APP_API_BASE_URL
+    const res = await fetch(`${apiURL}/kml`)
+    const xml = await res.text()
+    // Create new kml overlay
+    const dom = new DOMParser().parseFromString(xml, 'text/xml')
+    const featureCollection = toGeojson.kml(dom, { styles: true })
+    return featureCollection
   }
 
   public async updateSoiData() {
@@ -272,7 +287,7 @@ class Ripples extends Component<PropsType, StateType> {
                 handleUpdatePlanId={this.handleUpdatePlanId}
               />
             </div>
-            <RipplesMap />
+            <RipplesMap myMapsData={this.state.myMapsData} />
             <SidePanel />
             <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
           </div>
