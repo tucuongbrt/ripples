@@ -128,6 +128,9 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   public buildTimeForNextWaypoint(waypoints: IPositionAtTime[], nextWaypointIdx: number) {
     const now = Date.now()
     const oneHourAgo = now - 3600000
+    if (nextWaypointIdx < 0) {
+      return <td className="bg-red">N/D</td>
+    }
     const nextWPTimestamp = waypoints[nextWaypointIdx].timestamp
     const color = nextWPTimestamp > now ? 'bg-green' : nextWPTimestamp > oneHourAgo ? 'bg-orange' : 'bg-red'
     if (nextWaypointIdx >= 0 && nextWaypointIdx < waypoints.length) {
@@ -148,7 +151,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public buildFuel(fuel: number) {
-    return <td className={fuel > 0.5 ? 'bg-green' : fuel > 0.1 ? 'bg-orange' : 'bg-red'}>{fuel}</td>
+    return <td className={fuel > 0.5 ? 'bg-green' : fuel > 0.1 ? 'bg-orange' : 'bg-red'}>{fuel.toFixed(2)}</td>
   }
 
   public buildVehicle(vehicle: IAsset) {
