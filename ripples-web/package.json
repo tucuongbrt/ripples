@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@mapbox/togeojson": "^0.16.0",
     "@nivo/line": "^0.52.1",
     "@types/jest": "^24.0.9",
     "@types/node": "^11.10.4",
