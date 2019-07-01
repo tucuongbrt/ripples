@@ -195,8 +195,11 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     const allCollisions = this.state.collisions
     const assetCollisions = allCollisions.filter(c => c.asset === assetName)
     assetCollisions.sort((a, b) => a.timestamp - b.timestamp)
+    if (assetCollisions.length === 0) {
+      return <td className="bg-green">0</td>
+    }
     return (
-      <td className={assetCollisions.length === 0 ? 'bg-green' : 'bg-red'}>
+      <td className="bg-red">
         <div>
           <Button onClick={() => this.toggleCollisionsModal(assetName)}>{assetCollisions.length}</Button>
           <Modal
@@ -238,7 +241,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     }
     const errors = assetErrors.getErrors()
     return (
-      <td className={errors.length === 0 ? 'bg-green' : 'bg-red'}>
+      <td className="bg-red">
         <div>
           <Button onClick={() => this.toggleErrorsModal(assetName)}>{errors.length}</Button>
           <Modal
