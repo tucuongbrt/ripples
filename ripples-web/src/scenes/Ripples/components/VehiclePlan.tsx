@@ -85,8 +85,8 @@ class VehiclePlan extends Component<PropsType, StateType> {
 
   public getWaypointSidePanelProperties(wp: IPositionAtTime) {
     return {
-      eta: timeFromNow(wp.timestamp),
-      'exact eta': timestampMsToReadableDate(wp.timestamp),
+      eta: wp.timestamp ? timeFromNow(wp.timestamp) : 'N/D',
+      'exact eta': wp.timestamp ? timestampMsToReadableDate(wp.timestamp) : 'N/D',
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
     }
