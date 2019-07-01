@@ -29,6 +29,8 @@ import ClientLocation from './ClientLocation'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
 const CanvasLayer = require('react-leaflet-canvas-layer')
+const toGeojson = require('@mapbox/togeojson')
+const L = require('leaflet')
 
 interface PropsType {
   aisLocations: IShipLocation[]
@@ -58,6 +60,7 @@ interface StateType {
 class RipplesMap extends Component<PropsType, StateType> {
   public upgradedOptions: any
   public initZoom = 10
+  public map: any
 
   constructor(props: PropsType) {
     super(props)
@@ -76,7 +79,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleZoom = this.handleZoom.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
-    this.onEachFeature = this.onEachFeature.bind(this)
+    this.loadKMLData = this.loadKMLData.bind(this)
   }
 
   /**
@@ -101,6 +104,55 @@ class RipplesMap extends Component<PropsType, StateType> {
         }
       }
     }
+  }
+
+  public getGeoJSONSidePanelProperties(properties: any) {
+    let obj = {}
+    if (properties.lat) {
+      obj = Object.assign({}, obj, { lat: properties.lat })
+    }
+    if (properties.lon) {
+      obj = Object.assign({}, obj, { lng: properties.lon })
+    }
+    if (properties.CATEGORIA) {
+      obj = Object.assign({}, obj, { category: properties.CATEGORIA })
+    }
+    return obj
+  }
+
+  public loadKMLData() {
+    const apiURL = process.env.REACT_APP_API_BASE_URL
+    fetch(`${apiURL}/kml`)
+      .then(res => res.text())
+      .then(xml => {
+        // Create new kml overlay
+        const dom = new DOMParser().parseFromString(xml, 'text/xml')
+        const featureCollection = toGeojson.kml(dom, { styles: true })
+        const context = this
+        L.geoJSON(featureCollection, {
+          style(feature: any) {
+            return {
+              color: feature.properties.stroke,
+              weight: feature.properties['stroke-width'],
+            }
+          },
+          onEachFeature(feature: any, layer: any) {
+            if (feature.properties && feature.properties.name) {
+              layer.on('click', (evt: any) => {
+                evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+                context.props.setSidePanelTitle(feature.properties.name)
+                context.props.setSidePanelContent(context.getGeoJSONSidePanelProperties(feature.properties))
+                context.props.setSidePanelVisibility(true)
+              })
+            }
+          },
+        }).addTo(this.map.leafletElement)
+        // this.map.addLayer(geojson)
+      })
+  }
+
+  public componentDidMount() {
+    this.loadKMLData()
   }
 
   public buildProfiles() {
@@ -147,52 +199,6 @@ class RipplesMap extends Component<PropsType, StateType> {
     })
   }
 
-  public onEachFeature(feature: any, layer: any) {
-    // does this feature have a property named popupContent?
-    if (feature.properties && feature.properties.Name) {
-      layer.on('click', (evt: any) => {
-        evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-        this.props.setSidePanelTitle(feature.properties.Name)
-        this.props.setSidePanelContent(feature.properties)
-        this.props.setSidePanelVisibility(true)
-      })
-    }
-  }
-
-  public buildGeoJSON() {
-    return this.state.geojsonData.map((json, i) => {
-      return (
-        <GeoJSON
-          key={'geojson' + i}
-          data={json}
-          onEachFeature={this.onEachFeature}
-          style={(feature: any) => {
-            let color
-            switch (feature.properties.Name) {
-              case 'PNLN':
-                color = '#e5af3b'
-                break
-              case 'Inner Circle':
-                color = '#e3e800'
-                break
-              case 'Outer Circle':
-                color = '#961400'
-                break
-              default:
-                color = '#48cc02'
-                break
-            }
-            return {
-              color,
-              opacity: 0.5,
-              weight: 2,
-            }
-          }}
-        />
-      )
-    })
-  }
-
   public handleZoom(e: any) {
     const newZoom = e.target._animateToZoom
     let newLineLength = 0
@@ -228,6 +234,7 @@ class RipplesMap extends Component<PropsType, StateType> {
         maxZoom={20}
         onClick={this.handleMapClick}
         onZoomend={this.handleZoom}
+        ref={currentMap => (this.map = currentMap)}
       >
         <LayersControl position="topright">
           <BaseLayer checked={true} name="OpenStreetMap.Mapnik">
@@ -245,9 +252,6 @@ class RipplesMap extends Component<PropsType, StateType> {
               opacity={0.7}
               maxNativeZoom={17}
             />
-          </Overlay>
-          <Overlay name="KML" checked={true}>
-            <FeatureGroup>{this.buildGeoJSON()}</FeatureGroup>
           </Overlay>
           <Overlay checked={true} name="Vehicles">
             <LayerGroup>{this.buildVehicles()}</LayerGroup>
