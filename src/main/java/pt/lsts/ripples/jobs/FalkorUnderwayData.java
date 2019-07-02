@@ -2,11 +2,13 @@ package pt.lsts.ripples.jobs;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.logging.Logger;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -23,7 +25,7 @@ public class FalkorUnderwayData implements Runnable {
 	private int port = 0;
 	
 	@Value("${falkor.underway.active:false}")
-	private boolean active = true;
+	private boolean active;
 	
 	private Thread thread;
 
@@ -33,6 +35,8 @@ public class FalkorUnderwayData implements Runnable {
 
 	@Autowired
 	private RipplesUtils ripples;
+
+	private final Logger logger = LoggerFactory.getLogger(FalkorUnderwayData.class);
 
 	public FalkorUnderwayData() {
 		this.thread = new Thread(this);
@@ -53,10 +57,14 @@ public class FalkorUnderwayData implements Runnable {
 						ripples.setPosition(ripples.getOrCreate("falkor"), lat, lon, new Date(), true);
 						ripples.setReceivedData(ripples.getOrCreate("falkor"), lat, lon, new Date(), data);
 						lastMeasurement = System.currentTimeMillis();
-						Logger.getLogger(getClass().getSimpleName()).info("Stored data from Falkor.");
+						logger.info("Stored data from Falkor.");
 					}
 				}
-			} catch (Exception e) {
+			} catch (ConnectException e){
+				logger.error("Can not connect to falkor underway: " + e.getMessage());
+				e.printStackTrace();
+			} 
+			catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

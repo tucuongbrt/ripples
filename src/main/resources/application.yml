@@ -1,0 +1,73 @@
+spring:
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: "jdbc:h2:file:./data.db"
+  h2:
+    console:
+      enabled: true
+      path: "/h2"
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 'insert client id'
+            client-secret: 'insert client secret'
+            redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+              - email
+              - profile
+
+app:
+  auth:
+    tokenSecret: 'insert jwt secret'
+    tokenExpirationMsec: 864000000
+  oauth2:
+    authorizedRedirectUris:
+      - "http://localhost:3000/oauth2/redirect"
+      - "http://localhost:9090/oauth2/redirect"
+      - "http://falkor.lsts.pt:9090/oauth2/redirect"
+      - "https://falkor.lsts.pt/oauth2/redirect"
+
+#logging.level.org.hibernate.SQL=debug
+  jackson:
+    date-format: com.fasterxml.jackson.databind.util.StdDateFormat
+server:
+  port: 9090
+#Set username / password
+wgms:
+  user: 'insert wgms user'
+  pass: 'insert wgms password'
+#AIS database
+ais:
+  db: AISDB.csv
+  username: 'insert ais username'
+  minlat: 40
+  maxlat: 42
+  minlng: -10
+  maxlng: -8
+# Google My Maps KMZ URL
+kmz:
+  url: https://www.google.com/maps/d/u/0/kml?mid=1C_guMPPn8sye2qoPgz9ciuN8Bsw
+skip:
+  db:
+    initialization: true
+falkor:
+  underway:
+    active: false
+
+#IMC id
+ripples:
+  imcid: 99
+#GoogleApp
+
+google:
+  users:
+    spreadsheet:
+      id: 1m2EP30f-QeCQHMb-F7WLAj_xW_cw0NauA281LBUcUOA
+twilio:
+  account-sid: 'Insert twilio sid'
+  auth-token: 'Insert twilio auth token'

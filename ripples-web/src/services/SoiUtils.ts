@@ -1,0 +1,180 @@
+import { AssetError, AssetErrors } from '../model/AssetErrors'
+import IAsset from '../model/IAsset'
+import IAssetAwareness from '../model/IAssetAwareness'
+import IAssetState from '../model/IAssetState'
+import IAuthState, { isScientist } from '../model/IAuthState'
+import IPlan from '../model/IPlan'
+import IPositionAtTime from '../model/IPositionAtTime'
+import { IPotentialCollision, IPotentialCollisionPayload } from '../model/IPotentialCollision'
+import IProfile from '../model/IProfile'
+import { request } from './RequestUtils'
+
+const apiURL = process.env.REACT_APP_API_BASE_URL
+
+export async function mergeAssetSettings(vehicles: IAsset[], authState: IAuthState) {
+  if (isScientist(authState)) {
+    const settingsPromise = fetchAssetsSettings()
+    const assetSettings = await settingsPromise
+    assetSettings.forEach(entry => {
+      const vehicle = vehicles.filter(v => v.name === entry.name)[0]
+      Object.keys(entry.params)
+        .sort()
+        .forEach(key => {
+          vehicle.settings.push([key, entry.params[key]])
+        })
+    })
+  }
+}
+
+interface IAssetPayload {
+  name: string
+  plan: IPlan
+  imcid: number
+  lastState: IAssetState
+  settings: string[][]
+  awareness: IPositionAtTime[]
+}
+
+// Converts waypoints read from the server to our type of waypoints
+function convertWaypoint(wp: any) {
+  return Object.assign(
+    {},
+    {
+      latitude: wp.latitude,
+      longitude: wp.longitude,
+      timestamp: new Date(wp.arrivalDate).getTime(),
+    }
+  )
+}
+
+export async function fetchSoiData() {
+  const response = await fetch(`${apiURL}/soi`)
+  const data = await response.json()
+  const vehicles: IAsset[] = []
+  const spots: IAsset[] = []
+  const plans: IPlan[] = []
+  data.forEach((system: IAssetPayload) => {
+    const plan: IPlan = JSON.parse(JSON.stringify(system.plan))
+    delete system.plan
+    if (system.name.startsWith('spot')) {
+      spots.push(Object.assign({}, system, { planId: '' }))
+    } else {
+      plan.waypoints = plan.waypoints.map(wp => convertWaypoint(wp))
+      system.lastState.timestamp = system.lastState.timestamp * 1000
+      system.settings = []
+      vehicles.push(Object.assign({}, system, { planId: plan.id }))
+      plan.assignedTo = system.name
+      plans.push(plan)
+    }
+  })
+  return { vehicles, spots, plans }
+}
+
+interface ParamsType {
+  [key: string]: string
+}
+
+interface AssetSettings {
+  name: string
+  params: ParamsType
+}
+
+export async function subscribeToSms(phoneNumber: string) {
+  return request({
+    body: JSON.stringify({ phoneNumber }),
+    method: 'POST',
+    url: `${apiURL}/sms/subscribe`,
+  })
+}
+
+async function fetchAssetsSettings() {
+  const data: AssetSettings[] = await request({
+    url: `${apiURL}/assets/params`,
+  })
+  return data
+}
+
+export async function fetchProfileData(): Promise<IProfile[]> {
+  const response = await fetch(`${apiURL}/soi/profiles`)
+  const data = await response.json()
+  return data
+}
+
+async function postNewPlan(plan: IPlan) {
+  const response = request({
+    body: JSON.stringify(plan),
+    method: 'POST',
+    url: `${apiURL}/soi`,
+  })
+  return response
+}
+
+export async function deleteUnassignedPlan(planId: string) {
+  return request({
+    body: JSON.stringify({ id: planId }),
+    method: 'DELETE',
+    url: `${apiURL}/soi/unassigned/plans`,
+  })
+}
+
+export async function updatePlanId(previousId: string, newId: string) {
+  return request({
+    body: JSON.stringify({ previousId, newId }),
+    method: 'PATCH',
+    url: `${apiURL}/soi/unassigned/plans/id`,
+  })
+}
+
+export async function sendUnassignedPlan(plan: IPlan) {
+  return request({
+    body: JSON.stringify(plan),
+    method: 'POST',
+    url: `${apiURL}/soi/unassigned/plans/`,
+  })
+}
+
+export async function fetchUnassignedPlans() {
+  let plans: IPlan[] = await request({
+    url: `${apiURL}/soi/unassigned/plans/`,
+  })
+  plans = plans.map(p => Object.assign(p, { assignedTo: '' }))
+  plans.forEach(p => (p.waypoints = p.waypoints.map(wp => convertWaypoint(wp))))
+  return plans
+}
+
+export async function fetchAwareness(): Promise<IAssetAwareness[]> {
+  const response = await fetch(`${apiURL}/soi/awareness`)
+  const data = await response.json()
+  return data
+}
+
+export async function sendPlanToVehicle(plan: IPlan, vehicleName: string) {
+  const planCopy = JSON.parse(JSON.stringify(plan))
+  planCopy.assignedTo = vehicleName
+  planCopy.waypoints = planCopy.waypoints.map((wp: IPositionAtTime) => {
+    const timestamp = wp.timestamp
+    delete wp.timestamp
+    return Object.assign({}, wp, { eta: timestamp / 1000, duration: 60 })
+  })
+  return postNewPlan(planCopy)
+}
+
+export async function fetchCollisions(): Promise<IPotentialCollision[]> {
+  const response = await fetch(`${apiURL}/soi/risk`)
+  const payload: IPotentialCollisionPayload[] = await response.json()
+  const data: IPotentialCollision[] = payload.map(p =>
+    Object.assign({}, p, { timestamp: new Date(p.timestamp).getTime() })
+  )
+  return data
+}
+
+export async function fetchAssetsErrors(): Promise<AssetErrors[]> {
+  const response: any[] = await request({ url: `${apiURL}/soi/errors` })
+  return response.map(r => {
+    return new AssetErrors(r.name, r.errors.sort((a: AssetError, b: AssetError) => a.timestamp < b.timestamp))
+  })
+}
+
+export async function deleteAssetErrors(assetName: string) {
+  await request({ url: `${apiURL}/soi/errors/${assetName}`, method: 'DELETE' })
+}

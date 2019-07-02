@@ -22,6 +22,7 @@ public class Rock7Message {
     private int type;
     private Date created_at;
     private Date updated_at;
+    private Boolean isPlainText = false;
 
     public int getSource() {
         return source;
@@ -77,5 +78,13 @@ public class Rock7Message {
 
     public void setImei(String imei) {
         this.imei = imei;
+    }
+
+    public Boolean getPlainText() {
+        return isPlainText;
+    }
+
+    public void setPlainText(Boolean plainText) {
+        isPlainText = plainText;
     }
 }

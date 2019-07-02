@@ -1,6 +1,10 @@
 .gradle
 /build/
 !gradle/wrapper/gradle-wrapper.jar
+application.yml
+spreadsheet-credentials.json
+rock7accounts.tsv
+src/main/resources/public/
 
 ### STS ###
 .apt_generated
@@ -26,3 +30,4 @@
 /nbdist/
 /.nb-gradle/
 /data.db.mv.db
+data.db.trace.db

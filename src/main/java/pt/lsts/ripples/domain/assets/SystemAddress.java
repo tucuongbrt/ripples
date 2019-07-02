@@ -15,9 +15,10 @@ public class SystemAddress {
     private Integer imcId = null;
     private String imei = null;
     private String phone = null;
+    private String rock7Email = null;
 
     @SuppressWarnings("unused")
-	private SystemAddress() {
+    private SystemAddress() {
 
     }
 
@@ -55,5 +56,13 @@ public class SystemAddress {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRock7Email() {
+        return rock7Email;
+    }
+
+    public void setRock7Email(String rockblockEmail) {
+        this.rock7Email = rockblockEmail;
     }
 }

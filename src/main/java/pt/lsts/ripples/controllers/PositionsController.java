@@ -1,19 +1,14 @@
 package pt.lsts.ripples.controllers;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.repo.PositionsRepository;
 import pt.lsts.ripples.services.MessageProcessor;
+
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class PositionsController {
@@ -36,7 +31,8 @@ public class PositionsController {
                 .filter(asset -> asset.getTimestamp().after(start))
                 .collect(Collectors.toList());
     }
-    
+
+    @GetMapping(path = {"/positions/last", "/positions/last"}, produces = "application/json")
     private List<AssetPosition> getLastPositions(@RequestParam(value = "_", defaultValue = "") String since) {
 
         final Date start = since.isEmpty() ?

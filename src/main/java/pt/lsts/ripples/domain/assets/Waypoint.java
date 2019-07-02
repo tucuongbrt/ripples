@@ -1,6 +1,7 @@
 package pt.lsts.ripples.domain.assets;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,14 +18,14 @@ public class Waypoint implements Serializable {
 
     private double latitude;
     private double longitude;
-    private double eta;
+    private long eta;
     private int duration;
 
     public Waypoint() {
 
     }
 
-    public Waypoint(double lat, double lon, double eta, int duration) {
+    public Waypoint(double lat, double lon, long eta, int duration) {
         this.latitude = lat;
         this.longitude = lon;
         this.eta = eta;
@@ -47,11 +48,11 @@ public class Waypoint implements Serializable {
         this.longitude = longitude;
     }
 
-    public double getEta() {
+    public long getEta() {
         return eta;
     }
 
-    public void setEta(double eta) {
+    public void setEta(long eta) {
         this.eta = eta;
     }
 
@@ -61,5 +62,8 @@ public class Waypoint implements Serializable {
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+    public Date getArrivalDate() {
+    	return new Date(eta * 1000l);
     }
 }

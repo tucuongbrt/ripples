@@ -57,6 +57,7 @@ public abstract class IridiumMessage implements Comparable<IridiumMessage> {
     public static final int TYPE_TARGET_ASSET_POSITION = 2007;
     public static final int TYPE_IMC_IRIDIUM_MESSAGE = 2010;
     public static final int TYPE_EXTENDED_DEVICE_UPDATE = 2011;
+    public static final int TYPE_PLAIN_TEXT = -1;
     private static final HexBinaryAdapter hexAdapter = new HexBinaryAdapter();
     private static LinkedHashMap<Integer, Class<? extends IridiumMessage>> iridiumTypes = new LinkedHashMap<>();
 
@@ -78,18 +79,17 @@ public abstract class IridiumMessage implements Comparable<IridiumMessage> {
     }
 
     public static IridiumMessage deserialize(byte[] data) throws Exception {
-
         IMCInputStream iis = new IMCInputStream(new ByteArrayInputStream(data), IMCDefinition.getInstance());
         iis.setBigEndian(false);
         int source = iis.readUnsignedShort();
         int dest = iis.readUnsignedShort();
         int mgid = iis.readUnsignedShort();
-        IridiumMessage m = null;
+        IridiumMessage m;
         if (iridiumTypes.containsKey(mgid)) {
             m = iridiumTypes.get(mgid).newInstance();
         } else {
-            iis.close();
-            throw new Exception("Unrecognized message type: " + mgid);
+            mgid = -1;
+            m = new PlainTextReport();
         }
 
         if (m != null) {

@@ -18,6 +18,9 @@ public class Asset implements Serializable {
 	@Id
     private String name;
     private int imcid = -1;
+
+    @Lob
+    private AssetTrack track = new AssetTrack();
     
     private AssetState lastState = new AssetState();
     
@@ -50,6 +53,7 @@ public class Asset implements Serializable {
 
     public void setPlan(Plan plan) {
         this.plan = plan;
+        this.track.setPlan(plan);
     }
 
     public String getName() {
@@ -63,4 +67,8 @@ public class Asset implements Serializable {
     public void setImcid(int imcid) {
         this.imcid = imcid;
     }
+
+    public AssetState stateAt(Date d) {
+	    return track.synthesize(d);
+	}
 }

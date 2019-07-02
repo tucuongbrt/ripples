@@ -62,6 +62,7 @@ public class VerticalProfileData {
 		json.add("type", type);
 		json.add("latitude", "" + latitude);
 		json.add("longitude", "" + longitude);
+		json.add("system", system);
 
 		JsonArray array = new JsonArray();
 		for (Double[] s : samples) {

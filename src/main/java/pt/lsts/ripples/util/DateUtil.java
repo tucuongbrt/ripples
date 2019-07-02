@@ -2,7 +2,10 @@ package pt.lsts.ripples.util;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class DateUtil {
 	public static Date parse(String start) {
@@ -48,5 +51,14 @@ public class DateUtil {
 		} catch (Exception e) {
 			return new Date(System.currentTimeMillis() - 24 * 3600_000);
 		}
+	}
+
+	public static Date parseTimeString(String timeOfDay) {
+		GregorianCalendar date = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+		String[] timeParts = timeOfDay.split(":");
+		date.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeParts[0]));
+		date.set(Calendar.MINUTE, Integer.parseInt(timeParts[1]));
+		date.set(Calendar.SECOND, Integer.parseInt(timeParts[2]));
+		return date.getTime();
 	}
 }
