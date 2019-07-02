@@ -3,6 +3,7 @@
 !gradle/wrapper/gradle-wrapper.jar
 application.yml
 spreadsheet-credentials.json
+rock7accounts.tsv
 src/main/resources/public/
 
 ### STS ###
