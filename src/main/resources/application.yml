@@ -14,8 +14,8 @@ spring:
       client:
         registration:
           google:
-            client-id: 'insert client id here'
-            client-secret: 'insert client secret here'
+            client-id: 'insert client id'
+            client-secret: 'insert client secret'
             redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
             scope:
               - email
@@ -23,7 +23,7 @@ spring:
 
 app:
   auth:
-    tokenSecret: 'insert jwt secret here'
+    tokenSecret: 'insert jwt secret'
     tokenExpirationMsec: 864000000
   oauth2:
     authorizedRedirectUris:
@@ -39,12 +39,16 @@ server:
   port: 9090
 #Set username / password
 wgms:
-  user: 'insert wgms user here'
-  pass: 'insert wgms password here'
+  user: 'insert wgms user'
+  pass: 'insert wgms password'
 #AIS database
 ais:
   db: AISDB.csv
-  username: 'inser ais username here'
+  username: 'insert ais username'
+  minlat: 40
+  maxlat: 42
+  minlng: -10
+  maxlng: -8
 # Google My Maps KMZ URL
 kmz:
   url: https://www.google.com/maps/d/u/0/kml?mid=1C_guMPPn8sye2qoPgz9ciuN8Bsw
@@ -54,10 +58,7 @@ skip:
 falkor:
   underway:
     active: false
-#Rockblock
-rockblock:
-  username: 'insert rockblock username here'
-  password: 'insert rockblock password here'
+
 #IMC id
 ripples:
   imcid: 99
@@ -67,3 +68,6 @@ google:
   users:
     spreadsheet:
       id: 1m2EP30f-QeCQHMb-F7WLAj_xW_cw0NauA281LBUcUOA
+twilio:
+  account-sid: 'Insert twilio sid'
+  auth-token: 'Insert twilio auth token'
