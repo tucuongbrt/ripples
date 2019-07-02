@@ -46,7 +46,6 @@ import java.util.concurrent.TimeoutException;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -64,13 +63,14 @@ import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
+import pt.lsts.ripples.domain.iridium.Rock7Account;
 import pt.lsts.ripples.domain.soi.IncomingMessage;
 import pt.lsts.ripples.repo.AddressesRepository;
 import pt.lsts.ripples.repo.IncomingMessagesRepository;
+import pt.lsts.ripples.repo.Rock7AccountsRepository;
 import pt.lsts.ripples.util.ByteUtil;
 import org.apache.commons.codec.binary.Hex;
 
@@ -91,10 +91,8 @@ public class RockBlockIridiumSender {
 
     private static Logger logger = LoggerFactory.getLogger(RockBlockIridiumSender.class);
 
-    @Value("${rockblock.password}")
-    private String rockBlockPassword;
-    @Value("${rockblock.username}")
-    private String rockBlockUsername;
+    @Autowired
+    Rock7AccountsRepository rock7AccountsRepo;
 
     @Autowired
     AddressesRepository addressesRepo;
@@ -119,10 +117,11 @@ public class RockBlockIridiumSender {
     public void sendMessage(IridiumMessage msg) throws Exception {
 
         SystemAddress system = addressesRepo.findByImcId(msg.getDestination());
-        if (system == null || system.getImei() == null) return;
+        if (system == null || system.getImei() == null || system.getRock7Email() == null) return;
+        Rock7Account rock7Account = rock7AccountsRepo.findById(system.getRock7Email()).get();
         saveMessage(msg, system.getName());
-        String result = sendToRockBlockHttp(system.getImei(), rockBlockUsername, rockBlockPassword,
-                msg.serialize());
+        logger.info("Trying to send rockblock message using account: " + rock7Account.getEmail());
+        String result = sendToRockBlockHttp(system.getImei(), rock7Account, msg.serialize());
 
         if (result != null) {
             if (!result.split(",")[0].equals("OK")) {
@@ -152,7 +151,7 @@ public class RockBlockIridiumSender {
         cm.setMaxTotal(100);
     }
     
-    public static String sendToRockBlockHttp(String destImei, String username, String password, byte[] data)
+    public static String sendToRockBlockHttp(String destImei, Rock7Account rock7Account, byte[] data)
             throws IOException {
 
         HttpClient client = HttpClients.custom()
@@ -164,8 +163,8 @@ public class RockBlockIridiumSender {
         HttpPost post = new HttpPost(serverUrl);
         List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
         urlParameters.add(new BasicNameValuePair("imei", destImei));
-        urlParameters.add(new BasicNameValuePair("username", username));
-        urlParameters.add(new BasicNameValuePair("password", password));
+        urlParameters.add(new BasicNameValuePair("username", rock7Account.getEmail()));
+        urlParameters.add(new BasicNameValuePair("password", rock7Account.getPassword()));
         urlParameters.add(new BasicNameValuePair("data", ByteUtil.encodeToHex(data)));
         
         

@@ -22,7 +22,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.iridium.RockBlockIridiumSender;
 import pt.lsts.ripples.repo.AddressesRepository;
 
 @Component
@@ -134,6 +133,11 @@ public class UpdateAddresses {
                 if (parts.length > 2 && !parts[2].trim().isEmpty()) {
                     addr.setPhone(parts[2].trim());
                 }
+
+                if (parts.length > 3 && !parts[3].trim().isEmpty()) {
+                    addr.setRock7Email(parts[3].trim());
+                }
+
                 repo.save(addr);
             });
         }
