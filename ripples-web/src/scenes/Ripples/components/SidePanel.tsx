@@ -1,3 +1,4 @@
+import Parser from 'html-react-parser'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import Card from 'reactstrap/lib/Card'
@@ -21,7 +22,7 @@ class SidePanel extends Component<PropsType, {}> {
     for (const key in content) {
       items.push(
         <li key={key}>
-          {key}: {content[key]}
+          {key}: {Parser(content[key])}
         </li>
       )
     }

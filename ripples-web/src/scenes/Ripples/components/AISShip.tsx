@@ -53,8 +53,10 @@ class AISShip extends Component<PropsType, {}> {
       'last update': timeFromNow(ship.timestamp),
       latitude: ship.latitude.toFixed(5),
       longitude: ship.longitude.toFixed(5),
-      mmssi: ship.mmsi,
+      mmssi: ship.mmsi.toString(),
       'speed (knots)': ship.sog.toFixed(1),
+      // tslint:disable-next-line: object-literal-sort-keys
+      link: `<a href="https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}">https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}</a>`,
     }
   }
 
