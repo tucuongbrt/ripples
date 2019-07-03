@@ -2,10 +2,12 @@ import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css'
 import { connect } from 'react-redux'
 import Button from 'reactstrap/lib/Button'
+import Col from 'reactstrap/lib/Col'
 import Collapse from 'reactstrap/lib/Collapse'
 import Form from 'reactstrap/lib/Form'
 import FormGroup from 'reactstrap/lib/FormGroup'
 import Input from 'reactstrap/lib/Input'
+import Label from 'reactstrap/lib/Label'
 import Nav from 'reactstrap/lib/Nav'
 import Navbar from 'reactstrap/lib/Navbar'
 import NavbarToggler from 'reactstrap/lib/NavbarToggler'
@@ -30,7 +32,7 @@ class TopNav extends Component<PropsType, StateType> {
     super(props)
     this.state = {
       isNavOpen: true,
-      phoneNumber: '',
+      phoneNumber: '+351',
     }
     this.buildSmsSubscriber = this.buildSmsSubscriber.bind(this)
     this.onPhoneSubmit = this.onPhoneSubmit.bind(this)
@@ -46,7 +48,7 @@ class TopNav extends Component<PropsType, StateType> {
     try {
       await subscribeToSms(this.state.phoneNumber)
       NotificationManager.success(`${this.state.phoneNumber} subscribed`)
-      this.setState({ phoneNumber: '' })
+      this.setState({ phoneNumber: '+351' })
     } catch (e) {
       NotificationManager.warning(`Could not subscribe ${this.state.phoneNumber}`)
     }
@@ -59,17 +61,21 @@ class TopNav extends Component<PropsType, StateType> {
   public buildSmsSubscriber() {
     if (isOperator(this.props.auth)) {
       return (
-        <NavItem className="mr-2">
+        <NavItem id="phoneSubscriberItem" className="mr-2">
           <Form inline={true}>
-            <FormGroup>
-              <Input
-                className="mr-2"
-                placeholder="phone number"
-                onChange={this.onPhoneChanged}
-                value={this.state.phoneNumber}
-              />
+            <FormGroup row={true}>
+              <Col>
+                <Label for="phoneNumberInput">Subscribe to SMS notifications</Label>
+                <Input
+                  className="mr-2"
+                  placeholder="phone number"
+                  onChange={this.onPhoneChanged}
+                  value={this.state.phoneNumber}
+                  id="phoneNumberInput"
+                />
+              </Col>
             </FormGroup>
-            <Button onClick={this.onPhoneSubmit}>Submit</Button>
+            <Button onClick={this.onPhoneSubmit}>Subscribe</Button>
           </Form>
         </NavItem>
       )
