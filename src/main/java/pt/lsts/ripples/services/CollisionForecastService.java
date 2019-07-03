@@ -32,15 +32,17 @@ public class CollisionForecastService {
 	
 	private final Logger logger = LoggerFactory.getLogger(CollisionForecastService.class);
 	
-	private ConcurrentHashMap<String, VehicleRiskAnalysis> state = new ConcurrentHashMap<>();
-	
-	public HashSet<PotentialCollision> updateCollisions() {
-	    aisHubFetcher.fetchAISHub();
+    private ConcurrentHashMap<String, VehicleRiskAnalysis> state = new ConcurrentHashMap<>();
+    
+    private HashSet<PotentialCollision> lastCollisions = new HashSet<PotentialCollision>();
+
+    public HashSet<PotentialCollision> updateCollisions() {
+        aisHubFetcher.fetchAISHub();
         long start = System.currentTimeMillis();
 
         // (vehicle, ship) -> (distance, timestamp)
         final HashSet<PotentialCollision> collisions = new HashSet<PotentialCollision>();
-        for (long timeOffset = 0; timeOffset < 3_600 * 3_000; timeOffset += 1_000 * collisionDistance/4) {
+        for (long timeOffset = 0; timeOffset < 3_600 * 3_000; timeOffset += 1_000 * collisionDistance / 4) {
             final long time = timeOffset;
             HashMap<String, ShipAisSnapshot> ships = AisContactManager.getInstance().getFutureSnapshots(time);
             assetsRepo.findAll().forEach(asset -> {
@@ -55,7 +57,7 @@ public class CollisionForecastService {
                     if (distance < collisionDistance) {
                         collisions.add(new PotentialCollision(asset.getName(), ship.getLabel(), distance, t));
                     }
-                        
+
                 });
             });
         }
@@ -65,27 +67,32 @@ public class CollisionForecastService {
         state.forEachValue(1, s -> {
             s.clearCollisions();
         });
-        
+
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        
+
         collisions.forEach((c) -> {
             String vehicle = c.getAsset();
             String ship = c.getShip();
             Date when = c.getTimestamp();
 
             double distance = c.getDistance();
-            
+
             VehicleRiskAnalysis analysis = state.get(vehicle);
             if (analysis != null) {
-                analysis.putCollision(when, ship+" within "+(int)distance+"m @ "+sdf.format(when)+" UTC");
+                analysis.putCollision(when, ship + " within " + (int) distance + "m @ " + sdf.format(when) + " UTC");
             }
         });
-                
-        long diff = System.currentTimeMillis() - start;
 
+        long diff = System.currentTimeMillis() - start;
+        this.lastCollisions = collisions;
         logger.info("RiskAnalysis detected " + collisions.size() + " collisions in " + diff + " milliseconds.");
         return collisions;
     }
+
+    public HashSet<PotentialCollision> getLastCollisions() {
+        return lastCollisions;
+    }
+
 
 }

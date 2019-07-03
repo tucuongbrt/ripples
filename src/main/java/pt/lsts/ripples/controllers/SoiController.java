@@ -88,7 +88,7 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/risk", "/soi/risk/" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HashSet<PotentialCollision> riskAnalysis() {
-		return collisionService.updateCollisions();
+		return collisionService.getLastCollisions();
 	}
 
 	@RequestMapping(path = { "/soi/awareness", "/soi/awareness/" }, method = RequestMethod.GET)
