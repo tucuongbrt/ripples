@@ -56,7 +56,7 @@ class AISShip extends Component<PropsType, {}> {
       mmssi: ship.mmsi.toString(),
       'speed (knots)': ship.sog.toFixed(1),
       // tslint:disable-next-line: object-literal-sort-keys
-      link: `<a href="https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}">https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}</a>`,
+      link: `<a href="https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}" target="_blank">https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}</a>`,
     }
   }
 
