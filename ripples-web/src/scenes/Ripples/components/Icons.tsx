@@ -3,7 +3,7 @@ import L from 'leaflet'
 export const PCIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
-    iconUrl: 'http://cdn.onlinewebfonts.com/svg/img_365376.png',
+    iconUrl: 'https://www.freeiconspng.com/uploads/pc-icon-26.png',
   },
 })
 
