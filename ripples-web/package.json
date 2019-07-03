@@ -17,6 +17,7 @@
     "add": "^2.0.6",
     "bootstrap": "^4.2.1",
     "chart.js": "^2.7.3",
+    "html-react-parser": "^0.8.1",
     "leaflet": "^1.4.0",
     "leaflet-rotatedmarker": "^0.2.0",
     "moment": "^2.24.0",
