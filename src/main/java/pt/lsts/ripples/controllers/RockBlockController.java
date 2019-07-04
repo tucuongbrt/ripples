@@ -43,8 +43,8 @@ public class RockBlockController {
 
 	@GetMapping(path = "/api/v1/iridium")
 	public List<Rock7Message> pollMessages(@RequestParam(defaultValue="-3600") long since) {
-		if (since <= 0)
-			since = (System.currentTimeMillis() - (since * 1000)) / 1000;
+		if (since < 0)
+			since = (System.currentTimeMillis() + (since * 1000)) / 1000;
 
 		Date d = new Date(since * 1000);
 		return repo.findSince(d);
@@ -148,5 +148,12 @@ public class RockBlockController {
 
 
 		return new ResponseEntity<String>("Message received successfully.", HttpStatus.OK);
+	}
+	
+	public static void main(String[] args) {
+		long since = -120;
+		since = (System.currentTimeMillis() - (since * 1000)) / 1000;
+		System.out.println(since);
+		System.out.println(System.currentTimeMillis());
 	}
 }
