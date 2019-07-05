@@ -22,21 +22,21 @@ export function calculateShipLocation(aisShip: IAisShip): IShipLocation {
   let portVecEnd = aisPos
   let bowVecEnd = aisPos
   let sternVecEnd = aisPos
-  const cog = aisShip.cog
+  const heading = aisShip.heading !== 511 ? aisShip.heading : aisShip.cog
   if (aisShip.starboard > 0) {
-    const point = wgs84.destination(aisCoordinates, 90 + cog, aisShip.starboard).point.coordinates
+    const point = wgs84.destination(aisCoordinates, 90 + heading, aisShip.starboard).point.coordinates
     sbVecEnd = LatLngFactory.build(point[1], point[0])
   }
   if (aisShip.port > 0) {
-    const point = wgs84.destination(aisCoordinates, 270 + cog, aisShip.port).point.coordinates
+    const point = wgs84.destination(aisCoordinates, 270 + heading, aisShip.port).point.coordinates
     portVecEnd = LatLngFactory.build(point[1], point[0])
   }
   if (aisShip.bow > 0) {
-    const point = wgs84.destination(aisCoordinates, cog, aisShip.bow).point.coordinates
+    const point = wgs84.destination(aisCoordinates, heading, aisShip.bow).point.coordinates
     bowVecEnd = LatLngFactory.build(point[1], point[0])
   }
   if (aisShip.stern > 0) {
-    const point = wgs84.destination(aisCoordinates, 180 + cog, aisShip.stern).point.coordinates
+    const point = wgs84.destination(aisCoordinates, 180 + heading, aisShip.stern).point.coordinates
     sternVecEnd = LatLngFactory.build(point[1], point[0])
   }
   const halfBreadthVec = vecFromPoints(sbVecEnd, portVecEnd, 0.5)

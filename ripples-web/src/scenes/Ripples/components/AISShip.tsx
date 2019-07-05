@@ -53,9 +53,14 @@ class AISShip extends Component<PropsType, {}> {
       'last update': timeFromNow(ship.timestamp),
       latitude: ship.latitude.toFixed(5),
       longitude: ship.longitude.toFixed(5),
-      mmssi: `<a href="https://www.marinetraffic.com/pt/ais/details/ships/${ship.mmsi}" target="_blank">${ship.mmsi.toString()}</a>`,
+      mmssi: `<a href="https://www.marinetraffic.com/pt/ais/details/ships/${
+        ship.mmsi
+      }" target="_blank">${ship.mmsi.toString()}</a>`,
       'speed (knots)': ship.sog.toFixed(1),
-      // tslint:disable-next-line: object-literal-sort-keys
+      bow: ship.bow + 'm',
+      stern: ship.stern + 'm',
+      port: ship.port + 'm',
+      starboard: ship.starboard + 'm',
     }
   }
 
@@ -85,7 +90,7 @@ class AISShip extends Component<PropsType, {}> {
     return (
       <RotatedMarker
         position={{ lat: ship.latitude, lng: ship.longitude }}
-        rotationAngle={Math.round(ship.cog)}
+        rotationAngle={Math.round(ship.heading !== 511 ? ship.heading : ship.cog)}
         rotationOrigin={'center'}
         icon={this.icon}
         opacity={this.getOpacity(ship.timestamp)}
