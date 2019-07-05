@@ -63,10 +63,10 @@ public class AISShip {
 		ais.heading = Double.valueOf(parts[6]);
 		ais.name = parts[9].replaceAll("\"", "").replaceAll("\\.", "");
 		ais.type = parts[11];
-		ais.bow = Double.valueOf(parts[13]);
-		ais.stern = Double.valueOf(parts[14]);
-		ais.port = Double.valueOf(parts[15]);
-		ais.starboard = Double.valueOf(parts[16]);
+		ais.bow = Double.valueOf(parts[12]);
+		ais.stern = Double.valueOf(parts[13]);
+		ais.port = Double.valueOf(parts[14]);
+		ais.starboard = Double.valueOf(parts[15]);
 		return ais;
 	}
 
