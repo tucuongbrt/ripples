@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Link } from 'react-router-dom'
 import {
   Button,
   Collapse,
@@ -15,7 +14,6 @@ import {
   ModalHeader,
   Nav,
   Navbar,
-  NavbarBrand,
   NavbarToggler,
   NavItem,
 } from 'reactstrap'
@@ -26,7 +24,13 @@ import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
 import IPlan from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
-import { selectVehicle, setPlanDescription, setToolSelected, updatePlanId } from '../../../redux/ripples.actions'
+import {
+  selectVehicle,
+  setPlanDescription,
+  setToolSelected,
+  unschedulePlan,
+  updatePlanId,
+} from '../../../redux/ripples.actions'
 import { idFromDate } from '../../../services/DateUtils'
 
 interface PropsType {
@@ -47,6 +51,7 @@ interface PropsType {
   selectVehicle: (_: string) => void
   setPlanDescription: (_: string) => void
   updatePlanId: (_: string) => void
+  unschedulePlan: () => void
 }
 
 interface StateType {
@@ -215,10 +220,12 @@ class TopNav extends Component<PropsType, StateType> {
           >
             Send plan to {this.props.vehicleSelected}
           </DropdownItem>
+          <DropdownItem key="unschedule" onClick={() => this.props.unschedulePlan()}>
+            Unschedule all waypoints
+          </DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>
             Cancel
           </DropdownItem>
-
           {this.buildEditDescriptionModal()}
           {this.buildEditPlanIdModal()}
         </div>
@@ -411,6 +418,7 @@ const actionCreators = {
   setPlanDescription,
   setToolSelected,
   updatePlanId,
+  unschedulePlan,
 }
 
 export default connect(

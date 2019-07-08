@@ -165,7 +165,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
     return positions.map((p, i) => {
       const isPlanSelected = this.props.selectedPlan.id === plan.id
       const eta = waypoints[i].timestamp
-      const isMovable = isPlanSelected && (eta - Date.now() > 0 || plan.assignedTo.length === 0)
+      const isMovable = isPlanSelected && (eta - Date.now() > 0 || plan.assignedTo.length === 0 || eta === 0)
       const className = this.props.selectedWaypointIdx === i && isMovable ? 'editing-waypoint' : ''
       const icon = className.length > 0 ? customMarkerIcon : new WaypointIcon()
 

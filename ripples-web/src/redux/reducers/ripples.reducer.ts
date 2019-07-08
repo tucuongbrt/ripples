@@ -26,6 +26,7 @@ import {
   setToolSelected,
   setUser,
   setVehicles,
+  unschedulePlan,
   updatePlanId,
   updateWpLocation,
   updateWpTimestamp,
@@ -158,6 +159,12 @@ const ripplesReducer = createReducer(startState, {
   },
   [setSidePanelVisibility.type]: (state, action) => {
     state.isSidePanelVisible = action.payload
+  },
+  [unschedulePlan.type]: (state, action) => {
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (plan) {
+      plan.waypoints = plan.waypoints.map(wp => Object.assign({}, wp, { timestamp: 0 }))
+    }
   },
 })
 
