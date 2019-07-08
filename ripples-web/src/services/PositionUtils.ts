@@ -152,11 +152,13 @@ export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours:
 }
 
 export function getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {
-  if (waypoints.length < 2) {
+  // need to find two waypoints with timestamps different from 0
+  const scheduledWaypoints = waypoints.filter(wp => wp.timestamp > 0)
+  if (scheduledWaypoints.length < 2) {
     return 1
   }
-  const firstWp = waypoints[0]
-  const secondWp = waypoints[1]
+  const firstWp = scheduledWaypoints[0]
+  const secondWp = scheduledWaypoints[1]
   const distanceInMeters = distanceInMetersBetweenCoords(firstWp, secondWp)
   const deltaSec = (secondWp.timestamp - firstWp.timestamp) / 1000
   return distanceInMeters / deltaSec
