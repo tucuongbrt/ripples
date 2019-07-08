@@ -70,7 +70,13 @@ class VehiclePlan extends Component<PropsType, StateType> {
       if (isMovable) {
         switch (this.props.toolSelected) {
           case ToolSelected.MOVE: {
-            this.props.setSelectedWaypoint(markerIdx)
+            if (this.props.selectedWaypointIdx === markerIdx) {
+              this.props.setSelectedWaypoint(-1)
+              this.props.setSidePanelVisibility(false)
+              return
+            } else {
+              this.props.setSelectedWaypoint(markerIdx)
+            }
             break
           }
           case ToolSelected.DELETE: {
