@@ -350,10 +350,18 @@ class TopNav extends Component<PropsType, StateType> {
               <Button
                 color="primary"
                 className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.EDIT)}
-                active={this.props.toolSelected === ToolSelected.EDIT}
+                onClick={() => this.onToolbarClick(ToolSelected.SCHEDULE)}
+                active={this.props.toolSelected === ToolSelected.SCHEDULE}
               >
-                Edit
+                Schedule
+              </Button>
+              <Button
+                color="warning"
+                className="mr-1"
+                onClick={() => this.onToolbarClick(ToolSelected.UNSCHEDULE)}
+                active={this.props.toolSelected === ToolSelected.UNSCHEDULE}
+              >
+                Unschedule
               </Button>
             </NavItem>
           ) : (

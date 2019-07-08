@@ -66,16 +66,22 @@ class VehiclePlan extends Component<PropsType, StateType> {
   }
 
   public handleMarkerClick(markerIdx: number, isMovable: boolean) {
-    if (isMovable && this.props.plan.id === this.props.selectedPlan.id) {
-      switch (this.props.toolSelected) {
-        case ToolSelected.MOVE: {
-          this.props.setSelectedWaypoint(markerIdx)
-          break
+    if (this.props.plan.id === this.props.selectedPlan.id) {
+      if (isMovable) {
+        switch (this.props.toolSelected) {
+          case ToolSelected.MOVE: {
+            this.props.setSelectedWaypoint(markerIdx)
+            break
+          }
+          case ToolSelected.DELETE: {
+            this.props.deleteWp(markerIdx)
+            this.props.setSidePanelVisibility(false)
+            return
+          }
         }
-        case ToolSelected.DELETE: {
-          this.props.deleteWp(markerIdx)
-          break
-        }
+      }
+      if (this.props.toolSelected === ToolSelected.UNSCHEDULE) {
+        this.props.updateWpTimestamp({ timestamp: 0, markerIdx })
       }
     }
     this.props.setSidePanelTitle(`Waypoint ${markerIdx} of ${this.props.plan.id}`)
@@ -132,12 +138,11 @@ class VehiclePlan extends Component<PropsType, StateType> {
   }
 
   public buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
-    const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
-    if (this.props.toolSelected === ToolSelected.EDIT && isMovable && isPlanAssigned) {
+    if (this.props.toolSelected === ToolSelected.SCHEDULE && isMovable) {
       return (
         <Popup>
           <DatePicker
-            selected={new Date(wp.timestamp)}
+            selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
             onChange={newDate => this.onWpChange(newDate, wpIndex)}
             showTimeSelect={true}
             timeFormat="HH:mm"
@@ -148,7 +153,6 @@ class VehiclePlan extends Component<PropsType, StateType> {
         </Popup>
       )
     }
-    return <></>
   }
 
   public buildPlanWaypoints() {
@@ -161,6 +165,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
     const customMarkerIcon = divIcon({
       html: iconMarkup,
     })
+    const toolSelected = this.props.toolSelected
 
     return positions.map((p, i) => {
       const isPlanSelected = this.props.selectedPlan.id === plan.id
@@ -204,7 +209,8 @@ class VehiclePlan extends Component<PropsType, StateType> {
   }
 
   public buildEstimatedPosition() {
-    if (this.props.plan.assignedTo.length === 0) {
+    const areAllWaypointsScheduled = this.props.plan.waypoints.findIndex(wp => wp.timestamp === 0) === -1
+    if (this.props.plan.assignedTo.length === 0 || !areAllWaypointsScheduled) {
       return <></>
     }
     return <EstimatedPosition vehicle={this.props.vehicle} position={this.state.estimatedPos} icon={new GhostIcon()} />
