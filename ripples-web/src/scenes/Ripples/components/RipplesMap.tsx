@@ -420,7 +420,6 @@ class RipplesMap extends Component<PropsType, StateType> {
             </LayerGroup>
           </Overlay>
         </LayersControl>
-        />
       </Map>
     )
   }
