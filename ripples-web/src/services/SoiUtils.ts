@@ -64,6 +64,7 @@ export async function fetchSoiData() {
       system.settings = []
       vehicles.push(Object.assign({}, system, { planId: plan.id }))
       plan.assignedTo = system.name
+      plan.visible = true
       plans.push(plan)
     }
   })
@@ -101,8 +102,10 @@ export async function fetchProfileData(): Promise<IProfile[]> {
 }
 
 async function postNewPlan(plan: IPlan) {
+  const planCopy = JSON.parse(JSON.stringify(plan))
+  delete planCopy.visible
   const response = request({
-    body: JSON.stringify(plan),
+    body: JSON.stringify(planCopy),
     method: 'POST',
     url: `${apiURL}/soi`,
   })
@@ -126,8 +129,10 @@ export async function updatePlanId(previousId: string, newId: string) {
 }
 
 export async function sendUnassignedPlan(plan: IPlan) {
+  const planCopy = JSON.parse(JSON.stringify(plan))
+  delete planCopy.visible
   return request({
-    body: JSON.stringify(plan),
+    body: JSON.stringify(planCopy),
     method: 'POST',
     url: `${apiURL}/soi/unassigned/plans/`,
   })
@@ -137,7 +142,7 @@ export async function fetchUnassignedPlans() {
   let plans: IPlan[] = await request({
     url: `${apiURL}/soi/unassigned/plans/`,
   })
-  plans = plans.map(p => Object.assign(p, { assignedTo: '' }))
+  plans = plans.map(p => Object.assign(p, { assignedTo: '', visible: true }))
   plans.forEach(p => (p.waypoints = p.waypoints.map(wp => convertWaypoint(wp))))
   return plans
 }
@@ -150,6 +155,7 @@ export async function fetchAwareness(): Promise<IAssetAwareness[]> {
 
 export async function sendPlanToVehicle(plan: IPlan, vehicleName: string) {
   const planCopy = JSON.parse(JSON.stringify(plan))
+  delete planCopy.visible
   planCopy.assignedTo = vehicleName
   planCopy.waypoints = planCopy.waypoints.map((wp: IPositionAtTime) => {
     const timestamp = wp.timestamp

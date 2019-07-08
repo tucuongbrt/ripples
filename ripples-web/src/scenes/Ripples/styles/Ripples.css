@@ -90,3 +90,7 @@ path.leaflet-polygon {
 .btn {
   margin-top: 0.5em;
 }
+
+.mouse-pointer {
+  cursor: pointer;
+}

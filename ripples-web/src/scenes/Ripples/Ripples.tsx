@@ -199,6 +199,7 @@ class Ripples extends Component<PropsType, StateType> {
       description: `Plan created by ${this.props.auth.currentUser.email} on ${timestampMsToReadableDate(Date.now())}`,
       id: planId,
       waypoints: [],
+      visible: true,
     }
     this.props.addNewPlan(plan)
     this.stopUpdates()

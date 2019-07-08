@@ -223,7 +223,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
   }
 
   public render() {
-    if (this.props.plan.waypoints.length === 0) {
+    if (this.props.plan.waypoints.length === 0 || !this.props.plan.visible) {
       return null
     }
     return (

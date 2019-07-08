@@ -28,6 +28,7 @@ import {
   selectVehicle,
   setPlanDescription,
   setToolSelected,
+  togglePlanVisibility,
   unschedulePlan,
   updatePlanId,
 } from '../../../redux/ripples.actions'
@@ -50,6 +51,7 @@ interface PropsType {
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
   setPlanDescription: (_: string) => void
+  togglePlanVisibility: (_: IPlan) => void
   updatePlanId: (_: string) => void
   unschedulePlan: () => void
 }
@@ -233,9 +235,15 @@ class TopNav extends Component<PropsType, StateType> {
     }
     return this.props.plans.map(p => {
       return (
-        <DropdownItem key={'dropdown-item-' + p.id} onClick={() => this.handleEditPlan(p)}>
-          {p.assignedTo}-{p.id}
-        </DropdownItem>
+        <div className="dropdown-item" key={'dropdown-item-' + p.id}>
+          <i
+            onClick={() => this.props.togglePlanVisibility(p)}
+            className={(p.visible ? 'far fa-eye' : 'far fa-eye-slash') + ' mr-1'}
+          />
+          <span onClick={() => this.handleEditPlan(p)} className="mouse-pointer">
+            {p.assignedTo}-{p.id}
+          </span>
+        </div>
       )
     })
   }
@@ -425,6 +433,7 @@ const actionCreators = {
   selectVehicle,
   setPlanDescription,
   setToolSelected,
+  togglePlanVisibility,
   updatePlanId,
   unschedulePlan,
 }
