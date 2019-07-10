@@ -157,7 +157,8 @@ public class MessageProcessor {
             asset.setImcid(cmd.getSrc());
         }
         AssetState state = new AssetState();
-        state.setFuel(100 * (cmd.getFuel() / 255.0));
+        
+        state.setFuel(cmd.getFuel());
         state.setDate(cmd.getDate());
         state.setLatitude(cmd.getLatitude());
         state.setLongitude(cmd.getLongitude());
