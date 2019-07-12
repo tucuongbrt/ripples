@@ -45,13 +45,6 @@ public class UsersUpdater {
         }
     }
 
-    @Scheduled(fixedRate = 1296_000_000) // each 15 days
-    public void clearUsers() {
-        logger.info("Deleted all users");
-        usersRepo.deleteAll();
-        updateUsers();
-    }
-
     private void updateUser(User user, List row) {
         user.setEmail((String)row.get(0));
         user.setRole((String)row.get(1));
