@@ -56,22 +56,22 @@ public class MessageProcessor {
 
     public void process(IridiumMessage msg) {
         switch (msg.message_type) {
-            case IridiumMessage.TYPE_DEVICE_UPDATE:
-                onDeviceUpdate((DeviceUpdate) msg);
-                break;
-            case IridiumMessage.TYPE_EXTENDED_DEVICE_UPDATE:
-                onExtendedDeviceUpdate((ExtendedDeviceUpdate) msg);
-                break;
-            case IridiumMessage.TYPE_IMC_IRIDIUM_MESSAGE:
-                onImcIridiumMessage((ImcIridiumMessage) msg);
-                break;
-            case IridiumMessage.TYPE_PLAIN_TEXT:
-                onPlainTextReport((PlainTextReport) msg);
-                break;
-            case IridiumMessage.TYPE_IRIDIUM_COMMAND:
-                onIridiumCommand((IridiumCommand) msg);
-            default:
-                break;
+        case IridiumMessage.TYPE_DEVICE_UPDATE:
+            onDeviceUpdate((DeviceUpdate) msg);
+            break;
+        case IridiumMessage.TYPE_EXTENDED_DEVICE_UPDATE:
+            onExtendedDeviceUpdate((ExtendedDeviceUpdate) msg);
+            break;
+        case IridiumMessage.TYPE_IMC_IRIDIUM_MESSAGE:
+            onImcIridiumMessage((ImcIridiumMessage) msg);
+            break;
+        case IridiumMessage.TYPE_PLAIN_TEXT:
+            onPlainTextReport((PlainTextReport) msg);
+            break;
+        case IridiumMessage.TYPE_IRIDIUM_COMMAND:
+            onIridiumCommand((IridiumCommand) msg);
+        default:
+            break;
         }
     }
 
@@ -79,19 +79,22 @@ public class MessageProcessor {
         logger.info("Received IMC msg of type " + msg.getClass().getSimpleName() + " from " + msg.getSourceName());
 
         switch (msg.getMgid()) {
-            case SoiCommand.ID_STATIC:
-                incoming((SoiCommand) msg);
-                break;
-            case StateReport.ID_STATIC:
-                incoming((StateReport) msg);
-                break;
-            case VerticalProfile.ID_STATIC:
-                incoming((VerticalProfile) msg);
-                break;
-            default:
-                logger.warn(
-                        "Message of type " + msg.getAbbrev() + " from " + msg.getSourceName() + " is not being processed.");
-                break;
+        case SoiCommand.ID_STATIC:
+            incoming((SoiCommand) msg);
+            break;
+        case StateReport.ID_STATIC:
+            incoming((StateReport) msg);
+            break;
+        case VerticalProfile.ID_STATIC:
+            incoming((VerticalProfile) msg);
+            break;
+        case Announce.ID_STATIC:
+            incoming((Announce) msg);
+            break;
+        default:
+            logger.warn(
+                    "Message of type " + msg.getAbbrev() + " from " + msg.getSourceName() + " is not being processed.");
+            break;
         }
     }
 
@@ -105,13 +108,14 @@ public class MessageProcessor {
         } else {
             assetsErrorsRepository.save(error);
         }
-        
+
         // send sms message to all subscribers
         smsService.sendMessage(assetName + ": " + message);
     }
 
     /**
      * Errors are sent as iridium commands
+     * 
      * @param msg
      */
     public void onIridiumCommand(IridiumCommand msg) {
@@ -146,18 +150,42 @@ public class MessageProcessor {
         vertProfiles.save(data);
     }
 
+    public void incoming(Announce announce) {
+        SystemAddress addr = ripples.getOrCreate(announce.getSysName());
+        double lat = Math.toDegrees(announce.getLat());
+        double lng = Math.toDegrees(announce.getLon());
+        ripples.setPosition(addr, lat, lng, announce.getDate(), false);
+        Asset asset = getOrCreateAsset(announce.getSrc(), announce.getSysName());
+        AssetState assetState = asset.getLastState();
+        if (assetState != null) {
+            if (assetState.getDate().before(announce.getDate())) {
+                assetState.setLatitude(lat);
+                assetState.setLongitude(lng);
+                assetState.setDate(announce.getDate());
+                // update ripples clients through web sockets here
+                assets.save(asset);
+            }
+        }
+        
+    }
+
+    private Asset getOrCreateAsset(int imcId, String name) {
+        Asset asset = assets.findByImcid(imcId);
+
+        if (asset == null) {
+            asset = new Asset(name);
+            asset.setImcid(imcId);
+        }
+        return asset;
+    }
+
     public void incoming(StateReport cmd) {
         SystemAddress addr = ripples.getOrCreate(cmd.getSourceName());
         ripples.setPosition(addr, cmd.getLatitude(), cmd.getLongitude(), cmd.getDate(), false);
 
-        Asset asset = assets.findByImcid(cmd.getSrc());
-
-        if (asset == null) {
-            asset = new Asset(cmd.getSourceName());
-            asset.setImcid(cmd.getSrc());
-        }
+        Asset asset = getOrCreateAsset(cmd.getSrc(), cmd.getSourceName());
         AssetState state = new AssetState();
-        
+
         state.setFuel(cmd.getFuel());
         state.setDate(cmd.getDate());
         state.setLatitude(cmd.getLatitude());
@@ -173,48 +201,48 @@ public class MessageProcessor {
         Asset vehicle = null;
 
         switch (cmd.getCommand()) {
-            case STOP:
-                if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
-                    vehicle = assets.findByImcid(cmd.getSrc());
-                    vehicle.setPlan(new Plan());
-                    assets.save(vehicle);
-                    logger.info("Vehicle stopped: " + vehicle);
-                }
-                break;
-            case EXEC:
-            case GET_PLAN:
-                if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
-                    vehicle = assets.findByImcid(cmd.getSrc());
-                    if (vehicle != null) {
-                        SoiPlan plan = cmd.getPlan();
+        case STOP:
+            if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+                vehicle = assets.findByImcid(cmd.getSrc());
+                vehicle.setPlan(new Plan());
+                assets.save(vehicle);
+                logger.info("Vehicle stopped: " + vehicle);
+            }
+            break;
+        case EXEC:
+        case GET_PLAN:
+            if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+                vehicle = assets.findByImcid(cmd.getSrc());
+                if (vehicle != null) {
+                    SoiPlan plan = cmd.getPlan();
 
-                        if (plan == null || plan.getWaypoints().isEmpty()) {
-                            vehicle.setPlan(new Plan());
-                        } else {
-                            Plan p = new Plan();
-                            p.setId("soi_" + plan.getPlanId());
-                            ArrayList<Waypoint> wpts = new ArrayList<>();
-                            plan.getWaypoints().forEach(
-                                    wpt -> wpts.add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration())));
-                            p.setWaypoints(wpts);
-                            logger.info("Received plan for " + vehicle + ": " + plan);
-                            vehicle.setPlan(p);
-                            assets.save(vehicle);
-                        }
+                    if (plan == null || plan.getWaypoints().isEmpty()) {
+                        vehicle.setPlan(new Plan());
                     } else {
-                        logger.warn("Trying to set a plan on a non-existent asset - imcId: " + cmd.getSrc());
+                        Plan p = new Plan();
+                        p.setId("soi_" + plan.getPlanId());
+                        ArrayList<Waypoint> wpts = new ArrayList<>();
+                        plan.getWaypoints().forEach(wpt -> wpts
+                                .add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration())));
+                        p.setWaypoints(wpts);
+                        logger.info("Received plan for " + vehicle + ": " + plan);
+                        vehicle.setPlan(p);
+                        assets.save(vehicle);
                     }
+                } else {
+                    logger.warn("Trying to set a plan on a non-existent asset - imcId: " + cmd.getSrc());
                 }
-                break;
-            case SET_PARAMS:
-                onNewAssetParams(cmd);
-                break;
-            case GET_PARAMS:
-                onNewAssetParams(cmd);
-                break;
-            default:
-                logger.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
-                break;
+            }
+            break;
+        case SET_PARAMS:
+            onNewAssetParams(cmd);
+            break;
+        case GET_PARAMS:
+            onNewAssetParams(cmd);
+            break;
+        default:
+            logger.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
+            break;
         }
 
     }
