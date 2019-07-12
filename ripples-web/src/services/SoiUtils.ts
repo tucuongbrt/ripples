@@ -1,9 +1,9 @@
 import { AssetError, AssetErrors } from '../model/AssetErrors'
-import IAsset from '../model/IAsset'
+import IAsset, { EmptyAsset, IAssetPayload } from '../model/IAsset'
 import IAssetAwareness from '../model/IAssetAwareness'
 import IAssetState from '../model/IAssetState'
 import IAuthState, { isScientist } from '../model/IAuthState'
-import IPlan from '../model/IPlan'
+import IPlan, { EmptyPlan } from '../model/IPlan'
 import IPositionAtTime from '../model/IPositionAtTime'
 import { IPotentialCollision, IPotentialCollisionPayload } from '../model/IPotentialCollision'
 import IProfile from '../model/IProfile'
@@ -26,15 +26,6 @@ export async function mergeAssetSettings(vehicles: IAsset[], authState: IAuthSta
   }
 }
 
-interface IAssetPayload {
-  name: string
-  plan: IPlan
-  imcid: number
-  lastState: IAssetState
-  settings: string[][]
-  awareness: IPositionAtTime[]
-}
-
 // Converts waypoints read from the server to our type of waypoints
 function convertWaypoint(wp: any) {
   return Object.assign(
@@ -47,6 +38,26 @@ function convertWaypoint(wp: any) {
   )
 }
 
+export function convertAssetPayloadToAsset(system: IAssetPayload): IAsset {
+  const asset: IAsset = EmptyAsset
+  asset.awareness = system.awareness
+  asset.imcid = system.imcid
+  asset.name = system.name
+  asset.settings = []
+  asset.lastState = system.lastState
+  asset.lastState.timestamp = system.lastState.timestamp * 1000
+  asset.planId = system.plan.id
+  return Object.assign({}, asset)
+}
+
+export function convertAssetPayloadToPlan(system: IAssetPayload): IPlan {
+  const plan: IPlan = JSON.parse(JSON.stringify(system.plan))
+  plan.waypoints = plan.waypoints.map(wp => convertWaypoint(wp))
+  plan.assignedTo = system.name
+  plan.visible = true
+  return Object.assign({}, plan)
+}
+
 export async function fetchSoiData() {
   const response = await fetch(`${apiURL}/soi`)
   const data = await response.json()
@@ -54,18 +65,14 @@ export async function fetchSoiData() {
   const spots: IAsset[] = []
   const plans: IPlan[] = []
   data.forEach((system: IAssetPayload) => {
-    const plan: IPlan = JSON.parse(JSON.stringify(system.plan))
-    delete system.plan
     if (system.name.startsWith('spot')) {
       spots.push(Object.assign({}, system, { planId: '' }))
     } else {
-      plan.waypoints = plan.waypoints.map(wp => convertWaypoint(wp))
-      system.lastState.timestamp = system.lastState.timestamp * 1000
-      system.settings = []
-      vehicles.push(Object.assign({}, system, { planId: plan.id }))
-      plan.assignedTo = system.name
-      plan.visible = true
-      plans.push(plan)
+      const vehicle = convertAssetPayloadToAsset(system)
+      vehicles.push(vehicle)
+      if (system.plan.waypoints.length > 0) {
+        plans.push(convertAssetPayloadToPlan(system))
+      }
     }
   })
   return { vehicles, spots, plans }
