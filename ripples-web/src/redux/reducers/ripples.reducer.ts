@@ -1,6 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
+import IAsset from '../../model/IAsset'
 import { noAuth } from '../../model/IAuthState'
-import { EmptyPlan } from '../../model/IPlan'
+import IPlan, { EmptyPlan } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
 import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils'
@@ -28,7 +29,9 @@ import {
   setVehicles,
   togglePlanVisibility,
   unschedulePlan,
+  updatePlan,
   updatePlanId,
+  updateVehicle,
   updateWpLocation,
   updateWpTimestamp,
 } from '../ripples.actions'
@@ -171,6 +174,26 @@ const ripplesReducer = createReducer(startState, {
     const plan = state.planSet.find(p => p.id === action.payload.id)
     if (plan) {
       plan.visible = !plan.visible
+    }
+  },
+  [updateVehicle.type]: (state, action) => {
+    const newAsset: IAsset = action.payload
+    const oldAsset = state.assets.vehicles.find(v => v.imcid === newAsset.imcid)
+    if (oldAsset) {
+      oldAsset.lastState = newAsset.lastState
+      oldAsset.planId = newAsset.planId
+    } else {
+      state.assets.vehicles.push(newAsset)
+    }
+  },
+  [updatePlan.type]: (state, action) => {
+    const newPlan: IPlan = action.payload
+    const oldPlan = state.planSet.find(p => p.id === newPlan.id)
+    if (oldPlan) {
+      oldPlan.assignedTo = newPlan.assignedTo
+      oldPlan.waypoints = newPlan.waypoints
+    } else {
+      state.planSet.push(newPlan)
     }
   },
 })
