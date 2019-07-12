@@ -4,6 +4,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.lsts.imc.*;
+import pt.lsts.ripples.controllers.WebSocketsController;
 import pt.lsts.ripples.domain.assets.*;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.iridium.*;
@@ -47,6 +48,9 @@ public class MessageProcessor {
 
     @Autowired
     SMSService smsService;
+
+    @Autowired
+    WebSocketsController wsController;
 
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
 
@@ -164,7 +168,9 @@ public class MessageProcessor {
                 assetState.setDate(announce.getDate());
                 // update ripples clients through web sockets here
                 assets.save(asset);
+                wsController.sendAssetUpdateFromServerToClients(asset);
             }
+            
         }
         
     }
@@ -194,6 +200,7 @@ public class MessageProcessor {
         asset.setLastState(state);
 
         assets.save(asset);
+        wsController.sendAssetUpdateFromServerToClients(asset);
         logger.info("Updated SOI state for " + cmd.getSourceName());
     }
 
