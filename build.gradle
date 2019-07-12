@@ -50,7 +50,14 @@ dependencies {
 	compile 'com.google.apis:google-api-services-sheets:v4-rev516-1.23.0'
 	
 	compile 'io.jsonwebtoken:jjwt:0.9.1'
-	
+
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-websocket', version: '2.1.6.RELEASE'
+	compile group: 'org.springframework.security', name: 'spring-security-messaging', version: '5.1.5.RELEASE'
+	compile("org.webjars:webjars-locator-core")
+    compile("org.webjars:sockjs-client:1.0.2")
+    compile("org.webjars:stomp-websocket:2.3.3")
+
+
 	compile files('libs/libimc.jar','libs/ais-contact-manager-1.0.jar')
 	
 	runtime('com.h2database:h2')
