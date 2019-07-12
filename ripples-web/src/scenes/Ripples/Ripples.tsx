@@ -182,6 +182,10 @@ class Ripples extends Component<PropsType, StateType> {
       // fetch profiles
       let profiles = await profilesPromise
       profiles = profiles.filter(p => p.samples.length > 0)
+      // make heights symmetric
+      profiles.forEach(p => {
+        p.samples.forEach(a => (a[0] = -a[0]))
+      })
       this.props.setProfiles(profiles)
 
       // fetch soi awareness
