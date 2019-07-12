@@ -57,8 +57,8 @@ export const SpotIcon = L.Icon.extend({
 
 export const SensorIcon = L.Icon.extend({
   options: {
-    iconSize: [32, 32],
-    iconUrl: 'http://icons.iconarchive.com/icons/google/noto-emoji-travel-places/256/42650-thermometer-icon.png',
+    iconSize: [16, 16],
+    iconUrl: 'https://image.flaticon.com/icons/svg/134/134125.svg',
   },
 })
 
