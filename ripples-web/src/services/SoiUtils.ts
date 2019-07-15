@@ -113,7 +113,7 @@ async function postNewPlan(plan: IPlan) {
   const response = request({
     body: JSON.stringify(planCopy),
     method: 'POST',
-    url: `${apiURL}/soi`,
+    url: `${apiURL}/soi/plan`,
   })
   return response
 }

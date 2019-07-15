@@ -118,7 +118,7 @@ public class SoiController {
 	}
 
 	@PreAuthorize("hasRole('OPERATOR')")
-	@PostMapping(path = { "/soi", "/soi/" }, consumes = "application/json", produces = "application/json")
+	@PostMapping(path = { "/soi/plan", "/soi/plan/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updatePlan(@RequestBody NewPlanBody message)
 			throws SendSoiCommandException, AssetNotFoundException {
 		Optional<Asset> optAsset = assetsRepo.findById(message.getAssignedTo());
