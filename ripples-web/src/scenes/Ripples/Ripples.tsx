@@ -77,7 +77,7 @@ interface PropsType {
 class Ripples extends Component<PropsType, StateType> {
   public soiTimer: number = 0
   public aisTimer: number = 0
-  private client: Client = new Client()
+  private webSocketsClient: Client = new Client()
 
   constructor(props: any) {
     super(props)
@@ -114,11 +114,11 @@ class Ripples extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     const myMaps = await this.loadMyMapsData()
+    this.webSocketsClient = createWSClient()
+    subscribeWSAssetUpdates(this.webSocketsClient, this.handleAssetUpdate)
     this.setState({ myMapsData: myMaps })
     this.setState({ loading: false })
     this.startUpdates()
-    this.client = createWSClient()
-    subscribeWSAssetUpdates(this.client, this.handleAssetUpdate)
   }
 
   public handleAssetUpdate(m: Message) {
@@ -126,17 +126,19 @@ class Ripples extends Component<PropsType, StateType> {
       const newSystem: IAssetPayload = JSON.parse(m.body)
       const vehicle: IAsset = convertAssetPayloadToAsset(newSystem)
       this.props.updateVehicle(vehicle)
-      /*
-      if (newSystem.plan.waypoints.length > 0) {
-        const plan: IPlan = convertAssetPayloadToPlan(newSystem)
-        this.props.updatePlan(plan)
-      }*/
+      if (newSystem.plan) {
+        if (newSystem.plan.waypoints.length > 0) {
+          const plan: IPlan = convertAssetPayloadToPlan(newSystem)
+          this.props.updatePlan(plan)
+        }
+      }
     }
   }
 
   public stopUpdates() {
     clearInterval(this.soiTimer)
     clearInterval(this.aisTimer)
+    this.webSocketsClient.deactivate()
   }
 
   public startUpdates() {
@@ -148,11 +150,11 @@ class Ripples extends Component<PropsType, StateType> {
     if (!this.aisTimer) {
       this.aisTimer = window.setInterval(this.updateAISData, 60000) // get ais data every minute
     }
+    this.webSocketsClient.activate()
   }
 
   public componentWillUnmount() {
-    clearInterval(this.soiTimer)
-    clearInterval(this.aisTimer)
+    this.stopUpdates()
   }
 
   public async loadMyMapsData() {

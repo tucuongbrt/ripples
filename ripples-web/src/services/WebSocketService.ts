@@ -23,5 +23,4 @@ export function subscribeWSAssetUpdates(client: Client, callback: (m: Message) =
     // This is needed because this will be executed after a (re)connect
     client.subscribe('/topic/asset', callback)
   }
-  client.activate()
 }
