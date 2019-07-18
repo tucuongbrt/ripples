@@ -129,14 +129,16 @@ public class SoiController {
 	public ResponseEntity<HTTPResponse> updateAssets(@RequestBody ArrayList<Asset> assets) {
 		assets.forEach(asset -> {
 			Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
-			logger.info("Received update for asset " + asset.getName() + " in " + 
-				asset.getLastState().getLatitude() + ";" + asset.getLastState().getLongitude());
+			// logger.info("Received update for asset " + asset.getName() + " in " + 
+			// asset.getLastState().getLatitude() + ";" + asset.getLastState().getLongitude());
 			if (!optAsset.isPresent()) {
 				assetsRepo.save(asset);
 			} else {
 				Asset oldAsset = optAsset.get();
 				oldAsset.setLastState(asset.getLastState());
-				oldAsset.setPlan(asset.getPlan());
+				if (oldAsset.getPlan().getType() == "dune") {
+					oldAsset.setPlan(asset.getPlan());
+				}
 				assetsRepo.save(oldAsset);
 			}
 			wsController.sendAssetUpdateFromServerToClients(asset);

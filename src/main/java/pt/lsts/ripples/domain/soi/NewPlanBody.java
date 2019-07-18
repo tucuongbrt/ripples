@@ -16,8 +16,18 @@ public class NewPlanBody {
 
 	private String description;
 
+	private String type;
+
 	public String getId() {
 		return id;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public String getDescription() {
@@ -53,6 +63,7 @@ public class NewPlanBody {
 		p.setId(id);
 		p.setWaypoints(waypoints);
 		p.setDescription(description);
+		p.setType(type);
 		return p;
 	}
 }

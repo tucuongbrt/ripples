@@ -23,7 +23,7 @@ public class WebSocketsController {
 
 	// the business logic can call this to update all connected clients
     public void sendAssetUpdateFromServerToClients(Asset asset) {
-        logger.info("Broadcasting update for asset " + asset.getName());
+        // logger.info("Broadcasting update for asset " + asset.getName());
         this.template.convertAndSend("/topic/asset", asset);
     }
 }
