@@ -62,10 +62,13 @@ export async function fetchSoiData() {
   const data = await response.json()
   const vehicles: IAsset[] = []
   const spots: IAsset[] = []
+  const ccus: IAsset[] = []
   const plans: IPlan[] = []
   data.forEach((system: IAssetPayload) => {
     if (system.name.startsWith('spot')) {
       spots.push(Object.assign({}, system, { planId: '' }))
+    } else if (system.name.startsWith('ccu')) {
+      ccus.push(Object.assign({}, system, { planId: '' }))
     } else {
       const vehicle = convertAssetPayloadToAsset(system)
       vehicles.push(vehicle)
@@ -74,7 +77,7 @@ export async function fetchSoiData() {
       }
     }
   })
-  return { vehicles, spots, plans }
+  return { vehicles, spots, plans, ccus }
 }
 
 interface ParamsType {

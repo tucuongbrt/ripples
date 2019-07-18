@@ -109,7 +109,12 @@ class VehiclePlan extends Component<PropsType, StateType> {
    * @param {} positions Positions of waypoints
    */
   public buildPlanLines() {
-    const lineColor = this.props.selectedPlan.id === this.props.plan.id ? '#fe2900' : '#008000'
+    const lineColor =
+      this.props.selectedPlan.id === this.props.plan.id
+        ? '#fe2900'
+        : this.props.plan.type === 'dune'
+        ? '#008000'
+        : '#000080'
     const positions = this.props.plan.waypoints.map(wp => {
       return { lat: wp.latitude, lng: wp.longitude }
     })

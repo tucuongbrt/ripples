@@ -6,6 +6,7 @@ export default interface IPlan {
   assignedTo: string // asset name
   description: string
   visible: boolean
+  type: string
 }
 
 export const EmptyPlan: IPlan = {
@@ -14,4 +15,5 @@ export const EmptyPlan: IPlan = {
   id: '',
   waypoints: [],
   visible: false,
+  type: 'backseat',
 }
