@@ -71,7 +71,7 @@ class Vehicle extends Component<PropsType, {}> {
       <RotatedMarker
         position={systemPosition}
         icon={this.icon}
-        rotationAngle={0}
+        rotationAngle={vehicle.lastState.heading - 90} // -90 is used to compensate for the icon
         rotationOrigin={'center'}
         onClick={(evt: any) => this.handleClick(vehicle)}
       />
