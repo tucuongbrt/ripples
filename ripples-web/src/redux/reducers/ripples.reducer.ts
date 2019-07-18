@@ -15,6 +15,7 @@ import {
   savePlan,
   selectVehicle,
   setAis,
+  setCcus,
   setPlanDescription,
   setPlans,
   setProfiles,
@@ -29,8 +30,10 @@ import {
   setVehicles,
   togglePlanVisibility,
   unschedulePlan,
+  updateCCU,
   updatePlan,
   updatePlanId,
+  updateSpot,
   updateVehicle,
   updateWpLocation,
   updateWpTimestamp,
@@ -68,6 +71,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [setAis.type]: (state, action) => {
     state.assets.aisShips = action.payload
+  },
+  [setCcus.type]: (state, action) => {
+    state.assets.ccus = action.payload
   },
   [setPlans.type]: (state, action) => {
     state.planSet = action.payload
@@ -184,6 +190,24 @@ const ripplesReducer = createReducer(startState, {
       oldAsset.planId = newAsset.planId
     } else {
       state.assets.vehicles.push(newAsset)
+    }
+  },
+  [updateCCU.type]: (state, action) => {
+    const newCCU: IAsset = action.payload
+    const oldAsset = state.assets.ccus.find(c => c.name === newCCU.name)
+    if (oldAsset) {
+      oldAsset.lastState = newCCU.lastState
+    } else {
+      state.assets.ccus.push(newCCU)
+    }
+  },
+  [updateSpot.type]: (state, action) => {
+    const newSpot: IAsset = action.payload
+    const oldAsset = state.assets.spots.find(s => s.name === newSpot.name)
+    if (oldAsset) {
+      oldAsset.lastState = newSpot.lastState
+    } else {
+      state.assets.spots.push(newSpot)
     }
   },
   [updatePlan.type]: (state, action) => {

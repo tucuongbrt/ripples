@@ -14,7 +14,7 @@ import {
   updateWpLocation,
 } from '../../../redux/ripples.actions'
 import AISShip from './AISShip'
-import Spot from './Spot'
+import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 const { BaseLayer, Overlay } = LayersControl
 import { LatLngLiteral } from 'leaflet'
@@ -25,6 +25,7 @@ import IProfile from '../../../model/IProfile'
 import { ToolSelected } from '../../../model/ToolSelected'
 import AISCanvas from './AISCanvas'
 import ClientLocation from './ClientLocation'
+import { PCIcon, SpotIcon } from './Icons'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
 const CanvasLayer = require('react-leaflet-canvas-layer')
@@ -34,6 +35,7 @@ interface PropsType {
   aisLocations: IShipLocation[]
   vehicles: IAsset[]
   spots: IAsset[]
+  ccus: IAsset[]
   aisShips: IAisShip[]
   profiles: IProfile[]
   plans: IPlan[]
@@ -147,13 +149,19 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildSpots() {
     return this.props.spots.map(spot => {
-      return <Spot key={spot.imcid} data={spot} />
+      return <SimpleAsset key={spot.imcid} data={spot} icon={new SpotIcon()} />
+    })
+  }
+
+  public buildCcus() {
+    return this.props.ccus.map(ccu => {
+      return <SimpleAsset key={ccu.name} data={ccu} icon={new PCIcon()} />
     })
   }
 
   public buildPlans(): JSX.Element[] {
     return this.props.plans.map(p => {
-      return <VehiclePlan key={'VehiclePlan' + p.id} plan={p} vehicle={p.assignedTo} />
+      return <VehiclePlan key={'VehiclePlan' + p.id + ';' + p.assignedTo} plan={p} vehicle={p.assignedTo} />
     })
   }
 
@@ -223,7 +231,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           <BaseLayer checked={true} name="OpenStreetMap">
             <TileLayer
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </BaseLayer>
           <BaseLayer name="ArcGIS NatGeo">
@@ -405,6 +413,9 @@ class RipplesMap extends Component<PropsType, StateType> {
           <Overlay checked={true} name="Spots">
             <LayerGroup>{this.buildSpots()}</LayerGroup>
           </Overlay>
+          <Overlay checked={true} name="CCUS">
+            <LayerGroup>{this.buildCcus()}</LayerGroup>
+          </Overlay>
           <Overlay checked={true} name="AIS Data">
             <LayerGroup>
               {this.buildAisShips()}
@@ -434,6 +445,7 @@ function mapStateToProps(state: IRipplesState) {
     selectedPlan: state.selectedPlan,
     selectedWaypointIdx: state.selectedWaypointIdx,
     spots: state.assets.spots,
+    ccus: state.assets.ccus,
     toolSelected: state.toolSelected,
     vehicles: state.assets.vehicles,
   }

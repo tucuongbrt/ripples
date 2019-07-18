@@ -10,6 +10,7 @@ export interface IAssetsGroup {
   spots: IAsset[]
   aisShips: IAisShip[]
   aisDrawableLocations: IShipLocation[]
+  ccus: IAsset[]
 }
 
 export default interface IRipplesState {
@@ -33,4 +34,5 @@ export const defaultAssetsGroup: IAssetsGroup = {
   aisShips: [],
   spots: [],
   vehicles: [],
+  ccus: [],
 }

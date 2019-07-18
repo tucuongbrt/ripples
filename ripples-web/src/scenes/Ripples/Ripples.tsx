@@ -15,13 +15,16 @@ import {
   editPlan,
   savePlan,
   setAis,
+  setCcus,
   setPlans,
   setProfiles,
   setSlider,
   setSpots,
   setUser,
   setVehicles,
+  updateCCU,
   updatePlan,
+  updateSpot,
   updateVehicle,
 } from '../../redux/ripples.actions'
 import { fetchAisData } from '../../services/AISUtils'
@@ -57,6 +60,7 @@ interface PropsType {
   plans: IPlan[]
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
+  setCcus: (_: IAsset[]) => void
   setAis: (_: IAisShip[]) => void
   setPlans: (_: IPlan[]) => void
   setSlider: (_: number) => void
@@ -67,6 +71,8 @@ interface PropsType {
   savePlan: () => void
   cancelEditPlan: () => void
   updateVehicle: (v: IAsset) => void
+  updateCCU: (ccu: IAsset) => void
+  updateSpot: (spot: IAsset) => void
   updatePlan: (p: IPlan) => void
   selectedPlan: IPlan
   sliderValue: number
@@ -126,9 +132,9 @@ class Ripples extends Component<PropsType, StateType> {
       const newSystem: IAssetPayload = JSON.parse(m.body)
       const system: IAsset = convertAssetPayloadToAsset(newSystem)
       if (system.name.startsWith('spot')) {
-        // update spot
+        this.props.updateSpot(system)
       } else if (system.name.startsWith('ccu')) {
-        // update ccu
+        this.props.updateCCU(system)
       } else {
         this.props.updateVehicle(system)
       }
@@ -214,6 +220,7 @@ class Ripples extends Component<PropsType, StateType> {
       this.props.setVehicles(soiData.vehicles)
       this.props.setSpots(soiData.spots)
       this.props.setPlans(soiData.plans)
+      this.props.setCcus(soiData.ccus)
     } catch (error) {
       NotificationManager.warning('Failed to fetch data')
     }
@@ -237,6 +244,7 @@ class Ripples extends Component<PropsType, StateType> {
       id: planId,
       waypoints: [],
       visible: true,
+      type: 'backseat',
     }
     this.props.addNewPlan(plan)
     this.stopUpdates()
@@ -352,6 +360,7 @@ const actionCreators = {
   editPlan,
   savePlan,
   setAis,
+  setCcus,
   setPlans,
   setProfiles,
   setSlider,
@@ -359,6 +368,8 @@ const actionCreators = {
   setUser,
   setVehicles,
   updateVehicle,
+  updateSpot,
+  updateCCU,
   updatePlan,
 }
 
