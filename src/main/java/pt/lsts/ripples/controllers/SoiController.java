@@ -76,6 +76,9 @@ public class SoiController {
 	@Autowired
 	AssetsErrorsRepository assetsErrorsRepository;
 
+	@Autowired
+    WebSocketsController wsController;
+
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
 
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
@@ -117,6 +120,33 @@ public class SoiController {
 		return awarenessDataList;
 	}
 
+	/**
+	 * To be used by neptus to update assets in real time
+	 * @param asset
+	 * @return
+	 */
+	@PostMapping(path = { "/soi/assets", "/soi/assets/" }, consumes = "application/json", produces = "application/json")
+	public ResponseEntity<HTTPResponse> updateAssets(@RequestBody ArrayList<Asset> assets) {
+		assets.forEach(asset -> {
+			Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
+			logger.info("Received update for asset " + asset.getName() + " in " + 
+				asset.getLastState().getLatitude() + ";" + asset.getLastState().getLongitude());
+			if (!optAsset.isPresent()) {
+				assetsRepo.save(asset);
+			} else {
+				Asset oldAsset = optAsset.get();
+				oldAsset.setLastState(asset.getLastState());
+				oldAsset.setPlan(asset.getPlan());
+				assetsRepo.save(oldAsset);
+			}
+			wsController.sendAssetUpdateFromServerToClients(asset);
+		});
+		return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."), HttpStatus.OK);
+	}
+
+	/**
+	 * Use to assign and send(via rockblock) a new plan to a vehicle
+	 */
 	@PreAuthorize("hasRole('OPERATOR')")
 	@PostMapping(path = { "/soi/plan", "/soi/plan/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updatePlan(@RequestBody NewPlanBody message)
@@ -144,6 +174,13 @@ public class SoiController {
 		throw new AssetNotFoundException(message.getAssignedTo());
 	}
 
+	/**
+	 * Use to add a plan that is not assigned to any vehicle.
+	 * This can be used by scientists to share plans that operators can then assign.
+	 * @param message
+	 * @return
+	 * @throws SendSoiCommandException
+	 */
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
 	@PostMapping(path = { "/soi/unassigned/plans",
 			"/soi/unassigned/plans/" }, consumes = "application/json", produces = "application/json")

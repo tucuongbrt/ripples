@@ -11,7 +11,7 @@ import pt.lsts.ripples.domain.assets.Asset;
 @Component
 public class WebSocketsController {
 
-	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
+	private static Logger logger = LoggerFactory.getLogger(WebSocketsController.class);
 	
 	@Autowired
     private SimpMessagingTemplate template;
@@ -23,9 +23,7 @@ public class WebSocketsController {
 
 	// the business logic can call this to update all connected clients
     public void sendAssetUpdateFromServerToClients(Asset asset) {
-        logger.info("Sending asset update for asset " + asset.getName());
-        logger.info(asset.getName() + ", lat:" + asset.getLastState().getLatitude()
-        + ", lng:" + asset.getLastState().getLongitude());
+        logger.info("Broadcasting update for asset " + asset.getName());
         this.template.convertAndSend("/topic/asset", asset);
     }
 }
