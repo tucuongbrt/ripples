@@ -231,12 +231,12 @@ class RipplesMap extends Component<PropsType, StateType> {
           <BaseLayer checked={true} name="OpenStreetMap">
             <TileLayer
               attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </BaseLayer>
           <BaseLayer name="ArcGIS NatGeo">
             <TileLayer
-              url="http://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
               maxZoom={16}
               attribution="Map data &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
               id="examples.map-i875mjb7"
@@ -244,14 +244,14 @@ class RipplesMap extends Component<PropsType, StateType> {
           </BaseLayer>
           <BaseLayer name="ArcGIS Ocean">
             <TileLayer
-              url="http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}"
               attribution="Tiles &copy; ESRI"
               maxZoom={13}
             />
           </BaseLayer>
           <BaseLayer name="ArcGis World Imagery">
             <TileLayer
-              url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               attribution="Tiles &copy; ESRI"
             />
           </BaseLayer>
