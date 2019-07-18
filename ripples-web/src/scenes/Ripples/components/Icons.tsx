@@ -55,6 +55,13 @@ export const SpotIcon = L.Icon.extend({
   },
 })
 
+export const CCUIcon = L.Icon.extend({
+  options: {
+    iconSize: [32, 32],
+    iconUrl: 'https://cdn4.iconfinder.com/data/icons/holiday-and-have-fun/32/place_spot_target_location-128.png',
+  },
+})
+
 export const SensorIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
