@@ -124,8 +124,15 @@ class Ripples extends Component<PropsType, StateType> {
   public handleAssetUpdate(m: Message) {
     if (m.body) {
       const newSystem: IAssetPayload = JSON.parse(m.body)
-      const vehicle: IAsset = convertAssetPayloadToAsset(newSystem)
-      this.props.updateVehicle(vehicle)
+      const system: IAsset = convertAssetPayloadToAsset(newSystem)
+      if (system.name.startsWith('spot')) {
+        // update spot
+      } else if (system.name.startsWith('ccu')) {
+        // update ccu
+      } else {
+        this.props.updateVehicle(system)
+      }
+
       if (newSystem.plan) {
         if (newSystem.plan.waypoints.length > 0) {
           const plan: IPlan = convertAssetPayloadToPlan(newSystem)
