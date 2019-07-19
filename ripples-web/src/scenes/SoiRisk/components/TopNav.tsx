@@ -34,7 +34,6 @@ class TopNav extends Component<PropsType, StateType> {
       isNavOpen: true,
       phoneNumber: '+351',
     }
-    this.buildSmsSubscriber = this.buildSmsSubscriber.bind(this)
     this.onPhoneSubmit = this.onPhoneSubmit.bind(this)
     this.onPhoneChanged = this.onPhoneChanged.bind(this)
     this.onNavToggle = this.onNavToggle.bind(this)

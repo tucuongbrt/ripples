@@ -99,8 +99,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
     this.handleUpdatePlanId = this.handleUpdatePlanId.bind(this)
-    this.resetPlansDropdown = this.resetPlansDropdown.bind(this)
-    this.buildVehicleSelector = this.buildVehicleSelector.bind(this)
     this.onVehicleSelected = this.onVehicleSelected.bind(this)
     this.toggleDescriptionModal = this.toggleDescriptionModal.bind(this)
     this.toggleEditPlanIdModal = this.toggleEditPlanIdModal.bind(this)

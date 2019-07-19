@@ -46,11 +46,8 @@ class VehiclePlan extends Component<PropsType, StateType> {
     this.state = {
       estimatedPos: { longitude: 0, latitude: 0, heading: 0, timestamp: Date.now() },
     }
-    this.buildPlanLines = this.buildPlanLines.bind(this)
-    this.buildPlanWaypoints = this.buildPlanWaypoints.bind(this)
     this.updateEstimatedPos = this.updateEstimatedPos.bind(this)
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
-    this.buildEstimatedPosition = this.buildEstimatedPosition.bind(this)
   }
 
   public componentDidMount() {
@@ -176,7 +173,6 @@ class VehiclePlan extends Component<PropsType, StateType> {
     const customMarkerIcon = divIcon({
       html: iconMarkup,
     })
-    const toolSelected = this.props.toolSelected
 
     return positions.map((p, i) => {
       const isPlanSelected = this.props.selectedPlan.id === plan.id

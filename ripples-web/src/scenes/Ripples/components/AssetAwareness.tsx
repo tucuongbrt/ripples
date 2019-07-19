@@ -14,7 +14,6 @@ interface PropsType {
 export default class AssetAwareness extends Component<PropsType, {}> {
   constructor(props: PropsType) {
     super(props)
-    this.estimatedPositionAtTime = this.estimatedPositionAtTime.bind(this)
   }
 
   public estimatedPositionAtTime(): IPosHeadingAtTime {

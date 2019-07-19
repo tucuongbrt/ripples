@@ -52,9 +52,6 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
       vehicles: [],
     }
     this.updateSoiData = this.updateSoiData.bind(this)
-    this.buildAllVehicles = this.buildAllVehicles.bind(this)
-    this.buildVehicleCollisions = this.buildVehicleCollisions.bind(this)
-    this.buildVehicleErrors = this.buildVehicleErrors.bind(this)
     this.toggleCollisionsModal = this.toggleCollisionsModal.bind(this)
     this.toggleErrorsModal = this.toggleErrorsModal.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
