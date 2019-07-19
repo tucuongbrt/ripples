@@ -1,4 +1,4 @@
-# WGViewer/Ripples
+# Ripples
 
 ## How to run ripples server locally:
 1. Install [gradle](https://gradle.org/install/)
