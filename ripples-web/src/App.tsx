@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
-import OAuth2RedirectHandler from '../../components/OAuth2RedirectHandler'
-import NoLoginPermission from '../NoLoginPermission/NoLoginPermission'
-import Ripples from '../Ripples/Ripples'
-import SoiRisk from '../SoiRisk/SoiRisk'
-import TextMessages from '../TextMessages/TextMessages'
+import OAuth2RedirectHandler from './components/OAuth2RedirectHandler'
+import NoLoginPermission from './scenes/NoLoginPermission/NoLoginPermission'
+import Ripples from './scenes/Ripples/Ripples'
+import SoiRisk from './scenes/SoiRisk/SoiRisk'
+import TextMessages from './scenes/TextMessages/TextMessages'
 const { NotificationContainer } = require('react-notifications')
-import '../../styles/main.css'
+import './styles/main.css'
 
 class App extends Component {
   public render() {
