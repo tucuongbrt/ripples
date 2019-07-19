@@ -116,7 +116,7 @@ export function interpolateTwoPoints(
 }
 
 export function getPrevAndNextPoints(points: IPositionAtTime[], date: number) {
-  if (points.length === 0) {
+  if (points == null || points.length === 0) {
     const defaultP = { latitude: 0, longitude: 0, timestamp: date }
     return { prev: defaultP, next: defaultP }
   }
