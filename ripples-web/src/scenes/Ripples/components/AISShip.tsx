@@ -12,6 +12,7 @@ import { AwarenessIcon, RedTriangleIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 
 interface PropsType {
+  isToDrawAISPolygons: boolean
   ship: IAisShip
   sliderValue: number
   setSidePanelTitle: (title: string) => void
@@ -26,9 +27,6 @@ class AISShip extends Component<PropsType, {}> {
 
   constructor(props: PropsType) {
     super(props)
-    this.buildAisShipPolygon = this.buildAisShipPolygon.bind(this)
-    this.buildAisShipMarker = this.buildAisShipMarker.bind(this)
-    this.buildShipAwareness = this.buildShipAwareness.bind(this)
     this.onShipClick = this.onShipClick.bind(this)
   }
 
@@ -102,12 +100,16 @@ class AISShip extends Component<PropsType, {}> {
   public render() {
     const ship = this.props.ship
     let shipAwareness: JSX.Element | null = null
+    let shipPolygon: JSX.Element | null = null
     if (this.props.sliderValue !== 0 && ship.sog > this.awarenessMinSpeed) {
       shipAwareness = this.buildShipAwareness()
     }
+    if (this.props.isToDrawAISPolygons) {
+      shipPolygon = this.buildAisShipPolygon()
+    }
     return (
       <>
-        {this.buildAisShipPolygon()}
+        {shipPolygon}
         {this.buildAisShipMarker()}
         {shipAwareness}
       </>

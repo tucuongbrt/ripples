@@ -5,7 +5,6 @@ import { calculateNextPosition, KNOTS_TO_MS } from '../../../services/PositionUt
 interface PropsType {
   ship: IAisShip
   perpLinesSize: number
-  drawLocation: boolean
 }
 
 export default class AISCanvas {

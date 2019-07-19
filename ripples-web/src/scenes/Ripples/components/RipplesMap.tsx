@@ -52,7 +52,7 @@ interface PropsType {
 
 interface StateType {
   initCoords: LatLngLiteral
-  isToDrawAisLocations: boolean
+  isToDrawAISPolygons: boolean
   perpLinesSize: number
 }
 
@@ -65,18 +65,13 @@ class RipplesMap extends Component<PropsType, StateType> {
     const initCoords = { lat: 41.18, lng: -8.7 }
     this.state = {
       initCoords,
-      isToDrawAisLocations: false,
+      isToDrawAISPolygons: false,
       perpLinesSize: 10,
     }
-    this.buildProfiles = this.buildProfiles.bind(this)
-    this.buildVehicles = this.buildVehicles.bind(this)
-    this.buildSpots = this.buildSpots.bind(this)
-    this.buildAisShips = this.buildAisShips.bind(this)
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
-    this.buildMyMaps = this.buildMyMaps.bind(this)
   }
 
   /**
@@ -173,7 +168,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildAisShips() {
     return this.props.aisShips.map(ship => {
-      return <AISShip key={'Ship_' + ship.mmsi} ship={ship} />
+      return <AISShip key={'Ship_' + ship.mmsi} ship={ship} isToDrawAISPolygons={this.state.isToDrawAISPolygons} />
     })
   }
 
@@ -183,7 +178,6 @@ class RipplesMap extends Component<PropsType, StateType> {
     ctx.fillStyle = 'rgba(255,116,0, 0.2)'
     this.props.aisShips.forEach(ship => {
       const aisCanvas = new AISCanvas({
-        drawLocation: this.state.isToDrawAisLocations,
         perpLinesSize: this.state.perpLinesSize,
         ship,
       })
@@ -200,11 +194,11 @@ class RipplesMap extends Component<PropsType, StateType> {
         perpLinesSize: Math.round(newLineLength),
       })
       if (newZoom > 12) {
-        if (!this.state.isToDrawAisLocations) {
+        if (!this.state.isToDrawAISPolygons) {
           this.toggleDrawAisLocations()
         }
       } else {
-        if (this.state.isToDrawAisLocations) {
+        if (this.state.isToDrawAISPolygons) {
           this.toggleDrawAisLocations()
         }
       }
@@ -213,7 +207,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public toggleDrawAisLocations() {
     this.setState({
-      isToDrawAisLocations: !this.state.isToDrawAisLocations,
+      isToDrawAISPolygons: !this.state.isToDrawAISPolygons,
     })
   }
 
