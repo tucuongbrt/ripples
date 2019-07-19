@@ -9,12 +9,17 @@ import { SpotIcon } from './Icons'
 
 interface PropsType {
   data: IAsset
+  icon: L.Icon
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
 }
 
-class Spot extends Component<PropsType, {}> {
+/**
+ * Simple Asset represents a system that does not execute plans.
+ * Ex: Spot, CCU
+ */
+class SimpleAsset extends Component<PropsType, {}> {
   constructor(props: PropsType) {
     super(props)
     this.onMarkerClick = this.onMarkerClick.bind(this)
@@ -22,16 +27,18 @@ class Spot extends Component<PropsType, {}> {
   public render() {
     const spot = this.props.data
     const systemPositon = getLatLng(spot.lastState)
-    return <Marker position={systemPositon} icon={new SpotIcon()} onClick={this.onMarkerClick} />
+    return <Marker position={systemPositon} icon={this.props.icon} onClick={this.onMarkerClick} />
   }
 
   private onMarkerClick(evt: any) {
-    const spot = this.props.data
+    const asset = this.props.data
     evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
 
     this.props.setSidePanelTitle(this.props.data.name)
     this.props.setSidePanelContent({
-      Date: timestampSecToReadableDate(spot.lastState.timestamp),
+      Date: timestampSecToReadableDate(asset.lastState.timestamp),
+      Lat: asset.lastState.latitude.toFixed(5),
+      Lng: asset.lastState.longitude.toFixed(5),
     })
     this.props.setSidePanelVisibility(true)
   }
@@ -46,4 +53,4 @@ const actionCreators = {
 export default connect(
   null,
   actionCreators
-)(Spot)
+)(SimpleAsset)

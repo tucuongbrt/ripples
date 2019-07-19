@@ -1,9 +1,10 @@
 import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css'
 const { NotificationManager } = require('react-notifications')
+import { Client, Message } from '@stomp/stompjs'
 import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
-import IAsset from '../../model/IAsset'
+import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser } from '../../model/IAuthState'
 import IPlan from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
@@ -14,17 +15,24 @@ import {
   editPlan,
   savePlan,
   setAis,
+  setCcus,
   setPlans,
   setProfiles,
   setSlider,
   setSpots,
   setUser,
   setVehicles,
+  updateCCU,
+  updatePlan,
+  updateSpot,
+  updateVehicle,
 } from '../../redux/ripples.actions'
 import { fetchAisData } from '../../services/AISUtils'
 import { getCurrentUser } from '../../services/AuthUtils'
 import { timestampMsToReadableDate } from '../../services/DateUtils'
 import {
+  convertAssetPayloadToAsset,
+  convertAssetPayloadToPlan,
   deleteUnassignedPlan,
   fetchAwareness,
   fetchProfileData,
@@ -35,6 +43,7 @@ import {
   sendUnassignedPlan,
   updatePlanId,
 } from '../../services/SoiUtils'
+import { createWSClient, subscribeWSAssetUpdates } from '../../services/WebSocketService'
 import RipplesMap from './components/RipplesMap'
 import SidePanel from './components/SidePanel'
 import Slider from './components/Slider'
@@ -51,6 +60,7 @@ interface PropsType {
   plans: IPlan[]
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
+  setCcus: (_: IAsset[]) => void
   setAis: (_: IAisShip[]) => void
   setPlans: (_: IPlan[]) => void
   setSlider: (_: number) => void
@@ -60,6 +70,10 @@ interface PropsType {
   setUser: (user: IUser) => any
   savePlan: () => void
   cancelEditPlan: () => void
+  updateVehicle: (v: IAsset) => void
+  updateCCU: (ccu: IAsset) => void
+  updateSpot: (spot: IAsset) => void
+  updatePlan: (p: IPlan) => void
   selectedPlan: IPlan
   sliderValue: number
   auth: UserState
@@ -69,8 +83,7 @@ interface PropsType {
 class Ripples extends Component<PropsType, StateType> {
   public soiTimer: number = 0
   public aisTimer: number = 0
-
-  public freedrawRef = React.createRef()
+  private webSocketsClient: Client = new Client()
 
   constructor(props: any) {
     super(props)
@@ -91,6 +104,7 @@ class Ripples extends Component<PropsType, StateType> {
     this.updateSoiData = this.updateSoiData.bind(this)
     this.updateAISData = this.updateAISData.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
+    this.handleAssetUpdate = this.handleAssetUpdate.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -106,14 +120,38 @@ class Ripples extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     const myMaps = await this.loadMyMapsData()
+    this.webSocketsClient = createWSClient()
+    subscribeWSAssetUpdates(this.webSocketsClient, this.handleAssetUpdate)
     this.setState({ myMapsData: myMaps })
     this.setState({ loading: false })
     this.startUpdates()
   }
 
+  public handleAssetUpdate(m: Message) {
+    if (m.body) {
+      const newSystem: IAssetPayload = JSON.parse(m.body)
+      const system: IAsset = convertAssetPayloadToAsset(newSystem)
+      if (system.name.startsWith('spot')) {
+        this.props.updateSpot(system)
+      } else if (system.name.startsWith('ccu')) {
+        this.props.updateCCU(system)
+      } else {
+        this.props.updateVehicle(system)
+      }
+
+      if (newSystem.plan) {
+        if (newSystem.plan.waypoints.length > 0) {
+          const plan: IPlan = convertAssetPayloadToPlan(newSystem)
+          this.props.updatePlan(plan)
+        }
+      }
+    }
+  }
+
   public stopUpdates() {
     clearInterval(this.soiTimer)
     clearInterval(this.aisTimer)
+    this.webSocketsClient.deactivate()
   }
 
   public startUpdates() {
@@ -125,11 +163,11 @@ class Ripples extends Component<PropsType, StateType> {
     if (!this.aisTimer) {
       this.aisTimer = window.setInterval(this.updateAISData, 60000) // get ais data every minute
     }
+    this.webSocketsClient.activate()
   }
 
   public componentWillUnmount() {
-    clearInterval(this.soiTimer)
-    clearInterval(this.aisTimer)
+    this.stopUpdates()
   }
 
   public async loadMyMapsData() {
@@ -152,12 +190,17 @@ class Ripples extends Component<PropsType, StateType> {
         unassignedPlansPromise = fetchUnassignedPlans()
       }
       const soiData = await soiPromise
+
       const vehicles = soiData.vehicles
       await mergeAssetSettings(vehicles, this.props.auth)
 
       // fetch profiles
       let profiles = await profilesPromise
       profiles = profiles.filter(p => p.samples.length > 0)
+      // make heights symmetric
+      profiles.forEach(p => {
+        p.samples.forEach(a => (a[0] = -a[0]))
+      })
       this.props.setProfiles(profiles)
 
       // fetch soi awareness
@@ -177,6 +220,7 @@ class Ripples extends Component<PropsType, StateType> {
       this.props.setVehicles(soiData.vehicles)
       this.props.setSpots(soiData.spots)
       this.props.setPlans(soiData.plans)
+      this.props.setCcus(soiData.ccus)
     } catch (error) {
       NotificationManager.warning('Failed to fetch data')
     }
@@ -199,6 +243,8 @@ class Ripples extends Component<PropsType, StateType> {
       description: `Plan created by ${this.props.auth.currentUser.email} on ${timestampMsToReadableDate(Date.now())}`,
       id: planId,
       waypoints: [],
+      visible: true,
+      type: 'backseat',
     }
     this.props.addNewPlan(plan)
     this.stopUpdates()
@@ -314,12 +360,17 @@ const actionCreators = {
   editPlan,
   savePlan,
   setAis,
+  setCcus,
   setPlans,
   setProfiles,
   setSlider,
   setSpots,
   setUser,
   setVehicles,
+  updateVehicle,
+  updateSpot,
+  updateCCU,
+  updatePlan,
 }
 
 export default connect(

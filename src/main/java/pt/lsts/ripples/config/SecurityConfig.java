@@ -113,7 +113,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .permitAll()
                 .antMatchers("/ais/**","/soi/**","/assets/**", "/asset/**",
                         "/assetInfo", "/api/**", "/rock7", "/addresses/**","/sms/**",
-                        "/data/**", "/kml/**", "/positions/**", "/plot/**")
+                        "/data/**", "/kml/**", "/positions/**", "/plot/**", "/imc/**", "/ws/**")
                 .permitAll()
                 .antMatchers("/", "/ripples", "/soirisk", "/messages/text")
                 .permitAll()

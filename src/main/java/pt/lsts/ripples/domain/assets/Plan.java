@@ -30,8 +30,18 @@ public class Plan implements Serializable {
 
     private String description;
 
+    private String type;
+
     public Plan() {
         this.id = "idle";
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDescription() {

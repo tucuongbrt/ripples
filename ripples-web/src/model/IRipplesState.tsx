@@ -10,11 +10,12 @@ export interface IAssetsGroup {
   spots: IAsset[]
   aisShips: IAisShip[]
   aisDrawableLocations: IShipLocation[]
+  ccus: IAsset[]
 }
 
 export default interface IRipplesState {
   assets: IAssetsGroup
-  selectedPlan: IPlan // plan id
+  selectedPlan: IPlan
   sliderValue: number
   selectedWaypointIdx: number
   auth: IUserState
@@ -33,4 +34,5 @@ export const defaultAssetsGroup: IAssetsGroup = {
   aisShips: [],
   spots: [],
   vehicles: [],
+  ccus: [],
 }

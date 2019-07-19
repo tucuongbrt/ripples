@@ -1,4 +1,5 @@
 import IAssetState, { EmptyAssetState } from './IAssetState'
+import IPlan from './IPlan';
 import IPositionAtTime from './IPositionAtTime'
 
 export default interface IAsset {
@@ -21,4 +22,13 @@ export const EmptyAsset: IAsset = {
 
 export function isEmptyAsset(a: IAsset) {
   return a.imcid === EmptyAsset.imcid
+}
+
+export interface IAssetPayload {
+  name: string
+  plan: IPlan
+  imcid: number
+  lastState: IAssetState
+  settings: string[][]
+  awareness: IPositionAtTime[]
 }

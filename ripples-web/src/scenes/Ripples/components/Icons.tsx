@@ -3,7 +3,7 @@ import L from 'leaflet'
 export const PCIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
-    iconUrl: 'http://cdn.onlinewebfonts.com/svg/img_365376.png',
+    iconUrl: 'https://www.freeiconspng.com/uploads/pc-icon-26.png',
   },
 })
 
@@ -55,10 +55,17 @@ export const SpotIcon = L.Icon.extend({
   },
 })
 
-export const SensorIcon = L.Icon.extend({
+export const CCUIcon = L.Icon.extend({
   options: {
     iconSize: [32, 32],
-    iconUrl: 'http://icons.iconarchive.com/icons/google/noto-emoji-travel-places/256/42650-thermometer-icon.png',
+    iconUrl: 'https://cdn4.iconfinder.com/data/icons/holiday-and-have-fun/32/place_spot_target_location-128.png',
+  },
+})
+
+export const SensorIcon = L.Icon.extend({
+  options: {
+    iconSize: [16, 16],
+    iconUrl: 'https://image.flaticon.com/icons/svg/134/134125.svg',
   },
 })
 

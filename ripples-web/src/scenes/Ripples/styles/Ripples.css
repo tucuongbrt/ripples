@@ -86,3 +86,11 @@ path.leaflet-polygon {
   max-height: 100%;
   overflow-y: auto;
 }
+
+.btn {
+  margin-top: 0.5em;
+}
+
+.mouse-pointer {
+  cursor: pointer;
+}

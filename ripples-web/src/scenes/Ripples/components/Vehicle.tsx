@@ -23,8 +23,7 @@ class Vehicle extends Component<PropsType, {}> {
 
   constructor(props: PropsType) {
     super(props)
-    this.buildVehicleAwareness = this.buildVehicleAwareness.bind(this)
-    this.buildVehicle = this.buildVehicle.bind(this)
+    this.onMarkerClick = this.onMarkerClick.bind(this)
   }
 
   public buildSettings(settings: string[][]): any {
@@ -57,7 +56,7 @@ class Vehicle extends Component<PropsType, {}> {
     return Object.assign({}, mainProps, settingsProps)
   }
 
-  public handleClick(vehicle: IAsset) {
+  public onMarkerClick(vehicle: IAsset) {
     // evt.originalEvent.view.L.DomEvent.stop(evt)
     this.props.setSidePanelTitle(vehicle.name)
     this.props.setSidePanelContent(this.getDisplayableProperties(vehicle))
@@ -71,9 +70,9 @@ class Vehicle extends Component<PropsType, {}> {
       <RotatedMarker
         position={systemPosition}
         icon={this.icon}
-        rotationAngle={0}
+        rotationAngle={vehicle.lastState.heading - 90} // -90 is used to compensate for the icon
         rotationOrigin={'center'}
-        onClick={(evt: any) => this.handleClick(vehicle)}
+        onClick={(evt: any) => this.onMarkerClick(vehicle)}
       />
     )
   }

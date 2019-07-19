@@ -8,3 +8,9 @@
 .bg-orange {
     background-color: orange;
 }
+
+#phoneSubscriberItem {
+    border-right: 3px solid rgb(46, 46, 46);
+    border-left: 3px solid rgb(46, 46, 46);
+    padding: 1em
+}

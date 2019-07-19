@@ -1,14 +1,19 @@
 package pt.lsts.ripples.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import pt.lsts.ripples.domain.assets.AssetPosition;
-import pt.lsts.ripples.repo.PositionsRepository;
-import pt.lsts.ripples.services.MessageProcessor;
-
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.repo.PositionsRepository;
+import pt.lsts.ripples.services.MessageProcessor;
 
 @RestController
 public class PositionsController {
@@ -18,6 +23,7 @@ public class PositionsController {
 
     @Autowired
     MessageProcessor processor;
+
 
     @GetMapping(path = {"/positions", "/positions/"}, produces = "application/json")
     public List<AssetPosition> listPositions(@RequestParam(value = "_", defaultValue = "") String since) {
@@ -67,6 +73,8 @@ public class PositionsController {
         processor.setAssetPosition(pos);
         return pos;
     }
+
+    
     
     static class SystemPosition {
         final int imcid;

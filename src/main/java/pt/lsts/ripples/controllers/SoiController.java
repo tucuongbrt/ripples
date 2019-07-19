@@ -1,19 +1,42 @@
 package pt.lsts.ripples.controllers;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+
+import javax.transaction.Transactional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
 import pt.lsts.imc.SoiCommand;
 import pt.lsts.imc.SoiCommand.COMMAND;
 import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetErrors;
 import pt.lsts.ripples.domain.assets.Plan;
-import pt.lsts.ripples.domain.soi.*;
+import pt.lsts.ripples.domain.soi.AwarenessData;
+import pt.lsts.ripples.domain.soi.EntityWithId;
+import pt.lsts.ripples.domain.soi.NewPlanBody;
+import pt.lsts.ripples.domain.soi.PotentialCollision;
+import pt.lsts.ripples.domain.soi.UpdateId;
+import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.exceptions.AssetNotFoundException;
 import pt.lsts.ripples.exceptions.SendSoiCommandException;
 import pt.lsts.ripples.iridium.SoiInteraction;
@@ -26,12 +49,6 @@ import pt.lsts.ripples.services.CollisionForecastService;
 import pt.lsts.ripples.services.SoiAwareness;
 import pt.lsts.ripples.util.HTTPResponse;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-
-import javax.transaction.Transactional;
-
 @RestController
 public class SoiController {
 
@@ -43,7 +60,6 @@ public class SoiController {
 
 	@Autowired
 	VertProfilesRepo vertProfiles;
-
 
 	@Autowired
 	SoiInteraction soiInteraction;
@@ -59,6 +75,9 @@ public class SoiController {
 
 	@Autowired
 	AssetsErrorsRepository assetsErrorsRepository;
+
+	@Autowired
+    WebSocketsController wsController;
 
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
 
@@ -88,7 +107,7 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/risk", "/soi/risk/" }, method = RequestMethod.GET)
 	@ResponseBody
 	public HashSet<PotentialCollision> riskAnalysis() {
-		return collisionService.updateCollisions();
+		return collisionService.getLastCollisions();
 	}
 
 	@RequestMapping(path = { "/soi/awareness", "/soi/awareness/" }, method = RequestMethod.GET)
@@ -101,8 +120,37 @@ public class SoiController {
 		return awarenessDataList;
 	}
 
+	/**
+	 * To be used by neptus to update assets in real time
+	 * @param asset
+	 * @return
+	 */
+	@PostMapping(path = { "/soi/assets", "/soi/assets/" }, consumes = "application/json", produces = "application/json")
+	public ResponseEntity<HTTPResponse> updateAssets(@RequestBody ArrayList<Asset> assets) {
+		assets.forEach(asset -> {
+			Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
+			// logger.info("Received update for asset " + asset.getName() + " in " + 
+			// asset.getLastState().getLatitude() + ";" + asset.getLastState().getLongitude());
+			if (!optAsset.isPresent()) {
+				assetsRepo.save(asset);
+			} else {
+				Asset oldAsset = optAsset.get();
+				oldAsset.setLastState(asset.getLastState());
+				if (oldAsset.getPlan().getType() == "dune") {
+					oldAsset.setPlan(asset.getPlan());
+				}
+				assetsRepo.save(oldAsset);
+			}
+			wsController.sendAssetUpdateFromServerToClients(asset);
+		});
+		return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."), HttpStatus.OK);
+	}
+
+	/**
+	 * Use to assign and send(via rockblock) a new plan to a vehicle
+	 */
 	@PreAuthorize("hasRole('OPERATOR')")
-	@PostMapping(path = { "/soi", "/soi/" }, consumes = "application/json", produces = "application/json")
+	@PostMapping(path = { "/soi/plan", "/soi/plan/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updatePlan(@RequestBody NewPlanBody message)
 			throws SendSoiCommandException, AssetNotFoundException {
 		Optional<Asset> optAsset = assetsRepo.findById(message.getAssignedTo());
@@ -128,6 +176,13 @@ public class SoiController {
 		throw new AssetNotFoundException(message.getAssignedTo());
 	}
 
+	/**
+	 * Use to add a plan that is not assigned to any vehicle.
+	 * This can be used by scientists to share plans that operators can then assign.
+	 * @param message
+	 * @return
+	 * @throws SendSoiCommandException
+	 */
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
 	@PostMapping(path = { "/soi/unassigned/plans",
 			"/soi/unassigned/plans/" }, consumes = "application/json", produces = "application/json")
@@ -192,7 +247,8 @@ public class SoiController {
 	@ResponseBody
 	public String getIncomingMessagesForAsset(@PathVariable("name") String assetName,
 			@RequestParam(value = "since", required = false) Long sinceMs) {
-		if (sinceMs == null) sinceMs = 0L;
+		if (sinceMs == null)
+			sinceMs = 0L;
 		ArrayList<String> messages = new ArrayList<>();
 		messagesRepository.findAllSinceDateForAsset(sinceMs, assetName).forEach(m -> {
 			messages.add(m.getMessage());
@@ -201,7 +257,7 @@ public class SoiController {
 		return String.join("\n", messages);
 	}
 
-	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.GET)
+	@RequestMapping(path = { "/soi/errors/{name}" }, method = RequestMethod.GET)
 	public AssetErrors getAssetErrors(@PathVariable("name") String assetName) {
 		Optional<AssetErrors> opt = assetsErrorsRepository.findByName(assetName);
 		if (opt.isPresent()) {
@@ -210,7 +266,7 @@ public class SoiController {
 		return new AssetErrors(assetName);
 	}
 
-	@RequestMapping(path = {"/soi/errors","/soi/errors/"}, method = RequestMethod.GET)
+	@RequestMapping(path = { "/soi/errors", "/soi/errors/" }, method = RequestMethod.GET)
 	public List<AssetErrors> getAssetsErrors() {
 		List<AssetErrors> errors = new ArrayList<>();
 		assetsErrorsRepository.findAll().forEach(errors::add);
@@ -219,7 +275,7 @@ public class SoiController {
 
 	@PreAuthorize("hasRole('OPERATOR')")
 	@Transactional
-	@RequestMapping(path = {"/soi/errors/{name}"}, method = RequestMethod.DELETE)
+	@RequestMapping(path = { "/soi/errors/{name}" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteAssetErrors(@PathVariable("name") String assetName) {
 		logger.info("Delete errors called for asset: " + assetName);
 		assetsErrorsRepository.deleteByName(assetName);

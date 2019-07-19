@@ -33,13 +33,13 @@ class Login extends Component<PropsType, {}> {
   public render() {
     if (this.props.auth.authenticated) {
       return (
-        <Button color="info" size="sm" onClick={() => this.handleLogout()}>
+        <Button className="m-1" color="info" size="sm" onClick={() => this.handleLogout()}>
           Logout
         </Button>
       )
     } else {
       return (
-        <Button color="info" size="sm" onClick={this.handleLoginClick}>
+        <Button className="m-1" color="info" size="sm" onClick={this.handleLoginClick}>
           Log in with Google
         </Button>
       )

@@ -3,8 +3,8 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
 import { configureStore } from 'redux-starter-kit'
+import App from './App'
 import ripplesReducer from './redux/reducers/ripples.reducer'
-import App from './scenes/App/App'
 
 const store = configureStore({
   reducer: ripplesReducer,

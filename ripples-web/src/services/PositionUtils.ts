@@ -22,21 +22,21 @@ export function calculateShipLocation(aisShip: IAisShip): IShipLocation {
   let portVecEnd = aisPos
   let bowVecEnd = aisPos
   let sternVecEnd = aisPos
-  const cog = aisShip.cog
+  const heading = aisShip.heading !== 511 ? aisShip.heading : aisShip.cog
   if (aisShip.starboard > 0) {
-    const point = wgs84.destination(aisCoordinates, 90 + cog, aisShip.starboard).point.coordinates
+    const point = wgs84.destination(aisCoordinates, 90 + heading, aisShip.starboard).point.coordinates
     sbVecEnd = LatLngFactory.build(point[1], point[0])
   }
   if (aisShip.port > 0) {
-    const point = wgs84.destination(aisCoordinates, 270 + cog, aisShip.port).point.coordinates
+    const point = wgs84.destination(aisCoordinates, 270 + heading, aisShip.port).point.coordinates
     portVecEnd = LatLngFactory.build(point[1], point[0])
   }
   if (aisShip.bow > 0) {
-    const point = wgs84.destination(aisCoordinates, cog, aisShip.bow).point.coordinates
+    const point = wgs84.destination(aisCoordinates, heading, aisShip.bow).point.coordinates
     bowVecEnd = LatLngFactory.build(point[1], point[0])
   }
   if (aisShip.stern > 0) {
-    const point = wgs84.destination(aisCoordinates, 180 + cog, aisShip.stern).point.coordinates
+    const point = wgs84.destination(aisCoordinates, 180 + heading, aisShip.stern).point.coordinates
     sternVecEnd = LatLngFactory.build(point[1], point[0])
   }
   const halfBreadthVec = vecFromPoints(sbVecEnd, portVecEnd, 0.5)
@@ -116,7 +116,7 @@ export function interpolateTwoPoints(
 }
 
 export function getPrevAndNextPoints(points: IPositionAtTime[], date: number) {
-  if (points.length === 0) {
+  if (points == null || points.length === 0) {
     const defaultP = { latitude: 0, longitude: 0, timestamp: date }
     return { prev: defaultP, next: defaultP }
   }
@@ -152,11 +152,13 @@ export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours:
 }
 
 export function getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {
-  if (waypoints.length < 2) {
+  // need to find two waypoints with timestamps different from 0
+  const scheduledWaypoints = waypoints.filter(wp => wp.timestamp > 0)
+  if (scheduledWaypoints.length < 2) {
     return 1
   }
-  const firstWp = waypoints[0]
-  const secondWp = waypoints[1]
+  const firstWp = scheduledWaypoints[0]
+  const secondWp = scheduledWaypoints[1]
   const distanceInMeters = distanceInMetersBetweenCoords(firstWp, secondWp)
   const deltaSec = (secondWp.timestamp - firstWp.timestamp) / 1000
   return distanceInMeters / deltaSec

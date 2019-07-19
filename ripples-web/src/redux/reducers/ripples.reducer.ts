@@ -1,6 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
+import IAsset from '../../model/IAsset'
 import { noAuth } from '../../model/IAuthState'
-import { EmptyPlan } from '../../model/IPlan'
+import IPlan, { EmptyPlan } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
 import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils'
@@ -14,6 +15,7 @@ import {
   savePlan,
   selectVehicle,
   setAis,
+  setCcus,
   setPlanDescription,
   setPlans,
   setProfiles,
@@ -26,7 +28,13 @@ import {
   setToolSelected,
   setUser,
   setVehicles,
+  togglePlanVisibility,
+  unschedulePlan,
+  updateCCU,
+  updatePlan,
   updatePlanId,
+  updateSpot,
+  updateVehicle,
   updateWpLocation,
   updateWpTimestamp,
 } from '../ripples.actions'
@@ -63,6 +71,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [setAis.type]: (state, action) => {
     state.assets.aisShips = action.payload
+  },
+  [setCcus.type]: (state, action) => {
+    state.assets.ccus = action.payload
   },
   [setPlans.type]: (state, action) => {
     state.planSet = action.payload
@@ -158,6 +169,56 @@ const ripplesReducer = createReducer(startState, {
   },
   [setSidePanelVisibility.type]: (state, action) => {
     state.isSidePanelVisible = action.payload
+  },
+  [unschedulePlan.type]: (state, action) => {
+    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    if (plan) {
+      plan.waypoints = plan.waypoints.map(wp => Object.assign({}, wp, { timestamp: 0 }))
+    }
+  },
+  [togglePlanVisibility.type]: (state, action) => {
+    const plan = state.planSet.find(p => p.id === action.payload.id)
+    if (plan) {
+      plan.visible = !plan.visible
+    }
+  },
+  [updateVehicle.type]: (state, action) => {
+    const newAsset: IAsset = action.payload
+    const oldAsset = state.assets.vehicles.find(v => v.imcid === newAsset.imcid)
+    if (oldAsset) {
+      oldAsset.lastState = newAsset.lastState
+      oldAsset.planId = newAsset.planId
+    } else {
+      state.assets.vehicles.push(newAsset)
+    }
+  },
+  [updateCCU.type]: (state, action) => {
+    const newCCU: IAsset = action.payload
+    const oldAsset = state.assets.ccus.find(c => c.name === newCCU.name)
+    if (oldAsset) {
+      oldAsset.lastState = newCCU.lastState
+    } else {
+      state.assets.ccus.push(newCCU)
+    }
+  },
+  [updateSpot.type]: (state, action) => {
+    const newSpot: IAsset = action.payload
+    const oldAsset = state.assets.spots.find(s => s.name === newSpot.name)
+    if (oldAsset) {
+      oldAsset.lastState = newSpot.lastState
+    } else {
+      state.assets.spots.push(newSpot)
+    }
+  },
+  [updatePlan.type]: (state, action) => {
+    const newPlan: IPlan = action.payload
+    const oldPlan = state.planSet.find(p => p.id === newPlan.id)
+    if (oldPlan) {
+      oldPlan.assignedTo = newPlan.assignedTo
+      oldPlan.waypoints = newPlan.waypoints
+    } else {
+      state.planSet.push(newPlan)
+    }
   },
 })
 

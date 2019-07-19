@@ -52,9 +52,6 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
       vehicles: [],
     }
     this.updateSoiData = this.updateSoiData.bind(this)
-    this.buildAllVehicles = this.buildAllVehicles.bind(this)
-    this.buildVehicleCollisions = this.buildVehicleCollisions.bind(this)
-    this.buildVehicleErrors = this.buildVehicleErrors.bind(this)
     this.toggleCollisionsModal = this.toggleCollisionsModal.bind(this)
     this.toggleErrorsModal = this.toggleErrorsModal.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
@@ -99,6 +96,11 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     })
   }
 
+  /**
+   * Calculate the index of the next waypoint. Returns -1 if there's no waypoint in the future.
+   * @param vehicle
+   * @param plan
+   */
   public getNextWaypointIdx(vehicle: IAsset, plan: IPlan) {
     const waypoints = plan.waypoints
     if (waypoints.length === 0) {
@@ -109,6 +111,9 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     const minInterval = Math.min(...timeIntervals)
     const minIntervalIdx = timeIntervals.findIndex(d => d === minInterval)
     const minIntervalWP = waypoints[minIntervalIdx]
+    if (minIntervalWP.timestamp === 0) {
+      return -1
+    }
     // distance in meters
     const distanceToMinInterval = distanceInMetersBetweenCoords(minIntervalWP, vehicle.lastState)
     // if distance is less than 100m, let's consider that the vehicle already arrived to that waypoint
@@ -151,6 +156,9 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public buildFuel(fuel: number) {
+    if (fuel === -1) {
+      return <td className={'bg-red'}>N/D</td>
+    }
     return <td className={fuel > 0.5 ? 'bg-green' : fuel > 0.1 ? 'bg-orange' : 'bg-red'}>{fuel.toFixed(2)}</td>
   }
 

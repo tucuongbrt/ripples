@@ -42,8 +42,13 @@ public class RockBlockController {
 	private RockBlockIridiumSender rockBlockService;
 
 	@GetMapping(path = "/api/v1/iridium")
-	public List<Rock7Message> pollMessages() {
-		Date d = new Date(System.currentTimeMillis() - 1000 * 24 * 3600);
+	public List<Rock7Message> pollMessages(@RequestParam(defaultValue="-3600") long since) {
+		since *= 1000;
+		
+		if (since < 0)
+			since += System.currentTimeMillis();
+
+		Date d = new Date(since);
 		return repo.findSince(d);
 	}
 
@@ -145,5 +150,12 @@ public class RockBlockController {
 
 
 		return new ResponseEntity<String>("Message received successfully.", HttpStatus.OK);
+	}
+	
+	public static void main(String[] args) {
+		long since = -3600;
+		since = (System.currentTimeMillis() + (since * 1000)) / 1000;
+		System.out.println(since);
+		System.out.println(System.currentTimeMillis());
 	}
 }

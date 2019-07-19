@@ -1,6 +1,5 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Link } from 'react-router-dom'
 import {
   Button,
   Collapse,
@@ -15,7 +14,6 @@ import {
   ModalHeader,
   Nav,
   Navbar,
-  NavbarBrand,
   NavbarToggler,
   NavItem,
 } from 'reactstrap'
@@ -26,7 +24,14 @@ import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
 import IPlan from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
-import { selectVehicle, setPlanDescription, setToolSelected, updatePlanId } from '../../../redux/ripples.actions'
+import {
+  selectVehicle,
+  setPlanDescription,
+  setToolSelected,
+  togglePlanVisibility,
+  unschedulePlan,
+  updatePlanId,
+} from '../../../redux/ripples.actions'
 import { idFromDate } from '../../../services/DateUtils'
 
 interface PropsType {
@@ -46,7 +51,9 @@ interface PropsType {
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
   setPlanDescription: (_: string) => void
+  togglePlanVisibility: (_: IPlan) => void
   updatePlanId: (_: string) => void
+  unschedulePlan: () => void
 }
 
 interface StateType {
@@ -92,8 +99,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
     this.handleUpdatePlanId = this.handleUpdatePlanId.bind(this)
-    this.resetPlansDropdown = this.resetPlansDropdown.bind(this)
-    this.buildVehicleSelector = this.buildVehicleSelector.bind(this)
     this.onVehicleSelected = this.onVehicleSelected.bind(this)
     this.toggleDescriptionModal = this.toggleDescriptionModal.bind(this)
     this.toggleEditPlanIdModal = this.toggleEditPlanIdModal.bind(this)
@@ -215,10 +220,12 @@ class TopNav extends Component<PropsType, StateType> {
           >
             Send plan to {this.props.vehicleSelected}
           </DropdownItem>
+          <DropdownItem key="unschedule" onClick={() => this.props.unschedulePlan()}>
+            Unschedule all waypoints
+          </DropdownItem>
           <DropdownItem key="cancel" onClick={this.handleCancelEditing}>
             Cancel
           </DropdownItem>
-
           {this.buildEditDescriptionModal()}
           {this.buildEditPlanIdModal()}
         </div>
@@ -226,9 +233,15 @@ class TopNav extends Component<PropsType, StateType> {
     }
     return this.props.plans.map(p => {
       return (
-        <DropdownItem key={'dropdown-item-' + p.id} onClick={() => this.handleEditPlan(p)}>
-          {p.assignedTo}-{p.id}
-        </DropdownItem>
+        <div className="dropdown-item" key={'dropdown-item-' + p.id}>
+          <i
+            onClick={() => this.props.togglePlanVisibility(p)}
+            className={(p.visible ? 'far fa-eye' : 'far fa-eye-slash') + ' mr-1'}
+          />
+          <span onClick={() => this.handleEditPlan(p)} className="mouse-pointer">
+            {p.assignedTo}-{p.id}
+          </span>
+        </div>
       )
     })
   }
@@ -343,10 +356,18 @@ class TopNav extends Component<PropsType, StateType> {
               <Button
                 color="primary"
                 className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.EDIT)}
-                active={this.props.toolSelected === ToolSelected.EDIT}
+                onClick={() => this.onToolbarClick(ToolSelected.SCHEDULE)}
+                active={this.props.toolSelected === ToolSelected.SCHEDULE}
               >
-                Edit
+                Schedule
+              </Button>
+              <Button
+                color="warning"
+                className="mr-1"
+                onClick={() => this.onToolbarClick(ToolSelected.UNSCHEDULE)}
+                active={this.props.toolSelected === ToolSelected.UNSCHEDULE}
+              >
+                Unschedule
               </Button>
             </NavItem>
           ) : (
@@ -410,7 +431,9 @@ const actionCreators = {
   selectVehicle,
   setPlanDescription,
   setToolSelected,
+  togglePlanVisibility,
   updatePlanId,
+  unschedulePlan,
 }
 
 export default connect(

@@ -16,7 +16,7 @@ export default class EstimatedPosition extends Component<PropsType, {}> {
     return (
       <RotatedMarker
         key={'estimated_' + this.props.vehicle}
-        rotationAngle={estimatedPos.heading}
+        rotationAngle={estimatedPos.heading - 90}
         rotationOrigin={'center'}
         position={getLatLng(estimatedPos)}
         icon={this.props.icon}
