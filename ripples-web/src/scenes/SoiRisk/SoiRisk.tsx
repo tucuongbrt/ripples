@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { geolocated, GeolocatedProps } from 'react-geolocated'
 import { connect } from 'react-redux'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Table } from 'reactstrap'
 import { AssetErrors } from '../../model/AssetErrors'
@@ -16,9 +17,8 @@ import { distanceInMetersBetweenCoords } from '../../services/PositionUtils'
 import { deleteAssetErrors, fetchAssetsErrors, fetchCollisions, fetchSoiData } from '../../services/SoiUtils'
 import TopNav from './components/TopNav'
 import './styles/SoiRisk.css'
-const { NotificationManager } = require('react-notifications')
-import { geolocated, GeolocatedProps } from 'react-geolocated'
 
+const { NotificationManager } = require('react-notifications')
 interface StateType {
   vehicles: IAsset[]
   plans: IPlan[]

@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button } from 'reactstrap'
-import IAuthState, { IUser } from '../model/IAuthState'
+import IAuthState from '../model/IAuthState'
 import IRipplesState from '../model/IRipplesState'
 import { removeUser } from '../redux/ripples.actions'
 
@@ -22,7 +22,7 @@ class Login extends Component<PropsType, {}> {
   }
 
   public handleLoginClick() {
-    location.href = GOOGLE_AUTH_URL
+    window.location.href = GOOGLE_AUTH_URL
   }
 
   public handleLogout() {

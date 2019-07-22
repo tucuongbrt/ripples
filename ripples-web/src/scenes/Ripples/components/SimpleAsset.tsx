@@ -1,11 +1,10 @@
 import React, { Component } from 'react'
-import { Marker, Popup } from 'react-leaflet'
+import { Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { timestampSecToReadableDate } from '../../../services/DateUtils'
 import { getLatLng } from '../../../services/PositionUtils'
-import { SpotIcon } from './Icons'
 
 interface PropsType {
   data: IAsset

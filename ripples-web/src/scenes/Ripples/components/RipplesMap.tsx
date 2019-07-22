@@ -1,10 +1,16 @@
+import { LatLngLiteral } from 'leaflet'
 import React, { Component } from 'react'
 import { GeoJSON, LayerGroup, LayersControl, Map, TileLayer, WMSTileLayer } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
 import { connect } from 'react-redux'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAsset from '../../../model/IAsset'
+import ILatLng from '../../../model/ILatLng'
+import IPlan from '../../../model/IPlan'
+import IPositionAtTime from '../../../model/IPositionAtTime'
+import IProfile from '../../../model/IProfile'
 import IRipplesState from '../../../model/IRipplesState'
+import { ToolSelected } from '../../../model/ToolSelected'
 import {
   addWpToPlan,
   setSelectedWaypointIdx,
@@ -13,23 +19,17 @@ import {
   setSidePanelVisibility,
   updateWpLocation,
 } from '../../../redux/ripples.actions'
-import AISShip from './AISShip'
-import SimpleAsset from './SimpleAsset'
-import Vehicle from './Vehicle'
-const { BaseLayer, Overlay } = LayersControl
-import { LatLngLiteral } from 'leaflet'
-import ILatLng from '../../../model/ILatLng'
-import IPlan from '../../../model/IPlan'
-import IPositionAtTime from '../../../model/IPositionAtTime'
-import IProfile from '../../../model/IProfile'
-import { ToolSelected } from '../../../model/ToolSelected'
 import AISCanvas from './AISCanvas'
+import AISShip from './AISShip'
 import ClientLocation from './ClientLocation'
 import { PCIcon, SpotIcon } from './Icons'
+import SimpleAsset from './SimpleAsset'
+import Vehicle from './Vehicle'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
-const CanvasLayer = require('react-leaflet-canvas-layer')
 
+const CanvasLayer = require('react-leaflet-canvas-layer')
+const { BaseLayer, Overlay } = LayersControl
 interface PropsType {
   myMapsData: any
   aisLocations: IShipLocation[]

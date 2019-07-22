@@ -1,5 +1,5 @@
 import IAssetState, { EmptyAssetState } from './IAssetState'
-import IPlan from './IPlan';
+import IPlan from './IPlan'
 import IPositionAtTime from './IPositionAtTime'
 
 export default interface IAsset {

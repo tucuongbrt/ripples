@@ -97,11 +97,7 @@ export default class LinePlot extends Component<PropsType, StateType> {
             tickRotation: 0,
             tickSize: 5,
           }}
-          dotSize={10}
-          dotColor="inherit:darker(0.3)"
-          dotBorderWidth={2}
-          dotBorderColor="#ffffff"
-          enableDotLabel={false}
+          pointSize={6}
           animate={false}
           motionStiffness={90}
           motionDamping={15}

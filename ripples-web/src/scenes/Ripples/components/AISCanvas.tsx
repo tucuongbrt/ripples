@@ -1,4 +1,4 @@
-import IAisShip, { AisShip, IShipLocation } from '../../../model/IAisShip'
+import IAisShip, { AisShip } from '../../../model/IAisShip'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import { calculateNextPosition, KNOTS_TO_MS } from '../../../services/PositionUtils'
 

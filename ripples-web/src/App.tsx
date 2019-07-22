@@ -5,8 +5,8 @@ import NoLoginPermission from './scenes/NoLoginPermission/NoLoginPermission'
 import Ripples from './scenes/Ripples/Ripples'
 import SoiRisk from './scenes/SoiRisk/SoiRisk'
 import TextMessages from './scenes/TextMessages/TextMessages'
-const { NotificationContainer } = require('react-notifications')
 import './styles/main.css'
+const { NotificationContainer } = require('react-notifications')
 
 class App extends Component {
   public render() {

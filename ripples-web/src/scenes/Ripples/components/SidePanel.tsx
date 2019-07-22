@@ -13,9 +13,6 @@ interface PropsType {
 }
 
 class SidePanel extends Component<PropsType, {}> {
-  constructor(props: PropsType) {
-    super(props)
-  }
 
   public buildContent(content: any) {
     const items: JSX.Element[] = []

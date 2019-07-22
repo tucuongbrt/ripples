@@ -1,4 +1,3 @@
-import ILatLng from './ILatLng'
 import IPositionAtTime from './IPositionAtTime'
 
 export default interface IAssetState extends IPositionAtTime {

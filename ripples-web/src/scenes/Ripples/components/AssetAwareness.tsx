@@ -12,9 +12,6 @@ interface PropsType {
 }
 
 export default class AssetAwareness extends Component<PropsType, {}> {
-  constructor(props: PropsType) {
-    super(props)
-  }
 
   public estimatedPositionAtTime(): IPosHeadingAtTime {
     const date = timestampFromDeltaHours(this.props.deltaHours)

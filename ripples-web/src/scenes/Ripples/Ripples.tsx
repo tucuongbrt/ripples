@@ -1,7 +1,6 @@
+import { Client, Message } from '@stomp/stompjs'
 import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css'
-const { NotificationManager } = require('react-notifications')
-import { Client, Message } from '@stomp/stompjs'
 import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
@@ -49,6 +48,7 @@ import SidePanel from './components/SidePanel'
 import Slider from './components/Slider'
 import TopNav from './components/TopNav'
 import './styles/Ripples.css'
+const { NotificationManager } = require('react-notifications')
 const toGeojson = require('@mapbox/togeojson')
 
 interface StateType {
@@ -318,28 +318,27 @@ class Ripples extends Component<PropsType, StateType> {
   }
 
   public render() {
-    {
-      if (!this.state.loading) {
-        return (
-          <div>
-            <div className="navbar">
-              <TopNav
-                handleEditPlan={this.handleEditPlan}
-                handleSendPlanToVehicle={this.handleSendPlanToVehicle}
-                handleCancelEditPlan={this.handleCancelEditPlan}
-                handleStartNewPlan={this.handleStartNewPlan}
-                handleSavePlan={this.handleSavePlan}
-                handleDeletePlan={this.handleDeletePlan}
-                handleUpdatePlanId={this.handleUpdatePlanId}
-              />
-            </div>
-            <RipplesMap myMapsData={this.state.myMapsData} />
-            <SidePanel />
-            <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
+    if (!this.state.loading) {
+      return (
+        <div>
+          <div className="navbar">
+            <TopNav
+              handleEditPlan={this.handleEditPlan}
+              handleSendPlanToVehicle={this.handleSendPlanToVehicle}
+              handleCancelEditPlan={this.handleCancelEditPlan}
+              handleStartNewPlan={this.handleStartNewPlan}
+              handleSavePlan={this.handleSavePlan}
+              handleDeletePlan={this.handleDeletePlan}
+              handleUpdatePlanId={this.handleUpdatePlanId}
+            />
           </div>
-        )
-      }
+          <RipplesMap myMapsData={this.state.myMapsData} />
+          <SidePanel />
+          <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
+        </div>
+      )
     }
+
     return <></>
   }
 }

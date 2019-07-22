@@ -16,7 +16,7 @@ export default class NoLoginPermission extends Component<PropsType, {}> {
         <h1>No Login Permission</h1>
         <div>{this.props.location.state.error}</div>
         <div>Please contact a system administrator to get an account.</div>
-        <Button onClick={() => (location.href = '/')}>Back</Button>
+        <Button onClick={() => (window.location.href = '/')}>Back</Button>
       </>
     )
   }
