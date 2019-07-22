@@ -22,10 +22,12 @@ public class EnvDatum {
 	
 	private Date timestamp;
 	
-	private Double latitude, longitude;
+	private Double latitude;
+	
+	private Double longitude;
 	
 	@ElementCollection(fetch=FetchType.EAGER)
-	private Map<String, Double> values = new HashMap<>();
+	private Map<String, Double> valuesMap = new HashMap<>();
 
 	/**
 	 * @return the uid
@@ -101,14 +103,14 @@ public class EnvDatum {
 	 * @return the values
 	 */
 	public Map<String, Double> getValues() {
-		return values;
+		return valuesMap;
 	}
 
 	/**
 	 * @param values the values to set
 	 */
 	public void setValues(Map<String, Double> values) {
-		this.values = values;
+		this.valuesMap = values;
 	}
 
 	
