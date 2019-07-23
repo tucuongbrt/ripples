@@ -10,21 +10,25 @@ interface PropsType {
   deltaHours: number
   icon: any
   iconAngle: number
+  currentTime: number // updated periodically
 }
 
 export default class AssetAwareness extends Component<PropsType, {}> {
-
   public estimatedPositionAtTime(): IPosHeadingAtTime {
-    const date = timestampFromDeltaHours(this.props.deltaHours)
+    const date = timestampFromDeltaHours(this.props.currentTime, this.props.deltaHours)
     const pair = getPrevAndNextPoints(this.props.awareness.positions, date)
     return interpolateTwoPoints(date, pair.prev, pair.next)
   }
 
   public render() {
     const estimatedPos = this.estimatedPositionAtTime()
-    return <EstimatedPosition vehicle={this.props.awareness.name} 
-      position={estimatedPos} 
-      icon={this.props.icon} 
-      rotationAngle={estimatedPos.heading + this.props.iconAngle} />
+    return (
+      <EstimatedPosition
+        vehicle={this.props.awareness.name}
+        position={estimatedPos}
+        icon={this.props.icon}
+        rotationAngle={estimatedPos.heading + this.props.iconAngle}
+      />
+    )
   }
 }

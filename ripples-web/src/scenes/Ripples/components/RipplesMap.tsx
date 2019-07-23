@@ -54,11 +54,13 @@ interface StateType {
   initCoords: LatLngLiteral
   isToDrawAISPolygons: boolean
   perpLinesSize: number
+  currentTime: number
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
   public upgradedOptions: any
   public initZoom = 10
+  public oneSecondTimer = 0
 
   constructor(props: PropsType) {
     super(props)
@@ -67,11 +69,24 @@ class RipplesMap extends Component<PropsType, StateType> {
       initCoords,
       isToDrawAISPolygons: false,
       perpLinesSize: 10,
+      currentTime: Date.now(),
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
+  }
+
+  public componentDidMount() {
+    if (!this.oneSecondTimer) {
+      this.oneSecondTimer = window.setInterval(() => {
+        this.setState({ currentTime: Date.now() })
+      }, 1000)
+    }
+  }
+
+  public componentWillUnmount() {
+    clearInterval(this.oneSecondTimer)
   }
 
   /**
@@ -156,19 +171,33 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildPlans(): JSX.Element[] {
     return this.props.plans.map(p => {
-      return <VehiclePlan key={'VehiclePlan' + p.id + ';' + p.assignedTo} plan={p} vehicle={p.assignedTo} />
+      return (
+        <VehiclePlan
+          key={'VehiclePlan' + p.id + ';' + p.assignedTo}
+          plan={p}
+          vehicle={p.assignedTo}
+          currentTime={this.state.currentTime}
+        />
+      )
     })
   }
 
   public buildVehicles() {
     return this.props.vehicles.map(vehicle => {
-      return <Vehicle key={vehicle.imcid} data={vehicle} />
+      return <Vehicle key={vehicle.imcid} data={vehicle} currentTime={this.state.currentTime} />
     })
   }
 
   public buildAisShips() {
     return this.props.aisShips.map(ship => {
-      return <AISShip key={'Ship_' + ship.mmsi} ship={ship} isToDrawAISPolygons={this.state.isToDrawAISPolygons} />
+      return (
+        <AISShip
+          key={'Ship_' + ship.mmsi}
+          currentTime={this.state.currentTime}
+          ship={ship}
+          isToDrawAISPolygons={this.state.isToDrawAISPolygons}
+        />
+      )
     })
   }
 

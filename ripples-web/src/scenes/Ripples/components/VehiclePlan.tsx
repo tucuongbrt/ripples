@@ -13,15 +13,14 @@ import { ToolSelected } from '../../../model/ToolSelected'
 import { deleteWp, setSelectedWaypointIdx, updateWpTimestamp } from '../../../redux/ripples.actions'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { timeFromNow, timestampMsToReadableDate } from '../../../services/DateUtils'
-import { getPrevAndNextPoints, interpolateTwoPoints } from '../../../services/PositionUtils'
-import EstimatedPosition from './EstimatedPosition'
-import { GhostIcon, WaypointIcon } from './Icons'
+import { WaypointIcon } from './Icons'
 
 interface PropsType {
   plan: IPlan
   vehicle: string
   selectedPlan: IPlan
   selectedWaypointIdx: number
+  currentTime: number
   deleteWp: (wpIdx: number) => void
   setSelectedWaypoint: (_: number) => void
   toolSelected: ToolSelected
@@ -39,14 +38,11 @@ interface StateType {
  * Renders a vehicle plan (line, waypoints and 'ghost')
  */
 class VehiclePlan extends Component<PropsType, StateType> {
-  public timerID: number = 0
-
   constructor(props: PropsType) {
     super(props)
     this.state = {
       estimatedPos: { longitude: 0, latitude: 0, heading: 0, timestamp: Date.now() },
     }
-    this.updateEstimatedPos = this.updateEstimatedPos.bind(this)
     this.handleMarkerClick = this.handleMarkerClick.bind(this)
   }
 
@@ -54,12 +50,6 @@ class VehiclePlan extends Component<PropsType, StateType> {
     if (this.props.plan.waypoints.length === 0) {
       return
     }
-    this.updateEstimatedPos()
-    this.timerID = window.setInterval(this.updateEstimatedPos, 1000)
-  }
-
-  public componentWillUnmount() {
-    clearInterval(this.timerID)
   }
 
   public handleMarkerClick(markerIdx: number, isMovable: boolean) {
@@ -196,40 +186,6 @@ class VehiclePlan extends Component<PropsType, StateType> {
     })
   }
 
-  public updateEstimatedPos() {
-    const now = Date.now()
-    const waypoints = this.props.plan.waypoints
-    const planStarted = now >= waypoints[0].timestamp
-    const planEnded = now > waypoints[waypoints.length - 1].timestamp
-    const isExecutingPlan = planStarted && !planEnded
-    if (isExecutingPlan) {
-      const prevAndNext = getPrevAndNextPoints(waypoints, now)
-      const prevPoint = prevAndNext.prev
-      const nextPoint = prevAndNext.next
-      this.setState({ estimatedPos: interpolateTwoPoints(now, prevPoint, nextPoint) })
-    } else if (!planStarted) {
-      this.setState({ estimatedPos: Object.assign({}, waypoints[0], { heading: 0 }) })
-    } else {
-      // plan ended
-      this.setState({ estimatedPos: Object.assign({}, waypoints[waypoints.length - 1], { heading: 0 }) })
-    }
-  }
-
-  public buildEstimatedPosition() {
-    const areAllWaypointsScheduled = this.props.plan.waypoints.findIndex(wp => wp.timestamp === 0) === -1
-    if (this.props.plan.assignedTo.length === 0 || !areAllWaypointsScheduled) {
-      return <></>
-    }
-    return (
-      <EstimatedPosition
-        vehicle={this.props.vehicle}
-        position={this.state.estimatedPos}
-        icon={new GhostIcon()}
-        rotationAngle={this.state.estimatedPos.heading}
-      />
-    )
-  }
-
   public render() {
     if (this.props.plan.waypoints.length === 0 || !this.props.plan.visible) {
       return null
@@ -238,7 +194,6 @@ class VehiclePlan extends Component<PropsType, StateType> {
       <div>
         {this.buildPlanLines()}
         {this.buildPlanWaypoints()}
-        {this.buildEstimatedPosition()}
       </div>
     )
   }

@@ -15,6 +15,7 @@ interface PropsType {
   isToDrawAISPolygons: boolean
   ship: IAisShip
   sliderValue: number
+  currentTime: number
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -41,7 +42,15 @@ class AISShip extends Component<PropsType, {}> {
       name: this.props.ship.name,
       positions: this.props.ship.awareness,
     }
-    return <AssetAwareness awareness={awareness} deltaHours={deltaHours} icon={this.awarenessIcon} iconAngle={0} />
+    return (
+      <AssetAwareness
+        awareness={awareness}
+        deltaHours={deltaHours}
+        icon={this.awarenessIcon}
+        iconAngle={0}
+        currentTime={this.props.currentTime}
+      />
+    )
   }
 
   public getDisplayableProperties(ship: IAisShip) {
@@ -102,7 +111,7 @@ class AISShip extends Component<PropsType, {}> {
     const ship = this.props.ship
     let shipAwareness: JSX.Element | null = null
     let shipPolygon: JSX.Element | null = null
-    if (this.props.sliderValue !== 0 && ship.sog > this.awarenessMinSpeed) {
+    if (ship.sog > this.awarenessMinSpeed) {
       shipAwareness = this.buildShipAwareness()
     }
     if (this.props.isToDrawAISPolygons) {

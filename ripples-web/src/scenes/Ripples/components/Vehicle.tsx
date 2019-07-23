@@ -13,6 +13,7 @@ import RotatedMarker from './RotatedMarker'
 interface PropsType {
   data: IAsset
   sliderValue: number
+  currentTime: number
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -41,7 +42,15 @@ class Vehicle extends Component<PropsType, {}> {
       name: currentVehicle.name,
       positions: currentVehicle.awareness,
     }
-    return <AssetAwareness awareness={vehicleAwareness} deltaHours={deltaHours} icon={this.icon} iconAngle={-90} />
+    return (
+      <AssetAwareness
+        awareness={vehicleAwareness}
+        deltaHours={deltaHours}
+        icon={this.icon}
+        iconAngle={-90}
+        currentTime={this.props.currentTime}
+      />
+    )
   }
 
   public getDisplayableProperties(vehicle: IAsset) {
@@ -79,9 +88,8 @@ class Vehicle extends Component<PropsType, {}> {
 
   public render() {
     let awarenessJSX: JSX.Element | null = null
-    if (this.props.sliderValue !== 0) {
-      awarenessJSX = this.buildVehicleAwareness()
-    }
+    awarenessJSX = this.buildVehicleAwareness()
+
     return (
       <>
         {this.buildVehicle()}

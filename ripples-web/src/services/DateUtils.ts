@@ -36,6 +36,6 @@ export function timeFromNow(timestamp: number) {
   return moment(timestamp).fromNow()
 }
 
-export function timestampFromDeltaHours(deltaHours: number) {
-  return Date.now() + deltaHours * 3600 * 1000
+export function timestampFromDeltaHours(now: number, deltaHours: number) {
+  return now + deltaHours * 3600 * 1000
 }
