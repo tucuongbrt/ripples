@@ -220,7 +220,14 @@ class VehiclePlan extends Component<PropsType, StateType> {
     if (this.props.plan.assignedTo.length === 0 || !areAllWaypointsScheduled) {
       return <></>
     }
-    return <EstimatedPosition vehicle={this.props.vehicle} position={this.state.estimatedPos} icon={new GhostIcon()} />
+    return (
+      <EstimatedPosition
+        vehicle={this.props.vehicle}
+        position={this.state.estimatedPos}
+        icon={new GhostIcon()}
+        rotationAngle={this.state.estimatedPos.heading}
+      />
+    )
   }
 
   public render() {

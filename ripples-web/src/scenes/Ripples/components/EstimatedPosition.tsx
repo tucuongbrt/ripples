@@ -9,6 +9,7 @@ interface PropsType {
   vehicle: string
   position: IPosHeadingAtTime
   icon: L.Class
+  rotationAngle: number
 }
 export default class EstimatedPosition extends Component<PropsType, {}> {
   public render() {
@@ -16,7 +17,7 @@ export default class EstimatedPosition extends Component<PropsType, {}> {
     return (
       <RotatedMarker
         key={'estimated_' + this.props.vehicle}
-        rotationAngle={estimatedPos.heading - 90}
+        rotationAngle={this.props.rotationAngle}
         rotationOrigin={'center'}
         position={getLatLng(estimatedPos)}
         icon={this.props.icon}

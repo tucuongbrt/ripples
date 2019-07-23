@@ -9,6 +9,7 @@ interface PropsType {
   awareness: IAssetAwareness
   deltaHours: number
   icon: any
+  iconAngle: number
 }
 
 export default class AssetAwareness extends Component<PropsType, {}> {
@@ -21,6 +22,9 @@ export default class AssetAwareness extends Component<PropsType, {}> {
 
   public render() {
     const estimatedPos = this.estimatedPositionAtTime()
-    return <EstimatedPosition vehicle={this.props.awareness.name} position={estimatedPos} icon={this.props.icon} />
+    return <EstimatedPosition vehicle={this.props.awareness.name} 
+      position={estimatedPos} 
+      icon={this.props.icon} 
+      rotationAngle={estimatedPos.heading + this.props.iconAngle} />
   }
 }

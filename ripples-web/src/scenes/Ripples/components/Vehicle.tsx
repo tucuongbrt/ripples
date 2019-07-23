@@ -41,7 +41,7 @@ class Vehicle extends Component<PropsType, {}> {
       name: currentVehicle.name,
       positions: currentVehicle.awareness,
     }
-    return <AssetAwareness awareness={vehicleAwareness} deltaHours={deltaHours} icon={this.icon} />
+    return <AssetAwareness awareness={vehicleAwareness} deltaHours={deltaHours} icon={this.icon} iconAngle={-90} />
   }
 
   public getDisplayableProperties(vehicle: IAsset) {
