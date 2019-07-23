@@ -26,6 +26,9 @@ export default interface IAisShip extends ILatLng, IShipDimensions {
   timestamp: number
   awareness: IPositionAtTime[]
   location: IShipLocation
+  draught: number
+  dest: string
+  eta: string
 }
 
 export class AisShip {

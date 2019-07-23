@@ -41,7 +41,7 @@ class AISShip extends Component<PropsType, {}> {
       name: this.props.ship.name,
       positions: this.props.ship.awareness,
     }
-    return <AssetAwareness awareness={awareness} deltaHours={deltaHours} icon={this.awarenessIcon} />
+    return <AssetAwareness awareness={awareness} deltaHours={deltaHours} icon={this.awarenessIcon} iconAngle={0} />
   }
 
   public getDisplayableProperties(ship: IAisShip) {
@@ -55,10 +55,11 @@ class AISShip extends Component<PropsType, {}> {
         ship.mmsi
       }" target="_blank">${ship.mmsi.toString()}</a>`,
       'speed (knots)': ship.sog.toFixed(1),
-      bow: ship.bow + 'm',
-      stern: ship.stern + 'm',
-      port: ship.port + 'm',
-      starboard: ship.starboard + 'm',
+      length: ship.bow + ship.stern + 'm',
+      width: ship.port + ship.starboard + 'm',
+      draught: ship.draught + 'm',
+      dest: ship.dest,
+      eta: ship.eta,
     }
   }
 

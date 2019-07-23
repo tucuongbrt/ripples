@@ -32,6 +32,9 @@ public class AISShip {
 	private double stern; // distance to stern (meters)
 	private double port; // distance to port (meters)
 	private double starboard; // distance to startboard (meters)
+	private double draught;
+	private String dest; // vessel's destination
+	private String eta; // estimated time of arrival
 
 	public static AISShip getDefault(int mmsi) {
 		AISShip ais = new AISShip();
@@ -48,6 +51,9 @@ public class AISShip {
 		ais.setStern(0);
 		ais.setPort(0);
 		ais.setStarboard(0);
+		ais.setDraught(0);
+		ais.setDest("");
+		ais.setEta("");
 		return ais;
 	}
 
@@ -67,6 +73,9 @@ public class AISShip {
 		ais.stern = Double.valueOf(parts[13]);
 		ais.port = Double.valueOf(parts[14]);
 		ais.starboard = Double.valueOf(parts[15]);
+		ais.draught = Double.valueOf(parts[16]) / 10;
+		ais.dest = parts[17];
+		ais.eta = parts[18];
 		return ais;
 	}
 
@@ -86,6 +95,9 @@ public class AISShip {
 		json.add("stern", "" + stern);
 		json.add("port", "" + port);
 		json.add("starboard", "" + starboard);
+		json.add("draught", "" + draught);
+		json.add("dest", "" + dest);
+		json.add("eta", eta + " UTC");
 		return json.toString();
 	}
 
@@ -205,4 +217,27 @@ public class AISShip {
 		this.bow = bow;
 	}
 
+	public double getDraught() {
+		return draught;
+	}
+
+	public void setDraught(double draught) {
+		this.draught = draught;
+	}
+
+	public String getDest() {
+		return dest;
+	}
+
+	public void setDest(String dest) {
+		this.dest = dest;
+	}
+
+	public String getEta() {
+		return eta;
+	}
+
+	public void setEta(String string) {
+		this.eta = string;
+	}
 }
