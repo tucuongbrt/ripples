@@ -1,7 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
 import IAsset from '../../model/IAsset'
 import { noAuth } from '../../model/IAuthState'
-import IPlan, { EmptyPlan } from '../../model/IPlan'
+import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
 import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils'
@@ -84,7 +84,7 @@ const ripplesReducer = createReducer(startState, {
   },
   [updateWpLocation.type]: (state, action) => {
     const newLocation = action.payload
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       const wp = plan.waypoints[state.selectedWaypointIdx]
       wp.latitude = newLocation.latitude
@@ -94,7 +94,7 @@ const ripplesReducer = createReducer(startState, {
   },
   [updateWpTimestamp.type]: (state, action) => {
     const { timestamp, wpIndex } = action.payload
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       const wp = plan.waypoints[wpIndex]
       wp.timestamp = timestamp
@@ -103,7 +103,7 @@ const ripplesReducer = createReducer(startState, {
   },
   [deleteWp.type]: (state, action) => {
     const markerIdx = action.payload
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (!plan) {
       return
     }
@@ -111,7 +111,7 @@ const ripplesReducer = createReducer(startState, {
     updateWaypointsTimestampFromIndex(plan.waypoints, markerIdx)
   },
   [addWpToPlan.type]: (state, action) => {
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       plan.waypoints.push(action.payload)
       updateWaypointsTimestampFromIndex(plan.waypoints, plan.waypoints.length - 1)
@@ -123,7 +123,7 @@ const ripplesReducer = createReducer(startState, {
     state.selectedPlan = EmptyPlan
   },
   [updatePlanId.type]: (state, action) => {
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (!plan) {
       return
     }
@@ -156,7 +156,7 @@ const ripplesReducer = createReducer(startState, {
   },
   [setPlanDescription.type]: (state, action) => {
     state.selectedPlan.description = action.payload
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       plan.description = action.payload
     }
@@ -171,13 +171,14 @@ const ripplesReducer = createReducer(startState, {
     state.isSidePanelVisible = action.payload
   },
   [unschedulePlan.type]: (state, action) => {
-    const plan = state.planSet.find(p => p.id === state.selectedPlan.id)
+    const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       plan.waypoints = plan.waypoints.map(wp => Object.assign({}, wp, { timestamp: 0 }))
     }
   },
   [togglePlanVisibility.type]: (state, action) => {
-    const plan = state.planSet.find(p => p.id === action.payload.id)
+    const payloadPlan: IPlan = action.payload
+    const plan = state.planSet.find(p => isPlanEqual(p, payloadPlan))
     if (plan) {
       plan.visible = !plan.visible
     }
@@ -212,7 +213,7 @@ const ripplesReducer = createReducer(startState, {
   },
   [updatePlan.type]: (state, action) => {
     const newPlan: IPlan = action.payload
-    const oldPlan = state.planSet.find(p => p.id === newPlan.id)
+    const oldPlan = state.planSet.find(p => isPlanEqual(p, newPlan))
     if (oldPlan) {
       oldPlan.assignedTo = newPlan.assignedTo
       oldPlan.waypoints = newPlan.waypoints

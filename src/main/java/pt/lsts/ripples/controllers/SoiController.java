@@ -133,15 +133,17 @@ public class SoiController {
 			// asset.getLastState().getLatitude() + ";" + asset.getLastState().getLongitude());
 			if (!optAsset.isPresent()) {
 				assetsRepo.save(asset);
+				wsController.sendAssetUpdateFromServerToClients(asset);
 			} else {
 				Asset oldAsset = optAsset.get();
 				oldAsset.setLastState(asset.getLastState());
-				if (oldAsset.getPlan().getType() == "dune") {
+				if (oldAsset.getPlan().getType().equals("dune")) {
 					oldAsset.setPlan(asset.getPlan());
 				}
 				assetsRepo.save(oldAsset);
+				wsController.sendAssetUpdateFromServerToClients(oldAsset);
 			}
-			wsController.sendAssetUpdateFromServerToClients(asset);
+			
 		});
 		return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."), HttpStatus.OK);
 	}
