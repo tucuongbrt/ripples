@@ -45,14 +45,14 @@ export default class AISCanvas {
 
   private getCirclesCenter(ship: IAisShip): IPositionAtTime[] {
     const tenMinutes = 600
-    const lines: IPositionAtTime[] = []
+    const centers: IPositionAtTime[] = []
     const aisCurrentPos = AisShip.getPositionAtTime(ship)
     const shipSpeed = ship.sog * KNOTS_TO_MS
     for (let i = 1; i <= 6; i++) {
       const time = i * tenMinutes
       const pointC = calculateNextPosition(aisCurrentPos, ship.cog, shipSpeed, time)
-      lines.push(pointC)
+      centers.push(pointC)
     }
-    return lines
+    return centers
   }
 }
