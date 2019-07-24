@@ -74,7 +74,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
         }
       }
       if (this.props.toolSelected === ToolSelected.UNSCHEDULE) {
-        this.props.updateWpTimestamp({ timestamp: 0, markerIdx })
+        this.props.updateWpTimestamp({ timestamp: 0, wpIndex: markerIdx })
       }
     }
     this.props.setSidePanelTitle(`Waypoint ${markerIdx} of ${this.props.plan.id}`)
