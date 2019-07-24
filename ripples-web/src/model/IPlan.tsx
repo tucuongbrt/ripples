@@ -17,3 +17,11 @@ export const EmptyPlan: IPlan = {
   visible: false,
   type: 'backseat',
 }
+
+export function isPlanEqual(plan1: IPlan, plan2: IPlan): boolean {
+  return plan1.id === plan2.id && plan1.assignedTo === plan2.assignedTo
+}
+
+export function getPlanKey(p: IPlan) {
+  return 'plan_' + p.id + '_' + p.assignedTo
+}
