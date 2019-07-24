@@ -1,17 +1,17 @@
 package pt.lsts.ripples.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.wg.AISShip;
 
 @Component
 public class WebSocketsController {
 
-	private static Logger logger = LoggerFactory.getLogger(WebSocketsController.class);
 	
 	@Autowired
     private SimpMessagingTemplate template;
@@ -25,5 +25,9 @@ public class WebSocketsController {
     public void sendAssetUpdateFromServerToClients(Asset asset) {
         // logger.info("Broadcasting update for asset " + asset.getName());
         this.template.convertAndSend("/topic/asset", asset);
+    }
+
+    public void sendAISUpdateFromServerToClient(ArrayList<AISShip> aisShips) {
+        this.template.convertAndSend("/topic/ais", aisShips);
     }
 }
