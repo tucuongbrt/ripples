@@ -74,8 +74,8 @@ public class AISShip {
 		ais.port = Double.valueOf(parts[14]);
 		ais.starboard = Double.valueOf(parts[15]);
 		ais.draught = Double.valueOf(parts[16]) / 10;
-		ais.dest = parts[17];
-		ais.eta = parts[18];
+		ais.dest = parts[17].trim().replace("\"", "");
+		ais.eta = parts[18].trim().replace("\"", "");
 		return ais;
 	}
 

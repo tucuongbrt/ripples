@@ -54,7 +54,7 @@ class AISShip extends Component<PropsType, {}> {
   }
 
   public getDisplayableProperties(ship: IAisShip) {
-    return {
+    let properties = {
       cog: ship.cog.toFixed(1),
       heading: ship.heading !== 511 ? ship.heading.toFixed(1) : 'not available',
       'last update': timeFromNow(ship.timestamp),
@@ -67,9 +67,14 @@ class AISShip extends Component<PropsType, {}> {
       length: ship.bow + ship.stern + 'm',
       width: ship.port + ship.starboard + 'm',
       draught: ship.draught + 'm',
-      dest: ship.dest,
-      eta: ship.eta,
     }
+    if (ship.dest !== '') {
+      properties = Object.assign({}, properties, { dest: ship.dest })
+    }
+    if (ship.eta !== '00-00 00:00') {
+      properties = Object.assign({}, properties, { eta: ship.eta })
+    }
+    return properties
   }
 
   public onShipClick(evt: any, ship: IAisShip) {
