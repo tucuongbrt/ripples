@@ -1,4 +1,4 @@
-import { Client, Message } from '@stomp/stompjs'
+import { Message } from '@stomp/stompjs'
 import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css'
 import { connect } from 'react-redux'
@@ -21,12 +21,13 @@ import {
   setSpots,
   setUser,
   setVehicles,
+  updateAIS,
   updateCCU,
   updatePlan,
   updateSpot,
   updateVehicle,
 } from '../../redux/ripples.actions'
-import { fetchAisData } from '../../services/AISUtils'
+import AISService from '../../services/AISUtils'
 import { getCurrentUser } from '../../services/AuthUtils'
 import { timestampMsToReadableDate } from '../../services/DateUtils'
 import {
@@ -42,7 +43,7 @@ import {
   sendUnassignedPlan,
   updatePlanId,
 } from '../../services/SoiUtils'
-import { createWSClient, subscribeWSAssetUpdates } from '../../services/WebSocketService'
+import WSService from '../../services/WebSocketService'
 import RipplesMap from './components/RipplesMap'
 import SidePanel from './components/SidePanel'
 import Slider from './components/Slider'
@@ -70,6 +71,7 @@ interface PropsType {
   setUser: (user: IUser) => any
   savePlan: () => void
   cancelEditPlan: () => void
+  updateAIS: (s: IAisShip) => void
   updateVehicle: (v: IAsset) => void
   updateCCU: (ccu: IAsset) => void
   updateSpot: (spot: IAsset) => void
@@ -83,7 +85,8 @@ interface PropsType {
 class Ripples extends Component<PropsType, StateType> {
   public soiTimer: number = 0
   public aisTimer: number = 0
-  private webSocketsClient: Client = new Client()
+  private webSocketsService: WSService = new WSService()
+  private aisService: AISService = new AISService()
 
   constructor(props: any) {
     super(props)
@@ -105,6 +108,7 @@ class Ripples extends Component<PropsType, StateType> {
     this.updateAISData = this.updateAISData.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.handleAssetUpdate = this.handleAssetUpdate.bind(this)
+    this.handleAISUpdate = this.handleAISUpdate.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -120,11 +124,21 @@ class Ripples extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     const myMaps = await this.loadMyMapsData()
-    this.webSocketsClient = createWSClient()
-    subscribeWSAssetUpdates(this.webSocketsClient, this.handleAssetUpdate)
+    this.webSocketsService.createWSClient()
+    this.webSocketsService.subscribeWSUpdates(this.handleAssetUpdate, this.handleAISUpdate)
     this.setState({ myMapsData: myMaps })
     this.setState({ loading: false })
     this.startUpdates()
+  }
+
+  public handleAISUpdate(m: Message) {
+    if (m.body) {
+      const aisShipsPayload: IAisShip[] = JSON.parse(m.body)
+      const aisShips = aisShipsPayload.map(s => this.aisService.convertAISToRipples(s))
+      aisShips.forEach(s => {
+        this.props.updateAIS(s)
+      })
+    }
   }
 
   public handleAssetUpdate(m: Message) {
@@ -151,7 +165,7 @@ class Ripples extends Component<PropsType, StateType> {
   public stopUpdates() {
     clearInterval(this.soiTimer)
     clearInterval(this.aisTimer)
-    this.webSocketsClient.deactivate()
+    this.webSocketsService.deactivate()
   }
 
   public startUpdates() {
@@ -163,7 +177,7 @@ class Ripples extends Component<PropsType, StateType> {
     if (!this.aisTimer) {
       this.aisTimer = window.setInterval(this.updateAISData, 60000) // get ais data every minute
     }
-    this.webSocketsClient.activate()
+    this.webSocketsService.activate()
   }
 
   public componentWillUnmount() {
@@ -227,7 +241,7 @@ class Ripples extends Component<PropsType, StateType> {
   }
 
   public async updateAISData() {
-    const shipsData: IAisShip[] = await fetchAisData()
+    const shipsData: IAisShip[] = await this.aisService.fetchAisData()
     // update redux store
     this.props.setAis(shipsData)
   }
@@ -370,6 +384,7 @@ const actionCreators = {
   updateSpot,
   updateCCU,
   updatePlan,
+  updateAIS,
 }
 
 export default connect(

@@ -2,25 +2,37 @@ import { Client, Message } from '@stomp/stompjs'
 
 const WEB_SOCKETS_URL = process.env.REACT_APP_WS_URL
 
-export function createWSClient() {
-  const client = new Client({
-    brokerURL: WEB_SOCKETS_URL,
-    reconnectDelay: 5000,
-    heartbeatIncoming: 4000,
-    heartbeatOutgoing: 4000,
-  })
-  client.onStompError = frame => {
-    // Will be invoked in case of error encountered at Broker
-    alert('Broker reported error: ' + frame.headers.message)
-    alert('Additional details: ' + frame.body)
-  }
-  return client
-}
+export default class WSService {
+  private client: Client = new Client()
 
-export function subscribeWSAssetUpdates(client: Client, callback: (m: Message) => any) {
-  client.onConnect = frame => {
-    // Do something, all subscribes must be done is this callback
-    // This is needed because this will be executed after a (re)connect
-    client.subscribe('/topic/asset', callback)
+  public createWSClient() {
+    this.client = new Client({
+      brokerURL: WEB_SOCKETS_URL,
+      reconnectDelay: 5000,
+      heartbeatIncoming: 4000,
+      heartbeatOutgoing: 4000,
+    })
+    this.client.onStompError = frame => {
+      // Will be invoked in case of error encountered at Broker
+      alert('Broker reported error: ' + frame.headers.message)
+      alert('Additional details: ' + frame.body)
+    }
+  }
+
+  public subscribeWSUpdates(assetHandler: (m: Message) => any, aisHandler: (m: Message) => any) {
+    this.client.onConnect = frame => {
+      // Do something, all subscribes must be done is this callback
+      // This is needed because this will be executed after a (re)connect
+      this.client.subscribe('/topic/asset', assetHandler)
+      this.client.subscribe('/topic/ais', aisHandler)
+    }
+  }
+
+  public deactivate() {
+    this.client.deactivate()
+  }
+
+  public activate() {
+    this.client.activate()
   }
 }
