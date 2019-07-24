@@ -1,4 +1,5 @@
 import { createReducer } from 'redux-starter-kit'
+import IAisShip from '../../model/IAisShip'
 import IAsset from '../../model/IAsset'
 import { noAuth } from '../../model/IAuthState'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
@@ -30,6 +31,7 @@ import {
   setVehicles,
   togglePlanVisibility,
   unschedulePlan,
+  updateAIS,
   updateCCU,
   updatePlan,
   updatePlanId,
@@ -219,6 +221,23 @@ const ripplesReducer = createReducer(startState, {
       oldPlan.waypoints = newPlan.waypoints
     } else {
       state.planSet.push(newPlan)
+    }
+  },
+  [updateAIS.type]: (state, action) => {
+    const newAIS: IAisShip = action.payload
+    const oldAIS = state.assets.aisShips.find(s => s.mmsi === newAIS.mmsi)
+    if (oldAIS) {
+      oldAIS.awareness = newAIS.awareness
+      oldAIS.dest = newAIS.dest
+      oldAIS.eta = newAIS.eta
+      oldAIS.heading = newAIS.heading
+      oldAIS.latitude = newAIS.latitude
+      oldAIS.longitude = newAIS.longitude
+      oldAIS.sog = newAIS.sog
+      oldAIS.timestamp = newAIS.timestamp
+      oldAIS.location = newAIS.location
+    } else {
+      state.assets.aisShips.push(newAIS)
     }
   },
 })

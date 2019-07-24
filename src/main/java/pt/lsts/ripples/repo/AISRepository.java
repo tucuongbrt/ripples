@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import pt.lsts.ripples.domain.wg.AISShip;
 
 @Repository
-public interface AISRepository extends CrudRepository<AISShip, Long> {
+public interface AISRepository extends CrudRepository<AISShip, Integer> {
     Iterable<AISShip> findByTimestampAfter(Date since);
 }
