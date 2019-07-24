@@ -163,7 +163,9 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public buildVehicle(vehicle: IAsset) {
-    const vehiclePlan: IPlan | undefined = this.state.plans.find(p => p.id === vehicle.planId)
+    const vehiclePlan: IPlan | undefined = this.state.plans.find(
+      p => p.id === vehicle.planId && p.assignedTo === vehicle.name
+    )
     if (!vehiclePlan) {
       return
     }

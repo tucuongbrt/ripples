@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser } from '../../model/IAuthState'
-import IPlan from '../../model/IPlan'
+import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
 import IRipplesState from '../../model/IRipplesState'
 import {
@@ -252,7 +252,7 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async handleSendPlanToVehicle() {
     try {
-      const plan: IPlan | undefined = this.props.plans.find(p => p.id === this.props.selectedPlan.id)
+      const plan: IPlan | undefined = this.props.plans.find(p => isPlanEqual(p, this.props.selectedPlan))
       const vehicle = this.props.vehicleSelected
       if (!plan) {
         return
@@ -273,7 +273,7 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async handleSavePlan() {
     // send plan to server
-    const plan: IPlan | undefined = this.props.plans.find(p => p.id === this.props.selectedPlan.id)
+    const plan: IPlan | undefined = this.props.plans.find(p => isPlanEqual(p, this.props.selectedPlan))
     if (plan) {
       try {
         const response = await sendUnassignedPlan(plan)

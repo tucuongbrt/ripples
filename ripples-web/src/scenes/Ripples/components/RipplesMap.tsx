@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAsset from '../../../model/IAsset'
 import ILatLng from '../../../model/ILatLng'
-import IPlan from '../../../model/IPlan'
+import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
 import IRipplesState from '../../../model/IRipplesState'
@@ -171,14 +171,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildPlans(): JSX.Element[] {
     return this.props.plans.map(p => {
-      return (
-        <VehiclePlan
-          key={'VehiclePlan' + p.id + ';' + p.assignedTo}
-          plan={p}
-          vehicle={p.assignedTo}
-          currentTime={this.state.currentTime}
-        />
-      )
+      return <VehiclePlan key={getPlanKey(p)} plan={p} vehicle={p.assignedTo} currentTime={this.state.currentTime} />
     })
   }
 

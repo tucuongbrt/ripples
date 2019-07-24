@@ -21,7 +21,7 @@ import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
 import IAsset from '../../../model/IAsset'
 import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
-import IPlan from '../../../model/IPlan'
+import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
 import {
@@ -233,7 +233,7 @@ class TopNav extends Component<PropsType, StateType> {
     }
     return this.props.plans.map(p => {
       return (
-        <div className="dropdown-item" key={'dropdown-item-' + p.id}>
+        <div className="dropdown-item" key={getPlanKey(p)}>
           <i
             onClick={() => this.props.togglePlanVisibility(p)}
             className={(p.visible ? 'far fa-eye' : 'far fa-eye-slash') + ' mr-1'}
