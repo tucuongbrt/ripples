@@ -47,7 +47,7 @@ public class AISController {
 		Instant aDayAgo = Instant.now().minus(Duration.ofHours(24));
 		Date aDayAgoDate = Date.from(aDayAgo);
 		ArrayList<AISShip> aisList = new ArrayList<>();
-		//aisUpdater.fetchAISHub();
+		aisUpdater.fetchAISHub();
 		repo.findByTimestampAfter(aDayAgoDate).forEach(aisList::add);
 		return aisList;
 	}
