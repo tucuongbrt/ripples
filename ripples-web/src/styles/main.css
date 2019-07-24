@@ -1,3 +1,9 @@
+#nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .navbar-link {
     text-decoration: none;
     color: #444444;
@@ -7,4 +13,14 @@
 
 .navbar-link:hover {
     text-decoration: none;
+}
+
+#logo {
+    width: 70px;
+}
+
+@media only screen and (max-width: 800px) {
+    #nav {
+        flex-direction: row;
+    }
 }
