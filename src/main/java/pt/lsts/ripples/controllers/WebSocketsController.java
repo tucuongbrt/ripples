@@ -27,7 +27,7 @@ public class WebSocketsController {
         this.template.convertAndSend("/topic/asset", asset);
     }
 
-    public void sendAISUpdateFromServerToClient(ArrayList<AISShip> aisShips) {
-        this.template.convertAndSend("/topic/ais", aisShips);
+    public void sendAISUpdateFromServerToClient(AISShip aisShip) {
+        this.template.convertAndSend("/topic/ais", aisShip);
     }
 }

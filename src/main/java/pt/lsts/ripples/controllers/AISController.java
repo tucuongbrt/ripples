@@ -52,27 +52,24 @@ public class AISController {
 		return aisList;
 	}
 
-	@PostMapping(path = {"/ais", "/ais/"}, consumes = "application/json", produces = "application/json")
-	public ResponseEntity<HTTPResponse> updateAIS(@RequestBody ArrayList<AISShip> aisShips) {
-		ArrayList<AISShip> newAISShips = filterNewAISShips(aisShips);
-		repo.saveAll(newAISShips);
-		wsController.sendAISUpdateFromServerToClient(newAISShips);
-		return new ResponseEntity<>(new HTTPResponse("success", aisShips.size() + " ais ships updated"), HttpStatus.OK);
+	@PostMapping(path = {"/ais", "/ais/"}, consumes = "application/json", produces = "text/plain")
+	public ResponseEntity<String> updateAIS(@RequestBody AISShip aisShip) {
+		AISShip newAISShip = filterNewAISShip(aisShip);
+		repo.save(newAISShip);
+		wsController.sendAISUpdateFromServerToClient(newAISShip);
+		return new ResponseEntity<>("Success, a ship has been updated", HttpStatus.OK);
 	}
 	
-	private ArrayList<AISShip> filterNewAISShips(ArrayList<AISShip>aisShips) {
-		ArrayList<AISShip> newAISShips = new ArrayList<>();
-		aisShips.forEach(s -> {
-			Optional<AISShip> optAIS = repo.findById(s.getMmsi());
-			if (optAIS.isPresent()) {
-				if (optAIS.get().getTimestamp().before(s.getTimestamp())) {
-					newAISShips.add(s);
-				}
-			} else {
-				newAISShips.add(s);
+	private AISShip filterNewAISShip(AISShip aisShip) {
+		AISShip newAISShip = null;
+		Optional<AISShip> optAIS = repo.findById(aisShip.getMmsi());
+		if (optAIS.isPresent()) {
+			if (optAIS.get().getTimestamp().before(aisShip.getTimestamp())) {
+				newAISShip = aisShip;
 			}
-		});
-		return newAISShips;
+		} else {
+			newAISShip = aisShip;
+		}
+		return newAISShip;
 	}
-
 }
