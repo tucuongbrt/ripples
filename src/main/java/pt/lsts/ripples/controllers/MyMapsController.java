@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -14,6 +15,7 @@ import java.util.zip.ZipInputStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.maps.MyMaps;
 import pt.lsts.ripples.repo.MyMapsRepository;
+import pt.lsts.ripples.util.HTTPResponse;
 
 @RestController
 public class MyMapsController {
@@ -30,28 +33,39 @@ public class MyMapsController {
     @Autowired
     MyMapsRepository myMapsRepo;
 
-    @PostMapping(path = {"/kml", "/kml/"}, consumes = "application/json")
-    public ResponseEntity<String> addKML(@RequestBody MyMaps newMap) {
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PostMapping(path = { "/kml", "/kml/" }, consumes = "application/json", produces = "application/json")
+    public ResponseEntity<HTTPResponse> addKML(@RequestBody MyMaps newMap) {
         // newMap should have a url and a name
         System.out.println("Received new map " + newMap.getName() + " " + newMap.getUrl());
-        myMapsRepo.save(newMap);
-        return new ResponseEntity<>("Added KML map", HttpStatus.OK);
+        String mapData = fetchMap(newMap.getUrl());
+        if (mapData != null) {
+            newMap.setData(mapData);
+            newMap.setLastUpdate(new Date());
+            myMapsRepo.save(newMap);
+            return new ResponseEntity<>(new HTTPResponse("success", "Added KML map"), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new HTTPResponse("error", "Could not fetch map"), HttpStatus.OK);
+        }
+
     }
 
-    @DeleteMapping(path = {"/kml/{mapName}", "/kml/{mapName}/"}, produces = "text/plain")
-    public ResponseEntity<String> deleteKML(@PathVariable("mapName") String mapName) {
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @DeleteMapping(path = { "/kml/{mapName}", "/kml/{mapName}/" }, produces = "application/json")
+    public ResponseEntity<HTTPResponse> deleteKML(@PathVariable("mapName") String mapName) {
         myMapsRepo.deleteById(mapName);
-        return new ResponseEntity<>("map " + mapName + " was deleted", HttpStatus.OK);
+        return new ResponseEntity<>(new HTTPResponse("success", "map " + mapName + " was deleted"), HttpStatus.OK);
     }
-	
-    @GetMapping(path = {"/kml/{mapName}", "/kml/{mapName}/"}, produces = "text/plain")
-    public ResponseEntity<String> getKML(@PathVariable("mapName") String mapName) {
+
+    @GetMapping(path = { "/kml/{mapName}", "/kml/{mapName}/" }, produces = "application/json")
+    public ResponseEntity<HTTPResponse> getKML(@PathVariable("mapName") String mapName) {
         if (mapName == null)
-            return new ResponseEntity<>("/kml/{mapName}", HttpStatus.INTERNAL_SERVER_ERROR);
-        
+            return new ResponseEntity<>(new HTTPResponse("error", "use /kml/{mapName}"),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+
         Optional<MyMaps> optMyMap = myMapsRepo.findById(mapName);
         if (!optMyMap.isPresent())
-            return new ResponseEntity<>("map not found", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new HTTPResponse("error", "map not found"), HttpStatus.NOT_FOUND);
         MyMaps myMap = optMyMap.get();
         LocalDateTime dateTime = LocalDateTime.now().minusMinutes(10);
         Date tenMinAgo = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
@@ -62,8 +76,26 @@ public class MyMapsController {
             myMap.setLastUpdate(new Date());
             myMapsRepo.save(myMap);
         }
-        
-        return new ResponseEntity<>(myMap.getData(), HttpStatus.OK);
+
+        return new ResponseEntity<>(new HTTPResponse("success", myMap.getData()), HttpStatus.OK);
+    }
+
+    @GetMapping(path = { "/kml/names", "/kml/names/" }, produces = "application/json")
+    public ArrayList<String> getMyMapsNames() {
+        ArrayList<String> mapNames = new ArrayList<String>();
+        myMapsRepo.findAll().forEach(map -> {
+            mapNames.add(map.getName());
+        });
+        return mapNames;
+    }
+
+    @GetMapping(path = { "/kml", "/kml/" }, produces = "application/json")
+    public ArrayList<MyMaps> getMyMaps() {
+        ArrayList<MyMaps> maps = new ArrayList<>();
+        myMapsRepo.findAll().forEach(map -> {
+            maps.add(map);
+        });
+        return maps;
     }
 
     private String fetchMap(String url) {

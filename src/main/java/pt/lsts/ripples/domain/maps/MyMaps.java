@@ -4,6 +4,9 @@ import java.util.Date;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Lob;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class MyMaps {
@@ -13,8 +16,11 @@ public class MyMaps {
 
 	private String url;
 
+	@JsonIgnore
+	@Lob
 	private String data;
 
+	@JsonIgnore
 	private Date lastUpdate;
 
 	public MyMaps() {
