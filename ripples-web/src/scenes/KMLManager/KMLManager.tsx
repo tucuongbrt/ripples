@@ -128,8 +128,12 @@ export default class KMLManager extends Component<{}, StateType> {
   }
 
   private async deleteMap(mapName: string) {
-    const response = await this.kmlService.deleteMap(mapName)
-    NotificationManager.success(response.message)
-    this.updateMaps()
+    try {
+      const response = await this.kmlService.deleteMap(mapName)
+      NotificationManager.success(response.message)
+      this.updateMaps()
+    } catch (error) {
+      NotificationManager.warning(error.message)
+    }
   }
 }
