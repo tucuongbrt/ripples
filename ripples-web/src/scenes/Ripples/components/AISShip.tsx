@@ -68,10 +68,10 @@ class AISShip extends Component<PropsType, {}> {
       width: ship.port + ship.starboard + 'm',
       draught: ship.draught + 'm',
     }
-    if (ship.dest !== '') {
+    if (ship.dest != null && ship.dest !== '') {
       properties = Object.assign({}, properties, { dest: ship.dest })
     }
-    if (ship.eta !== '00-00 00:00') {
+    if (ship.eta != null && ship.eta !== '00-00 00:00') {
       properties = Object.assign({}, properties, { eta: ship.eta })
     }
     return properties
