@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
-import { Collapse, Navbar, NavbarToggler, Table } from 'reactstrap'
-import TopNavLinks from '../../components/TopNavLinks'
+import { Table } from 'reactstrap'
+import SimpleNavbar from '../../components/SimpleNavbar'
 import ITextMessage from '../../model/ITextMessage'
 import { timestampMsToReadableDate } from '../../services/DateUtils'
 import hexToAscii from '../../services/HexToAscii'
@@ -72,12 +72,7 @@ export default class TextMessages extends Component<{}, StateType> {
   public render() {
     return (
       <>
-        <Navbar color="faded" light={true} expand="md">
-          <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
-          <Collapse isOpen={this.state.isNavOpen} navbar={true}>
-            <TopNavLinks />
-          </Collapse>
-        </Navbar>
+        <SimpleNavbar />
         <div>
           <Table responsive={true}>
             <thead>

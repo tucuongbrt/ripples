@@ -19,6 +19,9 @@ export default class TopNavLinks extends Component {
         <Link className="navbar-link" to="/messages/text">
           <i title="Text Messages" className="fas fa-envelope-open-text fa-lg" />
         </Link>
+        <Link className="navbar-link" to="/kml/manager">
+          <i title="KML Manager" className="fas fa-map fa-lg" />
+        </Link>
       </Nav>
     )
   }
