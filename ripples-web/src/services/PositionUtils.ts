@@ -2,14 +2,14 @@ import IAisShip, { IShipLocation } from '../model/IAisShip'
 import ILatLng, { LatLngFactory } from '../model/ILatLng'
 import IPosHeadingAtTime from '../model/ILatLngHead'
 import IPositionAtTime from '../model/IPositionAtTime'
-const wgs84 = require('wgs84-util')
+const geolib = require('geolib')
 
 export const KNOTS_TO_MS = 0.514444
 
 export function distanceInMetersBetweenCoords(p1: ILatLng, p2: ILatLng) {
-  const pointA = { coordinates: [p1.longitude, p1.latitude] }
-  const pointB = { coordinates: [p2.longitude, p2.latitude] }
-  return wgs84.distanceBetween(pointA, pointB)
+  const pointA = { latitude: p1.latitude, longitude: p1.longitude }
+  const pointB = { latitude: p2.latitude, longitude: p2.longitude }
+  return geolib.getDistance(pointA, pointB)
 }
 
 /**
@@ -17,27 +17,27 @@ export function distanceInMetersBetweenCoords(p1: ILatLng, p2: ILatLng) {
  */
 export function calculateShipLocation(aisShip: IAisShip): IShipLocation {
   const aisPos = LatLngFactory.build(aisShip.latitude, aisShip.longitude)
-  const aisCoordinates = { coordinates: [aisPos.longitude, aisPos.latitude] }
+  const aisCoordinates = { latitude: aisPos.latitude, longitude: aisPos.longitude }
   let sbVecEnd = aisPos
   let portVecEnd = aisPos
   let bowVecEnd = aisPos
   let sternVecEnd = aisPos
   const heading = aisShip.heading !== 511 ? aisShip.heading : aisShip.cog
   if (aisShip.starboard > 0) {
-    const point = wgs84.destination(aisCoordinates, 90 + heading, aisShip.starboard).point.coordinates
-    sbVecEnd = LatLngFactory.build(point[1], point[0])
+    const point = geolib.computeDestinationPoint(aisCoordinates, aisShip.starboard, 90 + heading)
+    sbVecEnd = LatLngFactory.build(point.latitude, point.longitude)
   }
   if (aisShip.port > 0) {
-    const point = wgs84.destination(aisCoordinates, 270 + heading, aisShip.port).point.coordinates
-    portVecEnd = LatLngFactory.build(point[1], point[0])
+    const point = geolib.computeDestinationPoint(aisCoordinates, aisShip.port, 270 + heading)
+    portVecEnd = LatLngFactory.build(point.latitude, point.longitude)
   }
   if (aisShip.bow > 0) {
-    const point = wgs84.destination(aisCoordinates, heading, aisShip.bow).point.coordinates
-    bowVecEnd = LatLngFactory.build(point[1], point[0])
+    const point = geolib.computeDestinationPoint(aisCoordinates, aisShip.bow, heading)
+    bowVecEnd = LatLngFactory.build(point.latitude, point.longitude)
   }
   if (aisShip.stern > 0) {
-    const point = wgs84.destination(aisCoordinates, 180 + heading, aisShip.stern).point.coordinates
-    sternVecEnd = LatLngFactory.build(point[1], point[0])
+    const point = geolib.computeDestinationPoint(aisCoordinates, aisShip.stern, 180 + heading)
+    sternVecEnd = LatLngFactory.build(point.latitude, point.longitude)
   }
   const halfBreadthVec = vecFromPoints(sbVecEnd, portVecEnd, 0.5)
   const starboardVec = vecFromPoints(aisPos, sbVecEnd)
@@ -79,12 +79,12 @@ export function calculateNextPosition(
   speed: number,
   inSeconds: number
 ): IPositionAtTime {
-  const pointA = { coordinates: [p.longitude, p.latitude] }
+  const pointA = { latitude: p.latitude, longitude: p.longitude }
   const distance = speed * inSeconds
-  const nextPoint = wgs84.destination(pointA, cog, distance)
+  const nextPoint = geolib.computeDestinationPoint(pointA, distance, cog)
   return {
-    latitude: nextPoint.point.coordinates[1],
-    longitude: nextPoint.point.coordinates[0],
+    latitude: nextPoint.latitude,
+    longitude: nextPoint.longitude,
     timestamp: p.timestamp + inSeconds * 1000,
   }
 }
@@ -98,19 +98,18 @@ export function interpolateTwoPoints(
   if (prevPoint.timestamp !== nextPoint.timestamp) {
     ratioCompleted = (date - prevPoint.timestamp) / (nextPoint.timestamp - prevPoint.timestamp)
   }
-  const pointA = { coordinates: [prevPoint.longitude, prevPoint.latitude] }
-  const pointB = { coordinates: [nextPoint.longitude, nextPoint.latitude] }
-  const distance = wgs84.distanceBetween(pointA, pointB) * ratioCompleted
+  const pointA = { latitude: prevPoint.latitude, longitude: prevPoint.longitude }
+  const pointB = { latitude: nextPoint.latitude, longitude: nextPoint.longitude }
+  const distance = geolib.getDistance(pointA, pointB) * ratioCompleted
   let heading = 0
   if (distance !== 0) {
-    const bearings = wgs84.bearingsBetween(pointA, pointB)
-    heading = (bearings.initialBearing + bearings.finalBearing) / 2
+    heading = geolib.getRhumbLineBearing(pointA, pointB)
   }
-  const midPoint = wgs84.destination(pointA, heading, distance)
+  const midPointCoordinates = geolib.computeDestinationPoint(pointA, distance, heading)
   return {
-    heading: midPoint.finalBearing ? midPoint.finalBearing : 0,
-    latitude: midPoint.point.coordinates[1],
-    longitude: midPoint.point.coordinates[0],
+    heading,
+    latitude: midPointCoordinates.latitude,
+    longitude: midPointCoordinates.longitude,
     timestamp: date,
   }
 }
@@ -145,10 +144,8 @@ export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours:
     timestamp: currentState.timestamp,
   }
   const firstPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, -twelveHoursInSec)
-  const oneHourAgoPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, -hourInSec)
-  const oneHourAfterPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, hourInSec)
   const lastPos = calculateNextPosition(currentPosition, currentState.cog, speedMetersPerSec, twelveHoursInSec)
-  return [firstPos, oneHourAgoPos, currentPosition, oneHourAfterPos, lastPos]
+  return [firstPos, currentPosition, lastPos]
 }
 
 export function getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {

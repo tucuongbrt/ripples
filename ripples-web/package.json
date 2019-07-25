@@ -39,7 +39,7 @@
     "redux": "^4.0.1",
     "redux-starter-kit": "^0.6.1",
     "typescript": "^3.5.2",
-    "wgs84-util": "^3.0.0",
+    "geolib": "^3.0.4",
     "yarn": "^1.17.3"
   },
   "scripts": {
