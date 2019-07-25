@@ -109,8 +109,8 @@ class Ripples extends Component<PropsType, StateType> {
     this.updateSoiData = this.updateSoiData.bind(this)
     this.updateAISData = this.updateAISData.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
-    this.handleAssetUpdate = this.handleAssetUpdate.bind(this)
-    this.handleAISUpdate = this.handleAISUpdate.bind(this)
+    this.handleWSAssetUpdate = this.handleWSAssetUpdate.bind(this)
+    this.handleWSAISUpdate = this.handleWSAISUpdate.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -128,23 +128,21 @@ class Ripples extends Component<PropsType, StateType> {
     const myMaps = await this.loadMyMapsData()
 
     this.webSocketsService.createWSClient()
-    this.webSocketsService.subscribeWSUpdates(this.handleAssetUpdate, this.handleAISUpdate)
+    this.webSocketsService.subscribeWSUpdates(this.handleWSAssetUpdate, this.handleWSAISUpdate)
     this.setState({ myMaps })
     this.setState({ loading: false })
     this.startUpdates()
   }
 
-  public handleAISUpdate(m: Message) {
+  public handleWSAISUpdate(m: Message) {
     if (m.body) {
-      const aisShipsPayload: IAisShip[] = JSON.parse(m.body)
-      const aisShips = aisShipsPayload.map(s => this.aisService.convertAISToRipples(s))
-      aisShips.forEach(s => {
-        this.props.updateAIS(s)
-      })
+      const aisShipPayload: IAisShip = JSON.parse(m.body)
+      const aisShip = this.aisService.convertAISToRipples(aisShipPayload)
+      this.props.updateAIS(aisShip)
     }
   }
 
-  public handleAssetUpdate(m: Message) {
+  public handleWSAssetUpdate(m: Message) {
     if (m.body) {
       const newSystem: IAssetPayload = JSON.parse(m.body)
       const system: IAsset = convertAssetPayloadToAsset(newSystem)
