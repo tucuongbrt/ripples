@@ -1,0 +1,135 @@
+import React, { Component } from 'react'
+import { Button, Container, Form, FormGroup, Input, Label, Table } from 'reactstrap'
+import SimpleNavbar from '../../components/SimpleNavbar'
+import KMLService from '../../services/KMLService'
+const { NotificationManager } = require('react-notifications')
+
+interface StateType {
+  mapName: string
+  mapURL: string
+  maps: IMap[]
+}
+
+interface IMap {
+  url: string
+  name: string
+}
+
+export default class KMLManager extends Component<{}, StateType> {
+  private kmlService: KMLService = new KMLService()
+  public constructor(props: any) {
+    super(props)
+    this.state = {
+      mapName: '',
+      mapURL: '',
+      maps: [],
+    }
+    this.onAddMap = this.onAddMap.bind(this)
+  }
+
+  public async componentWillMount() {
+    await this.updateMaps()
+  }
+
+  public async onAddMap() {
+    if (this.state.mapName.length > 0 && this.state.mapURL.length > 0) {
+      try {
+        const response = await this.kmlService.addNewMap(this.state.mapName, this.state.mapURL)
+        if (response.status === 'success') {
+          NotificationManager.success(response.message)
+          this.updateMaps()
+          this.clearInputs()
+        } else {
+          NotificationManager.warning(response.message)
+        }
+      } catch (error) {
+        NotificationManager.warning(error.message)
+      }
+    } else {
+      NotificationManager.warning('Invalid map name or map url')
+    }
+  }
+
+  public render() {
+    return (
+      <>
+        <SimpleNavbar />
+        <Container>
+          <Form inline={true}>
+            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+              <Label for="mapName" className="mr-sm-2">
+                Map Name
+              </Label>
+              <Input
+                type="text"
+                name="mapName"
+                id="mapName"
+                onChange={evt => this.setState({ mapName: evt.target.value })}
+                value={this.state.mapName}
+              />
+            </FormGroup>
+            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
+              <Label for="mapURL" className="mr-sm-2">
+                Map URL
+              </Label>
+              <Input
+                type="text"
+                name="mapURL"
+                id="mapURL"
+                onChange={evt => this.setState({ mapURL: evt.target.value })}
+                value={this.state.mapURL}
+              />
+            </FormGroup>
+            <Button id="addMapBtn" onClick={this.onAddMap}>
+              Add Map
+            </Button>
+          </Form>
+          <Table hover={true}>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Map Name</th>
+                <th>URL</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>{this.buildMapsRows()}</tbody>
+          </Table>
+        </Container>
+      </>
+    )
+  }
+
+  private clearInputs() {
+    this.setState({
+      mapName: '',
+      mapURL: '',
+    })
+  }
+
+  private async updateMaps() {
+    const response = await this.kmlService.fetchMapsNamesAndURLS()
+    this.setState({ maps: response })
+  }
+
+  private buildMapsRows() {
+    return this.state.maps.map((m, i) => {
+      return (
+        <tr key={m.name}>
+          <th scope="row">{i}</th>
+          <td>{m.name}</td>
+          <td>{m.url}</td>
+          <td onClick={() => this.deleteMap(m.name)}>
+            <i title={`Delete ${m.name}`} className="fas fa-trash" />
+          </td>
+        </tr>
+      )
+    })
+  }
+
+  private async deleteMap(mapName: string) {
+    const response = await this.kmlService.deleteMap(mapName)
+    NotificationManager.success(response.message)
+    this.updateMaps()
+  }
+}

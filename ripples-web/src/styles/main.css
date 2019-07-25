@@ -24,3 +24,7 @@
         flex-direction: row;
     }
 }
+
+#addMapBtn {
+    margin: 0.5em
+}

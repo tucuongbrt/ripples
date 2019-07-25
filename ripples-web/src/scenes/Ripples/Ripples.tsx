@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser } from '../../model/IAuthState'
+import IMyMap from '../../model/IMyMap'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
 import IRipplesState from '../../model/IRipplesState'
@@ -30,6 +31,7 @@ import {
 import AISService from '../../services/AISUtils'
 import { getCurrentUser } from '../../services/AuthUtils'
 import { timestampMsToReadableDate } from '../../services/DateUtils'
+import KMLService from '../../services/KMLService'
 import {
   convertAssetPayloadToAsset,
   convertAssetPayloadToPlan,
@@ -50,11 +52,10 @@ import Slider from './components/Slider'
 import TopNav from './components/TopNav'
 import './styles/Ripples.css'
 const { NotificationManager } = require('react-notifications')
-const toGeojson = require('@mapbox/togeojson')
 
 interface StateType {
   loading: boolean
-  myMapsData: any
+  myMaps: IMyMap[]
 }
 
 interface PropsType {
@@ -87,12 +88,13 @@ class Ripples extends Component<PropsType, StateType> {
   public aisTimer: number = 0
   private webSocketsService: WSService = new WSService()
   private aisService: AISService = new AISService()
+  private kmlService: KMLService = new KMLService()
 
   constructor(props: any) {
     super(props)
     this.state = {
       loading: true,
-      myMapsData: {},
+      myMaps: [],
     }
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
@@ -124,9 +126,10 @@ class Ripples extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     const myMaps = await this.loadMyMapsData()
+
     this.webSocketsService.createWSClient()
     this.webSocketsService.subscribeWSUpdates(this.handleAssetUpdate, this.handleAISUpdate)
-    this.setState({ myMapsData: myMaps })
+    this.setState({ myMaps })
     this.setState({ loading: false })
     this.startUpdates()
   }
@@ -184,14 +187,15 @@ class Ripples extends Component<PropsType, StateType> {
     this.stopUpdates()
   }
 
-  public async loadMyMapsData() {
-    const apiURL = process.env.REACT_APP_API_BASE_URL
-    const res = await fetch(`${apiURL}/kml`)
-    const xml = await res.text()
-    // Create new kml overlay
-    const dom = new DOMParser().parseFromString(xml, 'text/xml')
-    const featureCollection = toGeojson.kml(dom, { styles: true })
-    return featureCollection
+  public async loadMyMapsData(): Promise<IMyMap[]> {
+    const mapNames: string[] = await this.kmlService.fetchMapsNames()
+    const maps = Promise.all(
+      mapNames.map(async mapName => {
+        const mapData = await this.kmlService.fetchMapData(mapName)
+        return { name: mapName, data: mapData }
+      })
+    )
+    return await maps
   }
 
   public async updateSoiData() {
@@ -346,7 +350,7 @@ class Ripples extends Component<PropsType, StateType> {
               handleUpdatePlanId={this.handleUpdatePlanId}
             />
           </div>
-          <RipplesMap myMapsData={this.state.myMapsData} />
+          <RipplesMap myMaps={this.state.myMaps} />
           <SidePanel />
           <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
         </div>

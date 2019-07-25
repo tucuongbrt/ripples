@@ -6,6 +6,7 @@ import { connect } from 'react-redux'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAsset from '../../../model/IAsset'
 import ILatLng from '../../../model/ILatLng'
+import IMyMap from '../../../model/IMyMap'
 import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
@@ -31,7 +32,6 @@ import VerticalProfile from './VerticalProfile'
 const CanvasLayer = require('react-leaflet-canvas-layer')
 const { BaseLayer, Overlay } = LayersControl
 interface PropsType {
-  myMapsData: any
   aisLocations: IShipLocation[]
   vehicles: IAsset[]
   spots: IAsset[]
@@ -42,6 +42,7 @@ interface PropsType {
   selectedPlan: IPlan
   selectedWaypointIdx: number
   toolSelected: ToolSelected
+  myMaps: IMyMap[]
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -77,7 +78,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
     if (!this.oneSecondTimer) {
       this.oneSecondTimer = window.setInterval(() => {
         this.setState({ currentTime: Date.now() })
@@ -128,27 +129,33 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public buildMyMaps() {
-    return (
-      <GeoJSON
-        data={this.props.myMapsData}
-        style={(feature: any) => {
-          return {
-            color: feature.properties.stroke,
-            weight: feature.properties['stroke-width'],
-          }
-        }}
-        onEachFeature={(feature, layer) => {
-          if (feature.properties && feature.properties.name) {
-            layer.on('click', (evt: any) => {
-              evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-              this.props.setSidePanelTitle(feature.properties.name)
-              this.props.setSidePanelContent(this.getGeoJSONSidePanelProperties(feature.properties))
-              this.props.setSidePanelVisibility(true)
-            })
-          }
-        }}
-      />
-    )
+    return this.props.myMaps.map(map => {
+      return (
+        <Overlay key={`Overlay_${map.name}`} checked={false} name={map.name}>
+          <LayerGroup>
+            <GeoJSON
+              data={map.data}
+              style={(feature: any) => {
+                return {
+                  color: feature.properties.stroke,
+                  weight: feature.properties['stroke-width'],
+                }
+              }}
+              onEachFeature={(feature, layer) => {
+                if (feature.properties && feature.properties.name) {
+                  layer.on('click', (evt: any) => {
+                    evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+                    this.props.setSidePanelTitle(feature.properties.name)
+                    this.props.setSidePanelContent(this.getGeoJSONSidePanelProperties(feature.properties))
+                    this.props.setSidePanelVisibility(true)
+                  })
+                }
+              }}
+            />
+          </LayerGroup>
+        </Overlay>
+      )
+    })
   }
 
   public buildProfiles() {
@@ -416,10 +423,7 @@ class RipplesMap extends Component<PropsType, StateType> {
               attribution="E.U. Copernicus Marine Service Information"
             />
           </Overlay>
-
-          <Overlay checked={true} name="MyMaps">
-            <LayerGroup>{this.buildMyMaps()}</LayerGroup>
-          </Overlay>
+          {this.buildMyMaps()}
           <Overlay checked={true} name="Vehicles">
             <LayerGroup>{this.buildVehicles()}</LayerGroup>
           </Overlay>
