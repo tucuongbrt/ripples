@@ -12,7 +12,10 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,6 +35,21 @@ public class MyMapsController {
 
     @Autowired
     MyMapsRepository myMapsRepo;
+
+    @Value("${kml.name}")
+    String defaultKMLName;
+
+    @Value("${kml.url}")
+    String defaultKMLUrl;
+
+    @PostConstruct
+    public void init() {
+        String data = fetchMap(defaultKMLUrl);
+        MyMaps defaultMap = new MyMaps(defaultKMLName, defaultKMLUrl);
+        defaultMap.setData(data);
+        defaultMap.setLastUpdate(new Date());
+        myMapsRepo.save(defaultMap);
+    }
 
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
     @PostMapping(path = { "/kml", "/kml/" }, consumes = "application/json", produces = "application/json")
