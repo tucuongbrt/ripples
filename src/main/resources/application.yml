@@ -50,8 +50,9 @@ ais:
   minlng: -10
   maxlng: -8
 # Google My Maps KMZ URL
-kmz:
-  url: https://www.google.com/maps/d/u/0/kml?mid=1C_guMPPn8sye2qoPgz9ciuN8Bsw
+kml:
+  name: 'Ripples'
+  url: 'https://www.google.com/maps/d/u/0/kml?mid=1C_guMPPn8sye2qoPgz9ciuN8Bsw'
 skip:
   db:
     initialization: true
