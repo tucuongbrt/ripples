@@ -6,6 +6,7 @@ import IAisShip from '../../../model/IAisShip'
 import IAssetAwareness from '../../../model/IAssetAwareness'
 import IRipplesState from '../../../model/IRipplesState'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
+import AISService from '../../../services/AISUtils'
 import { timeFromNow } from '../../../services/DateUtils'
 import AssetAwareness from './AssetAwareness'
 import { AwarenessIcon, RedTriangleIcon } from './Icons'
@@ -16,6 +17,7 @@ interface PropsType {
   ship: IAisShip
   sliderValue: number
   currentTime: number
+  isAISLayerActive: boolean
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -25,10 +27,15 @@ class AISShip extends Component<PropsType, {}> {
   public awarenessMinSpeed: number = 0.2
   public icon = new RedTriangleIcon()
   public awarenessIcon = new AwarenessIcon()
+  private aisService = new AISService()
 
   constructor(props: PropsType) {
     super(props)
     this.onShipClick = this.onShipClick.bind(this)
+  }
+
+  public shouldComponentUpdate(nextProps: PropsType, nextState: any) {
+    return this.props.isAISLayerActive
   }
 
   public getOpacity(lastUpdate: number) {
@@ -37,6 +44,9 @@ class AISShip extends Component<PropsType, {}> {
   }
 
   public buildShipAwareness() {
+    if (this.props.ship.timestamp > Date.now() - 5000) {
+      return <></>
+    }
     const deltaHours = this.props.sliderValue
     const awareness: IAssetAwareness = {
       name: this.props.ship.name,
@@ -46,7 +56,7 @@ class AISShip extends Component<PropsType, {}> {
       <AssetAwareness
         awareness={awareness}
         deltaHours={deltaHours}
-        icon={this.awarenessIcon}
+        icon={this.icon}
         iconAngle={0}
         currentTime={this.props.currentTime}
       />
@@ -56,6 +66,7 @@ class AISShip extends Component<PropsType, {}> {
   public getDisplayableProperties(ship: IAisShip) {
     let properties = {
       cog: ship.cog !== 360 ? ship.cog.toFixed(1) : 'not available',
+      type: this.aisService.getShipTypeAsString(ship.type) + ` (${ship.type})`,
       heading: ship.heading !== 511 ? ship.heading.toFixed(1) : 'not available',
       'last update': timeFromNow(ship.timestamp),
       latitude: ship.latitude.toFixed(5),
