@@ -14,6 +14,7 @@ interface PropsType {
   data: IAsset
   sliderValue: number
   currentTime: number
+  isVehiclesLayerActive: boolean
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -25,6 +26,10 @@ class Vehicle extends Component<PropsType, {}> {
   constructor(props: PropsType) {
     super(props)
     this.onMarkerClick = this.onMarkerClick.bind(this)
+  }
+
+  public shouldComponentUpdate(newProps: PropsType, newState: any) {
+    return newProps.isVehiclesLayerActive
   }
 
   public buildSettings(settings: string[][]): any {

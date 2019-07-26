@@ -56,6 +56,8 @@ interface StateType {
   isToDrawAISPolygons: boolean
   perpLinesSize: number
   currentTime: number
+  isAISLayerActive: boolean
+  isVehiclesLayerActive: boolean
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -71,6 +73,8 @@ class RipplesMap extends Component<PropsType, StateType> {
       isToDrawAISPolygons: false,
       perpLinesSize: 10,
       currentTime: Date.now(),
+      isAISLayerActive: true,
+      isVehiclesLayerActive: true,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -82,7 +86,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (!this.oneSecondTimer) {
       this.oneSecondTimer = window.setInterval(() => {
         this.setState({ currentTime: Date.now() })
-      }, 1000)
+      }, 2000)
     }
   }
 
@@ -184,7 +188,14 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildVehicles() {
     return this.props.vehicles.map(vehicle => {
-      return <Vehicle key={vehicle.imcid} data={vehicle} currentTime={this.state.currentTime} />
+      return (
+        <Vehicle
+          key={vehicle.imcid}
+          data={vehicle}
+          currentTime={this.state.currentTime}
+          isVehiclesLayerActive={this.state.isVehiclesLayerActive}
+        />
+      )
     })
   }
 
@@ -196,6 +207,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           currentTime={this.state.currentTime}
           ship={ship}
           isToDrawAISPolygons={this.state.isToDrawAISPolygons}
+          isAISLayerActive={this.state.isAISLayerActive}
         />
       )
     })
@@ -249,6 +261,21 @@ class RipplesMap extends Component<PropsType, StateType> {
         maxZoom={20}
         onClick={this.handleMapClick}
         onZoomend={this.handleZoom}
+        onOverlayAdd={(evt: any) => {
+          // this is done for perfomance reasons
+          if (evt.name === 'AIS Data') {
+            this.setState({ isAISLayerActive: true })
+          } else if (evt.name === 'Vehicles') {
+            this.setState({ isVehiclesLayerActive: true })
+          }
+        }}
+        onOverlayRemove={(evt: any) => {
+          if (evt.name === 'AIS Data') {
+            this.setState({ isAISLayerActive: false })
+          } else if (evt.name === 'Vehicles') {
+            this.setState({ isVehiclesLayerActive: false })
+          }
+        }}
       >
         <LayersControl position="topright">
           <BaseLayer checked={true} name="OpenStreetMap">
@@ -436,7 +463,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           <Overlay checked={true} name="CCUS">
             <LayerGroup>{this.buildCcus()}</LayerGroup>
           </Overlay>
-          <Overlay checked={true} name="AIS Data">
+          <Overlay checked={this.state.isAISLayerActive} name="AIS Data">
             <LayerGroup>
               {this.buildAisShips()}
               <CanvasLayer drawMethod={this.drawCanvas} />
