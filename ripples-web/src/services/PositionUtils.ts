@@ -134,6 +134,9 @@ export function getLatLng(position: ILatLng) {
 }
 
 export function estimatePositionsAtDeltaTime(currentState: IAisShip, deltaHours: number): IPositionAtTime[] {
+  if (currentState.heading === 511 && currentState.cog === 360) {
+    return []
+  }
   const hourInSec = 3600
   const twelveHoursInSec = deltaHours * hourInSec
   const knotsToMetersPerSec = 0.514
