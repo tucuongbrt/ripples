@@ -37,6 +37,9 @@ class AISShip extends Component<PropsType, {}> {
   }
 
   public buildShipAwareness() {
+    if (this.props.ship.timestamp > Date.now() - 5000) {
+      return <></>
+    }
     const deltaHours = this.props.sliderValue
     const awareness: IAssetAwareness = {
       name: this.props.ship.name,
@@ -46,7 +49,7 @@ class AISShip extends Component<PropsType, {}> {
       <AssetAwareness
         awareness={awareness}
         deltaHours={deltaHours}
-        icon={this.awarenessIcon}
+        icon={this.icon}
         iconAngle={0}
         currentTime={this.props.currentTime}
       />
