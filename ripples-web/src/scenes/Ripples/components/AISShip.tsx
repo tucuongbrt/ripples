@@ -55,7 +55,7 @@ class AISShip extends Component<PropsType, {}> {
 
   public getDisplayableProperties(ship: IAisShip) {
     let properties = {
-      cog: ship.cog.toFixed(1),
+      cog: ship.cog !== 360 ? ship.cog.toFixed(1) : 'not available',
       heading: ship.heading !== 511 ? ship.heading.toFixed(1) : 'not available',
       'last update': timeFromNow(ship.timestamp),
       latitude: ship.latitude.toFixed(5),
@@ -116,7 +116,7 @@ class AISShip extends Component<PropsType, {}> {
     const ship = this.props.ship
     let shipAwareness: JSX.Element | null = null
     let shipPolygon: JSX.Element | null = null
-    if (ship.sog > this.awarenessMinSpeed) {
+    if (ship.sog > this.awarenessMinSpeed && ship.awareness.length > 0) {
       shipAwareness = this.buildShipAwareness()
     }
     if (this.props.isToDrawAISPolygons) {
