@@ -22,7 +22,7 @@ export default interface IAisShip extends ILatLng, IShipDimensions {
   cog: number
   sog: number
   heading: number
-  type: string
+  type: number
   timestamp: number
   awareness: IPositionAtTime[]
   location: IShipLocation

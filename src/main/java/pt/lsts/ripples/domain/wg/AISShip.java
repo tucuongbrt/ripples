@@ -20,7 +20,7 @@ public class AISShip {
 	@Id
 	private int mmsi;
 
-	private String type;
+	private int type;
 	private String name;
 	private Date timestamp;
 	private double cog;
@@ -45,7 +45,7 @@ public class AISShip {
 		ais.setLongitudeDegs(0);
 		ais.setName("unknown");
 		ais.setSog(0);
-		ais.setType("0");
+		ais.setType(0);
 		ais.setTimestamp(new Date());
 		ais.setBow(0);
 		ais.setStern(0);
@@ -68,7 +68,7 @@ public class AISShip {
 		ais.sog = Double.valueOf(parts[5]);
 		ais.heading = Double.valueOf(parts[6]);
 		ais.name = parts[9].replaceAll("\"", "").replaceAll("\\.", "");
-		ais.type = parts[11];
+		ais.type = Integer.valueOf(parts[11]);
 		ais.bow = Double.valueOf(parts[12]);
 		ais.stern = Double.valueOf(parts[13]);
 		ais.port = Double.valueOf(parts[14]);
@@ -109,11 +109,11 @@ public class AISShip {
 		this.mmsi = mmsi;
 	}
 
-	public String getType() {
+	public Integer getType() {
 		return type;
 	}
 
-	public void setType(String type) {
+	public void setType(Integer type) {
 		this.type = type;
 	}
 
