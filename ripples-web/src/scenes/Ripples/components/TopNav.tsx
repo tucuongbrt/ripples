@@ -25,8 +25,12 @@ import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
 import {
+  clearMeasure,
   selectVehicle,
   setPlanDescription,
+  setSidePanelContent,
+  setSidePanelTitle,
+  setSidePanelVisibility,
   setToolSelected,
   togglePlanVisibility,
   unschedulePlan,
@@ -54,6 +58,10 @@ interface PropsType {
   togglePlanVisibility: (_: IPlan) => void
   updatePlanId: (_: string) => void
   unschedulePlan: () => void
+  clearMeasure: () => void
+  setSidePanelVisibility: (_: boolean) => void
+  setSidePanelTitle: (_: string) => void
+  setSidePanelContent: (_: any) => void
 }
 
 interface StateType {
@@ -105,6 +113,7 @@ class TopNav extends Component<PropsType, StateType> {
     this.buildEditDescriptionModal = this.buildEditDescriptionModal.bind(this)
     this.updatePlanDescription = this.updatePlanDescription.bind(this)
     this.onDeletePlan = this.onDeletePlan.bind(this)
+    this.onMeasureToggle = this.onMeasureToggle.bind(this)
   }
 
   public onNavToggle() {
@@ -400,6 +409,21 @@ class TopNav extends Component<PropsType, StateType> {
     return <></>
   }
 
+  public buildGeneralToolbar() {
+    return (
+      <NavItem
+        className="mt-auto mb-auto mr-4"
+        active={this.props.toolSelected === ToolSelected.MEASURE}
+        onClick={this.onMeasureToggle}
+      >
+        <i
+          className={'fas fa-ruler-horizontal ' + (this.props.toolSelected === ToolSelected.MEASURE ? 'selected' : '')}
+          title="Measure Tool"
+        />
+      </NavItem>
+    )
+  }
+
   public render() {
     return (
       <Navbar color="faded" light={true} expand="md">
@@ -408,11 +432,25 @@ class TopNav extends Component<PropsType, StateType> {
           <TopNavLinks />
           <Nav className="ml-auto" navbar={true}>
             {this.buildPlanEditToolbar()}
+            {this.buildGeneralToolbar()}
             <Login />
           </Nav>
         </Collapse>
       </Navbar>
     )
+  }
+
+  private onMeasureToggle() {
+    if (this.props.toolSelected === ToolSelected.MEASURE) {
+      this.props.setToolSelected(ToolSelected.ADD) // ADD is used as the default selected tool
+      this.props.setSidePanelVisibility(false)
+      this.props.clearMeasure()
+    } else {
+      this.props.setToolSelected(ToolSelected.MEASURE)
+      this.props.setSidePanelVisibility(true)
+      this.props.setSidePanelTitle('Measure distance')
+      this.props.setSidePanelContent({})
+    }
   }
 }
 
@@ -434,6 +472,10 @@ const actionCreators = {
   togglePlanVisibility,
   updatePlanId,
   unschedulePlan,
+  setSidePanelVisibility,
+  clearMeasure,
+  setSidePanelTitle,
+  setSidePanelContent,
 }
 
 export default connect(

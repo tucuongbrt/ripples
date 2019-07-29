@@ -1,6 +1,6 @@
 import { LatLngLiteral } from 'leaflet'
 import React, { Component } from 'react'
-import { GeoJSON, LayerGroup, LayersControl, Map, TileLayer, WMSTileLayer } from 'react-leaflet'
+import { GeoJSON, LayerGroup, LayersControl, Map, Marker, Polyline, TileLayer, WMSTileLayer } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
 import { connect } from 'react-redux'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
@@ -13,7 +13,9 @@ import IProfile from '../../../model/IProfile'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
 import {
+  addMeasurePoint,
   addWpToPlan,
+  clearMeasure,
   setSelectedWaypointIdx,
   setSidePanelContent,
   setSidePanelTitle,
@@ -21,10 +23,11 @@ import {
   updateWpLocation,
 } from '../../../redux/ripples.actions'
 import MapUtils from '../../../services/MapUtils'
+import PositionService from '../../../services/PositionUtils'
 import AISCanvas from './AISCanvas'
 import AISShip from './AISShip'
 import ClientLocation from './ClientLocation'
-import { PCIcon, SpotIcon } from './Icons'
+import { BlueCircleIcon, PCIcon, SpotIcon } from './Icons'
 import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 import VehiclePlan from './VehiclePlan'
@@ -44,12 +47,15 @@ interface PropsType {
   selectedWaypointIdx: number
   toolSelected: ToolSelected
   myMaps: IMyMap[]
+  measurePath: ILatLng[]
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
   setSidePanelVisibility: (_: boolean) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
+  addMeasurePoint: (_: ILatLng) => void
+  clearMeasure: () => void
 }
 
 interface StateType {
@@ -66,6 +72,8 @@ class RipplesMap extends Component<PropsType, StateType> {
   public upgradedOptions: any
   public initZoom = 10
   public oneSecondTimer = 0
+  private positionService = new PositionService()
+  private blueCircleIcon = new BlueCircleIcon()
 
   constructor(props: PropsType) {
     super(props)
@@ -102,20 +110,40 @@ class RipplesMap extends Component<PropsType, StateType> {
    * @param e
    */
   public handleMapClick(e: any) {
-    this.props.setSidePanelVisibility(false)
-    if (this.props.selectedPlan.id.length === 0) {
-      return
-    }
     const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng }
-    switch (this.props.toolSelected) {
-      case ToolSelected.ADD: {
-        this.props.addWpToPlan(Object.assign({}, clickLocation, { timestamp: 0 }))
-        break
+    if (this.props.toolSelected === ToolSelected.MEASURE) {
+      this.props.addMeasurePoint(clickLocation)
+      const distance = this.positionService.measureTotalDistance(this.props.measurePath)
+      if (this.props.measurePath.length > 1) {
+        const angle = this.positionService.getHeadingFromTwoPoints(
+          this.props.measurePath[this.props.measurePath.length - 2],
+          this.props.measurePath[this.props.measurePath.length - 1]
+        )
+        this.props.setSidePanelContent({
+          length: `${distance} m`,
+          angle: `${angle.toFixed(2)} º`,
+        })
+      } else {
+        this.props.setSidePanelContent({
+          length: `${distance} m`,
+        })
       }
-      case ToolSelected.MOVE: {
-        if (this.props.selectedWaypointIdx !== -1) {
-          this.props.updateWpLocation(clickLocation)
-          this.props.setSelectedWaypointIdx(-1)
+    } else {
+      this.props.setSidePanelVisibility(false)
+      if (this.props.selectedPlan.id.length === 0) {
+        return
+      }
+      switch (this.props.toolSelected) {
+        case ToolSelected.ADD: {
+          this.props.addWpToPlan(Object.assign({}, clickLocation, { timestamp: 0 }))
+          break
+        }
+        case ToolSelected.MOVE: {
+          if (this.props.selectedWaypointIdx !== -1) {
+            this.props.updateWpLocation(clickLocation)
+            this.props.setSelectedWaypointIdx(-1)
+          }
+          break
         }
       }
     }
@@ -490,9 +518,24 @@ class RipplesMap extends Component<PropsType, StateType> {
                 <ClientLocation />
               </LayerGroup>
             </Overlay>
+            <Overlay checked={true} name="Measure track">
+              <LayerGroup>{this.buildMeasureTrack()}</LayerGroup>
+            </Overlay>
           </LayersControl>
         </Map>
         {this.state.activeLegend}
+      </>
+    )
+  }
+  private buildMeasureTrack() {
+    const positions = this.props.measurePath.map(p => {
+      return { lat: p.latitude, lng: p.longitude }
+    })
+    const markers = positions.map((location, i) => <Marker icon={this.blueCircleIcon} key={i} position={location} />)
+    return (
+      <>
+        <Polyline positions={positions} />
+        {markers}
       </>
     )
   }
@@ -510,6 +553,7 @@ function mapStateToProps(state: IRipplesState) {
     ccus: state.assets.ccus,
     toolSelected: state.toolSelected,
     vehicles: state.assets.vehicles,
+    measurePath: state.measurePath,
   }
 }
 
@@ -520,6 +564,8 @@ const actionCreators = {
   setSidePanelTitle,
   setSidePanelVisibility,
   updateWpLocation,
+  addMeasurePoint,
+  clearMeasure,
 }
 
 export default connect(

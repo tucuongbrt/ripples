@@ -245,7 +245,9 @@ class Ripples extends Component<PropsType, StateType> {
   public handleStartNewPlan = (planId: string) => {
     const plan: IPlan = {
       assignedTo: '',
-      description: `Plan created by ${this.props.auth.currentUser.email} on ${DateService.timestampMsToReadableDate(Date.now())}`,
+      description: `Plan created by ${this.props.auth.currentUser.email} on ${DateService.timestampMsToReadableDate(
+        Date.now()
+      )}`,
       id: planId,
       waypoints: [],
       visible: true,

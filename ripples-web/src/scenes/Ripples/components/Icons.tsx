@@ -1,5 +1,12 @@
 import L from 'leaflet'
 
+export const BlueCircleIcon = L.Icon.extend({
+  options: {
+    iconSize: [16, 16],
+    iconUrl: 'https://i.imgur.com/iiHo3vX.png',
+  },
+})
+
 export const PCIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
