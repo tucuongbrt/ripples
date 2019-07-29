@@ -5,7 +5,7 @@ import { noAuth } from '../../model/IAuthState'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
-import { updateWaypointsTimestampFromIndex } from '../../services/PositionUtils'
+import PositionService from '../../services/PositionUtils'
 import {
   addNewPlan,
   addWpToPlan,
@@ -40,6 +40,8 @@ import {
   updateWpLocation,
   updateWpTimestamp,
 } from '../ripples.actions'
+
+const positionService: PositionService = new PositionService()
 
 const startState: IRipplesState = {
   assets: defaultAssetsGroup,
@@ -91,7 +93,7 @@ const ripplesReducer = createReducer(startState, {
       const wp = plan.waypoints[state.selectedWaypointIdx]
       wp.latitude = newLocation.latitude
       wp.longitude = newLocation.longitude
-      updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx)
+      positionService.updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx)
     }
   },
   [updateWpTimestamp.type]: (state, action) => {
@@ -100,7 +102,7 @@ const ripplesReducer = createReducer(startState, {
     if (plan) {
       const wp = plan.waypoints[wpIndex]
       wp.timestamp = timestamp
-      updateWaypointsTimestampFromIndex(plan.waypoints, wpIndex + 1)
+      positionService.updateWaypointsTimestampFromIndex(plan.waypoints, wpIndex + 1)
     }
   },
   [deleteWp.type]: (state, action) => {
@@ -110,13 +112,13 @@ const ripplesReducer = createReducer(startState, {
       return
     }
     plan.waypoints.splice(markerIdx, 1)
-    updateWaypointsTimestampFromIndex(plan.waypoints, markerIdx)
+    positionService.updateWaypointsTimestampFromIndex(plan.waypoints, markerIdx)
   },
   [addWpToPlan.type]: (state, action) => {
     const plan = state.planSet.find(p => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       plan.waypoints.push(action.payload)
-      updateWaypointsTimestampFromIndex(plan.waypoints, plan.waypoints.length - 1)
+      positionService.updateWaypointsTimestampFromIndex(plan.waypoints, plan.waypoints.length - 1)
     }
   },
   [cancelEditPlan.type]: (state, _) => {

@@ -32,7 +32,7 @@ import {
   unschedulePlan,
   updatePlanId,
 } from '../../../redux/ripples.actions'
-import { idFromDate } from '../../../services/DateUtils'
+import DateService from '../../../services/DateUtils'
 
 interface PropsType {
   vehicles: IAsset[]
@@ -166,7 +166,7 @@ class TopNav extends Component<PropsType, StateType> {
   }
 
   public handleStartNewPlan() {
-    const planId = `${this.props.auth.currentUser.name}-${idFromDate(new Date())}`
+    const planId = `${this.props.auth.currentUser.name}-${DateService.idfromDate(new Date())}`
     this.setState({
       isEditingPlan: true,
       plansDropdownText: `Editing ${planId}`,

@@ -4,8 +4,8 @@ import IAsset from '../../../model/IAsset'
 import IAssetAwareness from '../../../model/IAssetAwareness'
 import IRipplesState from '../../../model/IRipplesState'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
-import { timeFromNow } from '../../../services/DateUtils'
-import { getLatLng } from '../../../services/PositionUtils'
+import DateService from '../../../services/DateUtils'
+import PositionService from '../../../services/PositionUtils'
 import AssetAwareness from './AssetAwareness'
 import { AuvIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
@@ -22,6 +22,7 @@ interface PropsType {
 
 class Vehicle extends Component<PropsType, {}> {
   public icon = new AuvIcon()
+  private positionService: PositionService = new PositionService()
 
   constructor(props: PropsType) {
     super(props)
@@ -61,7 +62,7 @@ class Vehicle extends Component<PropsType, {}> {
   public getDisplayableProperties(vehicle: IAsset) {
     const mainProps = {
       heading: vehicle.lastState.heading.toFixed(2),
-      'last update': timeFromNow(vehicle.lastState.timestamp),
+      'last update': DateService.timeFromNow(vehicle.lastState.timestamp),
       latitude: vehicle.lastState.latitude.toFixed(5),
       longitude: vehicle.lastState.longitude.toFixed(5),
       plan: vehicle.planId,
@@ -79,7 +80,7 @@ class Vehicle extends Component<PropsType, {}> {
 
   public buildVehicle() {
     const vehicle = this.props.data
-    const systemPosition = getLatLng(vehicle.lastState)
+    const systemPosition = this.positionService.getLatLng(vehicle.lastState)
     return (
       <RotatedMarker
         position={systemPosition}

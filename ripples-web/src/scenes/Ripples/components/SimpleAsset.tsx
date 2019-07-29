@@ -3,8 +3,8 @@ import { Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
-import { timestampSecToReadableDate } from '../../../services/DateUtils'
-import { getLatLng } from '../../../services/PositionUtils'
+import DateService from '../../../services/DateUtils'
+import PositionService from '../../../services/PositionUtils'
 
 interface PropsType {
   data: IAsset
@@ -19,13 +19,14 @@ interface PropsType {
  * Ex: Spot, CCU
  */
 class SimpleAsset extends Component<PropsType, {}> {
+  private positionService: PositionService = new PositionService()
   constructor(props: PropsType) {
     super(props)
     this.onMarkerClick = this.onMarkerClick.bind(this)
   }
   public render() {
     const spot = this.props.data
-    const systemPositon = getLatLng(spot.lastState)
+    const systemPositon = this.positionService.getLatLng(spot.lastState)
     return <Marker position={systemPositon} icon={this.props.icon} onClick={this.onMarkerClick} />
   }
 
@@ -35,7 +36,7 @@ class SimpleAsset extends Component<PropsType, {}> {
 
     this.props.setSidePanelTitle(this.props.data.name)
     this.props.setSidePanelContent({
-      Date: timestampSecToReadableDate(asset.lastState.timestamp),
+      Date: DateService.timestampSecToReadableDate(asset.lastState.timestamp),
       Lat: asset.lastState.latitude.toFixed(5),
       Lng: asset.lastState.longitude.toFixed(5),
     })

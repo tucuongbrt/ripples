@@ -1,7 +1,7 @@
 import { ResponsiveLine } from '@nivo/line'
 import React, { Component } from 'react'
 import IProfile from '../../../model/IProfile'
-import { timestampMsToReadableDate } from '../../../services/DateUtils'
+import DateService from '../../../services/DateUtils'
 
 interface PropsType {
   data: IProfile
@@ -34,7 +34,7 @@ export default class LinePlot extends Component<PropsType, StateType> {
     const xMap = data.map(p => p.x)
     const minTemp = Math.min(...xMap)
     const maxTemp = Math.max(...xMap)
-    const humanReadableTime = timestampMsToReadableDate(this.props.data.timestamp)
+    const humanReadableTime = DateService.timestampMsToReadableDate(this.props.data.timestamp)
     const type = props.data.type
     this.state = {
       maxDepth,

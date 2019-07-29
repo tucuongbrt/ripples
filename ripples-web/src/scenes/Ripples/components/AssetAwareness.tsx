@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import IAssetAwareness from '../../../model/IAssetAwareness'
 import IPosHeadingAtTime from '../../../model/ILatLngHead'
-import { timestampFromDeltaHours } from '../../../services/DateUtils'
-import { getPrevAndNextPoints, interpolateTwoPoints } from '../../../services/PositionUtils'
+import DateService from '../../../services/DateUtils'
+import PositionService from '../../../services/PositionUtils'
 import EstimatedPosition from './EstimatedPosition'
 
 interface PropsType {
@@ -14,10 +14,11 @@ interface PropsType {
 }
 
 export default class AssetAwareness extends Component<PropsType, {}> {
+  private positionService: PositionService = new PositionService()
   public estimatedPositionAtTime(): IPosHeadingAtTime {
-    const date = timestampFromDeltaHours(this.props.currentTime, this.props.deltaHours)
-    const pair = getPrevAndNextPoints(this.props.awareness.positions, date)
-    return interpolateTwoPoints(date, pair.prev, pair.next)
+    const date = DateService.timestampFromDeltaHours(this.props.currentTime, this.props.deltaHours)
+    const pair = this.positionService.getPrevAndNextPoints(this.props.awareness.positions, date)
+    return this.positionService.interpolateTwoPoints(date, pair.prev, pair.next)
   }
 
   public render() {

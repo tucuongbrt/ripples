@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
 import ITextMessage from '../../model/ITextMessage'
-import { timestampMsToReadableDate } from '../../services/DateUtils'
+import DateService from '../../services/DateUtils'
 import hexToAscii from '../../services/HexToAscii'
 import { fetchTextMessages } from '../../services/Rock7Utils'
 const { NotificationManager } = require('react-notifications')
@@ -46,7 +46,7 @@ export default class TextMessages extends Component<{}, StateType> {
       .then(data => {
         const messages = data.map((m: any) =>
           Object.assign({}, m, {
-            date: timestampMsToReadableDate(m.updated_at),
+            date: DateService.timestampMsToReadableDate(m.updated_at),
             msg: hexToAscii(m.msg),
           })
         )

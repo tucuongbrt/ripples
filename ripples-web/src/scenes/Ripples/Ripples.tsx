@@ -30,21 +30,9 @@ import {
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
 import { getCurrentUser } from '../../services/AuthUtils'
-import { timestampMsToReadableDate } from '../../services/DateUtils'
+import DateService from '../../services/DateUtils'
 import KMLService from '../../services/KMLService'
-import {
-  convertAssetPayloadToAsset,
-  convertAssetPayloadToPlan,
-  deleteUnassignedPlan,
-  fetchAwareness,
-  fetchProfileData,
-  fetchSoiData,
-  fetchUnassignedPlans,
-  mergeAssetSettings,
-  sendPlanToVehicle,
-  sendUnassignedPlan,
-  updatePlanId,
-} from '../../services/SoiUtils'
+import SoiService from '../../services/SoiUtils'
 import WSService from '../../services/WebSocketService'
 import RipplesMap from './components/RipplesMap'
 import SidePanel from './components/SidePanel'
@@ -89,6 +77,7 @@ class Ripples extends Component<PropsType, StateType> {
   private webSocketsService: WSService = new WSService()
   private aisService: AISService = new AISService()
   private kmlService: KMLService = new KMLService()
+  private soiService: SoiService = new SoiService()
 
   constructor(props: any) {
     super(props)
@@ -145,7 +134,7 @@ class Ripples extends Component<PropsType, StateType> {
   public handleWSAssetUpdate(m: Message) {
     if (m.body) {
       const newSystem: IAssetPayload = JSON.parse(m.body)
-      const system: IAsset = convertAssetPayloadToAsset(newSystem)
+      const system: IAsset = this.soiService.convertAssetPayloadToAsset(newSystem)
       if (system.name.startsWith('spot')) {
         this.props.updateSpot(system)
       } else if (system.name.startsWith('ccu')) {
@@ -156,7 +145,7 @@ class Ripples extends Component<PropsType, StateType> {
 
       if (newSystem.plan) {
         if (newSystem.plan.waypoints.length > 0) {
-          const plan: IPlan = convertAssetPayloadToPlan(newSystem)
+          const plan: IPlan = this.soiService.convertAssetPayloadToPlan(newSystem)
           this.props.updatePlan(plan)
         }
       }
@@ -198,17 +187,17 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async updateSoiData() {
     try {
-      const soiPromise = fetchSoiData()
-      const profilesPromise = fetchProfileData()
-      const awarenessPromise = fetchAwareness()
+      const soiPromise = this.soiService.fetchSoiData()
+      const profilesPromise = this.soiService.fetchProfileData()
+      const awarenessPromise = this.soiService.fetchAwareness()
       let unassignedPlansPromise
       if (isScientist(this.props.auth)) {
-        unassignedPlansPromise = fetchUnassignedPlans()
+        unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
       }
       const soiData = await soiPromise
 
       const vehicles = soiData.vehicles
-      await mergeAssetSettings(vehicles, this.props.auth)
+      await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
 
       // fetch profiles
       let profiles = await profilesPromise
@@ -256,7 +245,7 @@ class Ripples extends Component<PropsType, StateType> {
   public handleStartNewPlan = (planId: string) => {
     const plan: IPlan = {
       assignedTo: '',
-      description: `Plan created by ${this.props.auth.currentUser.email} on ${timestampMsToReadableDate(Date.now())}`,
+      description: `Plan created by ${this.props.auth.currentUser.email} on ${DateService.timestampMsToReadableDate(Date.now())}`,
       id: planId,
       waypoints: [],
       visible: true,
@@ -273,7 +262,7 @@ class Ripples extends Component<PropsType, StateType> {
       if (!plan) {
         return
       }
-      const body = await sendPlanToVehicle(plan, vehicle)
+      const body = await this.soiService.sendPlanToVehicle(plan, vehicle)
       NotificationManager.success(body.message)
       this.startUpdates()
     } catch (error) {
@@ -292,7 +281,7 @@ class Ripples extends Component<PropsType, StateType> {
     const plan: IPlan | undefined = this.props.plans.find(p => isPlanEqual(p, this.props.selectedPlan))
     if (plan) {
       try {
-        const response = await sendUnassignedPlan(plan)
+        const response = await this.soiService.sendUnassignedPlan(plan)
         this.startUpdates()
         this.props.savePlan()
         NotificationManager.success(response.message)
@@ -304,7 +293,7 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async handleUpdatePlanId(previousId: string, newId: string) {
     try {
-      await updatePlanId(previousId, newId)
+      await this.soiService.updatePlanId(previousId, newId)
       NotificationManager.success(`Plan id has been updated`)
     } catch (error) {
       NotificationManager.warning(error.message)
@@ -313,7 +302,7 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async handleDeletePlan() {
     try {
-      await deleteUnassignedPlan(this.props.selectedPlan.id)
+      await this.soiService.deleteUnassignedPlan(this.props.selectedPlan.id)
       NotificationManager.success(`Plan ${this.props.selectedPlan.id} has been deleted`)
     } catch (error) {
       NotificationManager.warning(error.message)

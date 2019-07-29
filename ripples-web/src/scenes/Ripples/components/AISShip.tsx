@@ -7,7 +7,7 @@ import IAssetAwareness from '../../../model/IAssetAwareness'
 import IRipplesState from '../../../model/IRipplesState'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import AISService from '../../../services/AISUtils'
-import { timeFromNow } from '../../../services/DateUtils'
+import DateService from '../../../services/DateUtils'
 import AssetAwareness from './AssetAwareness'
 import { AwarenessIcon, RedTriangleIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
@@ -68,7 +68,7 @@ class AISShip extends Component<PropsType, {}> {
       cog: ship.cog !== 360 ? ship.cog.toFixed(1) : 'not available',
       type: this.aisService.getShipTypeAsString(ship.type) + ` (${ship.type})`,
       heading: ship.heading !== 511 ? ship.heading.toFixed(1) : 'not available',
-      'last update': timeFromNow(ship.timestamp),
+      'last update': DateService.timeFromNow(ship.timestamp),
       latitude: ship.latitude.toFixed(5),
       longitude: ship.longitude.toFixed(5),
       mmssi: `<a href="https://www.marinetraffic.com/pt/ais/details/ships/${

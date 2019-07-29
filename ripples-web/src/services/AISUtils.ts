@@ -1,10 +1,12 @@
 import IAisShip from '../model/IAisShip'
-import { calculateShipLocation, estimatePositionsAtDeltaTime } from './PositionUtils'
+import PositionService from './PositionUtils'
 
 const oneHourInMs = 3600000
 const deltaHours = 12
 
 export default class AISService {
+  private positionService: PositionService = new PositionService()
+
   public async fetchAisData(): Promise<IAisShip[]> {
     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/ais`)
     let ships = await response.json()
@@ -17,8 +19,8 @@ export default class AISService {
    */
   public convertAISToRipples(s: IAisShip): IAisShip {
     s.timestamp = new Date(s.timestamp).getTime()
-    s.awareness = estimatePositionsAtDeltaTime(s, deltaHours)
-    s.location = calculateShipLocation(s)
+    s.awareness = this.positionService.estimatePositionsAtDeltaTime(s, deltaHours)
+    s.location = this.positionService.calculateShipLocation(s)
     return s
   }
 

@@ -16,7 +16,7 @@ import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
 import IAuthState, { isOperator } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
-import { subscribeToSms } from '../../../services/SoiUtils'
+import SoiService from '../../../services/SoiUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
@@ -28,6 +28,7 @@ interface StateType {
 }
 
 class TopNav extends Component<PropsType, StateType> {
+  private soiService: SoiService = new SoiService()
   constructor(props: PropsType) {
     super(props)
     this.state = {
@@ -45,7 +46,7 @@ class TopNav extends Component<PropsType, StateType> {
 
   public async onPhoneSubmit() {
     try {
-      await subscribeToSms(this.state.phoneNumber)
+      await this.soiService.subscribeToSms(this.state.phoneNumber)
       NotificationManager.success(`${this.state.phoneNumber} subscribed`)
       this.setState({ phoneNumber: '+351' })
     } catch (e) {

@@ -1,8 +1,8 @@
 import React, { Component } from 'react'
 import { Popup } from 'react-leaflet'
 import IPosHeadingAtTime from '../../../model/ILatLngHead'
-import { timestampMsToReadableDate } from '../../../services/DateUtils'
-import { getLatLng } from '../../../services/PositionUtils'
+import DateService from '../../../services/DateUtils'
+import PositionService from '../../../services/PositionUtils'
 import RotatedMarker from './RotatedMarker'
 
 interface PropsType {
@@ -12,6 +12,8 @@ interface PropsType {
   rotationAngle: number
 }
 export default class EstimatedPosition extends Component<PropsType, {}> {
+  private positionService: PositionService = new PositionService()
+
   public render() {
     const estimatedPos = this.props.position
     return (
@@ -19,7 +21,7 @@ export default class EstimatedPosition extends Component<PropsType, {}> {
         key={'estimated_' + this.props.vehicle}
         rotationAngle={this.props.rotationAngle}
         rotationOrigin={'center'}
-        position={getLatLng(estimatedPos)}
+        position={this.positionService.getLatLng(estimatedPos)}
         icon={this.props.icon}
         opacity={0.7}
       >
@@ -28,7 +30,7 @@ export default class EstimatedPosition extends Component<PropsType, {}> {
           <ul>
             <li>Lat: {estimatedPos.latitude.toFixed(5)}</li>
             <li>Lng: {estimatedPos.longitude.toFixed(5)}</li>
-            <li>Date: {timestampMsToReadableDate(estimatedPos.timestamp)}</li>
+            <li>Date: {DateService.timestampMsToReadableDate(estimatedPos.timestamp)}</li>
           </ul>
         </Popup>
       </RotatedMarker>

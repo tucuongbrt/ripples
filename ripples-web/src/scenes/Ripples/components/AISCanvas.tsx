@@ -1,6 +1,6 @@
 import IAisShip, { AisShip } from '../../../model/IAisShip'
 import IPositionAtTime from '../../../model/IPositionAtTime'
-import { calculateNextPosition, KNOTS_TO_MS } from '../../../services/PositionUtils'
+import PositionService from '../../../services/PositionUtils'
 
 interface PropsType {
   ship: IAisShip
@@ -9,6 +9,7 @@ interface PropsType {
 
 export default class AISCanvas {
   public props: PropsType
+  private positionService: PositionService = new PositionService()
   constructor(props: PropsType) {
     this.props = props
     this.drawInCanvas = this.drawInCanvas.bind(this)
@@ -24,8 +25,8 @@ export default class AISCanvas {
   }
 
   private drawAisLines(info: any, ctx: any, ship: IAisShip) {
-    const speed = ship.sog * KNOTS_TO_MS
-    const posIn1H = calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)
+    const speed = ship.sog * this.positionService.getKnotsToMs()
+    const posIn1H = this.positionService.calculateNextPosition(AisShip.getPositionAtTime(ship), ship.cog, speed, 3600)
     const pointA = info.map.latLngToContainerPoint([ship.latitude, ship.longitude])
     const pointB = info.map.latLngToContainerPoint([posIn1H.latitude, posIn1H.longitude])
     ctx.beginPath()
@@ -47,10 +48,10 @@ export default class AISCanvas {
     const tenMinutes = 600
     const centers: IPositionAtTime[] = []
     const aisCurrentPos = AisShip.getPositionAtTime(ship)
-    const shipSpeed = ship.sog * KNOTS_TO_MS
+    const shipSpeed = ship.sog * this.positionService.getKnotsToMs()
     for (let i = 1; i <= 6; i++) {
       const time = i * tenMinutes
-      const pointC = calculateNextPosition(aisCurrentPos, ship.cog, shipSpeed, time)
+      const pointC = this.positionService.calculateNextPosition(aisCurrentPos, ship.cog, shipSpeed, time)
       centers.push(pointC)
     }
     return centers

@@ -12,9 +12,9 @@ import { IPotentialCollision } from '../../model/IPotentialCollision'
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
 import { getCurrentUser } from '../../services/AuthUtils'
-import { timeFromNow, timestampMsToReadableDate } from '../../services/DateUtils'
-import { distanceInMetersBetweenCoords } from '../../services/PositionUtils'
-import { deleteAssetErrors, fetchAssetsErrors, fetchCollisions, fetchSoiData } from '../../services/SoiUtils'
+import DateService from '../../services/DateUtils'
+import PositionService from '../../services/PositionUtils'
+import SoiService from '../../services/SoiUtils'
 import TopNav from './components/TopNav'
 import './styles/SoiRisk.css'
 
@@ -38,6 +38,8 @@ interface PropsType {
 class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   public timerID: number = 0
   public defaultCoords: ILatLng = { latitude: 41.18, longitude: -8.7 }
+  private positionService: PositionService = new PositionService()
+  private soiService: SoiService = new SoiService()
 
   constructor(props: PropsType & GeolocatedProps) {
     super(props)
@@ -77,7 +79,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
 
   public async clearAssetErrors(assetName: string) {
     try {
-      await deleteAssetErrors(assetName)
+      await this.soiService.deleteAssetErrors(assetName)
       this.updateSoiData()
     } catch (e) {
       NotificationManager.warning('Failed to fetch data')
@@ -85,9 +87,9 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public async updateSoiData() {
-    const soiData = await fetchSoiData()
-    const collisions = await fetchCollisions()
-    const errors = await fetchAssetsErrors()
+    const soiData = await this.soiService.fetchSoiData()
+    const collisions = await this.soiService.fetchCollisions()
+    const errors = await this.soiService.fetchAssetsErrors()
     this.setState({
       assetErrors: errors,
       collisions,
@@ -115,7 +117,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
       return -1
     }
     // distance in meters
-    const distanceToMinInterval = distanceInMetersBetweenCoords(minIntervalWP, vehicle.lastState)
+    const distanceToMinInterval = this.positionService.distanceInMetersBetweenCoords(minIntervalWP, vehicle.lastState)
     // if distance is less than 100m, let's consider that the vehicle already arrived to that waypoint
     if (distanceToMinInterval < 100) {
       return waypoints.length > minIntervalIdx + 1 ? minIntervalIdx + 1 : minIntervalIdx
@@ -127,7 +129,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     const rootCoords = this.props.coords
       ? { latitude: this.props.coords.latitude, longitude: this.props.coords.longitude }
       : this.defaultCoords
-    return distanceInMetersBetweenCoords(vehicle.lastState, rootCoords).toFixed(1)
+    return this.positionService.distanceInMetersBetweenCoords(vehicle.lastState, rootCoords).toFixed(1)
   }
 
   public buildTimeForNextWaypoint(waypoints: IPositionAtTime[], nextWaypointIdx: number) {
@@ -139,7 +141,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     const nextWPTimestamp = waypoints[nextWaypointIdx].timestamp
     const color = nextWPTimestamp > now ? 'bg-green' : nextWPTimestamp > oneHourAgo ? 'bg-orange' : 'bg-red'
     if (nextWaypointIdx >= 0 && nextWaypointIdx < waypoints.length) {
-      return <td className={color}>{timeFromNow(nextWPTimestamp)}</td>
+      return <td className={color}>{DateService.timeFromNow(nextWPTimestamp)}</td>
     }
     return <td className="bg-red">N/D</td>
   }
@@ -150,7 +152,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
     const deltaTime = Date.now() - timestamp
     return (
       <td className={deltaTime < greenTreshold ? 'bg-green' : deltaTime < orangeTreshold ? 'bg-orange' : 'bg-red'}>
-        {timeFromNow(timestamp)}
+        {DateService.timeFromNow(timestamp)}
       </td>
     )
   }
@@ -225,7 +227,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
                     <ul>
                       <li>Ship: {c.ship}</li>
                       <li>Distance: {c.distance.toFixed(2)}m</li>
-                      <li>time: {timestampMsToReadableDate(c.timestamp)}</li>
+                      <li>time: {DateService.timestampMsToReadableDate(c.timestamp)}</li>
                     </ul>
                     <hr />
                   </div>
@@ -266,7 +268,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
                   <div key={`error_at_${e.timestamp}`}>
                     <ul>
                       <li>Message: {e.message}</li>
-                      <li>Date: {timestampMsToReadableDate(e.timestamp)}</li>
+                      <li>Date: {DateService.timestampMsToReadableDate(e.timestamp)}</li>
                     </ul>
                     <hr />
                   </div>

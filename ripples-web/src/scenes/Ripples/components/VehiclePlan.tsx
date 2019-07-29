@@ -12,7 +12,7 @@ import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
 import { deleteWp, setSelectedWaypointIdx, updateWpTimestamp } from '../../../redux/ripples.actions'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
-import { timeFromNow, timestampMsToReadableDate } from '../../../services/DateUtils'
+import DateService from '../../../services/DateUtils'
 import { WaypointIcon } from './Icons'
 
 interface PropsType {
@@ -84,8 +84,8 @@ class VehiclePlan extends Component<PropsType, StateType> {
 
   public getWaypointSidePanelProperties(wp: IPositionAtTime) {
     return {
-      eta: wp.timestamp ? timeFromNow(wp.timestamp) : 'N/D',
-      'exact eta': wp.timestamp ? timestampMsToReadableDate(wp.timestamp) : 'N/D',
+      eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp) : 'N/D',
+      'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp) : 'N/D',
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
     }
@@ -120,8 +120,8 @@ class VehiclePlan extends Component<PropsType, StateType> {
     return timestamp !== 0 ? (
       <>
         {' '}
-        <li>ETA: {timeFromNow(timestamp)}</li>
-        <li>Exact ETA: {timestampMsToReadableDate(timestamp)}</li>
+        <li>ETA: {DateService.timeFromNow(timestamp)}</li>
+        <li>Exact ETA: {DateService.timestampMsToReadableDate(timestamp)}</li>
       </>
     ) : (
       <></>
