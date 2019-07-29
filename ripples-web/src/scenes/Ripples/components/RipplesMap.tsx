@@ -20,6 +20,7 @@ import {
   setSidePanelVisibility,
   updateWpLocation,
 } from '../../../redux/ripples.actions'
+import MapUtils from '../../../services/MapUtils'
 import AISCanvas from './AISCanvas'
 import AISShip from './AISShip'
 import ClientLocation from './ClientLocation'
@@ -58,6 +59,7 @@ interface StateType {
   currentTime: number
   isAISLayerActive: boolean
   isVehiclesLayerActive: boolean
+  activeLegend: JSX.Element
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -75,6 +77,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       currentTime: Date.now(),
       isAISLayerActive: true,
       isVehiclesLayerActive: true,
+      activeLegend: <></>,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -254,231 +257,243 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public render() {
     return (
-      <Map
-        fullscreenControl={true}
-        center={this.state.initCoords}
-        zoom={this.initZoom}
-        maxZoom={20}
-        onClick={this.handleMapClick}
-        onZoomend={this.handleZoom}
-        onOverlayAdd={(evt: any) => {
-          // this is done for perfomance reasons
-          if (evt.name === 'AIS Data') {
-            this.setState({ isAISLayerActive: true })
-          } else if (evt.name === 'Vehicles') {
-            this.setState({ isVehiclesLayerActive: true })
-          }
-        }}
-        onOverlayRemove={(evt: any) => {
-          if (evt.name === 'AIS Data') {
-            this.setState({ isAISLayerActive: false })
-          } else if (evt.name === 'Vehicles') {
-            this.setState({ isVehiclesLayerActive: false })
-          }
-        }}
-      >
-        <LayersControl position="topright">
-          <BaseLayer checked={true} name="OpenStreetMap">
-            <TileLayer
-              attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-          </BaseLayer>
-          <BaseLayer name="ArcGIS NatGeo">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={16}
-              attribution="Map data &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
-              id="examples.map-i875mjb7"
-            />
-          </BaseLayer>
-          <BaseLayer name="ArcGIS Ocean">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}"
-              attribution="Tiles &copy; ESRI"
-              maxZoom={13}
-            />
-          </BaseLayer>
-          <BaseLayer name="ArcGis World Imagery">
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              attribution="Tiles &copy; ESRI"
-            />
-          </BaseLayer>
-          <BaseLayer name="Thunder Forest">
-            <TileLayer
-              url="https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=c4d207cad22c4f65b9adb1adbbaef141"
-              attribution="Tiles &copy; ThunderForest"
-            />
-          </BaseLayer>
-          <BaseLayer name="GMRT">
-            <WMSTileLayer
-              layers="gmrt"
-              url="https://www.gmrt.org/services/mapserver/wms_merc?service=WMS&version=1.0.0&request=GetMap"
-              attribution="GEBCO (multiple sources)"
-            />
-          </BaseLayer>
-          <Overlay name="Argos">
-            <WMSTileLayer
-              url="http://www.ifremer.fr/services/wms/coriolis/co_argo_floats_activity"
-              layers="StationProject"
-              attribution="IFREMER"
-              format="image/png"
-              project=""
-              transparent={true}
-            />
-          </Overlay>
-          <Overlay name="AIS density">
-            <TileLayer
-              url="https://tiles2.marinetraffic.com/ais/density_tiles2015/{z}/{x}/tile_{z}_{x}_{y}.png"
-              attribution="Map data &copy; MarineTraffic"
-              maxZoom={21}
-              opacity={0.5}
-              maxNativeZoom={10}
-            />
-          </Overlay>
-          <Overlay name="Copernicus SST">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
-              layers="thetao"
-              format="image/png"
-              styles="boxfill/sst_36"
-              transparent={true}
-              colorscalerange="0,36"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus SSSC">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
-              layers="so"
-              format="image/png"
-              styles="boxfill/rainbow"
-              transparent={true}
-              colorscalerange="33,36"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus SSV">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
-              layers="sea_water_velocity"
-              format="image/png"
-              styles="vector/rainbow"
-              transparent={true}
-              colorscalerange="0,2"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus ZOS">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
-              layers="zos"
-              format="image/png"
-              styles="boxfill/rainbow"
-              transparent={true}
-              colorscalerange="-1,1"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus CHL">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/dataset-oc-glo-chl-multi-l4-oi_4km_daily-rt-v02"
-              layers="CHL"
-              format="image/png"
-              styles="boxfill/alg2"
-              transparent={true}
-              logscale="true"
-              colorscalerange="0.01,10.0"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus Waves">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-wav-001-027"
-              styles="boxfill/rainbow"
-              layers="VHM0"
-              colorscalerange="0.01,8.0"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              transparent={true}
-              format="image/png"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus Wind">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-BLENDED_WIND_L4-V6-OBS_FULL_TIME_SERIE"
-              styles="vector/rainbow"
-              layers="wind"
-              elevation={10}
-              colorscalerange="0.0,23.0"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              transparent={true}
-              format="image/png"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          <Overlay name="Copernicus SLA">
-            <WMSTileLayer
-              url="http://nrt.cmems-du.eu/thredds/wms/dataset-duacs-nrt-global-merged-allsat-phy-l4"
-              layers="ugosa"
-              format="image/png"
-              transparent={true}
-              styles="boxfill/redblue"
-              colorscalerange="-0.8,0.8"
-              belowmincolor="extend"
-              belowmaxcolor="extend"
-              opacity={0.8}
-              attribution="E.U. Copernicus Marine Service Information"
-            />
-          </Overlay>
-          {this.buildMyMaps()}
-          <Overlay checked={true} name="Vehicles">
-            <LayerGroup>{this.buildVehicles()}</LayerGroup>
-          </Overlay>
-          <Overlay checked={true} name="Plans">
-            <LayerGroup>{this.buildPlans()}</LayerGroup>
-          </Overlay>
-          <Overlay checked={true} name="Spots">
-            <LayerGroup>{this.buildSpots()}</LayerGroup>
-          </Overlay>
-          <Overlay checked={true} name="CCUS">
-            <LayerGroup>{this.buildCcus()}</LayerGroup>
-          </Overlay>
-          <Overlay checked={this.state.isAISLayerActive} name="AIS Data">
-            <LayerGroup>
-              {this.buildAisShips()}
-              <CanvasLayer drawMethod={this.drawCanvas} />
-            </LayerGroup>
-          </Overlay>
-          <Overlay checked={true} name="Profiles Data">
-            <LayerGroup>{this.buildProfiles()}</LayerGroup>
-          </Overlay>
-          <Overlay checked={true} name="Current Location">
-            <LayerGroup>
-              <ClientLocation />
-            </LayerGroup>
-          </Overlay>
-        </LayersControl>
-      </Map>
+      <>
+        <Map
+          fullscreenControl={true}
+          center={this.state.initCoords}
+          zoom={this.initZoom}
+          maxZoom={20}
+          onClick={this.handleMapClick}
+          onZoomend={this.handleZoom}
+          onOverlayAdd={(evt: any) => {
+            // this is done for perfomance reasons
+            if (evt.name === 'AIS Data') {
+              this.setState({ isAISLayerActive: true })
+            } else if (evt.name === 'Vehicles') {
+              this.setState({ isVehiclesLayerActive: true })
+            } else if (evt.name.startsWith('Copernicus')) {
+              const url = MapUtils.buildLegendURL(evt.layer)
+              this.setState({
+                activeLegend: <img className="mapLegend" src={url} alt="Map legend" />,
+              })
+            }
+          }}
+          onOverlayRemove={(evt: any) => {
+            if (evt.name === 'AIS Data') {
+              this.setState({ isAISLayerActive: false })
+            } else if (evt.name === 'Vehicles') {
+              this.setState({ isVehiclesLayerActive: false })
+            } else if (evt.name.startsWith('Copernicus')) {
+              this.setState({
+                activeLegend: <></>,
+              })
+            }
+          }}
+        >
+          <LayersControl position="topright">
+            <BaseLayer checked={true} name="OpenStreetMap">
+              <TileLayer
+                attribution='&amp;copy <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </BaseLayer>
+            <BaseLayer name="ArcGIS NatGeo">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={16}
+                attribution="Map data &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC"
+                id="examples.map-i875mjb7"
+              />
+            </BaseLayer>
+            <BaseLayer name="ArcGIS Ocean">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}"
+                attribution="Tiles &copy; ESRI"
+                maxZoom={13}
+              />
+            </BaseLayer>
+            <BaseLayer name="ArcGis World Imagery">
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution="Tiles &copy; ESRI"
+              />
+            </BaseLayer>
+            <BaseLayer name="Thunder Forest">
+              <TileLayer
+                url="https://{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=c4d207cad22c4f65b9adb1adbbaef141"
+                attribution="Tiles &copy; ThunderForest"
+              />
+            </BaseLayer>
+            <BaseLayer name="GMRT">
+              <WMSTileLayer
+                layers="gmrt"
+                url="https://www.gmrt.org/services/mapserver/wms_merc?service=WMS&version=1.0.0&request=GetMap"
+                attribution="GEBCO (multiple sources)"
+              />
+            </BaseLayer>
+            <Overlay name="Argos">
+              <WMSTileLayer
+                url="http://www.ifremer.fr/services/wms/coriolis/co_argo_floats_activity"
+                layers="StationProject"
+                attribution="IFREMER"
+                format="image/png"
+                project=""
+                transparent={true}
+              />
+            </Overlay>
+            <Overlay name="AIS density">
+              <TileLayer
+                url="https://tiles2.marinetraffic.com/ais/density_tiles2015/{z}/{x}/tile_{z}_{x}_{y}.png"
+                attribution="Map data &copy; MarineTraffic"
+                maxZoom={21}
+                opacity={0.5}
+                maxNativeZoom={10}
+              />
+            </Overlay>
+            <Overlay name="Copernicus SST">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
+                layers="thetao"
+                format="image/png"
+                styles="boxfill/sst_36"
+                transparent={true}
+                colorscalerange="0,36"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus SSSC">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
+                layers="so"
+                format="image/png"
+                styles="boxfill/rainbow"
+                transparent={true}
+                colorscalerange="33,36"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus SSV">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
+                layers="sea_water_velocity"
+                format="image/png"
+                styles="vector/rainbow"
+                transparent={true}
+                colorscalerange="0,2"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus ZOS">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
+                layers="zos"
+                format="image/png"
+                styles="boxfill/rainbow"
+                transparent={true}
+                colorscalerange="-1,1"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus CHL">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/dataset-oc-glo-chl-multi-l4-oi_4km_daily-rt-v02"
+                layers="CHL"
+                format="image/png"
+                styles="boxfill/alg2"
+                transparent={true}
+                logscale="true"
+                colorscalerange="0.01,10.0"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus Waves">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-wav-001-027"
+                styles="boxfill/rainbow"
+                layers="VHM0"
+                colorscalerange="0.01,10.0"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                transparent={true}
+                format="image/png"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus Wind">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-BLENDED_WIND_L4-V6-OBS_FULL_TIME_SERIE"
+                styles="vector/rainbow"
+                layers="wind"
+                elevation={10}
+                colorscalerange="0.0,23.0"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                transparent={true}
+                format="image/png"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            <Overlay name="Copernicus SLA">
+              <WMSTileLayer
+                url="http://nrt.cmems-du.eu/thredds/wms/dataset-duacs-nrt-global-merged-allsat-phy-l4"
+                layers="ugosa"
+                format="image/png"
+                transparent={true}
+                styles="boxfill/redblue"
+                colorscalerange="-0.8,0.8"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.8}
+                attribution="E.U. Copernicus Marine Service Information"
+              />
+            </Overlay>
+            {this.buildMyMaps()}
+            <Overlay checked={true} name="Vehicles">
+              <LayerGroup>{this.buildVehicles()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={true} name="Plans">
+              <LayerGroup>{this.buildPlans()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={true} name="Spots">
+              <LayerGroup>{this.buildSpots()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={true} name="CCUS">
+              <LayerGroup>{this.buildCcus()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={this.state.isAISLayerActive} name="AIS Data">
+              <LayerGroup>
+                {this.buildAisShips()}
+                <CanvasLayer drawMethod={this.drawCanvas} />
+              </LayerGroup>
+            </Overlay>
+            <Overlay checked={true} name="Profiles Data">
+              <LayerGroup>{this.buildProfiles()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={true} name="Current Location">
+              <LayerGroup>
+                <ClientLocation />
+              </LayerGroup>
+            </Overlay>
+          </LayersControl>
+        </Map>
+        {this.state.activeLegend}
+      </>
     )
   }
 }
