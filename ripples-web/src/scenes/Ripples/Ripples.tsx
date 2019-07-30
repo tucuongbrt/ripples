@@ -3,18 +3,22 @@ import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css'
 import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
+import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser } from '../../model/IAuthState'
 import IMyMap from '../../model/IMyMap'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
 import IRipplesState from '../../model/IRipplesState'
+import { ILogbook } from '../../model/MyLogbook'
 import {
+  addAnnotation,
   addNewPlan,
   cancelEditPlan,
   editPlan,
   savePlan,
   setAis,
+  setAnnotations,
   setCcus,
   setPlans,
   setProfiles,
@@ -32,6 +36,7 @@ import AISService from '../../services/AISUtils'
 import { getCurrentUser } from '../../services/AuthUtils'
 import DateService from '../../services/DateUtils'
 import KMLService from '../../services/KMLService'
+import LogbookService from '../../services/LogbookUtils'
 import SoiService from '../../services/SoiUtils'
 import WSService from '../../services/WebSocketService'
 import RipplesMap from './components/RipplesMap'
@@ -48,6 +53,10 @@ interface StateType {
 
 interface PropsType {
   plans: IPlan[]
+  selectedPlan: IPlan
+  sliderValue: number
+  auth: UserState
+  vehicleSelected: string
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
   setCcus: (_: IAsset[]) => void
@@ -65,10 +74,8 @@ interface PropsType {
   updateCCU: (ccu: IAsset) => void
   updateSpot: (spot: IAsset) => void
   updatePlan: (p: IPlan) => void
-  selectedPlan: IPlan
-  sliderValue: number
-  auth: UserState
-  vehicleSelected: string
+  addAnnotation: (a: IAnnotation) => void
+  setAnnotations: (a: IAnnotation[]) => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -78,6 +85,7 @@ class Ripples extends Component<PropsType, StateType> {
   private aisService: AISService = new AISService()
   private kmlService: KMLService = new KMLService()
   private soiService: SoiService = new SoiService()
+  private logbookService: LogbookService = new LogbookService()
 
   constructor(props: any) {
     super(props)
@@ -100,6 +108,7 @@ class Ripples extends Component<PropsType, StateType> {
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.handleWSAssetUpdate = this.handleWSAssetUpdate.bind(this)
     this.handleWSAISUpdate = this.handleWSAISUpdate.bind(this)
+    this.handleAnnotationUpdate = this.handleAnnotationUpdate.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -117,10 +126,21 @@ class Ripples extends Component<PropsType, StateType> {
     const myMaps = await this.loadMyMapsData()
 
     this.webSocketsService.createWSClient()
-    this.webSocketsService.subscribeWSUpdates(this.handleWSAssetUpdate, this.handleWSAISUpdate)
+    this.webSocketsService.subscribeWSUpdates(
+      this.handleWSAssetUpdate,
+      this.handleWSAISUpdate,
+      this.handleAnnotationUpdate
+    )
     this.setState({ myMaps })
     this.setState({ loading: false })
     this.startUpdates()
+  }
+
+  public handleAnnotationUpdate(m: Message) {
+    if (m.body) {
+      const annotation: IAnnotation = JSON.parse(m.body)
+      this.props.addAnnotation(annotation)
+    }
   }
 
   public handleWSAISUpdate(m: Message) {
@@ -167,7 +187,17 @@ class Ripples extends Component<PropsType, StateType> {
     if (!this.aisTimer) {
       this.aisTimer = window.setInterval(this.updateAISData, 60000) // get ais data every minute
     }
+    this.fetchAllAnnotations()
     this.webSocketsService.activate()
+  }
+
+  public async fetchAllAnnotations() {
+    try {
+      const logbook: ILogbook = await this.logbookService.fetchLogbook()
+      this.props.setAnnotations(logbook.annotations)
+    } catch (e) {
+      this.props.setAnnotations([])
+    }
   }
 
   public componentWillUnmount() {
@@ -361,11 +391,13 @@ function mapStateToProps(state: IRipplesState) {
 }
 
 const actionCreators = {
+  addAnnotation,
   addNewPlan,
   cancelEditPlan,
   editPlan,
   savePlan,
   setAis,
+  setAnnotations,
   setCcus,
   setPlans,
   setProfiles,

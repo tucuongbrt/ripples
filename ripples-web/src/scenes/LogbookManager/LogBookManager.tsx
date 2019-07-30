@@ -11,7 +11,7 @@ interface StateType {
   activeLogbook: ILogbook
 }
 
-export default class LogbookManager extends Component<{},StateType> {
+export default class LogbookManager extends Component<{}, StateType> {
   private logbookService: LogbookService = new LogbookService()
   public constructor(props: any) {
     super(props)
@@ -23,7 +23,7 @@ export default class LogbookManager extends Component<{},StateType> {
     this.onAddLogbook = this.onAddLogbook.bind(this)
   }
 
-  async componentDidMount() {
+  public async componentDidMount() {
     const data = await this.logbookService.fetchLogbooksInfo()
     this.setState({ logbooks: data })
     if (this.state.logbooks.length > 0) {
@@ -31,7 +31,7 @@ export default class LogbookManager extends Component<{},StateType> {
     }
   }
 
-  render() {
+  public render() {
     return (
       <>
         <SimpleNavbar />
@@ -72,9 +72,7 @@ export default class LogbookManager extends Component<{},StateType> {
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {this.buildRows()}
-            </tbody>
+            <tbody>{this.buildRows()}</tbody>
           </Table>
         </Container>
       </>
@@ -103,17 +101,17 @@ export default class LogbookManager extends Component<{},StateType> {
       return
     }
     try {
-      const newLogbook = new MyLogbook(this.state.logbookName, Date.now()) 
+      const newLogbook = new MyLogbook(this.state.logbookName, Date.now())
       await this.logbookService.addLogbook(newLogbook)
       this.setState({
         logbooks: [...this.state.logbooks, newLogbook],
-        logbookName: ''
+        logbookName: '',
       })
     } catch (error) {
       NotificationManager.error(error.message)
     }
   }
-  
+
   private async onDeleteLogbook(logbookName: string) {
     const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === logbookName)
     if (index !== -1) {
@@ -128,10 +126,10 @@ export default class LogbookManager extends Component<{},StateType> {
       }
     }
   }
-  
+
   private async deleteAnnotation(logbookName: string, annotationId: number) {
     try {
-      const response = await this.logbookService.deleteAnnotation(logbookName, annotationId)
+      const response = await this.logbookService.deleteAnnotation(annotationId, logbookName)
       NotificationManager.success(response.message)
     } catch (error) {
       NotificationManager.error(error.message)

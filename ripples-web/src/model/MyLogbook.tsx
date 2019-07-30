@@ -1,4 +1,4 @@
-import IAnnotation from "./IAnnotations";
+import IAnnotation from './IAnnotations'
 
 export interface ILogbook {
   name: string

@@ -8,6 +8,7 @@ import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
 import PositionService from '../../services/PositionUtils'
 import {
+  addAnnotation,
   addMeasurePoint,
   addNewPlan,
   addWpToPlan,
@@ -19,6 +20,7 @@ import {
   savePlan,
   selectVehicle,
   setAis,
+  setAnnotations,
   setCcus,
   setPlanDescription,
   setPlans,
@@ -61,6 +63,7 @@ const startState: IRipplesState = {
   toolSelected: ToolSelected.ADD,
   vehicleSelected: '',
   measurePath: [],
+  annotations: [],
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -250,8 +253,14 @@ const ripplesReducer = createReducer(startState, {
     const newPoint: ILatLng = action.payload
     state.measurePath.push(newPoint)
   },
-  [clearMeasure.type]: (state, payload) => {
+  [clearMeasure.type]: (state, _) => {
     state.measurePath = []
+  },
+  [setAnnotations.type]: (state, action) => {
+    state.annotations = action.payload
+  },
+  [addAnnotation.type]: (state, action) => {
+    state.annotations.push(action.payload)
   },
 })
 

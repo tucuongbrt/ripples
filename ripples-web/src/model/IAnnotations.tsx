@@ -3,7 +3,7 @@ import ILatLng from './ILatLng'
 export default interface IAnnotation extends INewAnnotation {
   id: number
   username: string
-  date: Date
+  date: number
 }
 
 export interface INewAnnotation extends ILatLng {
@@ -15,7 +15,7 @@ export class Annotation implements IAnnotation {
     public id: number,
     public content: string,
     public username: string,
-    public date: Date,
+    public date: number,
     public latitude: number,
     public longitude: number
   ) {}
