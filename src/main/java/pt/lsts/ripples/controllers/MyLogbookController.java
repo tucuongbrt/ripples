@@ -99,7 +99,9 @@ public class MyLogbookController {
     MyAnnotation annotation = new MyAnnotation(annotationPayload.getContent(), user.getUsername(),
         annotationPayload.getLatitude(), annotationPayload.getLongitude());
     myLogbook.addAnnotation(annotation);
-    wsController.sendAnnotationUpdate(annotation);
+    MyLogbook savedLogbook = myLogbooksRepo.save(myLogbook);
+    List<MyAnnotation> savedAnnotations = savedLogbook.getAnnotations();
+    wsController.sendAnnotationUpdate(savedAnnotations.get(savedAnnotations.size() - 1));
     return new ResponseEntity<>(new HTTPResponse("Success", "Logbook's " + logbookName + " annotation was added"),
         HttpStatus.OK);
   }
