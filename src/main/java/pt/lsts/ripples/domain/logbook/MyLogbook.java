@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class MyLogbook {
@@ -15,6 +17,7 @@ public class MyLogbook {
   private String name;
 
   @ElementCollection
+  @OneToMany(cascade=CascadeType.ALL)
   private List<MyAnnotation> annotations;
 
   private Date date;
