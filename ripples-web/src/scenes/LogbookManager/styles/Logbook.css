@@ -1,0 +1,34 @@
+#logbook-entries .selectedLogbook {
+  background-color: #ffffa1;
+}
+
+#add-logbook-form {
+  justify-content: center;
+  margin: auto;
+}
+
+#logbooks-info {
+  display: flex;
+  justify-content: center;
+  margin: 1em 0;
+}
+
+#logbooks-info :first-child {
+  padding-right: 1em;
+}
+
+#logbooks-info:last-child {
+  padding-left: 1em;
+}
+
+#open-logs {
+  cursor: pointer;
+}
+
+#close-logs-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1em;
+}
