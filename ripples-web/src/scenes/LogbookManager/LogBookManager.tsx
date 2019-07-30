@@ -58,20 +58,19 @@ export default class LogbookManager extends Component<{}, StateType> {
                 value={this.state.logbookName}
               />
             </FormGroup>
-            <Button id="addLogbookBtn" onClick={this.onAddLogbook}>
+            <Button id="addLogbookBtn" className="mt-0" onClick={this.onAddLogbook}>
               Add Logbook
             </Button>
           </Form>
           {this.state.selectedLogbookName !== '' ? (
             <>
               <div id="logbooks-info">
-                <h5>Active Logbook: {this.state.activeLogbookName}</h5>
-                <h5>Selected Logbook: {this.state.selectedLogbookName}</h5>
+                <h5 className="pr-4">Active Logbook: {this.state.activeLogbookName}</h5>
+                <h5 className="pl-4">Selected Logbook: {this.state.selectedLogbookName}</h5>
               </div>
               <Table responsive={true}>
                 <thead>
                   <tr>
-                    <th>Annotation ID</th>
                     <th>Creation Date</th>
                     <th>Coordinates</th>
                     <th>Content</th>
@@ -84,14 +83,16 @@ export default class LogbookManager extends Component<{}, StateType> {
           ) : (
             <h5>There is currently no logbook available!</h5>
           )}
+          <h5 className="mt-5">Logbook entries</h5>
           <Table id="logbook-entries" responsive={true}>
             {this.state.isLogbookEntriesOpen ? (
               <>
                 <thead>
                   <tr>
-                    <th>#</th>
-                    <th>Logbook Name</th>
+                    <th>Logbook ID</th>
+                    <th>Name</th>
                     <th>Creation Date</th>
+                    <th>Export as HTML</th>
                   </tr>
                 </thead>
                 <tbody>{this.buildRows()}</tbody>
@@ -128,7 +129,6 @@ export default class LogbookManager extends Component<{}, StateType> {
       const annotations = this.state.logbooks[index].annotations.map((ann: IAnnotation, i) => {
         return (
           <tr key={ann.id}>
-            <th scope="row">{ann.id}</th>
             <td>{DateService.timestampMsToReadableDate(ann.date)}</td>
             <td>
               {ann.latitude.toFixed(5)}º {ann.longitude.toFixed(5)}º
@@ -163,6 +163,7 @@ export default class LogbookManager extends Component<{}, StateType> {
           <th scope="row">{this.state.logbooks.length - i}</th>
           <td>{lb.name}</td>
           <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
+          <td><i className="fas fa-download"></i></td>
         </tr>
       )
     })
@@ -186,6 +187,7 @@ export default class LogbookManager extends Component<{}, StateType> {
         activeLogbookName: newLogbook.name,
         selectedLogbookName: newLogbook.name
       })
+      this.toggleLogbookTable()
       NotificationManager.success(response.message)
     } catch (error) {
       NotificationManager.error(error.message)

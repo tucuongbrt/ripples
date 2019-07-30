@@ -4,21 +4,19 @@
 
 #add-logbook-form {
   justify-content: center;
-  margin: auto;
+  margin-bottom: 1em;
+}
+
+.container h5 {
+  text-align: center;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 #logbooks-info {
   display: flex;
   justify-content: center;
   margin: 1em 0;
-}
-
-#logbooks-info :first-child {
-  padding-right: 1em;
-}
-
-#logbooks-info:last-child {
-  padding-left: 1em;
 }
 
 #open-logs {
