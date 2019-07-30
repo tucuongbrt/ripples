@@ -1,9 +1,21 @@
 import { LatLngLiteral } from 'leaflet'
 import React, { Component } from 'react'
-import { GeoJSON, LayerGroup, LayersControl, Map, Marker, Polyline, TileLayer, WMSTileLayer } from 'react-leaflet'
+import {
+  GeoJSON,
+  LayerGroup,
+  LayersControl,
+  Map,
+  Marker,
+  Polyline,
+  Popup,
+  TileLayer,
+  WMSTileLayer,
+} from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
 import { connect } from 'react-redux'
+import { Button } from 'reactstrap'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
+import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset from '../../../model/IAsset'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap from '../../../model/IMyMap'
@@ -22,6 +34,8 @@ import {
   setSidePanelVisibility,
   updateWpLocation,
 } from '../../../redux/ripples.actions'
+import DateService from '../../../services/DateUtils'
+import LogbookService from '../../../services/LogbookUtils'
 import MapUtils from '../../../services/MapUtils'
 import PositionService from '../../../services/PositionUtils'
 import AISCanvas from './AISCanvas'
@@ -32,6 +46,7 @@ import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
+const { NotificationManager } = require('react-notifications')
 
 const CanvasLayer = require('react-leaflet-canvas-layer')
 const { BaseLayer, Overlay } = LayersControl
@@ -48,6 +63,7 @@ interface PropsType {
   toolSelected: ToolSelected
   myMaps: IMyMap[]
   measurePath: ILatLng[]
+  annotations: IAnnotation[]
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -66,6 +82,8 @@ interface StateType {
   isAISLayerActive: boolean
   isVehiclesLayerActive: boolean
   activeLegend: JSX.Element
+  annotationClickLocation: ILatLng | null
+  newAnnotationContent: string
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -74,6 +92,8 @@ class RipplesMap extends Component<PropsType, StateType> {
   public oneSecondTimer = 0
   private positionService = new PositionService()
   private blueCircleIcon = new BlueCircleIcon()
+  private logBookService = new LogbookService()
+  private newAnnotationPopupRef: React.RefObject<Popup> = React.createRef()
 
   constructor(props: PropsType) {
     super(props)
@@ -86,11 +106,14 @@ class RipplesMap extends Component<PropsType, StateType> {
       isAISLayerActive: true,
       isVehiclesLayerActive: true,
       activeLegend: <></>,
+      annotationClickLocation: null,
+      newAnnotationContent: '',
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
+    this.onMapAnnotationClick = this.onMapAnnotationClick.bind(this)
   }
 
   public async componentDidMount() {
@@ -111,40 +134,22 @@ class RipplesMap extends Component<PropsType, StateType> {
    */
   public handleMapClick(e: any) {
     const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng }
-    if (this.props.toolSelected === ToolSelected.MEASURE) {
-      this.props.addMeasurePoint(clickLocation)
-      const distance = this.positionService.measureTotalDistance(this.props.measurePath)
-      if (this.props.measurePath.length > 1) {
-        const angle = this.positionService.getHeadingFromTwoPoints(
-          this.props.measurePath[this.props.measurePath.length - 2],
-          this.props.measurePath[this.props.measurePath.length - 1]
-        )
-        this.props.setSidePanelContent({
-          length: `${distance} m`,
-          angle: `${angle.toFixed(2)} º`,
-        })
-      } else {
-        this.props.setSidePanelContent({
-          length: `${distance} m`,
-        })
+    switch (this.props.toolSelected) {
+      case ToolSelected.ADD: {
+        this.onMapAddClick(clickLocation)
+        break
       }
-    } else {
-      this.props.setSidePanelVisibility(false)
-      if (this.props.selectedPlan.id.length === 0) {
-        return
+      case ToolSelected.MOVE: {
+        this.onMapMoveClick(clickLocation)
+        break
       }
-      switch (this.props.toolSelected) {
-        case ToolSelected.ADD: {
-          this.props.addWpToPlan(Object.assign({}, clickLocation, { timestamp: 0 }))
-          break
-        }
-        case ToolSelected.MOVE: {
-          if (this.props.selectedWaypointIdx !== -1) {
-            this.props.updateWpLocation(clickLocation)
-            this.props.setSelectedWaypointIdx(-1)
-          }
-          break
-        }
+      case ToolSelected.MEASURE: {
+        this.onMapMeasureClick(clickLocation)
+        break
+      }
+      case ToolSelected.ANNOTATION: {
+        this.onMapAnnotationClick(clickLocation)
+        break
       }
     }
   }
@@ -521,12 +526,37 @@ class RipplesMap extends Component<PropsType, StateType> {
             <Overlay checked={true} name="Measure track">
               <LayerGroup>{this.buildMeasureTrack()}</LayerGroup>
             </Overlay>
+            <Overlay checked={true} name="Annotations">
+              <LayerGroup>{this.buildAnnotations()}</LayerGroup>
+            </Overlay>
           </LayersControl>
+          {this.buildNewAnnotationMarker()}
         </Map>
         {this.state.activeLegend}
       </>
     )
   }
+
+  private buildAnnotations() {
+    return this.props.annotations.map((a: IAnnotation) => {
+      return (
+        <Marker
+          key={a.id}
+          position={{ lat: a.latitude, lng: a.longitude }}
+          onClick={() => {
+            this.props.setSidePanelTitle(`Annotation ${a.id}`)
+            this.props.setSidePanelContent({
+              user: a.username,
+              date: DateService.timestampMsToReadableDate(a.date),
+              content: a.content,
+            })
+            this.props.setSidePanelVisibility(true)
+          }}
+        />
+      )
+    })
+  }
+
   private buildMeasureTrack() {
     const positions = this.props.measurePath.map(p => {
       return { lat: p.latitude, lng: p.longitude }
@@ -538,6 +568,94 @@ class RipplesMap extends Component<PropsType, StateType> {
         {markers}
       </>
     )
+  }
+
+  private onMapMeasureClick(clickLocation: ILatLng) {
+    this.props.addMeasurePoint(clickLocation)
+    const distance = this.positionService.measureTotalDistance(this.props.measurePath)
+    if (this.props.measurePath.length > 1) {
+      const angle = this.positionService.getHeadingFromTwoPoints(
+        this.props.measurePath[this.props.measurePath.length - 2],
+        this.props.measurePath[this.props.measurePath.length - 1]
+      )
+      this.props.setSidePanelContent({
+        length: `${distance} m`,
+        angle: `${angle.toFixed(2)} º`,
+      })
+    } else {
+      this.props.setSidePanelContent({
+        length: `${distance} m`,
+      })
+    }
+  }
+
+  private onMapAddClick(clickLocation: ILatLng) {
+    this.props.setSidePanelVisibility(false)
+    if (this.props.selectedPlan.id.length === 0) {
+      return
+    }
+    this.props.addWpToPlan(Object.assign({}, clickLocation, { timestamp: 0 }))
+  }
+
+  private onMapMoveClick(clickLocation: ILatLng) {
+    this.props.setSidePanelVisibility(false)
+    if (this.props.selectedPlan.id.length === 0) {
+      return
+    }
+    if (this.props.selectedWaypointIdx !== -1) {
+      this.props.updateWpLocation(clickLocation)
+      this.props.setSelectedWaypointIdx(-1)
+    }
+  }
+
+  private buildNewAnnotationMarker() {
+    if (this.state.annotationClickLocation != null) {
+      const location = this.state.annotationClickLocation
+      return (
+        <Marker position={{ lat: location.latitude, lng: location.longitude }}>
+          <Popup
+            ref={this.newAnnotationPopupRef}
+            onClose={() => {
+              this.setState({ annotationClickLocation: null })
+            }}
+          >
+            <textarea
+              name="content"
+              placeholder="Add your note"
+              onChange={evt => {
+                this.setState({ newAnnotationContent: evt.target.value })
+              }}
+              value={this.state.newAnnotationContent}
+            />
+            <Button
+              onClick={async () => {
+                if (this.newAnnotationPopupRef.current != null) {
+                  this.newAnnotationPopupRef.current.onClose()
+                }
+                try {
+                  await this.logBookService.addAnnotation(new NewAnnotation(this.state.newAnnotationContent, location))
+                } catch (e) {
+                  NotificationManager.error('Please create a logbook first')
+                }
+
+                this.setState({ newAnnotationContent: '' })
+              }}
+            >
+              Submit
+            </Button>
+          </Popup>
+        </Marker>
+      )
+    }
+    return <></>
+  }
+
+  /**
+   * When a click is detected on the map and the Annotation tool is selected
+   * @param location The click location
+   */
+  private onMapAnnotationClick(location: ILatLng) {
+    this.setState({ annotationClickLocation: location })
   }
 }
 
@@ -554,6 +672,7 @@ function mapStateToProps(state: IRipplesState) {
     toolSelected: state.toolSelected,
     vehicles: state.assets.vehicles,
     measurePath: state.measurePath,
+    annotations: state.annotations,
   }
 }
 
