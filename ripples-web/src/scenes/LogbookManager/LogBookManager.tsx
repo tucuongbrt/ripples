@@ -170,7 +170,10 @@ export default class LogbookManager extends Component<{}, StateType> {
 
   private async onAddLogbook() {
     const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.logbookName)
-    if (index !== -1) {
+    if (this.state.logbookName === '') {
+      NotificationManager.warning('Invalid logbook name!')
+      return
+    } else if (index !== -1) {
       NotificationManager.error('Logbook already exists!')
       return
     }
