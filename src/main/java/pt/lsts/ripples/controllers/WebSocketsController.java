@@ -1,12 +1,11 @@
 package pt.lsts.ripples.controllers;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.logbook.MyAnnotation;
 import pt.lsts.ripples.domain.wg.AISShip;
 
 @Component
@@ -29,5 +28,9 @@ public class WebSocketsController {
 
     public void sendAISUpdateFromServerToClient(AISShip aisShip) {
         this.template.convertAndSend("/topic/ais", aisShip);
+    }
+
+    public void sendAnnotationUpdate(MyAnnotation annotation) {
+        this.template.convertAndSend("/topic/logbook", annotation);
     }
 }
