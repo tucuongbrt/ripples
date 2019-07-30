@@ -4,4 +4,5 @@ export enum ToolSelected {
   DELETE,
   SCHEDULE,
   UNSCHEDULE,
+  MEASURE,
 }

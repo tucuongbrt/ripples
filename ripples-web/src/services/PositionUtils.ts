@@ -96,6 +96,10 @@ export default class PositionService {
     }
   }
 
+  public getHeadingFromTwoPoints(start: ILatLng, end: ILatLng) {
+    return geolib.getRhumbLineBearing(start, end)
+  }
+
   public getPrevAndNextPoints(points: IPositionAtTime[], date: number) {
     if (points == null || points.length === 0) {
       const defaultP = { latitude: 0, longitude: 0, timestamp: date }
@@ -160,6 +164,14 @@ export default class PositionService {
     const pointA = { latitude: p1.latitude, longitude: p1.longitude }
     const pointB = { latitude: p2.latitude, longitude: p2.longitude }
     return geolib.getDistance(pointA, pointB)
+  }
+
+  public measureTotalDistance(positions: ILatLng[]): number {
+    let sum = 0
+    for (let i = 0; i < positions.length - 1; i++) {
+      sum += this.distanceInMetersBetweenCoords(positions[i], positions[i + 1])
+    }
+    return sum
   }
 
   private sumLatLngVectors(v1: ILatLng, v2: ILatLng) {

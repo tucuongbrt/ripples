@@ -1,6 +1,7 @@
 import IAisShip, { IShipLocation } from './IAisShip'
 import IAsset from './IAsset'
 import IUserState from './IAuthState'
+import ILatLng from './ILatLng'
 import IPlan from './IPlan'
 import IProfile from './IProfile'
 import { ToolSelected } from './ToolSelected'
@@ -27,6 +28,7 @@ export default interface IRipplesState {
   sidePanelTitle: string
   sidePanelContent: any
   isSidePanelVisible: boolean
+  measurePath: ILatLng[]
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

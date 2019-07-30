@@ -2,14 +2,17 @@ import { createReducer } from 'redux-starter-kit'
 import IAisShip from '../../model/IAisShip'
 import IAsset from '../../model/IAsset'
 import { noAuth } from '../../model/IAuthState'
+import ILatLng from '../../model/ILatLng'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
 import PositionService from '../../services/PositionUtils'
 import {
+  addMeasurePoint,
   addNewPlan,
   addWpToPlan,
   cancelEditPlan,
+  clearMeasure,
   deleteWp,
   editPlan,
   removeUser,
@@ -57,6 +60,7 @@ const startState: IRipplesState = {
   sliderValue: 0,
   toolSelected: ToolSelected.ADD,
   vehicleSelected: '',
+  measurePath: [],
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -241,6 +245,13 @@ const ripplesReducer = createReducer(startState, {
     } else {
       state.assets.aisShips.push(newAIS)
     }
+  },
+  [addMeasurePoint.type]: (state, action) => {
+    const newPoint: ILatLng = action.payload
+    state.measurePath.push(newPoint)
+  },
+  [clearMeasure.type]: (state, payload) => {
+    state.measurePath = []
   },
 })
 
