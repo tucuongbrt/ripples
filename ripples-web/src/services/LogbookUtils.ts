@@ -1,5 +1,6 @@
+import { INewAnnotation } from '../model/IAnnotations'
+import MyLogbook from '../model/MyLogbook'
 import { request } from './RequestUtils'
-import MyLogbook from '../model/MyLogbook';
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
@@ -7,6 +8,12 @@ export default class LogbookService {
   public async fetchLogbooksInfo() {
     return request({
       url: `${apiURL}/logbooks`,
+    })
+  }
+
+  public async fetchLogbook(logbookName: string = 'default') {
+    return request({
+      url: `${apiURL}/logbooks/${logbookName}`,
     })
   }
 
@@ -18,7 +25,7 @@ export default class LogbookService {
     })
   }
 
-  public async addAnnotation(logbookName: string, annotationData: string) {
+  public async addAnnotation(annotationData: INewAnnotation, logbookName: string = 'default') {
     return request({
       method: 'POST',
       body: JSON.stringify(annotationData),
@@ -33,7 +40,7 @@ export default class LogbookService {
     })
   }
 
-  public async deleteAnnotation(logbookName: string, annotationId: number) {
+  public async deleteAnnotation(annotationId: number, logbookName: string = 'default') {
     return request({
       method: 'DELETE',
       url: `${apiURL}/logbooks/${logbookName}/${annotationId}`,

@@ -19,16 +19,40 @@ public class MyAnnotation {
 
   private Date date;
 
+  private double latitude;
+
+  private double longitude;
+
   public MyAnnotation() {
     this.setContent("");
     this.setUsername("");
     this.setDate(new Date());
+    this.setLatitude(0);
+    this.setLongitude(0);
   }
 
-  public MyAnnotation(String content, String username) {
+  public MyAnnotation(String content, String username, double lat, double lng) {
     this.setContent(content);
     this.setUsername(username);
     this.setDate(new Date());
+    this.setLatitude(lat);
+    this.setLongitude(lng);
+  }
+
+  public double getLatitude() {
+    return latitude;
+  }
+
+  public void setLatitude(double latitude) {
+    this.latitude = latitude;
+  }
+
+  public double getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(double longitude) {
+    this.longitude = longitude;
   }
 
   public Long getId() {

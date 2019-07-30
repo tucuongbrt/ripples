@@ -6,9 +6,8 @@ export default interface IAnnotation extends INewAnnotation {
   date: Date
 }
 
-export interface INewAnnotation {
+export interface INewAnnotation extends ILatLng {
   content: string
-  location: ILatLng
 }
 
 export class Annotation implements IAnnotation {
@@ -17,10 +16,16 @@ export class Annotation implements IAnnotation {
     public content: string,
     public username: string,
     public date: Date,
-    public location: ILatLng
+    public latitude: number,
+    public longitude: number
   ) {}
 }
 
 export class NewAnnotation implements INewAnnotation {
-  constructor(public content: string, public location: ILatLng) {}
+  public latitude: number
+  public longitude: number
+  constructor(public content: string, location: ILatLng) {
+    this.latitude = location.latitude
+    this.longitude = location.longitude
+  }
 }
