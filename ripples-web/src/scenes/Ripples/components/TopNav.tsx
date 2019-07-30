@@ -114,6 +114,7 @@ class TopNav extends Component<PropsType, StateType> {
     this.updatePlanDescription = this.updatePlanDescription.bind(this)
     this.onDeletePlan = this.onDeletePlan.bind(this)
     this.onMeasureToggle = this.onMeasureToggle.bind(this)
+    this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
   }
 
   public onNavToggle() {
@@ -411,16 +412,32 @@ class TopNav extends Component<PropsType, StateType> {
 
   public buildGeneralToolbar() {
     return (
-      <NavItem
-        className="mt-auto mb-auto mr-4"
-        active={this.props.toolSelected === ToolSelected.MEASURE}
-        onClick={this.onMeasureToggle}
-      >
-        <i
-          className={'fas fa-ruler-horizontal ' + (this.props.toolSelected === ToolSelected.MEASURE ? 'selected' : '')}
-          title="Measure Tool"
-        />
-      </NavItem>
+      <>
+        <NavItem
+          className="mt-auto mb-auto mr-4"
+          active={this.props.toolSelected === ToolSelected.MEASURE}
+          onClick={this.onMeasureToggle}
+        >
+          <i
+            className={
+              'fas fa-ruler-horizontal fa-lg ' + (this.props.toolSelected === ToolSelected.MEASURE ? 'selected' : '')
+            }
+            title="Measure Tool"
+          />
+        </NavItem>
+        <NavItem
+          className="mt-auto mb-auto mr-4"
+          active={this.props.toolSelected === ToolSelected.ANNOTATION}
+          onClick={this.onAnnotationToggle}
+        >
+          <i
+            className={
+              'far fa-sticky-note fa-lg ' + (this.props.toolSelected === ToolSelected.ANNOTATION ? 'selected' : '')
+            }
+            title="Annotation Tool"
+          />
+        </NavItem>
+      </>
     )
   }
 
@@ -451,6 +468,15 @@ class TopNav extends Component<PropsType, StateType> {
       this.props.setSidePanelTitle('Measure distance')
       this.props.setSidePanelContent({})
     }
+  }
+
+  private onAnnotationToggle() {
+    if (this.props.toolSelected === ToolSelected.ANNOTATION) {
+      this.props.setToolSelected(ToolSelected.ADD)
+    } else {
+      this.props.setToolSelected(ToolSelected.ANNOTATION)
+    }
+    this.props.setSidePanelVisibility(false)
   }
 }
 
