@@ -37,7 +37,7 @@ public class MyLogbookController {
   @GetMapping(path = { "/logbooks", "/logbooks/" }, produces = "application/json")
   public ArrayList<MyLogbook> getLogbooks() {
     ArrayList<MyLogbook> logbooks = new ArrayList<MyLogbook>();
-    myLogbooksRepo.findAll().forEach(lb -> {
+    myLogbooksRepo.findAllByOrderByDateDesc().forEach(lb -> {
       logbooks.add(lb);
     });
     return logbooks;
@@ -74,6 +74,7 @@ public class MyLogbookController {
         HttpStatus.OK);
   }
 
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
   @DeleteMapping(path = { "/logbooks/{logbookName}", "/logbooks/{logbookName}/" }, produces = "application/json")
   public ResponseEntity<HTTPResponse> deleteLogbook(@PathVariable("logbookName") String logbookName) {
     myLogbooksRepo.deleteById(logbookName);
@@ -101,21 +102,6 @@ public class MyLogbookController {
     myLogbook.addAnnotation(annotation);
     wsController.sendAnnotationUpdate(annotation);
     return new ResponseEntity<>(new HTTPResponse("Success", "Logbook's " + logbookName + " annotation was added"),
-        HttpStatus.OK);
-  }
-
-  @DeleteMapping(path = { "/logbooks/{logbookName}/{annotationId}",
-      "/logbooks/{logbookName}/{annotationId}/" }, produces = "application/json")
-  public ResponseEntity<HTTPResponse> deleteLogbook(@PathVariable("logbookName") String logbookName,
-      @PathVariable("annotationId") Long annotationId) {
-    Optional<MyLogbook> optLogbook = myLogbooksRepo.findById(logbookName);
-    if (!optLogbook.isPresent()) {
-      return new ResponseEntity<>(new HTTPResponse("Error", "Logbook not found!"), HttpStatus.NOT_FOUND);
-    }
-    MyLogbook myLogbook = optLogbook.get();
-    myLogbook.deleteAnnotationById(annotationId);
-    return new ResponseEntity<>(
-        new HTTPResponse("Success", "Logbook's " + logbookName + " annotation of id " + annotationId + " was deleted"),
         HttpStatus.OK);
   }
 }
