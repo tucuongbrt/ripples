@@ -19,12 +19,17 @@ export default class WSService {
     }
   }
 
-  public subscribeWSUpdates(assetHandler: (m: Message) => any, aisHandler: (m: Message) => any) {
+  public subscribeWSUpdates(
+    assetHandler: (m: Message) => any,
+    aisHandler: (m: Message) => any,
+    annotationHandler: (m: Message) => any
+  ) {
     this.client.onConnect = frame => {
       // Do something, all subscribes must be done is this callback
       // This is needed because this will be executed after a (re)connect
       this.client.subscribe('/topic/asset', assetHandler)
       this.client.subscribe('/topic/ais', aisHandler)
+      this.client.subscribe('/topic/logbook', annotationHandler)
     }
   }
 
