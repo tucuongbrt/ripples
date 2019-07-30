@@ -75,13 +75,6 @@ public class MyLogbookController {
   }
 
   @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
-  @DeleteMapping(path = { "/logbooks/{logbookName}", "/logbooks/{logbookName}/" }, produces = "application/json")
-  public ResponseEntity<HTTPResponse> deleteLogbook(@PathVariable("logbookName") String logbookName) {
-    myLogbooksRepo.deleteById(logbookName);
-    return new ResponseEntity<>(new HTTPResponse("Success", "Logbook " + logbookName + " was deleted"), HttpStatus.OK);
-  }
-
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
   @PostMapping(path = { "/logbooks/{logbookName}",
       "/logbooks/{logbookName}/" }, consumes = "application/json", produces = "application/json")
   public ResponseEntity<HTTPResponse> addAnnotation(@CurrentUser UserPrincipal user, @PathVariable String logbookName,
@@ -105,5 +98,23 @@ public class MyLogbookController {
     wsController.sendAnnotationUpdate(savedAnnotations.get(savedAnnotations.size() - 1));
     return new ResponseEntity<>(new HTTPResponse("Success", "Logbook's " + logbookName + " annotation was added"),
         HttpStatus.OK);
+  }
+
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @DeleteMapping(path = { "/logbooks/{logbookName}/{annotationId}", "/logbooks/{logbookName}/{annotationId}/" }, produces = "application/json")
+  public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName, @PathVariable("annotationId") Long annotationId) {
+    MyLogbook myLogbook;
+    if (logbookName.equals("default")) {
+      myLogbook = findDefaultLogbook();
+    } else {
+      Optional<MyLogbook> optLogbook = myLogbooksRepo.findById(logbookName);
+      if (!optLogbook.isPresent()) {
+        return new ResponseEntity<>(new HTTPResponse("Error", "Logbook not found!"), HttpStatus.NOT_FOUND);
+      }
+      myLogbook = optLogbook.get();
+    }
+    myLogbook.deleteAnnotationById(annotationId);
+    myLogbooksRepo.save(myLogbook);
+    return new ResponseEntity<>(new HTTPResponse("Success", "Logbook " + logbookName + " annotation of id " + annotationId + " was deleted"), HttpStatus.OK);
   }
 }

@@ -60,13 +60,10 @@ public class MyLogbook {
 
   public void addAnnotation(MyAnnotation newAnnotation) {
     this.annotations.add(newAnnotation);
+    this.annotations.sort((d1,d2) -> d1.compareTo(d2));
   }
 
   public void deleteAnnotationById(Long annotationId) {
-    for (MyAnnotation annotation : this.annotations) {
-      if (annotationId == annotation.getId()) {
-        annotations.remove(annotation);
-      }
-    }
+    this.annotations.removeIf(ann -> ann.getId() == annotationId);
   }
 }

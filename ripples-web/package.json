@@ -18,6 +18,7 @@
     "add": "^2.0.6",
     "bootstrap": "^4.2.1",
     "chart.js": "^2.7.3",
+    "geolib": "^3.0.4",
     "html-react-parser": "^0.9.1",
     "leaflet": "^1.4.0",
     "leaflet-rotatedmarker": "^0.2.0",
@@ -39,7 +40,6 @@
     "redux": "^4.0.1",
     "redux-starter-kit": "^0.6.1",
     "typescript": "^3.5.2",
-    "geolib": "^3.0.4",
     "yarn": "^1.17.3"
   },
   "scripts": {
@@ -62,6 +62,7 @@
   ],
   "devDependencies": {
     "@types/react-redux": "^7.0.6",
+    "eslint-plugin-react-hooks": "^1.6.1",
     "prettier": "^1.18.2",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",

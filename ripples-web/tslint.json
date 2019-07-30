@@ -2,7 +2,7 @@
     "extends": [
       "tslint:recommended",
       "tslint-react",
-      "tslint-config-prettier"
+      "tslint-config-prettier",
     ],
     "rulesDirectory": [
       "tslint-plugin-prettier"
@@ -14,6 +14,6 @@
       "no-var-requires": false,
       "forin": false,
       "max-classes-per-file": false,
-      "object-literal-sort-keys": false
+      "object-literal-sort-keys": false,
     }
   }

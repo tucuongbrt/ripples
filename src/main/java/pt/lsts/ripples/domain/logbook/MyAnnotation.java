@@ -83,4 +83,8 @@ public class MyAnnotation {
   public void setDate(Date date) {
     this.date = date;
   }
+
+  public int compareTo(MyAnnotation d2) {
+    return date.compareTo(d2.date);
+  }
 }
