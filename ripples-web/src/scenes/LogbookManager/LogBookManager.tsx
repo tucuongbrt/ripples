@@ -3,31 +3,40 @@ import { Button, Container, Form, FormGroup, Input, Label, Table } from 'reactst
 import SimpleNavbar from '../../components/SimpleNavbar'
 import MyLogbook, { ILogbook } from '../../model/MyLogbook'
 import LogbookService from '../../services/LogbookUtils'
+import IAnnotation from '../../model/IAnnotations'
+import './styles/Logbook.css'
+import DateService from '../../services/DateUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
   logbookName: string
   logbooks: ILogbook[]
-  activeLogbook: ILogbook
+  activeLogbookName: string
+  selectedLogbookName: string
+  isLogbookEntriesOpen: boolean
 }
 
-export default class LogbookManager extends Component<{},StateType> {
+export default class LogbookManager extends Component<{}, StateType> {
   private logbookService: LogbookService = new LogbookService()
   public constructor(props: any) {
     super(props)
     this.state = {
       logbookName: '',
       logbooks: [],
-      activeLogbook: new MyLogbook('', Date.now()),
+      activeLogbookName: '',
+      selectedLogbookName: '',
+      isLogbookEntriesOpen: false,
     }
     this.onAddLogbook = this.onAddLogbook.bind(this)
+    this.toggleLogbookTable = this.toggleLogbookTable.bind(this)
   }
 
   async componentDidMount() {
     const data = await this.logbookService.fetchLogbooksInfo()
     this.setState({ logbooks: data })
     if (this.state.logbooks.length > 0) {
-      this.setState({ activeLogbook: this.state.logbooks[0] })
+      const logbookName = this.state.logbooks[0].name
+      this.setState({ activeLogbookName: logbookName, selectedLogbookName: logbookName })
     }
   }
 
@@ -36,7 +45,7 @@ export default class LogbookManager extends Component<{},StateType> {
       <>
         <SimpleNavbar />
         <Container>
-          <Form inline={true}>
+          <Form id="add-logbook-form" inline={true}>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
               <Label for="logbookName" className="mr-sm-2">
                 Logbook Name
@@ -53,44 +62,103 @@ export default class LogbookManager extends Component<{},StateType> {
               Add Logbook
             </Button>
           </Form>
-          <h4>{}</h4>
-          <Table responsive={true}>
-            <thead>
-              <tr>
-                <th>Logbook Name</th>
-                <th>Logbook Creation Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+          {this.state.selectedLogbookName !== '' ? (
+            <>
+              <div id="logbooks-info">
+                <h5>Active Logbook: {this.state.activeLogbookName}</h5>
+                <h5>Selected Logbook: {this.state.selectedLogbookName}</h5>
+              </div>
+              <Table responsive={true}>
+                <thead>
+                  <tr>
+                    <th>Annotation ID</th>
+                    <th>Creation Date</th>
+                    <th>Coordinates</th>
+                    <th>Content</th>
+                  </tr>
+                </thead>
+                <tbody>{this.buildLogbookRows()}</tbody>
+              </Table>
+            </>
+          ) : (
+            <h5>There is currently no logbook available!</h5>
+          )}
+          <Table id="logbook-entries" responsive={true}>
+            {this.state.isLogbookEntriesOpen ? 
+              <>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Logbook Name</th>
+                    <th>Creation Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.buildRows()}
+                </tbody>
+              </>:
+                <thead>
+                  <tr id="open-logs" onClick={this.toggleLogbookTable}>
+                    <th>View oldest logbooks</th>
+                  </tr>
+                </thead>
+             
+            }
           </Table>
-          <Table responsive={true}>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Logbook Name</th>
-                <th>Logbook Creation Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.buildRows()}
-            </tbody>
-          </Table>
+          {this.state.isLogbookEntriesOpen ? 
+            <div id="close-logs-btn">
+              <Button className="m-1" color="info" onClick={this.toggleLogbookTable}>Close Logs</Button>
+            </div>: ''
+            }
         </Container>
       </>
     )
   }
 
+  private toggleLogbookTable() {
+    this.setState({ isLogbookEntriesOpen: !this.state.isLogbookEntriesOpen })
+  }
+
+  private buildLogbookRows() {
+    const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.selectedLogbookName)
+    if (index !== -1) {
+      const annotations = this.state.logbooks[index].annotations.map((ann: IAnnotation, i) => {
+        return (
+          <tr key={ann.id}>
+            <th scope="row">{i}</th>
+            <td>{ann.id}</td>
+            <td>{ann.date}</td>
+            <td>{ann.latitude.toFixed(5)}º {ann.longitude.toFixed(5)}º</td>
+            <td>{ann.content}</td>
+            <td onClick={() => this.onDeleteAnnotation(this.state.activeLogbookName, ann.id)}>
+              <i title={`Delete ${ann.id}`} className="fas fa-trash" />
+            </td>
+          </tr>
+        )
+      })
+      if (annotations.length > 0) {
+        return annotations
+      } else {
+        return (
+          <tr key="info">
+            <th scope="row">No annotations available!</th>
+          </tr>
+        )
+      }
+    }
+  }
+
   private buildRows() {
     return this.state.logbooks.map((lb: ILogbook, i) => {
       return (
-        <tr key={lb.name}>
-          <th scope="row">{i}</th>
+        <tr
+          key={lb.name}
+          className={this.state.selectedLogbookName === lb.name ? 'selectedLogbook' : ''}
+          onClick={() => this.setState({ selectedLogbookName: lb.name })}
+        >
+          <th scope="row">{this.state.logbooks.length - i}</th>
           <td>{lb.name}</td>
-          <td>{lb.creationDate}</td>
-          <td onClick={() => this.onDeleteLogbook(lb.name)}>
-            <i title={`Delete ${lb.name}`} className="fas fa-trash" />
-          </td>
+          <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
         </tr>
       )
     })
@@ -103,35 +171,21 @@ export default class LogbookManager extends Component<{},StateType> {
       return
     }
     try {
-      const newLogbook = new MyLogbook(this.state.logbookName, Date.now()) 
+      const newLogbook = new MyLogbook(this.state.logbookName, Date.now())
       await this.logbookService.addLogbook(newLogbook)
       this.setState({
-        logbooks: [...this.state.logbooks, newLogbook],
-        logbookName: ''
+        logbooks: [newLogbook, ...this.state.logbooks],
+        logbookName: '',
+        activeLogbookName: newLogbook.name,
       })
     } catch (error) {
       NotificationManager.error(error.message)
     }
   }
-  
-  private async onDeleteLogbook(logbookName: string) {
-    const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === logbookName)
-    if (index !== -1) {
-      const logsCopy = JSON.parse(JSON.stringify(this.state.logbooks))
-      logsCopy.splice(index, 1)
-      this.setState({ logbooks: logsCopy })
-      try {
-        const response = await this.logbookService.deleteLogbook(logbookName)
-        NotificationManager.success(response.message)
-      } catch (error) {
-        NotificationManager.error(error.message)
-      }
-    }
-  }
-  
-  private async deleteAnnotation(logbookName: string, annotationId: number) {
+
+  private async onDeleteAnnotation(logbookName: string, annotationId: number) {
     try {
-      const response = await this.logbookService.deleteAnnotation(logbookName, annotationId)
+      const response = await this.logbookService.deleteAnnotation(annotationId,logbookName)
       NotificationManager.success(response.message)
     } catch (error) {
       NotificationManager.error(error.message)
