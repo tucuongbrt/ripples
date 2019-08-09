@@ -13,6 +13,7 @@ interface StateType {
   logbooks: ILogbook[]
   activeLogbookName: string
   selectedLogbookName: string
+  prevSelectedLogbookName: string
   isLogbookEntriesOpen: boolean
 }
 
@@ -25,6 +26,7 @@ export default class LogbookManager extends Component<{}, StateType> {
       logbooks: [],
       activeLogbookName: '',
       selectedLogbookName: '',
+      prevSelectedLogbookName: '',
       isLogbookEntriesOpen: false,
     }
     this.onAddLogbook = this.onAddLogbook.bind(this)
@@ -77,9 +79,8 @@ export default class LogbookManager extends Component<{}, StateType> {
       <>
         <div id="logbooks-info">
           <h5>Active Logbook: {this.state.activeLogbookName}</h5>
-         
+          <h5>Selected Logbook: {this.state.selectedLogbookName}</h5>
         </div>
-        <h5 className="">Selected Logbook: {this.state.selectedLogbookName}</h5>
         {this.logbookHasAnnotations(this.state.selectedLogbookName) ? (
           <Table id="logbook-table" responsive striped>
             <thead>
@@ -90,9 +91,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                 <th className="col-2">Actions</th>
               </tr>
             </thead>
-            <tbody>
-              {this.buildLogbookRows()}
-            </tbody>
+            <tbody>{this.buildLogbookRows()}</tbody>
           </Table>
         ) : (
           <strong className="pl-1">No annotations available!</strong>
@@ -162,7 +161,12 @@ export default class LogbookManager extends Component<{}, StateType> {
         <tr
           key={lb.name}
           className={this.state.selectedLogbookName === lb.name ? 'selectedLogbook' : ''}
-          onClick={() => this.setState({ selectedLogbookName: lb.name })}
+          onClick={() =>
+            this.setState({
+              prevSelectedLogbookName: this.state.selectedLogbookName,
+              selectedLogbookName: lb.name,
+            })
+          }
         >
           <th scope="row">{this.state.logbooks.length - i}</th>
           <td>{lb.name}</td>
@@ -170,7 +174,7 @@ export default class LogbookManager extends Component<{}, StateType> {
           <td>
             <i className="fas fa-download"></i>
           </td>
-          <td onClick={() => this.onDeleteLogbook(lb.name, i)}>
+          <td onClick={() => this.onDeleteLogbook(lb.name)}>
             <i title={`Delete logbook ${lb.name}`} className="fas fa-trash" />
           </td>
         </tr>
@@ -209,8 +213,37 @@ export default class LogbookManager extends Component<{}, StateType> {
     }
   }
 
-  private onDeleteLogbook(logbookName: string, logbookIndex: number) {
-    
+  private async onDeleteLogbook(logbookName: string) {
+    const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === logbookName)
+    if (index === -1) {
+      return
+    }
+    try {
+      const response = await this.logbookService.deleteLogbook(logbookName)
+      if (this.state.logbooks.length > 1) {
+        const logbooksCopy = JSON.parse(JSON.stringify(this.state.logbooks))
+        logbooksCopy.splice(index, 1)
+        if (this.state.activeLogbookName === logbookName || this.state.selectedLogbookName === logbookName) {
+          const nextActiveLogbook = await this.logbookService.fetchLogbook()
+          this.setState({
+            logbooks: logbooksCopy,
+            activeLogbookName: nextActiveLogbook.name,
+            selectedLogbookName: nextActiveLogbook.name,
+          })
+        } else {
+          this.setState({ logbooks: logbooksCopy, selectedLogbookName: this.state.prevSelectedLogbookName })
+        }
+      } else {
+        this.setState({
+          logbooks: [],
+          activeLogbookName: '',
+          selectedLogbookName: '',
+        })
+      }
+      NotificationManager.success(response.message)
+    } catch (error) {
+      NotificationManager.error(error.message)
+    }
   }
 
   private async onDeleteAnnotation(annotationId: number, annotationIndex: number) {
@@ -233,4 +266,3 @@ export default class LogbookManager extends Component<{}, StateType> {
     }
   }
 }
-

@@ -101,6 +101,13 @@ public class MyLogbookController {
   }
 
   @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @DeleteMapping(path = { "/logbooks/{logbookName}", "/logbooks/{logbookName}/" }, produces = "application/json")
+  public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName) {
+    myLogbooksRepo.deleteById(logbookName);
+    return new ResponseEntity<>(new HTTPResponse("Success", "Logbook " + logbookName + " was deleted"), HttpStatus.OK);
+  }
+
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
   @DeleteMapping(path = { "/logbooks/{logbookName}/{annotationId}", "/logbooks/{logbookName}/{annotationId}/" }, produces = "application/json")
   public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName, @PathVariable("annotationId") Long annotationId) {
     MyLogbook myLogbook;

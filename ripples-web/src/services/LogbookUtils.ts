@@ -25,17 +25,17 @@ export default class LogbookService {
     })
   }
 
-  public async addAnnotation(annotationData: INewAnnotation, logbookName: string = 'default') {
+  public async deleteLogbook(logbookName: string) {
     return request({
-      method: 'POST',
-      body: JSON.stringify(annotationData),
+      method: 'DELETE',
       url: `${apiURL}/logbooks/${logbookName}`,
     })
   }
 
-  public async deleteLogbook(logbookName: string) {
+  public async addAnnotation(annotationData: INewAnnotation, logbookName: string = 'default') {
     return request({
-      method: 'DELETE',
+      method: 'POST',
+      body: JSON.stringify(annotationData),
       url: `${apiURL}/logbooks/${logbookName}`,
     })
   }

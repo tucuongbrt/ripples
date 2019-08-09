@@ -2,26 +2,29 @@
   background-color: #ffffa1;
 }
 
+.container {
+  text-align: center;
+}
+
 #add-logbook-form {
   justify-content: center;
   align-items: baseline;
   margin-bottom: 1em;
 }
 
-.container h5 {
-  margin: auto;
-  text-align: center;
+#logbooks-info {
+  display: block;
+  margin: 1.5em 0 0.5em 0;
 }
 
-#logbooks-info {
-  display: flex;
-  justify-content: center;
-  margin: 1.5em 0 1em 0;
+#logbooks-info h5:first-of-type {
+  text-align: center;
+  padding-bottom: 1em;
 }
 
 #logbook-entries-header {
   display: flex;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5em;
   align-items: flex-end;
 }
 
