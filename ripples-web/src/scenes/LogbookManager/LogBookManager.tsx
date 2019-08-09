@@ -46,8 +46,8 @@ export default class LogbookManager extends Component<{}, StateType> {
         <SimpleNavbar />
         <Container>
           <Form id="add-logbook-form" inline={true}>
-            <FormGroup className="mb-2 mr-sm-2 mb-sm-0">
-              <Label for="logbookName" className="mr-sm-2">
+            <FormGroup className="mb-2 mr-2 mb-0">
+              <Label for="logbookName" className="mr-2">
                 Logbook Name
               </Label>
               <Input
@@ -63,63 +63,72 @@ export default class LogbookManager extends Component<{}, StateType> {
             </Button>
           </Form>
           {this.state.selectedLogbookName !== '' ? (
-            <>
-              <div id="logbooks-info">
-                <h5>Active Logbook: {this.state.activeLogbookName}</h5>
-                <h5>Selected Logbook: {this.state.selectedLogbookName}</h5>
-              </div>
-              <Table responsive={true}>
-                <thead>
-                  <tr>
-                    <th>Annotation ID</th>
-                    <th>Creation Date</th>
-                    <th>Coordinates</th>
-                    <th>Content</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>{this.buildLogbookRows()}</tbody>
-              </Table>
-            </>
+            this.buildLogbookTables()
           ) : (
             <h5>There is currently no logbook available!</h5>
-          )}
-          <Table id="logbook-entries" responsive={true}>
-            {this.state.isLogbookEntriesOpen ? (
-              <>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Logbook Name</th>
-                    <th>Creation Date</th>
-                  </tr>
-                </thead>
-                <tbody>{this.buildRows()}</tbody>
-              </>
-            ) : (
-              <thead>
-                <tr id="open-logs" onClick={this.toggleLogbookTable}>
-                  <th>View oldest logbooks</th>
-                </tr>
-              </thead>
-            )}
-          </Table>
-          {this.state.isLogbookEntriesOpen ? (
-            <div id="close-logs-btn">
-              <Button className="m-1" color="info" onClick={this.toggleLogbookTable}>
-                Close Logs
-              </Button>
-            </div>
-          ) : (
-            ''
           )}
         </Container>
       </>
     )
   }
 
-  private toggleLogbookTable() {
-    this.setState({ isLogbookEntriesOpen: !this.state.isLogbookEntriesOpen })
+  private buildLogbookTables() {
+    return (
+      <>
+        <div id="logbooks-info">
+          <h5>Active Logbook: {this.state.activeLogbookName}</h5>
+         
+        </div>
+        <h5 className="">Selected Logbook: {this.state.selectedLogbookName}</h5>
+        {this.logbookHasAnnotations(this.state.selectedLogbookName) ? (
+          <Table id="logbook-table" responsive striped>
+            <thead>
+              <tr className="d-flex">
+                <th className="col-3">Creation Date</th>
+                <th className="col-2">Coordinates</th>
+                <th className="col-5">Content</th>
+                <th className="col-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.buildLogbookRows()}
+            </tbody>
+          </Table>
+        ) : (
+          <strong className="pl-1">No annotations available!</strong>
+        )}
+        <div id="logbook-entries-header">
+          <h5 className="mt-5 mr-2">Logbook entries</h5>
+          {this.state.isLogbookEntriesOpen ? (
+            <Button className="btn btn-secondary btn-sm m-1" onClick={this.toggleLogbookTable}>
+              Close Logs
+            </Button>
+          ) : (
+            <Button className="btn btn-secondary btn-sm m-1" onClick={this.toggleLogbookTable}>
+              Open Logs
+            </Button>
+          )}
+        </div>
+        <Table id="logbook-entries" responsive={true} hover>
+          {this.state.isLogbookEntriesOpen ? (
+            <>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Creation Date</th>
+                  <th>Export as HTML</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>{this.buildRows()}</tbody>
+            </>
+          ) : (
+            <></>
+          )}
+        </Table>
+      </>
+    )
   }
 
   private buildLogbookRows() {
@@ -127,15 +136,14 @@ export default class LogbookManager extends Component<{}, StateType> {
     if (index !== -1) {
       const annotations = this.state.logbooks[index].annotations.map((ann: IAnnotation, i) => {
         return (
-          <tr key={ann.id}>
-            <th scope="row">{ann.id}</th>
-            <td>{DateService.timestampMsToReadableDate(ann.date)}</td>
-            <td>
+          <tr key={ann.id} className="d-flex">
+            <td className="col-3">{DateService.timestampMsToReadableDate(ann.date)}</td>
+            <td className="col-2">
               {ann.latitude.toFixed(5)}º {ann.longitude.toFixed(5)}º
             </td>
-            <td>{ann.content}</td>
-            <td onClick={() => this.onDeleteAnnotation(ann.id,i)}>
-              <i title={`Delete ${ann.id}`} className="fas fa-trash" />
+            <td className="col-5">{ann.content}</td>
+            <td className="col-2" onClick={() => this.onDeleteAnnotation(ann.id, i)}>
+              <i title={`Delete annotation ${ann.id}`} className="fas fa-trash" />
             </td>
           </tr>
         )
@@ -143,11 +151,7 @@ export default class LogbookManager extends Component<{}, StateType> {
       if (annotations.length > 0) {
         return annotations
       } else {
-        return (
-          <tr key="info">
-            <th scope="row">No annotations available!</th>
-          </tr>
-        )
+        return []
       }
     }
   }
@@ -163,9 +167,24 @@ export default class LogbookManager extends Component<{}, StateType> {
           <th scope="row">{this.state.logbooks.length - i}</th>
           <td>{lb.name}</td>
           <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
+          <td>
+            <i className="fas fa-download"></i>
+          </td>
+          <td onClick={() => this.onDeleteLogbook(lb.name, i)}>
+            <i title={`Delete logbook ${lb.name}`} className="fas fa-trash" />
+          </td>
         </tr>
       )
     })
+  }
+
+  private logbookHasAnnotations(logbookName: string) {
+    const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === logbookName)
+    return index !== -1 && this.state.logbooks[index].annotations.length > 0
+  }
+
+  private toggleLogbookTable() {
+    this.setState({ isLogbookEntriesOpen: !this.state.isLogbookEntriesOpen })
   }
 
   private async onAddLogbook() {
@@ -181,12 +200,17 @@ export default class LogbookManager extends Component<{}, StateType> {
         logbooks: [newLogbook, ...this.state.logbooks],
         logbookName: '',
         activeLogbookName: newLogbook.name,
-        selectedLogbookName: newLogbook.name
+        selectedLogbookName: newLogbook.name,
+        isLogbookEntriesOpen: true,
       })
       NotificationManager.success(response.message)
     } catch (error) {
       NotificationManager.error(error.message)
     }
+  }
+
+  private onDeleteLogbook(logbookName: string, logbookIndex: number) {
+    
   }
 
   private async onDeleteAnnotation(annotationId: number, annotationIndex: number) {
@@ -197,11 +221,11 @@ export default class LogbookManager extends Component<{}, StateType> {
     try {
       const response = await this.logbookService.deleteAnnotation(annotationId, this.state.selectedLogbookName)
       const logbookCopy = JSON.parse(JSON.stringify(this.state.logbooks[index]))
-      logbookCopy.annotations.splice(annotationIndex,1)
+      logbookCopy.annotations.splice(annotationIndex, 1)
       const logbooksCopy = JSON.parse(JSON.stringify(this.state.logbooks))
-      logbooksCopy.splice(index,1,logbookCopy)
+      logbooksCopy.splice(index, 1, logbookCopy)
       this.setState({
-        logbooks: logbooksCopy
+        logbooks: logbooksCopy,
       })
       NotificationManager.success(response.message)
     } catch (error) {
@@ -209,3 +233,4 @@ export default class LogbookManager extends Component<{}, StateType> {
     }
   }
 }
+

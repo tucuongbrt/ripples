@@ -4,31 +4,29 @@
 
 #add-logbook-form {
   justify-content: center;
-  margin: auto;
+  align-items: flex-start;
+  margin-bottom: 1em;
 }
 
 #logbooks-info {
   display: flex;
   justify-content: center;
-  margin: 1em 0;
+  margin: 1.5em 0 1em 0;
 }
 
-#logbooks-info :first-child {
-  padding-right: 1em;
-}
-
-#logbooks-info:last-child {
-  padding-left: 1em;
-}
-
-#open-logs {
-  cursor: pointer;
-}
-
-#close-logs-btn {
+#logbook-entries-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 1em;
+  margin-bottom: 0.5rem;
+  align-items: flex-end;
+}
+
+#logbook-table {
+  overflow-wrap: break-word;
+  vertical-align: middle;
+}
+
+@media(max-width: 600px) {
+  label[for="logbookName"] {
+    display: none;
+  }
 }
