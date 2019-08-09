@@ -4,8 +4,13 @@
 
 #add-logbook-form {
   justify-content: center;
-  align-items: flex-start;
+  align-items: baseline;
   margin-bottom: 1em;
+}
+
+.container h5 {
+  margin: auto;
+  text-align: center;
 }
 
 #logbooks-info {
