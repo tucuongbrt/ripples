@@ -29,3 +29,9 @@ export class NewAnnotation implements INewAnnotation {
     this.longitude = location.longitude
   }
 }
+
+export const DefaultAnnotation: INewAnnotation = {
+  content: '',
+  latitude: NaN,
+  longitude: NaN,
+}

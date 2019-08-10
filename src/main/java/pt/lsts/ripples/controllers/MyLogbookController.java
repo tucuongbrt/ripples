@@ -124,4 +124,22 @@ public class MyLogbookController {
     myLogbooksRepo.save(myLogbook);
     return new ResponseEntity<>(new HTTPResponse("Success", "Logbook " + logbookName + " annotation of id " + annotationId + " was deleted"), HttpStatus.OK);
   }
+
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @GetMapping(path = { "/logbooks/{logbookName}/annotations", "/logbooks/{logbookName}/annotations/" }, produces = "application/json")
+  public MyAnnotation getLastAnnotation(@PathVariable String logbookName) {
+    MyLogbook logbook;
+    if (logbookName.equals("default")) {
+      logbook = findDefaultLogbook();
+    } else {
+      Optional<MyLogbook> optLogbook = myLogbooksRepo.findById(logbookName);
+      if (optLogbook.isPresent()) {
+        logbook = optLogbook.get();
+      } else {
+        throw new ResourceNotFoundException("Logbook", "id", logbookName);
+      }
+    }
+    List<MyAnnotation> annotations = logbook.getAnnotations();
+    return annotations.get(annotations.size() - 1);
+  }
 }

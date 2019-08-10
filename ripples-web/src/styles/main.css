@@ -28,3 +28,7 @@
 #addMapBtn {
     margin: 0.5em
 }
+
+i:hover {
+    color: #0000CD;
+}

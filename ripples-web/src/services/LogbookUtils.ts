@@ -17,6 +17,12 @@ export default class LogbookService {
     })
   }
 
+  public async fetchLastAnnotation(logbookName: string = 'default') {
+    return request({
+      url: `${apiURL}/logbooks/${logbookName}/annotations`
+    })
+  }
+
   public async addLogbook(logbook: MyLogbook) {
     return request({
       method: 'POST',

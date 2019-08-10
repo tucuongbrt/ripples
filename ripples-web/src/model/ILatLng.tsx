@@ -11,3 +11,15 @@ export class LatLngFactory {
     }
   }
 }
+
+export function inRange(coordinates: ILatLng): boolean {
+  return latInRange(coordinates.latitude) && longInRange(coordinates.longitude);
+}
+
+export function latInRange(latitude: number): boolean {
+  return isNaN(latitude) || Math.abs(latitude) <= 90
+}
+
+export function longInRange(longitude: number): boolean {
+  return isNaN(longitude) || Math.abs(longitude) <= 180
+}

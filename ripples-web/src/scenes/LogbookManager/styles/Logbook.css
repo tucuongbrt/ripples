@@ -3,7 +3,7 @@
 }
 
 .container {
-  text-align: center;
+  text-align: left;
 }
 
 #add-logbook-form {
@@ -12,13 +12,17 @@
   margin-bottom: 1em;
 }
 
-#logbooks-info {
-  display: block;
+.modal input {
+  margin-bottom: 1em;
+}
+
+#active-logbook, #selected-logbook {
+  display: flex;
   margin: 1.5em 0 0.5em 0;
+  align-items: flex-end;
 }
 
 #logbooks-info h5:first-of-type {
-  text-align: center;
   padding-bottom: 1em;
 }
 
