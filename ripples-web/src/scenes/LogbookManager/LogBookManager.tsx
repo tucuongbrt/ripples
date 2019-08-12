@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ReactDOMServer from 'react-dom/server'
 import {
   Button,
   Container,
@@ -13,7 +14,7 @@ import {
   Table,
 } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
-import IAnnotation, { DefaultAnnotation, INewAnnotation, Annotation } from '../../model/IAnnotations'
+import IAnnotation, { Annotation, DefaultAnnotation, INewAnnotation } from '../../model/IAnnotations'
 import ILatLng, { inRange } from '../../model/ILatLng'
 import MyLogbook, { ILogbook } from '../../model/MyLogbook'
 import DateService from '../../services/DateUtils'
@@ -217,10 +218,16 @@ export default class LogbookManager extends Component<{}, StateType> {
           <td>{lb.name}</td>
           <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
           <td>
-            <i className="fas fa-download" />
+            <a id={`${lb.name}-export-btn`} download={`${lb.name}.html`} href="" onClick={() => this.onExportHtml(lb)}>
+              <i title={`Export logbook ${lb.name}`} className="fas fa-download" />
+            </a>
           </td>
-          <td onClick={() => this.onDeleteLogbook(lb.name)}>
-            <i title={`Delete logbook ${lb.name}`} className="fas fa-trash" />
+          <td>
+            <i
+              title={`Delete logbook ${lb.name}`}
+              className="fas fa-trash"
+              onClick={() => this.onDeleteLogbook(lb.name)}
+            />
           </td>
         </tr>
       )
@@ -514,5 +521,52 @@ export default class LogbookManager extends Component<{}, StateType> {
     } catch (error) {
       NotificationManager.error(error.message)
     }
+  }
+
+  private async onExportHtml(logbook: ILogbook) {
+    const fileName = `${logbook.name}.html`
+    try {
+      const fileContent = this.generateHtml(logbook)
+      const data = new Blob([fileContent], { type: 'text/html' })
+      const url = window.URL.createObjectURL(data)
+      const exportLink = document.getElementById(`${logbook.name}-export-btn`) as HTMLLinkElement
+      if (exportLink) {
+        exportLink.href = url
+        exportLink.click()
+        window.URL.revokeObjectURL(url)
+      }
+      NotificationManager.success(fileName + ' downloaded successfully!')
+    } catch (error) {
+      NotificationManager.error(error.message)
+    }
+  }
+
+  private generateHtml(logbook: ILogbook) {
+    return ReactDOMServer.renderToStaticMarkup(
+      <table>
+        <thead>
+          <tr>
+            <th>Creation Date</th>
+            <th>Coordinates</th>
+            <th>Content</th>
+          </tr>
+        </thead>
+        <tbody>
+          {logbook.annotations.map((ann: IAnnotation) => {
+            return (
+              <tr key={ann.id}>
+                <td>{DateService.timestampMsToReadableDate(ann.date)}</td>
+                <td>
+                  {!ann.latitude || !ann.longitude
+                    ? 'Unavailable'
+                    : ann.latitude.toFixed(5) + 'º ' + ann.longitude.toFixed(5) + 'º'}
+                </td>
+                <td>{ann.content}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+    )
   }
 }
