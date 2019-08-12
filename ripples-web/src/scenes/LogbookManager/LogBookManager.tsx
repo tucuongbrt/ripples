@@ -13,7 +13,7 @@ import {
   Table,
 } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
-import IAnnotation, { DefaultAnnotation, INewAnnotation } from '../../model/IAnnotations'
+import IAnnotation, { DefaultAnnotation, INewAnnotation, Annotation } from '../../model/IAnnotations'
 import ILatLng, { inRange } from '../../model/ILatLng'
 import MyLogbook, { ILogbook } from '../../model/MyLogbook'
 import DateService from '../../services/DateUtils'
@@ -28,8 +28,15 @@ interface StateType {
   selectedLogbookName: string
   prevSelectedLogbookName: string
   isLogbookEntriesOpen: boolean
-  isAddAnnotationModalOpen: boolean
-  currentAnnotation: INewAnnotation
+  isAnnotationModalOpen: boolean
+  newAnnotation: INewAnnotation
+  editAnnotation?: IAnnotation
+  modalType?: ModalType
+}
+
+enum ModalType {
+  ADD_ANNOTATION,
+  EDIT_ANNOTATION,
 }
 
 export default class LogbookManager extends Component<{}, StateType> {
@@ -43,12 +50,14 @@ export default class LogbookManager extends Component<{}, StateType> {
       selectedLogbookName: '',
       prevSelectedLogbookName: '',
       isLogbookEntriesOpen: false,
-      isAddAnnotationModalOpen: false,
-      currentAnnotation: DefaultAnnotation,
+      isAnnotationModalOpen: false,
+      newAnnotation: DefaultAnnotation,
     }
     this.onAddLogbook = this.onAddLogbook.bind(this)
     this.onAddAnnotation = this.onAddAnnotation.bind(this)
-    this.toggleAddAnnotationModal = this.toggleAddAnnotationModal.bind(this)
+    this.onEditAnnotation = this.onEditAnnotation.bind(this)
+    this.enableAddAnnotation = this.enableAddAnnotation.bind(this)
+    this.toggleAnnotationModal = this.toggleAnnotationModal.bind(this)
     this.toggleLogbookTable = this.toggleLogbookTable.bind(this)
   }
 
@@ -98,12 +107,7 @@ export default class LogbookManager extends Component<{}, StateType> {
       <>
         <div id="active-logbook">
           <h5 className="mr-2">Active Logbook: {this.state.activeLogbookName}</h5>
-          <Button
-            id="addAnnotationBtn"
-            className="btn btn-sm m-1"
-            color="primary"
-            onClick={this.toggleAddAnnotationModal}
-          >
+          <Button id="addAnnotationBtn" className="btn btn-sm m-1" color="primary" onClick={this.enableAddAnnotation}>
             Add Annotation
           </Button>
         </div>
@@ -125,7 +129,6 @@ export default class LogbookManager extends Component<{}, StateType> {
         ) : (
           <strong className="pl-1">No annotations available!</strong>
         )}
-        {this.buildAddAnnotationModal()}
         <div id="logbook-entries-header">
           <h5 className="mt-5 mr-2">Logbook entries</h5>
           {this.state.isLogbookEntriesOpen ? (
@@ -156,6 +159,7 @@ export default class LogbookManager extends Component<{}, StateType> {
             <></>
           )}
         </Table>
+        {this.buildAnnotationModal()}
       </>
     )
   }
@@ -173,8 +177,17 @@ export default class LogbookManager extends Component<{}, StateType> {
                 : ann.latitude.toFixed(5) + 'º ' + ann.longitude.toFixed(5) + 'º'}
             </td>
             <td className="col-5">{ann.content}</td>
-            <td className="col-2" onClick={() => this.onDeleteAnnotation(ann.id, i)}>
-              <i title={`Delete annotation ${ann.id}`} className="fas fa-trash" />
+            <td className="col-2">
+              <i
+                title={`Edit annotation ${ann.id}`}
+                className="fas fa-edit mr-2"
+                onClick={() => this.enableEditAnnotation(index, i)}
+              />
+              <i
+                title={`Delete annotation ${ann.id}`}
+                className="fas fa-trash ml-2"
+                onClick={() => this.onDeleteAnnotation(ann.id, i)}
+              />
             </td>
           </tr>
         )
@@ -204,7 +217,7 @@ export default class LogbookManager extends Component<{}, StateType> {
           <td>{lb.name}</td>
           <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
           <td>
-            <i className="fas fa-download"/>
+            <i className="fas fa-download" />
           </td>
           <td onClick={() => this.onDeleteLogbook(lb.name)}>
             <i title={`Delete logbook ${lb.name}`} className="fas fa-trash" />
@@ -214,58 +227,119 @@ export default class LogbookManager extends Component<{}, StateType> {
     })
   }
 
-  private buildAddAnnotationModal() {
+  private buildAnnotationModal() {
     return (
-      <Modal isOpen={this.state.isAddAnnotationModalOpen} toggle={this.toggleAddAnnotationModal}>
-        <ModalHeader toggle={this.toggleAddAnnotationModal}>Add annotation</ModalHeader>
+      <Modal isOpen={this.state.isAnnotationModalOpen} toggle={this.toggleAnnotationModal}>
+        <ModalHeader toggle={this.toggleAnnotationModal}>
+          {this.state.modalType === ModalType.ADD_ANNOTATION ? 'Add annotation' : 'Edit annotation'}
+        </ModalHeader>
         <ModalBody>
-          <Label for="annLatitude">Latitude</Label>
-          <Input
-            id="annLatitude"
-            type="number"
-            placeholder="Set annotation latitude"
-            onChange={evt => this.updateAnnotationLatitude(evt)}
-          />
-          <Label for="annLongitude">Longitude</Label>
-          <Input
-            id="annLongitude"
-            type="number"
-            placeholder="Set annotation longitude"
-            onChange={evt => this.updateAnnotationLongitude(evt)}
-          />
-          <Label for="annContent">Content</Label>
-          <Input
-            id="annContent"
-            type="textarea"
-            placeholder="Set annotation content"
-            onChange={evt => this.updateAnnotationContent(evt)}
-          />
+          {this.state.modalType === ModalType.EDIT_ANNOTATION && this.state.editAnnotation ? (
+            <>
+              <Label for="creationDate">Creation Date: </Label>
+              <h5 id="creationDate">{DateService.timestampMsToReadableDate(this.state.editAnnotation.date)}</h5>
+              <Label for="annLatitude">Latitude</Label>
+              <Input
+                id="annLatitude"
+                type="number"
+                placeholder="Set annotation latitude"
+                value={this.state.editAnnotation.latitude}
+                onChange={evt => this.updateAnnotationLatitude(evt)}
+              />
+              <Label for="annLongitude">Longitude</Label>
+              <Input
+                id="annLongitude"
+                type="number"
+                placeholder="Set annotation longitude"
+                value={this.state.editAnnotation.longitude}
+                onChange={evt => this.updateAnnotationLongitude(evt)}
+              />
+              <Label for="annContent">Content</Label>
+              <Input
+                id="annContent"
+                type="textarea"
+                placeholder="Set annotation content"
+                value={this.state.editAnnotation.content}
+                onChange={evt => this.updateAnnotationContent(evt)}
+              />
+            </>
+          ) : (
+            this.state.modalType === ModalType.ADD_ANNOTATION && (
+              <>
+                <Label for="annLatitude">Latitude</Label>
+                <Input
+                  id="annLatitude"
+                  type="number"
+                  placeholder="Set annotation latitude"
+                  onChange={evt => this.updateAnnotationLatitude(evt)}
+                />
+                <Label for="annLongitude">Longitude</Label>
+                <Input
+                  id="annLongitude"
+                  type="number"
+                  placeholder="Set annotation longitude"
+                  onChange={evt => this.updateAnnotationLongitude(evt)}
+                />
+                <Label for="annContent">Content</Label>
+                <Input
+                  id="annContent"
+                  type="textarea"
+                  placeholder="Set annotation content"
+                  onChange={evt => this.updateAnnotationContent(evt)}
+                />
+              </>
+            )
+          )}
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={this.onAddAnnotation}>
-            Save
-          </Button>
+          {this.state.modalType === ModalType.EDIT_ANNOTATION && this.state.editAnnotation ? (
+            <Button color="primary" onClick={this.onEditAnnotation}>
+              Save changes
+            </Button>
+          ) : (
+            <Button color="primary" onClick={this.onAddAnnotation}>
+              Confirm
+            </Button>
+          )}
         </ModalFooter>
       </Modal>
     )
   }
 
   private updateAnnotationLatitude(evt: any) {
-    const updatedAnnotation = JSON.parse(JSON.stringify(this.state.currentAnnotation))
-    updatedAnnotation.latitude = parseFloat(evt.currentTarget.value)
-    this.setState({ currentAnnotation: updatedAnnotation })
+    if (this.state.modalType === ModalType.ADD_ANNOTATION) {
+      const updatedAnnotation: INewAnnotation = JSON.parse(JSON.stringify(this.state.newAnnotation))
+      updatedAnnotation.latitude = parseFloat(evt.currentTarget.value)
+      this.setState({ newAnnotation: updatedAnnotation })
+    } else if (this.state.modalType === ModalType.EDIT_ANNOTATION) {
+      const updatedAnnotation: IAnnotation = JSON.parse(JSON.stringify(this.state.editAnnotation))
+      updatedAnnotation.latitude = parseFloat(evt.currentTarget.value)
+      this.setState({ editAnnotation: updatedAnnotation })
+    }
   }
 
   private updateAnnotationLongitude(evt: any) {
-    const updatedAnnotation = JSON.parse(JSON.stringify(this.state.currentAnnotation))
-    updatedAnnotation.longitude = parseFloat(evt.currentTarget.value)
-    this.setState({ currentAnnotation: updatedAnnotation })
+    if (this.state.modalType === ModalType.ADD_ANNOTATION) {
+      const updatedAnnotation = JSON.parse(JSON.stringify(this.state.newAnnotation))
+      updatedAnnotation.longitude = parseFloat(evt.currentTarget.value)
+      this.setState({ newAnnotation: updatedAnnotation })
+    } else if (this.state.modalType === ModalType.EDIT_ANNOTATION) {
+      const updatedAnnotation = JSON.parse(JSON.stringify(this.state.editAnnotation))
+      updatedAnnotation.longitude = parseFloat(evt.currentTarget.value)
+      this.setState({ editAnnotation: updatedAnnotation })
+    }
   }
 
   private updateAnnotationContent(evt: any) {
-    const updatedAnnotation = JSON.parse(JSON.stringify(this.state.currentAnnotation))
-    updatedAnnotation.content = evt.currentTarget.value
-    this.setState({ currentAnnotation: updatedAnnotation })
+    if (this.state.modalType === ModalType.ADD_ANNOTATION) {
+      const updatedAnnotation = JSON.parse(JSON.stringify(this.state.newAnnotation))
+      updatedAnnotation.content = evt.currentTarget.value
+      this.setState({ newAnnotation: updatedAnnotation })
+    } else if (this.state.modalType === ModalType.EDIT_ANNOTATION) {
+      const updatedAnnotation = JSON.parse(JSON.stringify(this.state.editAnnotation))
+      updatedAnnotation.content = evt.currentTarget.value
+      this.setState({ editAnnotation: updatedAnnotation })
+    }
   }
 
   private logbookHasAnnotations(logbookName: string) {
@@ -277,8 +351,21 @@ export default class LogbookManager extends Component<{}, StateType> {
     this.setState({ isLogbookEntriesOpen: !this.state.isLogbookEntriesOpen })
   }
 
-  private toggleAddAnnotationModal() {
-    this.setState({ isAddAnnotationModalOpen: !this.state.isAddAnnotationModalOpen })
+  private toggleAnnotationModal() {
+    this.setState({ isAnnotationModalOpen: !this.state.isAnnotationModalOpen })
+  }
+
+  private enableAddAnnotation() {
+    this.toggleAnnotationModal()
+    this.setState({ modalType: ModalType.ADD_ANNOTATION })
+  }
+
+  private enableEditAnnotation(logbookIndex: number, annotationIndex: number) {
+    this.toggleAnnotationModal()
+    this.setState({
+      modalType: ModalType.EDIT_ANNOTATION,
+      editAnnotation: this.state.logbooks[logbookIndex].annotations[annotationIndex],
+    })
   }
 
   private async onAddLogbook() {
@@ -337,10 +424,10 @@ export default class LogbookManager extends Component<{}, StateType> {
   }
 
   private async onAddAnnotation() {
-    this.toggleAddAnnotationModal()
+    this.toggleAnnotationModal()
     const coordinates: ILatLng = {
-      latitude: this.state.currentAnnotation.latitude,
-      longitude: this.state.currentAnnotation.longitude,
+      latitude: this.state.newAnnotation.latitude,
+      longitude: this.state.newAnnotation.longitude,
     }
     const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.activeLogbookName)
     if (index === -1) {
@@ -348,15 +435,15 @@ export default class LogbookManager extends Component<{}, StateType> {
     } else if (!inRange(coordinates)) {
       NotificationManager.error('Coordinates out of range!')
       return
-    } else if (this.state.currentAnnotation.content === '') {
+    } else if (this.state.newAnnotation.content === '') {
       NotificationManager.error('Content cannot be empty!')
       return
     }
     try {
-      const response = await this.logbookService.addAnnotation(this.state.currentAnnotation)
+      const response = await this.logbookService.addAnnotation(this.state.newAnnotation)
       const lastAnnotation = await this.logbookService.fetchLastAnnotation()
       const logbookCopy = JSON.parse(JSON.stringify(this.state.logbooks[index]))
-      const newAnnotation: IAnnotation = Object.assign({}, this.state.currentAnnotation, {
+      const newAnnotation: IAnnotation = Object.assign({}, this.state.newAnnotation, {
         id: lastAnnotation.id,
         username: lastAnnotation.username,
         date: lastAnnotation.date,
@@ -366,7 +453,44 @@ export default class LogbookManager extends Component<{}, StateType> {
       logbooksCopy.splice(index, 1, logbookCopy)
       this.setState({
         logbooks: logbooksCopy,
-        currentAnnotation: DefaultAnnotation,
+        newAnnotation: DefaultAnnotation,
+      })
+      NotificationManager.success(response.message)
+    } catch (error) {
+      NotificationManager.error(error.message)
+    }
+  }
+
+  private async onEditAnnotation() {
+    this.toggleAnnotationModal()
+    const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.selectedLogbookName)
+    if (index === -1 || !this.state.editAnnotation) {
+      return
+    }
+    try {
+      const response = await this.logbookService.editAnnotation(
+        new Annotation(
+          this.state.editAnnotation.id,
+          this.state.editAnnotation.content,
+          this.state.editAnnotation.username,
+          this.state.editAnnotation.date,
+          this.state.editAnnotation.latitude,
+          this.state.editAnnotation.longitude
+        ),
+        this.state.selectedLogbookName
+      )
+      const logbookCopy = JSON.parse(JSON.stringify(this.state.logbooks[index]))
+      const annIndex = logbookCopy.annotations.findIndex(
+        (ann: IAnnotation) => this.state.editAnnotation && ann.id === this.state.editAnnotation.id
+      )
+      logbookCopy.annotations.splice(annIndex, 1,this.state.editAnnotation)
+      const logbooksCopy = JSON.parse(JSON.stringify(this.state.logbooks))
+      logbooksCopy.splice(index, 1, logbookCopy)
+      console.log(this.state.logbooks)
+      console.log(logbooksCopy)
+      this.setState({
+        logbooks: logbooksCopy,
+        editAnnotation: undefined,
       })
       NotificationManager.success(response.message)
     } catch (error) {

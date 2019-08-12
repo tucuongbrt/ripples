@@ -101,6 +101,27 @@ public class MyLogbookController {
   }
 
   @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PostMapping(path = { "/logbooks/{logbookName}/edit",
+      "/logbooks/{logbookName}/edit" }, consumes = "application/json", produces = "application/json")
+  public ResponseEntity<HTTPResponse> editAnnotation(@PathVariable("logbookName") String logbookName,
+      @RequestBody MyAnnotation annotation) {
+    MyLogbook myLogbook;
+    if (logbookName.equals("default")) {
+      myLogbook = findDefaultLogbook();
+    } else {
+      Optional<MyLogbook> optLogbook = myLogbooksRepo.findById(logbookName);
+      if (!optLogbook.isPresent()) {
+        return new ResponseEntity<>(new HTTPResponse("Error", "Logbook not found!"), HttpStatus.NOT_FOUND);
+      }
+      myLogbook = optLogbook.get();
+    }
+    myLogbook.editAnnotation(annotation);
+    myLogbooksRepo.save(myLogbook);
+    return new ResponseEntity<>(new HTTPResponse("Success",
+        "Annotation of id " + annotation.getId() + " of logbook " + logbookName + " was edited"), HttpStatus.OK);
+  }
+
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
   @DeleteMapping(path = { "/logbooks/{logbookName}", "/logbooks/{logbookName}/" }, produces = "application/json")
   public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName) {
     myLogbooksRepo.deleteById(logbookName);
@@ -108,8 +129,10 @@ public class MyLogbookController {
   }
 
   @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
-  @DeleteMapping(path = { "/logbooks/{logbookName}/{annotationId}", "/logbooks/{logbookName}/{annotationId}/" }, produces = "application/json")
-  public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName, @PathVariable("annotationId") Long annotationId) {
+  @DeleteMapping(path = { "/logbooks/{logbookName}/{annotationId}",
+      "/logbooks/{logbookName}/{annotationId}/" }, produces = "application/json")
+  public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName,
+      @PathVariable("annotationId") Long annotationId) {
     MyLogbook myLogbook;
     if (logbookName.equals("default")) {
       myLogbook = findDefaultLogbook();
@@ -122,11 +145,14 @@ public class MyLogbookController {
     }
     myLogbook.deleteAnnotationById(annotationId);
     myLogbooksRepo.save(myLogbook);
-    return new ResponseEntity<>(new HTTPResponse("Success", "Logbook " + logbookName + " annotation of id " + annotationId + " was deleted"), HttpStatus.OK);
+    return new ResponseEntity<>(
+        new HTTPResponse("Success", "Logbook " + logbookName + " annotation of id " + annotationId + " was deleted"),
+        HttpStatus.OK);
   }
 
   @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
-  @GetMapping(path = { "/logbooks/{logbookName}/annotations", "/logbooks/{logbookName}/annotations/" }, produces = "application/json")
+  @GetMapping(path = { "/logbooks/{logbookName}/annotations",
+      "/logbooks/{logbookName}/annotations/" }, produces = "application/json")
   public MyAnnotation getLastAnnotation(@PathVariable String logbookName) {
     MyLogbook logbook;
     if (logbookName.equals("default")) {

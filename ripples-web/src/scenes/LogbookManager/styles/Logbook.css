@@ -16,6 +16,10 @@
   margin-bottom: 1em;
 }
 
+h5#creationDate {
+  margin-bottom: 1em;
+}
+
 #active-logbook, #selected-logbook {
   display: flex;
   margin: 1.5em 0 0.5em 0;
