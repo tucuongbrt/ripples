@@ -356,8 +356,9 @@ export default class LogbookManager extends Component<{}, StateType> {
       const response = await this.logbookService.addAnnotation(this.state.currentAnnotation)
       const lastAnnotation = await this.logbookService.fetchLastAnnotation()
       const logbookCopy = JSON.parse(JSON.stringify(this.state.logbooks[index]))
-      const newAnnotation = Object.assign({}, this.state.currentAnnotation, {
+      const newAnnotation: IAnnotation = Object.assign({}, this.state.currentAnnotation, {
         id: lastAnnotation.id,
+        username: lastAnnotation.username,
         date: lastAnnotation.date,
       })
       logbookCopy.annotations.push(newAnnotation)
