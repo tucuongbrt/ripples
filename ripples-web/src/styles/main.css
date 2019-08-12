@@ -20,8 +20,12 @@
 }
 
 @media only screen and (max-width: 800px) {
-    #nav {
+    #nav, .navbar-nav {
         flex-direction: row;
+        justify-content: center;
+    }
+    #nav + ul {
+        padding-top: 0.5m;
     }
 }
 

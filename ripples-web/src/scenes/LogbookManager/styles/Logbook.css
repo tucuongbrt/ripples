@@ -36,6 +36,12 @@ h5#creationDate {
   align-items: flex-end;
 }
 
+span {
+  display: table;
+  margin: auto;
+  font-weight: bold;
+}
+
 #logbook-table {
   overflow-wrap: break-word;
   vertical-align: middle;

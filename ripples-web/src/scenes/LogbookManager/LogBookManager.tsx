@@ -95,7 +95,7 @@ export default class LogbookManager extends Component<{}, StateType> {
           {this.state.selectedLogbookName !== '' ? (
             this.buildLogbookTables()
           ) : (
-            <strong>There is currently no logbook available!</strong>
+            <span>There is currently no logbook available!</span>
           )}
         </Container>
       </>
@@ -483,11 +483,9 @@ export default class LogbookManager extends Component<{}, StateType> {
       const annIndex = logbookCopy.annotations.findIndex(
         (ann: IAnnotation) => this.state.editAnnotation && ann.id === this.state.editAnnotation.id
       )
-      logbookCopy.annotations.splice(annIndex, 1,this.state.editAnnotation)
+      logbookCopy.annotations.splice(annIndex, 1, this.state.editAnnotation)
       const logbooksCopy = JSON.parse(JSON.stringify(this.state.logbooks))
       logbooksCopy.splice(index, 1, logbookCopy)
-      console.log(this.state.logbooks)
-      console.log(logbooksCopy)
       this.setState({
         logbooks: logbooksCopy,
         editAnnotation: undefined,
