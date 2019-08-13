@@ -4,6 +4,7 @@ import { Circle, Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { PCIcon } from './Icons'
+const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
   setSidePanelContent: (_: any) => void
@@ -18,16 +19,20 @@ class ClientLocation extends Component<PropsType & GeolocatedProps> {
     super(props)
     this.onCurrentLocationClick = this.onCurrentLocationClick.bind(this)
   }
+
   public render() {
     if (this.props.coords) {
       const center = {
         lat: this.props.coords.latitude,
         lng: this.props.coords.longitude,
       }
-      return (
+      return !this.props.isGeolocationAvailable ? (
+        NotificationManager.warning('Your browser does not support Geolocation')
+      ) : !this.props.isGeolocationEnabled ? (
+        NotificationManager.warning('Geolocation is not enabled')
+      ) : (
         <>
           <Marker position={center} onClick={this.onCurrentLocationClick} icon={this.icon} />
-
           <Circle center={center} radius={this.props.coords.accuracy} />
         </>
       )
@@ -57,4 +62,12 @@ const actionCreators = {
 export default connect(
   null,
   actionCreators
-)(geolocated()(ClientLocation))
+)(
+  geolocated({
+    positionOptions: {
+      enableHighAccuracy: true,
+    },
+    userDecisionTimeout: 5000,
+    watchPosition: true,
+  })(ClientLocation)
+)
