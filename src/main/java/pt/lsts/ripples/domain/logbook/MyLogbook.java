@@ -46,6 +46,15 @@ public class MyLogbook {
     return annotations;
   }
 
+  public MyAnnotation getAnnotation(Long id) {
+    for (MyAnnotation ann: this.annotations) {
+      if (ann.getId() == id) {
+        return ann;
+      }
+    }
+    return null;
+  }
+
   public void setAnnotations(List<MyAnnotation> annotations) {
     this.annotations = annotations;
   }
@@ -61,6 +70,15 @@ public class MyLogbook {
   public void addAnnotation(MyAnnotation newAnnotation) {
     this.annotations.add(newAnnotation);
     this.annotations.sort((d1,d2) -> d1.compareTo(d2));
+  }
+
+  public void editAnnotation(MyAnnotation newAnnotation) {
+    MyAnnotation annotation = getAnnotation(newAnnotation.getId());
+    if (annotation != null) {
+      annotation.setLatitude(newAnnotation.getLatitude());
+      annotation.setLongitude(newAnnotation.getLongitude());
+      annotation.setContent(newAnnotation.getContent());
+    }
   }
 
   public void deleteAnnotationById(Long annotationId) {

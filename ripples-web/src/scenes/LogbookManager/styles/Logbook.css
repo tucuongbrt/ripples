@@ -2,31 +2,53 @@
   background-color: #ffffa1;
 }
 
+.container {
+  text-align: left;
+}
+
 #add-logbook-form {
   justify-content: center;
+  align-items: baseline;
   margin-bottom: 1em;
 }
 
-.container h5 {
-  text-align: center;
-  margin-top: 1em;
+.modal input {
   margin-bottom: 1em;
 }
 
-#logbooks-info {
+h5#creationDate {
+  margin-bottom: 1em;
+}
+
+#active-logbook, #selected-logbook {
   display: flex;
-  justify-content: center;
-  margin: 1em 0;
+  margin: 1.5em 0 0.5em 0;
+  align-items: flex-end;
 }
 
-#open-logs {
-  cursor: pointer;
+#logbooks-info h5:first-of-type {
+  padding-bottom: 1em;
 }
 
-#close-logs-btn {
+#logbook-entries-header {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-bottom: 1em;
+  margin-bottom: 0.5em;
+  align-items: flex-end;
+}
+
+span {
+  display: table;
+  margin: auto;
+  font-weight: bold;
+}
+
+#logbook-table {
+  overflow-wrap: break-word;
+  vertical-align: middle;
+}
+
+@media(max-width: 600px) {
+  label[for="logbookName"] {
+    display: none;
+  }
 }

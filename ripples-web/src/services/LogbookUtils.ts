@@ -1,4 +1,5 @@
-import { INewAnnotation } from '../model/IAnnotations'
+
+import { Annotation, INewAnnotation } from '../model/IAnnotations'
 import MyLogbook from '../model/MyLogbook'
 import { request } from './RequestUtils'
 
@@ -17,6 +18,12 @@ export default class LogbookService {
     })
   }
 
+  public async fetchLastAnnotation(logbookName: string = 'default') {
+    return request({
+      url: `${apiURL}/logbooks/${logbookName}/annotations`,
+    })
+  }
+
   public async addLogbook(logbook: MyLogbook) {
     return request({
       method: 'POST',
@@ -25,17 +32,25 @@ export default class LogbookService {
     })
   }
 
-  public async addAnnotation(annotationData: INewAnnotation, logbookName: string = 'default') {
+  public async deleteLogbook(logbookName: string) {
     return request({
-      method: 'POST',
-      body: JSON.stringify(annotationData),
+      method: 'DELETE',
       url: `${apiURL}/logbooks/${logbookName}`,
     })
   }
 
-  public async deleteLogbook(logbookName: string) {
+  public async editAnnotation(annotationData: Annotation, logbookName: string = 'default') {
     return request({
-      method: 'DELETE',
+      method: 'POST',
+      body: JSON.stringify(annotationData),
+      url: `${apiURL}/logbooks/${logbookName}/edit`,
+    })
+  }
+
+  public async addAnnotation(annotationData: INewAnnotation, logbookName: string = 'default') {
+    return request({
+      method: 'POST',
+      body: JSON.stringify(annotationData),
       url: `${apiURL}/logbooks/${logbookName}`,
     })
   }
