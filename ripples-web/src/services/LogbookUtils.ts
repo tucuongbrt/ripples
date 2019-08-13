@@ -1,4 +1,5 @@
-import { INewAnnotation, Annotation } from '../model/IAnnotations'
+
+import { Annotation, INewAnnotation } from '../model/IAnnotations'
 import MyLogbook from '../model/MyLogbook'
 import { request } from './RequestUtils'
 
@@ -19,7 +20,7 @@ export default class LogbookService {
 
   public async fetchLastAnnotation(logbookName: string = 'default') {
     return request({
-      url: `${apiURL}/logbooks/${logbookName}/annotations`
+      url: `${apiURL}/logbooks/${logbookName}/annotations`,
     })
   }
 

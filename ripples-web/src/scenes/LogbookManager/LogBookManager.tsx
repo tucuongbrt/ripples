@@ -11,7 +11,6 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
-  Table,
 } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
 import IAnnotation, { Annotation, DefaultAnnotation, INewAnnotation } from '../../model/IAnnotations'
@@ -19,6 +18,8 @@ import ILatLng, { inRange } from '../../model/ILatLng'
 import MyLogbook, { ILogbook } from '../../model/MyLogbook'
 import DateService from '../../services/DateUtils'
 import LogbookService from '../../services/LogbookUtils'
+import LogbookEntries from './components/LogbookEntries'
+import LogbookTable from './components/LogbookTable'
 import './styles/Logbook.css'
 const { NotificationManager } = require('react-notifications')
 
@@ -55,11 +56,17 @@ export default class LogbookManager extends Component<{}, StateType> {
       newAnnotation: DefaultAnnotation,
     }
     this.onAddLogbook = this.onAddLogbook.bind(this)
+    this.onDeleteLogbook = this.onDeleteLogbook.bind(this)
     this.onAddAnnotation = this.onAddAnnotation.bind(this)
     this.onEditAnnotation = this.onEditAnnotation.bind(this)
+    this.onDeleteAnnotation = this.onDeleteAnnotation.bind(this)
     this.enableAddAnnotation = this.enableAddAnnotation.bind(this)
-    this.toggleAnnotationModal = this.toggleAnnotationModal.bind(this)
+    this.enableEditAnnotation = this.enableEditAnnotation.bind(this)
     this.toggleLogbookTable = this.toggleLogbookTable.bind(this)
+    this.toggleAnnotationModal = this.toggleAnnotationModal.bind(this)
+    this.logbookHasAnnotations = this.logbookHasAnnotations.bind(this)
+    this.savePreviousLogbook = this.savePreviousLogbook.bind(this)
+    this.onExportHtml = this.onExportHtml.bind(this)
   }
 
   public async componentDidMount() {
@@ -94,142 +101,33 @@ export default class LogbookManager extends Component<{}, StateType> {
             </Button>
           </Form>
           {this.state.selectedLogbookName !== '' ? (
-            this.buildLogbookTables()
+            <>
+              <LogbookTable
+                logbooks={this.state.logbooks}
+                activeLogbookName={this.state.activeLogbookName}
+                selectedLogbookName={this.state.selectedLogbookName}
+                logbookHasAnnotations={this.logbookHasAnnotations}
+                enableAddAnnotation={this.enableAddAnnotation}
+                enableEditAnnotation={this.enableEditAnnotation}
+                onDeleteAnnotation={this.onDeleteAnnotation}
+              />
+              {this.buildAnnotationModal()}
+            </>
           ) : (
             <span>There is currently no logbook available!</span>
           )}
+          <LogbookEntries
+            logbooks={this.state.logbooks}
+            selectedLogbookName={this.state.selectedLogbookName}
+            isLogbookEntriesOpen={this.state.isLogbookEntriesOpen}
+            toggleLogbookTable={this.toggleLogbookTable}
+            onDeleteLogbook={this.onDeleteLogbook}
+            savePreviousLogbook={this.savePreviousLogbook}
+            onExportHtml={this.onExportHtml}
+          />
         </Container>
       </>
     )
-  }
-
-  private buildLogbookTables() {
-    return (
-      <>
-        <div id="active-logbook">
-          <h5 className="mr-2">Active Logbook: {this.state.activeLogbookName}</h5>
-          <Button id="addAnnotationBtn" className="btn btn-sm m-1" color="primary" onClick={this.enableAddAnnotation}>
-            Add Annotation
-          </Button>
-        </div>
-        <div id="selected-logbook">
-          <h5>Selected Logbook: {this.state.selectedLogbookName}</h5>
-        </div>
-        {this.logbookHasAnnotations(this.state.selectedLogbookName) ? (
-          <Table id="logbook-table" responsive striped>
-            <thead>
-              <tr className="d-flex">
-                <th className="col-3">Creation Date</th>
-                <th className="col-2">Coordinates</th>
-                <th className="col-5">Content</th>
-                <th className="col-2">Actions</th>
-              </tr>
-            </thead>
-            <tbody>{this.buildAnnotationRows()}</tbody>
-          </Table>
-        ) : (
-          <strong className="pl-1">No annotations available!</strong>
-        )}
-        <div id="logbook-entries-header">
-          <h5 className="mt-5 mr-2">Logbook entries</h5>
-          {this.state.isLogbookEntriesOpen ? (
-            <Button className="btn btn-secondary btn-sm m-1" onClick={this.toggleLogbookTable}>
-              Close Logs
-            </Button>
-          ) : (
-            <Button className="btn btn-sm m-1" color="secondary" onClick={this.toggleLogbookTable}>
-              Open Logs
-            </Button>
-          )}
-        </div>
-        <Table id="logbook-entries" responsive={true} hover>
-          {this.state.isLogbookEntriesOpen ? (
-            <>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Creation Date</th>
-                  <th>Export as HTML</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>{this.buildLogbookRows()}</tbody>
-            </>
-          ) : (
-            <></>
-          )}
-        </Table>
-        {this.buildAnnotationModal()}
-      </>
-    )
-  }
-
-  private buildAnnotationRows() {
-    const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.selectedLogbookName)
-    if (index !== -1) {
-      const annotations = this.state.logbooks[index].annotations.map((ann: IAnnotation, i) => {
-        return (
-          <tr key={ann.id} className="d-flex">
-            <td className="col-3">{DateService.timestampMsToReadableDate(ann.date)}</td>
-            <td className="col-2">
-              {!ann.latitude || !ann.longitude
-                ? 'Unavailable'
-                : ann.latitude.toFixed(5) + 'º ' + ann.longitude.toFixed(5) + 'º'}
-            </td>
-            <td className="col-5">{ann.content}</td>
-            <td className="col-2">
-              <i
-                title={`Edit annotation ${ann.id}`}
-                className="fas fa-edit mr-2"
-                onClick={() => this.enableEditAnnotation(index, i)}
-              />
-              <i
-                title={`Delete annotation ${ann.id}`}
-                className="fas fa-trash ml-2"
-                onClick={() => this.onDeleteAnnotation(ann.id, i)}
-              />
-            </td>
-          </tr>
-        )
-      })
-      if (annotations.length > 0) {
-        return annotations
-      } else {
-        return []
-      }
-    }
-  }
-
-  private buildLogbookRows() {
-    return this.state.logbooks.map((lb: ILogbook, i) => {
-      return (
-        <tr
-          key={lb.name}
-          className={this.state.selectedLogbookName === lb.name ? 'selectedLogbook' : ''}
-          onClick={() =>
-            this.setState({
-              prevSelectedLogbookName: this.state.selectedLogbookName,
-              selectedLogbookName: lb.name,
-            })
-          }
-        >
-          <th scope="row">{this.state.logbooks.length - i}</th>
-          <td>{lb.name}</td>
-          <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
-          <td>
-            <i title={`Export logbook ${lb.name}`} className="fas fa-download" onClick={() => this.onExportHtml(lb)} />
-          </td>
-          <td>
-            <i
-              title={`Delete logbook ${lb.name}`}
-              className="fas fa-trash"
-              onClick={() => this.onDeleteLogbook(lb.name)}
-            />
-          </td>
-        </tr>
-      )
-    })
   }
 
   private buildAnnotationModal() {
@@ -373,6 +271,13 @@ export default class LogbookManager extends Component<{}, StateType> {
     })
   }
 
+  private savePreviousLogbook(logbookName: string) {
+    this.setState({
+      prevSelectedLogbookName: this.state.selectedLogbookName,
+      selectedLogbookName: logbookName,
+    })
+  }
+  
   private async onAddLogbook() {
     const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.logbookName)
     if (index !== -1) {
@@ -521,6 +426,25 @@ export default class LogbookManager extends Component<{}, StateType> {
     }
   }
 
+  private onExportHtml(logbook: ILogbook) {
+    const fileName = `${logbook.name}.html`
+    try {
+      const fileContent = this.generateHtml(logbook)
+      const data = new Blob([fileContent], { type: 'text/html' })
+      const url = window.URL.createObjectURL(data)
+      let link = document.createElement('a')
+      link.setAttribute('download', fileName)
+      link.href = url
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      NotificationManager.success(fileName + ' downloaded successfully!')
+    } catch (error) {
+      NotificationManager.error(error.message)
+    }
+  }
+
   private generateHtml(logbook: ILogbook) {
     return (
       '<!DOCTYPE html>' +
@@ -558,24 +482,5 @@ export default class LogbookManager extends Component<{}, StateType> {
         </html>
       )
     )
-  }
-
-  private onExportHtml(logbook: ILogbook) {
-    const fileName = `${logbook.name}.html`
-    try {
-      const fileContent = this.generateHtml(logbook)
-      const data = new Blob([fileContent], { type: 'text/html' })
-      const url = window.URL.createObjectURL(data)
-      let link = document.createElement('a')
-      link.setAttribute('download', fileName)
-      link.href = url
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-      NotificationManager.success(fileName + ' downloaded successfully!')
-    } catch (error) {
-      NotificationManager.error(error.message)
-    }
   }
 }
