@@ -125,7 +125,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                 <th className="col-2">Actions</th>
               </tr>
             </thead>
-            <tbody>{this.buildLogbookRows()}</tbody>
+            <tbody>{this.buildAnnotationRows()}</tbody>
           </Table>
         ) : (
           <strong className="pl-1">No annotations available!</strong>
@@ -154,7 +154,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>{this.buildRows()}</tbody>
+              <tbody>{this.buildLogbookRows()}</tbody>
             </>
           ) : (
             <></>
@@ -165,7 +165,7 @@ export default class LogbookManager extends Component<{}, StateType> {
     )
   }
 
-  private buildLogbookRows() {
+  private buildAnnotationRows() {
     const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.selectedLogbookName)
     if (index !== -1) {
       const annotations = this.state.logbooks[index].annotations.map((ann: IAnnotation, i) => {
@@ -201,7 +201,7 @@ export default class LogbookManager extends Component<{}, StateType> {
     }
   }
 
-  private buildRows() {
+  private buildLogbookRows() {
     return this.state.logbooks.map((lb: ILogbook, i) => {
       return (
         <tr
@@ -218,9 +218,7 @@ export default class LogbookManager extends Component<{}, StateType> {
           <td>{lb.name}</td>
           <td>{DateService.timestampMsToReadableDate(lb.date)}</td>
           <td>
-            <a id={`${lb.name}-export-btn`} download={`${lb.name}.html`} href="" onClick={() => this.onExportHtml(lb)}>
-              <i title={`Export logbook ${lb.name}`} className="fas fa-download" />
-            </a>
+            <i title={`Export logbook ${lb.name}`} className="fas fa-download" onClick={() => this.onExportHtml(lb)} />
           </td>
           <td>
             <i
@@ -523,50 +521,61 @@ export default class LogbookManager extends Component<{}, StateType> {
     }
   }
 
-  private async onExportHtml(logbook: ILogbook) {
+  private generateHtml(logbook: ILogbook) {
+    return (
+      '<!DOCTYPE html>' +
+      ReactDOMServer.renderToStaticMarkup(
+        <html lang="en">
+          <head>
+            <title>Logbook {logbook.name}</title>
+          </head>
+          <body>
+            <table>
+              <thead>
+                <tr>
+                  <th>Creation Date</th>
+                  <th>Coordinates</th>
+                  <th>Content</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logbook.annotations.map((ann: IAnnotation) => {
+                  return (
+                    <tr key={ann.id}>
+                      <td>{DateService.timestampMsToReadableDate(ann.date)}</td>
+                      <td>
+                        {!ann.latitude || !ann.longitude
+                          ? 'Unavailable'
+                          : ann.latitude.toFixed(5) + 'º ' + ann.longitude.toFixed(5) + 'º'}
+                      </td>
+                      <td>{ann.content}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </body>
+        </html>
+      )
+    )
+  }
+
+  private onExportHtml(logbook: ILogbook) {
     const fileName = `${logbook.name}.html`
     try {
       const fileContent = this.generateHtml(logbook)
       const data = new Blob([fileContent], { type: 'text/html' })
       const url = window.URL.createObjectURL(data)
-      const exportLink = document.getElementById(`${logbook.name}-export-btn`) as HTMLLinkElement
-      if (exportLink) {
-        exportLink.href = url
-        exportLink.click()
-        window.URL.revokeObjectURL(url)
-      }
+      let link = document.createElement('a')
+      link.setAttribute('download', fileName)
+      link.href = url
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
       NotificationManager.success(fileName + ' downloaded successfully!')
     } catch (error) {
       NotificationManager.error(error.message)
     }
-  }
-
-  private generateHtml(logbook: ILogbook) {
-    return ReactDOMServer.renderToStaticMarkup(
-      <table>
-        <thead>
-          <tr>
-            <th>Creation Date</th>
-            <th>Coordinates</th>
-            <th>Content</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logbook.annotations.map((ann: IAnnotation) => {
-            return (
-              <tr key={ann.id}>
-                <td>{DateService.timestampMsToReadableDate(ann.date)}</td>
-                <td>
-                  {!ann.latitude || !ann.longitude
-                    ? 'Unavailable'
-                    : ann.latitude.toFixed(5) + 'º ' + ann.longitude.toFixed(5) + 'º'}
-                </td>
-                <td>{ann.content}</td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
-    )
   }
 }
