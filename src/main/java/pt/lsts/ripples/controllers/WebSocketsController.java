@@ -5,6 +5,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.UserLocation;
 import pt.lsts.ripples.domain.logbook.MyAnnotation;
 import pt.lsts.ripples.domain.wg.AISShip;
 
@@ -33,4 +34,8 @@ public class WebSocketsController {
     public void sendAnnotationUpdate(MyAnnotation annotation) {
         this.template.convertAndSend("/topic/logbook", annotation);
     }
+
+	public void sendUserLocationUpdate(UserLocation location) {
+        this.template.convertAndSend("/topic/users/location", location);
+	}
 }
