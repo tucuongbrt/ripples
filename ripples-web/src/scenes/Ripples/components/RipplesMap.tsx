@@ -1,6 +1,7 @@
 import { LatLngLiteral } from 'leaflet'
 import React, { Component } from 'react'
 import {
+  Circle,
   GeoJSON,
   LayerGroup,
   LayersControl,
@@ -17,6 +18,7 @@ import { Button } from 'reactstrap'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset from '../../../model/IAsset'
+import IAuthState, { IUserLocation } from '../../../model/IAuthState'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap from '../../../model/IMyMap'
 import IPlan, { getPlanKey } from '../../../model/IPlan'
@@ -51,6 +53,7 @@ const { NotificationManager } = require('react-notifications')
 const CanvasLayer = require('react-leaflet-canvas-layer')
 const { BaseLayer, Overlay } = LayersControl
 interface PropsType {
+  auth: IAuthState
   aisLocations: IShipLocation[]
   vehicles: IAsset[]
   spots: IAsset[]
@@ -61,9 +64,11 @@ interface PropsType {
   selectedPlan: IPlan
   selectedWaypointIdx: number
   toolSelected: ToolSelected
+  isGpsActive: boolean
   myMaps: IMyMap[]
   measurePath: ILatLng[]
   annotations: IAnnotation[]
+  usersLocations: IUserLocation[]
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -114,6 +119,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
     this.onMapAnnotationClick = this.onMapAnnotationClick.bind(this)
+    this.onLocationClick = this.onLocationClick.bind(this)
   }
 
   public async componentDidMount() {
@@ -519,9 +525,7 @@ class RipplesMap extends Component<PropsType, StateType> {
               <LayerGroup>{this.buildProfiles()}</LayerGroup>
             </Overlay>
             <Overlay checked={true} name="Current Location">
-              <LayerGroup>
-                <ClientLocation />
-              </LayerGroup>
+              <LayerGroup>{this.buildUsersLocations()}</LayerGroup>
             </Overlay>
             <Overlay checked={true} name="Measure track">
               <LayerGroup>{this.buildMeasureTrack()}</LayerGroup>
@@ -535,6 +539,41 @@ class RipplesMap extends Component<PropsType, StateType> {
         {this.state.activeLegend}
       </>
     )
+  }
+
+  private buildUsersLocations() {
+    return (
+      <>
+        {this.props.isGpsActive ? <ClientLocation onLocationClick={this.onLocationClick} /> : <></>}
+        {this.props.auth.authenticated &&
+          this.props.usersLocations.map((u: IUserLocation) => {
+            const center = {
+              lat: u.latitude,
+              lng: u.longitude,
+            }
+            return (
+              <>
+                <Marker position={center} onClick={() => this.onLocationClick(u)} icon={new PCIcon()} />
+                <Circle center={center} radius={u.accuracy} />
+              </>
+            )
+          })}
+      </>
+    )
+  }
+
+  private onLocationClick(u: IUserLocation) {
+    if (this.props.auth.currentUser.email === u.email) {
+      this.props.setSidePanelTitle('Your Current Location')
+    } else {
+      this.props.setSidePanelTitle(`User's ${u.email} Current Location`)
+    }
+    this.props.setSidePanelContent({
+      Accuracy: u.accuracy + 'm',
+      Latitude: u.latitude.toFixed(5),
+      Longitude: u.longitude.toFixed(5),
+    })
+    this.props.setSidePanelVisibility(true)
   }
 
   private buildAnnotations() {
@@ -661,6 +700,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
 function mapStateToProps(state: IRipplesState) {
   return {
+    auth: state.auth,
     aisLocations: state.assets.aisDrawableLocations,
     aisShips: state.assets.aisShips,
     plans: state.planSet,
@@ -670,9 +710,11 @@ function mapStateToProps(state: IRipplesState) {
     spots: state.assets.spots,
     ccus: state.assets.ccus,
     toolSelected: state.toolSelected,
+    isGpsActive: state.isGpsActive,
     vehicles: state.assets.vehicles,
     measurePath: state.measurePath,
     annotations: state.annotations,
+    usersLocations: state.usersLocations,
   }
 }
 

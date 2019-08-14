@@ -1,7 +1,7 @@
 import { createReducer } from 'redux-starter-kit'
 import IAisShip from '../../model/IAisShip'
 import IAsset from '../../model/IAsset'
-import { noAuth } from '../../model/IAuthState'
+import { isUserEqual, IUserLocation, noAuth } from '../../model/IAuthState'
 import ILatLng from '../../model/ILatLng'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
@@ -34,6 +34,7 @@ import {
   setToolSelected,
   setUser,
   setVehicles,
+  toggleGps,
   togglePlanVisibility,
   unschedulePlan,
   updateAIS,
@@ -41,6 +42,7 @@ import {
   updatePlan,
   updatePlanId,
   updateSpot,
+  updateUserLocation,
   updateVehicle,
   updateWpLocation,
   updateWpTimestamp,
@@ -61,9 +63,11 @@ const startState: IRipplesState = {
   sidePanelTitle: 'Click on something to get info',
   sliderValue: 0,
   toolSelected: ToolSelected.ADD,
+  isGpsActive: false,
   vehicleSelected: '',
   measurePath: [],
   annotations: [],
+  usersLocations: [],
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -261,6 +265,19 @@ const ripplesReducer = createReducer(startState, {
   },
   [addAnnotation.type]: (state, action) => {
     state.annotations.push(action.payload)
+  },
+  [updateUserLocation.type]: (state, action) => {
+    const newUserLocation: IUserLocation = action.payload
+    const oldUserLocation = state.usersLocations.find(u => isUserEqual(u, newUserLocation))
+    if (oldUserLocation) {
+      oldUserLocation.latitude = newUserLocation.latitude
+      oldUserLocation.longitude = newUserLocation.longitude
+    } else {
+      state.usersLocations.push(newUserLocation)
+    }
+  },
+  [toggleGps.type]: (state, _) => {
+    state.isGpsActive = !state.isGpsActive
   },
 })
 

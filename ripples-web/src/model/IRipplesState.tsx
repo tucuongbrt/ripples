@@ -1,7 +1,7 @@
 import IAisShip, { IShipLocation } from './IAisShip'
 import IAnnotation from './IAnnotations'
 import IAsset from './IAsset'
-import IUserState from './IAuthState'
+import IUserState, { IUserLocation } from './IAuthState'
 import ILatLng from './ILatLng'
 import IPlan from './IPlan'
 import IProfile from './IProfile'
@@ -25,12 +25,14 @@ export default interface IRipplesState {
   planSet: IPlan[]
   previousPlanSet: IPlan[]
   toolSelected: ToolSelected
+  isGpsActive: boolean
   vehicleSelected: string
   sidePanelTitle: string
   sidePanelContent: any
   isSidePanelVisible: boolean
   measurePath: ILatLng[]
   annotations: IAnnotation[]
+  usersLocations: IUserLocation[]
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {
