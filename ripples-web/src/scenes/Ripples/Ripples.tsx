@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
-import UserState, { isScientist, IUser } from '../../model/IAuthState'
+import UserState, { isScientist, IUser, IUserLocation } from '../../model/IAuthState'
 import IMyMap from '../../model/IMyMap'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
@@ -30,6 +30,7 @@ import {
   updateCCU,
   updatePlan,
   updateSpot,
+  updateUserLocation,
   updateVehicle,
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
@@ -76,6 +77,7 @@ interface PropsType {
   updatePlan: (p: IPlan) => void
   addAnnotation: (a: IAnnotation) => void
   setAnnotations: (a: IAnnotation[]) => void
+  updateUserLocation: (u: IUserLocation) => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -108,7 +110,8 @@ class Ripples extends Component<PropsType, StateType> {
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.handleWSAssetUpdate = this.handleWSAssetUpdate.bind(this)
     this.handleWSAISUpdate = this.handleWSAISUpdate.bind(this)
-    this.handleAnnotationUpdate = this.handleAnnotationUpdate.bind(this)
+    this.handleWSAnnotationUpdate = this.handleWSAnnotationUpdate.bind(this)
+    this.handleWSUserLocation = this.handleWSUserLocation.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -129,14 +132,15 @@ class Ripples extends Component<PropsType, StateType> {
     this.webSocketsService.subscribeWSUpdates(
       this.handleWSAssetUpdate,
       this.handleWSAISUpdate,
-      this.handleAnnotationUpdate
+      this.handleWSAnnotationUpdate,
+      this.handleWSUserLocation,
     )
     this.setState({ myMaps })
     this.setState({ loading: false })
     this.startUpdates()
   }
 
-  public handleAnnotationUpdate(m: Message) {
+  public handleWSAnnotationUpdate(m: Message) {
     if (m.body) {
       const annotation: IAnnotation = JSON.parse(m.body)
       this.props.addAnnotation(annotation)
@@ -169,6 +173,13 @@ class Ripples extends Component<PropsType, StateType> {
           this.props.updatePlan(plan)
         }
       }
+    }
+  }
+
+  public handleWSUserLocation(m: Message) {
+    if (m.body) {
+      const location: IUserLocation = JSON.parse(m.body)
+      this.props.updateUserLocation(location)
     }
   }
 
@@ -410,6 +421,7 @@ const actionCreators = {
   updateCCU,
   updatePlan,
   updateAIS,
+  updateUserLocation,
 }
 
 export default connect(

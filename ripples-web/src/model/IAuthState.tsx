@@ -35,3 +35,14 @@ export const noAuth: IAuthState = {
   authenticated: false,
   currentUser: noUser,
 }
+
+export interface IUserLocation {
+  email: string
+  latitude: number
+  longitude: number
+  accuracy: number
+}
+
+export function isUserEqual(u1: IUserLocation, u2: IUserLocation) {
+  return u1.email === u2.email
+}
