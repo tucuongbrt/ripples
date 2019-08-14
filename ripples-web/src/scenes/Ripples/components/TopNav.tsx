@@ -32,6 +32,7 @@ import {
   setSidePanelTitle,
   setSidePanelVisibility,
   setToolSelected,
+  toggleGps,
   togglePlanVisibility,
   unschedulePlan,
   updatePlanId,
@@ -43,6 +44,7 @@ interface PropsType {
   plans: IPlan[]
   auth: IAuthState
   toolSelected: ToolSelected
+  isGpsActive: boolean
   selectedPlan: IPlan
   vehicleSelected: string
   handleEditPlan: (_: IPlan) => void
@@ -62,6 +64,7 @@ interface PropsType {
   setSidePanelVisibility: (_: boolean) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
+  toggleGps: () => void
 }
 
 interface StateType {
@@ -115,6 +118,7 @@ class TopNav extends Component<PropsType, StateType> {
     this.onDeletePlan = this.onDeletePlan.bind(this)
     this.onMeasureToggle = this.onMeasureToggle.bind(this)
     this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
+    this.onGpsClick = this.onGpsClick.bind(this)
   }
 
   public onNavToggle() {
@@ -437,6 +441,11 @@ class TopNav extends Component<PropsType, StateType> {
             title="Annotation Tool"
           />
         </NavItem>
+        <NavItem className="mt-auto mb-auto mr-4" active={this.props.isGpsActive} onClick={this.onGpsClick}>
+          <i className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
+           title="Enable Gps Tracking"
+          />
+        </NavItem>
       </>
     )
   }
@@ -478,6 +487,10 @@ class TopNav extends Component<PropsType, StateType> {
     }
     this.props.setSidePanelVisibility(false)
   }
+
+  private onGpsClick() {
+    this.props.toggleGps()
+  }
 }
 
 function mapStateToProps(state: IRipplesState) {
@@ -488,6 +501,7 @@ function mapStateToProps(state: IRipplesState) {
     toolSelected: state.toolSelected,
     vehicleSelected: state.vehicleSelected,
     vehicles: state.assets.vehicles,
+    isGpsActive: state.isGpsActive,
   }
 }
 
@@ -502,6 +516,7 @@ const actionCreators = {
   clearMeasure,
   setSidePanelTitle,
   setSidePanelContent,
+  toggleGps,
 }
 
 export default connect(
