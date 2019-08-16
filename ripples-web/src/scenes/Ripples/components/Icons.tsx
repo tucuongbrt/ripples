@@ -14,6 +14,13 @@ export const PCIcon = L.Icon.extend({
   },
 })
 
+export const MobileIcon = L.Icon.extend({
+  options: {
+    iconSize: [16, 16],
+    iconUrl: 'https://www.freeiconspng.com/uploads/image--mobile-icon--risk-of-rain-wiki--wikia-3.png',
+  },
+})
+
 export const GhostIcon = L.Icon.extend({
   options: {
     iconSize: [24, 24],

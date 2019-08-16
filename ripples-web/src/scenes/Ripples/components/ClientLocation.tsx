@@ -1,16 +1,19 @@
+import MobileDetect from 'mobile-detect'
 import React, { Component } from 'react'
 import { geolocated, GeolocatedProps } from 'react-geolocated'
 import { Circle, Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
-import { IUserLocation } from '../../../model/IAuthState'
+import { IUser, IUserLocation } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { updateUserLocation } from '../../../services/AuthUtils'
-import { PCIcon } from './Icons'
+import { MobileIcon, PCIcon } from './Icons'
 const { NotificationManager } = require('react-notifications')
 
+const onMobile = new MobileDetect(window.navigator.userAgent).mobile()
+
 interface PropsType {
-  authenticatedUserEmail: string
+  authUser: IUser
   setSidePanelContent: (_: any) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelVisibility: (_: boolean) => void
@@ -18,7 +21,7 @@ interface PropsType {
 }
 
 class ClientLocation extends Component<PropsType & GeolocatedProps> {
-  public icon = new PCIcon()
+  public icon = onMobile ? new MobileIcon() : new PCIcon()
   private sendLocationTimer: number = 0
   private SENDER_INTERVAL = 10000 // Send client position every 10 seconds
 
@@ -77,10 +80,12 @@ class ClientLocation extends Component<PropsType & GeolocatedProps> {
   private buildUserLocation() {
     if (this.props.coords) {
       return {
-        email: this.props.authenticatedUserEmail,
+        name: this.props.authUser.name,
+        email: this.props.authUser.email,
         latitude: this.props.coords.latitude,
         longitude: this.props.coords.longitude,
         accuracy: this.props.coords.accuracy,
+        timestamp: new Date(),
       }
     }
   }
@@ -88,7 +93,7 @@ class ClientLocation extends Component<PropsType & GeolocatedProps> {
 
 function mapStateToProps(state: IRipplesState) {
   return {
-    authenticatedUserEmail: state.auth.currentUser.email,
+    authUser: state.auth.currentUser,
   }
 }
 

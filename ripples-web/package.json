@@ -22,6 +22,7 @@
     "html-react-parser": "^0.9.1",
     "leaflet": "^1.4.0",
     "leaflet-rotatedmarker": "^0.2.0",
+    "mobile-detect": "^1.4.3",
     "moment": "^2.24.0",
     "ramda": "^0.26.1",
     "react": "^16.7.0",
