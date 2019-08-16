@@ -267,13 +267,15 @@ const ripplesReducer = createReducer(startState, {
     state.annotations.push(action.payload)
   },
   [updateUserLocation.type]: (state, action) => {
-    const newUserLocation: IUserLocation = action.payload
-    const oldUserLocation = state.usersLocations.find(u => isUserEqual(u, newUserLocation))
-    if (oldUserLocation) {
-      oldUserLocation.latitude = newUserLocation.latitude
-      oldUserLocation.longitude = newUserLocation.longitude
-    } else {
-      state.usersLocations.push(newUserLocation)
+    const newLocation: IUserLocation = action.payload
+    const oldLocation = state.usersLocations.find(u => isUserEqual(u, newLocation))
+    if (oldLocation) {
+      oldLocation.latitude = newLocation.latitude
+      oldLocation.longitude = newLocation.longitude
+      oldLocation.accuracy = newLocation.accuracy
+      oldLocation.timestamp = newLocation.timestamp
+    } else if (newLocation.email !== state.auth.currentUser.email) {
+      state.usersLocations.push(newLocation)
     }
   },
   [toggleGps.type]: (state, _) => {

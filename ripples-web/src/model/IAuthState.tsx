@@ -37,10 +37,12 @@ export const noAuth: IAuthState = {
 }
 
 export interface IUserLocation {
+  name: string
   email: string
   latitude: number
   longitude: number
   accuracy: number
+  timestamp: Date
 }
 
 export function isUserEqual(u1: IUserLocation, u2: IUserLocation) {

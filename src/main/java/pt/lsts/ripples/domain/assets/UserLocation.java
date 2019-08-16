@@ -1,5 +1,7 @@
 package pt.lsts.ripples.domain.assets;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -15,20 +17,26 @@ public class UserLocation {
 
 	@Column(nullable = false)
 	private String email;
-	
+
+	private String name;
+
 	private double latitude;
 
 	private double longitude;
 
 	private double accuracy;
 
+	private Date timestamp;
+
 	public UserLocation() { }
 
-	public UserLocation(String email, double latitude, double longitude, double accuracy) {
+	public UserLocation(String email, String name, double latitude, double longitude, double accuracy, Date timestamp) {
 		this.setEmail(email);
+		this.setName(name);
 		this.setLatitude(latitude);
 		this.setLongitude(longitude);
 		this.setAccuracy(accuracy);
+		this.setTimestamp(timestamp);
 	}
 
 	public String getEmail() {
@@ -37,6 +45,14 @@ public class UserLocation {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public double getLatitude() {
@@ -61,5 +77,13 @@ public class UserLocation {
 
 	public void setAccuracy(double accuracy) {
 		this.accuracy = accuracy;
+	}
+
+	public Date getTimestamp() {
+		return timestamp;
+	}
+
+	private void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
 	}
 }

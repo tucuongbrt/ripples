@@ -54,6 +54,6 @@ public class UserController {
             newLocation = userLocationRepository.save(location);
         }
         wsController.sendUserLocationUpdate(newLocation);
-        return new ResponseEntity<>(new HTTPResponse("Success","Location of user " + user.getEmail() + " updated"), HttpStatus.OK);
+        return new ResponseEntity<>(new HTTPResponse("Success","Location of user " + user.getName() + " updated"), HttpStatus.OK);
     }
 }
