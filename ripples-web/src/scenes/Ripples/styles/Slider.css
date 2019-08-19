@@ -1,7 +1,7 @@
 .slider {
     height: 50px;
     opacity: 0.8;
-    position: fixed;
+    position: absolute;
     bottom: 4em;
     z-index: 999;
     width: 100%;

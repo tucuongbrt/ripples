@@ -1,12 +1,11 @@
 .leaflet-container {
-  height: calc(100vh - 77px);
+  height: calc(100vh - 85px);
   width: 100%;
 }
 
 .navbar {
-  width: 100%;
+  width: 99%;
   padding-bottom: 0.3em;
-  overflow: hidden;
 }
 
 .navbar-collapse {
