@@ -206,19 +206,19 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildProfiles() {
     return this.props.profiles.map((profile, i) => {
-      return <VerticalProfile key={'profile' + i} data={profile} />
+      return <VerticalProfile key={'profile_' + i} data={profile} />
     })
   }
 
   public buildSpots() {
     return this.props.spots.map(spot => {
-      return <SimpleAsset key={spot.imcid} data={spot} icon={new SpotIcon()} />
+      return <SimpleAsset key={'spot_' + spot.imcid} data={spot} icon={new SpotIcon()} />
     })
   }
 
   public buildCcus() {
     return this.props.ccus.map(ccu => {
-      return <SimpleAsset key={ccu.name} data={ccu} icon={new PCIcon()} />
+      return <SimpleAsset key={'ccu_' + ccu.name} data={ccu} icon={new PCIcon()} />
     })
   }
 
@@ -232,7 +232,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     return this.props.vehicles.map(vehicle => {
       return (
         <Vehicle
-          key={vehicle.imcid}
+          key={'vehicle_' + vehicle.imcid}
           data={vehicle}
           currentTime={this.state.currentTime}
           isVehiclesLayerActive={this.state.isVehiclesLayerActive}
@@ -245,7 +245,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     return this.props.aisShips.map(ship => {
       return (
         <AISShip
-          key={'Ship_' + ship.mmsi}
+          key={'ship_' + ship.mmsi}
           currentTime={this.state.currentTime}
           ship={ship}
           isToDrawAISPolygons={this.state.isToDrawAISPolygons}
@@ -566,7 +566,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (this.props.auth.currentUser.email === u.email) {
       this.props.setSidePanelTitle('Your Current Location')
     } else {
-      this.props.setSidePanelTitle(`User's ${u.email} Current Location`)
+      this.props.setSidePanelTitle(`User's ${u.name} Current Location`)
     }
     this.props.setSidePanelContent({
       Latitude: u.latitude.toFixed(5),
@@ -581,7 +581,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     return this.props.annotations.map((a: IAnnotation) => {
       return (
         <Marker
-          key={a.id}
+          key={'annotation_' + a.id}
           position={{ lat: a.latitude, lng: a.longitude }}
           onClick={() => {
             this.props.setSidePanelTitle(`Annotation ${a.id}`)
@@ -601,7 +601,9 @@ class RipplesMap extends Component<PropsType, StateType> {
     const positions = this.props.measurePath.map(p => {
       return { lat: p.latitude, lng: p.longitude }
     })
-    const markers = positions.map((location, i) => <Marker icon={this.blueCircleIcon} key={i} position={location} />)
+    const markers = positions.map((location, i) => (
+      <Marker key={'marker_' + i} icon={this.blueCircleIcon} position={location} />
+    ))
     return (
       <>
         <Polyline positions={positions} />
