@@ -34,7 +34,7 @@ import {
   updateVehicle,
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
-import { getCurrentUser } from '../../services/AuthUtils'
+import { getCurrentUser } from '../../services/UserUtils'
 import DateService from '../../services/DateUtils'
 import KMLService from '../../services/KMLService'
 import LogbookService from '../../services/LogbookUtils'

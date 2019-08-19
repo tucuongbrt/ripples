@@ -42,7 +42,7 @@ export interface IUserLocation {
   latitude: number
   longitude: number
   accuracy: number
-  timestamp: Date
+  timestamp: number
 }
 
 export function isUserEqual(u1: IUserLocation, u2: IUserLocation) {

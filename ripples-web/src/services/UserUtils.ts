@@ -18,3 +18,9 @@ export async function updateUserLocation(location: IUserLocation) {
     url: `${apiURL}/users/location`,
   })
 }
+
+export async function getUserLastLocation() {
+  return request({
+    url: `${apiURL}/users/location/`,
+  })
+}
