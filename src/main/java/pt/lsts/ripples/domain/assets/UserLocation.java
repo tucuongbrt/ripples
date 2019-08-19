@@ -13,7 +13,7 @@ public class UserLocation {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	private Integer imcId;
 
 	@Column(nullable = false)
 	private String email;
@@ -37,6 +37,10 @@ public class UserLocation {
 		this.setLongitude(longitude);
 		this.setAccuracy(accuracy);
 		this.setTimestamp(timestamp);
+	}
+
+	public Integer getImcId() {
+		return imcId;
 	}
 
 	public String getEmail() {
@@ -85,5 +89,12 @@ public class UserLocation {
 
 	private void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public void update(UserLocation newLocation) {
+		this.setLatitude(newLocation.latitude);
+		this.setLongitude(newLocation.longitude);
+		this.setAccuracy(newLocation.accuracy);
+		this.setTimestamp(newLocation.timestamp);
 	}
 }

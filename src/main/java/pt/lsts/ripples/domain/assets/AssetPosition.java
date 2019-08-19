@@ -70,4 +70,10 @@ public class AssetPosition {
     public void setName(String name) {
         this.name = name;
     }
+
+    public void update(UserLocation location) {
+        this.setLat(location.getLatitude());
+        this.setLon(location.getLongitude());
+        this.setTimestamp(location.getTimestamp());
+    }
 }

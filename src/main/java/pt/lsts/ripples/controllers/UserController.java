@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.assets.UserLocation;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.exceptions.ResourceNotFoundException;
+import pt.lsts.ripples.repo.PositionsRepository;
 import pt.lsts.ripples.repo.UserLocationRepository;
 import pt.lsts.ripples.repo.UserRepository;
 import pt.lsts.ripples.security.CurrentUser;
@@ -30,6 +32,9 @@ public class UserController {
     private UserLocationRepository userLocationRepository;
 
     @Autowired
+    private PositionsRepository positionsRepository;
+
+    @Autowired
     private WebSocketsController wsController;
 
     @GetMapping("/user/me")
@@ -39,21 +44,40 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userPrincipal.getId()));
     }
 
-    @PostMapping(path = {"/users/location", "/users/location/"}, consumes="application/json", produces="application/json")
+    @GetMapping(path={"/users/location/", "/users/location/"}, produces="application/json")
+    public UserLocation getUserLastLocation(@CurrentUser UserPrincipal user) {
+        Optional<UserLocation> opt = userLocationRepository.findByEmail(user.getEmail());
+        if (opt.isPresent()) {
+            return opt.get();
+        }
+        throw new ResourceNotFoundException("User location", "e-mail", user.getEmail());
+    }
+
+    @PostMapping(path={"/users/location", "/users/location/"}, consumes="application/json", produces="application/json")
     @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
     public ResponseEntity<HTTPResponse> updateUserLocation(@CurrentUser UserPrincipal user, @RequestBody UserLocation location) {
         UserLocation newLocation;
         Optional<UserLocation> opt = userLocationRepository.findByEmail(user.getEmail());
         if (opt.isPresent()) {
             UserLocation currentLocation = opt.get();
-            currentLocation.setLatitude(location.getLatitude());
-            currentLocation.setLongitude(location.getLongitude());
-            currentLocation.setAccuracy(location.getAccuracy());
+            currentLocation.update(location);
             newLocation = userLocationRepository.save(currentLocation);
         } else {
             newLocation = userLocationRepository.save(location);
         }
+        AssetPosition pos = positionsRepository.findByImcId(newLocation.getImcId());
+        if (pos != null) {
+            pos.update(location);
+        } else {
+            pos = new AssetPosition();
+            pos.setImcId(newLocation.getImcId());
+            pos.setLat(newLocation.getLatitude());
+            pos.setLon(newLocation.getLongitude());
+            pos.setName(newLocation.getName());
+            pos.setTimestamp(newLocation.getTimestamp());
+        }
+        positionsRepository.save(pos);
         wsController.sendUserLocationUpdate(newLocation);
-        return new ResponseEntity<>(new HTTPResponse("Success","Location of user " + user.getName() + " updated"), HttpStatus.OK);
+        return new ResponseEntity<>(new HTTPResponse("Success","Location of user " + user.getEmail() + " updated"), HttpStatus.OK);
     }
 }

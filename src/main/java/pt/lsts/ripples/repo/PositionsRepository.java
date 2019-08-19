@@ -11,6 +11,7 @@ import pt.lsts.ripples.domain.assets.AssetPosition;
 @Repository
 public interface PositionsRepository extends CrudRepository<AssetPosition, Long> {
     List<AssetPosition> findByName(String name);
+    AssetPosition findByImcId(int imcId);
     AssetPosition findTopByImcIdOrderByTimestampDesc(int imcId);
 
     @Query("select distinct pos.name from AssetPosition pos")

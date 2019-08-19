@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 import { IUser, IUserLocation } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
-import { updateUserLocation } from '../../../services/AuthUtils'
+import { getUserLastLocation, updateUserLocation } from '../../../services/UserUtils'
 import { MobileIcon, PCIcon } from './Icons'
 const { NotificationManager } = require('react-notifications')
 
@@ -20,10 +20,20 @@ interface PropsType {
   onLocationClick: (u: IUserLocation) => void
 }
 
-class ClientLocation extends Component<PropsType & GeolocatedProps> {
+interface StateType {
+  lastLocation?: IUserLocation
+}
+
+class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
+
   public icon = onMobile ? new MobileIcon() : new PCIcon()
   private sendLocationTimer: number = 0
   private SENDER_INTERVAL = 10000 // Send client position every 10 seconds
+
+  public constructor(props: PropsType & GeolocatedProps) {
+    super(props)
+    this.state = {}
+  }
 
   public render() {
     if (this.props.coords) {
@@ -40,9 +50,8 @@ class ClientLocation extends Component<PropsType & GeolocatedProps> {
           <Marker
             position={center}
             onClick={() => {
-              const location = this.buildUserLocation()
-              if (location) {
-                this.props.onLocationClick(location)
+              if (this.state.lastLocation) {
+                this.props.onLocationClick(this.state.lastLocation)
               }
             }}
             icon={this.icon}
@@ -55,7 +64,9 @@ class ClientLocation extends Component<PropsType & GeolocatedProps> {
   }
 
   public async componentDidMount() {
+    await this.fetchInitialPos()
     if (!this.sendLocationTimer) {
+      this.sendLocation()
       this.sendLocationTimer = window.setInterval(() => {
         this.sendLocation()
       }, this.SENDER_INTERVAL)
@@ -77,16 +88,31 @@ class ClientLocation extends Component<PropsType & GeolocatedProps> {
     }
   }
 
+  private async fetchInitialPos() {
+    try {
+      const location = await getUserLastLocation()
+      if (location) {
+        this.setState({ lastLocation: location })
+      }
+    } catch(error) {
+      console.log('User does not have a saved position')
+    }
+  }
+
   private buildUserLocation() {
     if (this.props.coords) {
-      return {
+      const location: IUserLocation = {
         name: this.props.authUser.name,
         email: this.props.authUser.email,
         latitude: this.props.coords.latitude,
         longitude: this.props.coords.longitude,
         accuracy: this.props.coords.accuracy,
-        timestamp: new Date(),
+        timestamp: Date.now(),
       }
+      this.setState({
+        lastLocation: location,
+      })
+      return location
     }
   }
 }

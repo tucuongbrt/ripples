@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import pt.lsts.ripples.domain.assets.UserLocation;
 
 @Repository
-public interface UserLocationRepository extends JpaRepository<UserLocation,Long> {
+public interface UserLocationRepository extends JpaRepository<UserLocation,Integer> {
 	public Optional<UserLocation> findByEmail(String email);
 }
