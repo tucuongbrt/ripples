@@ -9,7 +9,7 @@ import logo from '../assets/logo.png'
 export default class TopNavLinks extends Component {
   public render() {
     return (
-      <Nav id="nav" className="mr-auto" navbar={true}>
+      <Nav id="nav" navbar={true}>
         <Link className="navbar-link" to="/">
           <img id="logo" src={logo} alt="logo" />
         </Link>

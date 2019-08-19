@@ -456,9 +456,13 @@ class TopNav extends Component<PropsType, StateType> {
         <NavbarToggler className="mr-2" onClick={this.onNavToggle} />
         <Collapse isOpen={this.state.isNavOpen} navbar={true}>
           <TopNavLinks />
-          <Nav className="ml-auto" navbar={true}>
-            {this.buildPlanEditToolbar()}
-            {this.buildGeneralToolbar()}
+          <Nav navbar={true}>
+            <div id="planEditToolbar">
+              {this.buildPlanEditToolbar()}
+            </div>
+            <div id="generalToolbar">
+              {this.buildGeneralToolbar()}
+            </div>
             <Login />
           </Nav>
         </Collapse>

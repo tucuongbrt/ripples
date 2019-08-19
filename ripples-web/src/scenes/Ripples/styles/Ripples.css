@@ -1,11 +1,16 @@
 .leaflet-container {
-  height: calc(100vh - 83px);
+  height: calc(100vh - 77px);
   width: 100%;
 }
 
 .navbar {
   width: 100%;
   padding-bottom: 0.3em;
+  overflow: hidden;
+}
+
+.navbar-collapse {
+  padding-top: 0.5em;
 }
 
 .chartwrapper {

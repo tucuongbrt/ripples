@@ -2,6 +2,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: auto;
+}
+
+#planEditToolbar, #generalToolbar {
+    display: flex;
 }
 
 .navbar-link {
@@ -26,6 +31,21 @@
     }
     #nav + ul {
         padding-top: 0.5m;
+    }
+}
+
+@media only screen and (max-width: 550px) {
+    #planEditToolbar {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 880px) {
+    .navbar-collapse {
+        flex-direction: column;
+    }
+    #nav, .navbar-nav {
+        margin: 0;
     }
 }
 
