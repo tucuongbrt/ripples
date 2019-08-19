@@ -45,6 +45,7 @@ public class UserController {
     }
 
     @GetMapping(path={"/users/location/", "/users/location/"}, produces="application/json")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
     public UserLocation getUserLastLocation(@CurrentUser UserPrincipal user) {
         Optional<UserLocation> opt = userLocationRepository.findByEmail(user.getEmail());
         if (opt.isPresent()) {
