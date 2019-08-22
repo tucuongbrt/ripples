@@ -5,7 +5,6 @@ import { Circle, Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
 import { IUser, IUserLocation } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
-import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { getUserLastLocation, updateUserLocation } from '../../../services/UserUtils'
 import { MobileIcon, PCIcon } from './Icons'
 const { NotificationManager } = require('react-notifications')
@@ -14,9 +13,6 @@ const onMobile = new MobileDetect(window.navigator.userAgent).mobile()
 
 interface PropsType {
   authUser: IUser
-  setSidePanelContent: (_: any) => void
-  setSidePanelTitle: (_: string) => void
-  setSidePanelVisibility: (_: boolean) => void
   onLocationClick: (u: IUserLocation) => void
 }
 
@@ -123,15 +119,9 @@ function mapStateToProps(state: IRipplesState) {
   }
 }
 
-const actionCreators = {
-  setSidePanelContent,
-  setSidePanelTitle,
-  setSidePanelVisibility,
-}
-
 export default connect(
   mapStateToProps,
-  actionCreators
+  null
 )(
   geolocated({
     positionOptions: {
