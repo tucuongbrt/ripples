@@ -69,6 +69,16 @@ export default class SoiService {
     return { vehicles, spots, plans, ccus }
   }
 
+  public async fetchSoiSettings(assets: IAsset[][]) {
+    assets.forEach((assetType: IAsset[]) => {
+      assetType.forEach((asset: IAsset) => {
+        return request({
+          url:  `${apiURL}/soi/assets/${asset.imcid}/settings`
+        })
+      })
+    })
+  }
+
   public async subscribeToSms(phoneNumber: string) {
     return request({
       body: JSON.stringify({ phoneNumber }),

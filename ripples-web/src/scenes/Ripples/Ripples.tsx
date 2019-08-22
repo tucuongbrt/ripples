@@ -237,7 +237,8 @@ class Ripples extends Component<PropsType, StateType> {
       }
       const soiData = await soiPromise
 
-      const vehicles = soiData.vehicles
+      const { vehicles, spots, ccus } = soiData
+      await this.soiService.fetchSoiSettings([vehicles, spots, ccus ])
       await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
 
       // fetch profiles

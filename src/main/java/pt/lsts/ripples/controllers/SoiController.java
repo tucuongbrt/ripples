@@ -81,6 +81,26 @@ public class SoiController {
 
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
 
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@RequestMapping(path = {"/soi/assets/{imcId}/settings", "/soi/assets/{imcId}/settings"}, method = RequestMethod.GET) 
+	public ResponseEntity<HTTPResponse> fetchSoiSettings(@PathVariable int imcId) throws SendSoiCommandException, AssetNotFoundException {
+		Asset asset = assetsRepo.findByImcid(imcId);
+		if (asset != null) {
+			SoiCommand cmd = new SoiCommand();
+			cmd.setCommand(COMMAND.GET_PARAMS);
+			cmd.setType(TYPE.REQUEST);
+			try {
+				soiInteraction.sendCommand(cmd, asset);
+			} catch (Exception e) {
+				logger.warn(e.getMessage());
+				throw new SendSoiCommandException(e.getMessage());
+			}
+			return new ResponseEntity<>(new HTTPResponse("success", "Settings for " + asset.getName() + " requested."),
+					HttpStatus.OK);
+		}
+		throw new AssetNotFoundException("Asset of imcId " + imcId + " not found");
+	}
+
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
 	public List<Asset> listAssets() {
 		ArrayList<Asset> assets = new ArrayList<>();
