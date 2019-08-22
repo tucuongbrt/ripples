@@ -4,16 +4,20 @@ import { connect } from 'react-redux'
 import Card from 'reactstrap/lib/Card'
 import CardBody from 'reactstrap/lib/CardBody'
 import CardTitle from 'reactstrap/lib/CardTitle'
+import IAsset from '../../../model/IAsset';
 import IRipplesState from '../../../model/IRipplesState'
+import { toggleVehicleModal } from '../../../redux/ripples.actions'
 
 interface PropsType {
   title: string
   content: Map<string, string>
   visibility: boolean
+  authenticated: boolean
+  selectedVehicle?: IAsset
+  toggleVehicleModal: () => void
 }
 
 class SidePanel extends Component<PropsType, {}> {
-
   public buildContent(content: any) {
     const items: JSX.Element[] = []
     for (const key in content) {
@@ -30,14 +34,19 @@ class SidePanel extends Component<PropsType, {}> {
     if (this.props.visibility) {
       const content = this.buildContent(this.props.content)
       return (
-        <Card className="side-panel">
-          <CardBody className="scrollable">
-            <CardTitle>
-              <h4>{this.props.title}</h4>
-            </CardTitle>
-            <div>{content}</div>
-          </CardBody>
-        </Card>
+        <>
+          <Card className="side-panel">
+            <CardBody className="scrollable">
+              <CardTitle>
+                <h4 className="mr-auto">{this.props.title}</h4>
+                {this.props.authenticated && this.props.selectedVehicle && (
+                  <i className="fas fa-cog fa-lg" onClick={this.props.toggleVehicleModal} />
+                )}
+              </CardTitle>
+              <div>{content}</div>
+            </CardBody>
+          </Card>
+        </>
       )
     }
     return <></>
@@ -45,15 +54,21 @@ class SidePanel extends Component<PropsType, {}> {
 }
 
 function mapStateToProps(state: IRipplesState) {
-  const { sidePanelTitle, sidePanelContent, isSidePanelVisible } = state
+  const { sidePanelTitle, sidePanelContent, isSidePanelVisible, auth, editVehicle } = state
   return {
     content: sidePanelContent,
     title: sidePanelTitle,
     visibility: isSidePanelVisible,
+    authenticated: auth.authenticated,
+    selectedVehicle: editVehicle,
   }
+}
+
+const actionCreators = {
+  toggleVehicleModal,
 }
 
 export default connect(
   mapStateToProps,
-  null
+  actionCreators
 )(SidePanel)

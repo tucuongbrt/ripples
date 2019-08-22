@@ -14,7 +14,7 @@ import {
 } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
 import { connect } from 'react-redux'
-import { Button } from 'reactstrap'
+import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset from '../../../model/IAsset'
@@ -30,10 +30,12 @@ import {
   addMeasurePoint,
   addWpToPlan,
   clearMeasure,
+  setEditVehicle,
   setSelectedWaypointIdx,
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  toggleVehicleModal,
   updateWpLocation,
 } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
@@ -48,6 +50,7 @@ import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
+
 const { NotificationManager } = require('react-notifications')
 
 const CanvasLayer = require('react-leaflet-canvas-layer')
@@ -69,6 +72,8 @@ interface PropsType {
   measurePath: ILatLng[]
   annotations: IAnnotation[]
   usersLocations: IUserLocation[]
+  isVehicleModalOpen: boolean
+  editVehicle?: IAsset
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -77,6 +82,8 @@ interface PropsType {
   setSidePanelContent: (_: any) => void
   addMeasurePoint: (_: ILatLng) => void
   clearMeasure: () => void
+  toggleVehicleModal: () => void
+  setEditVehicle: (v: IAsset | undefined) => void
 }
 
 interface StateType {
@@ -505,6 +512,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             {this.buildMyMaps()}
             <Overlay checked={true} name="Vehicles">
               <LayerGroup>{this.buildVehicles()}</LayerGroup>
+              {this.buildEditVehicleModal()}
             </Overlay>
             <Overlay checked={true} name="Plans">
               <LayerGroup>{this.buildPlans()}</LayerGroup>
@@ -699,6 +707,51 @@ class RipplesMap extends Component<PropsType, StateType> {
   private onMapAnnotationClick(location: ILatLng) {
     this.setState({ annotationClickLocation: location })
   }
+
+  private buildEditVehicleModal() {
+    if (!this.props.editVehicle) {
+      return
+    }
+    return (
+      <Modal className="vehicle-modal" isOpen={this.props.isVehicleModalOpen} toggle={this.props.toggleVehicleModal}>
+        <ModalHeader toggle={this.props.toggleVehicleModal}>Edit vehicle settings</ModalHeader>
+        <ModalBody>
+          {this.props.editVehicle.settings.map((param: string[]) => {
+            const key: string = param[0],
+              value: string = param[1]
+            return (
+              <>
+                <Label for={key}>{key}</Label>
+                <Input id={key} type="text" value={value} onChange={(evt: any) => this.updateVehicleParam(evt, key)} />
+              </>
+            )
+          })}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onClick={this.onEditVehicle}>
+            Save changes
+          </Button>
+        </ModalFooter>
+      </Modal>
+    )
+  }
+
+  private updateVehicleParam(evt: any, key: string) {
+    if (!this.props.editVehicle) {
+      return
+    }
+    const editVehicle = JSON.parse(JSON.stringify(this.props.editVehicle))
+    editVehicle.settings.forEach((param: string[]) => {
+      if (param[0] === key) {
+        param[1] = evt.target.value
+      }
+    })
+    this.props.setEditVehicle(editVehicle)
+  }
+
+  private onEditVehicle() {
+  
+  }
 }
 
 function mapStateToProps(state: IRipplesState) {
@@ -718,6 +771,8 @@ function mapStateToProps(state: IRipplesState) {
     measurePath: state.measurePath,
     annotations: state.annotations,
     usersLocations: state.usersLocations,
+    isVehicleModalOpen: state.isVehicleModalOpen,
+    editVehicle: state.editVehicle,
   }
 }
 
@@ -730,6 +785,8 @@ const actionCreators = {
   updateWpLocation,
   addMeasurePoint,
   clearMeasure,
+  toggleVehicleModal,
+  setEditVehicle,
 }
 
 export default connect(

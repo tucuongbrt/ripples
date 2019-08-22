@@ -22,6 +22,7 @@ import {
   setAis,
   setAnnotations,
   setCcus,
+  setEditVehicle,
   setPlanDescription,
   setPlans,
   setProfiles,
@@ -36,6 +37,7 @@ import {
   setVehicles,
   toggleGps,
   togglePlanVisibility,
+  toggleVehicleModal,
   unschedulePlan,
   updateAIS,
   updateCCU,
@@ -68,6 +70,7 @@ const startState: IRipplesState = {
   measurePath: [],
   annotations: [],
   usersLocations: [],
+  isVehicleModalOpen: false,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -280,6 +283,12 @@ const ripplesReducer = createReducer(startState, {
   },
   [toggleGps.type]: (state, _) => {
     state.isGpsActive = !state.isGpsActive
+  },
+  [toggleVehicleModal.type]: (state, _) => {
+    state.isVehicleModalOpen = !state.isVehicleModalOpen
+  },
+  [setEditVehicle.type]: (state, action) => {
+    state.editVehicle = action.payload
   },
 })
 

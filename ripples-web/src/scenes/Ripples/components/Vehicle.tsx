@@ -3,7 +3,12 @@ import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import IAssetAwareness from '../../../model/IAssetAwareness'
 import IRipplesState from '../../../model/IRipplesState'
-import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
+import {
+  setEditVehicle,
+  setSidePanelContent,
+  setSidePanelTitle,
+  setSidePanelVisibility,
+} from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
 import PositionService from '../../../services/PositionUtils'
 import AssetAwareness from './AssetAwareness'
@@ -18,6 +23,7 @@ interface PropsType {
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
+  setEditVehicle: (_: IAsset) => void
 }
 
 class Vehicle extends Component<PropsType, {}> {
@@ -76,6 +82,7 @@ class Vehicle extends Component<PropsType, {}> {
     this.props.setSidePanelTitle(vehicle.name)
     this.props.setSidePanelContent(this.getDisplayableProperties(vehicle))
     this.props.setSidePanelVisibility(true)
+    this.props.setEditVehicle(vehicle)
   }
 
   public buildVehicle() {
@@ -109,6 +116,7 @@ const actionCreators = {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  setEditVehicle,
 }
 
 function mapStateToProps(state: IRipplesState) {

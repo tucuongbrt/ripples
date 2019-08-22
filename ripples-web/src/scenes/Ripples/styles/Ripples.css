@@ -83,6 +83,11 @@ path.leaflet-polygon {
   max-width: 40%;
 }
 
+.side-panel .card-title {
+  display: flex;
+  align-items: baseline;
+}
+
 .side-panel ul {
   padding-left: 1em;
 }
@@ -109,4 +114,9 @@ path.leaflet-polygon {
 
 .selected {
   color: green
+}
+
+.vehicle-modal .modal-body {
+  height: 500px;
+  overflow-y: auto;
 }

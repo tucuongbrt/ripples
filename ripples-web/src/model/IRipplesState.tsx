@@ -33,6 +33,8 @@ export default interface IRipplesState {
   measurePath: ILatLng[]
   annotations: IAnnotation[]
   usersLocations: IUserLocation[]
+  isVehicleModalOpen: boolean
+  editVehicle?: IAsset
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {
