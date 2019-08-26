@@ -726,16 +726,18 @@ class RipplesMap extends Component<PropsType, StateType> {
       <Modal className="vehicle-modal" isOpen={this.props.isVehicleModalOpen} toggle={this.props.toggleVehicleModal}>
         <ModalHeader toggle={this.props.toggleVehicleModal}>Edit vehicle settings</ModalHeader>
         <ModalBody>
-          {this.props.editVehicle.settings.map((param: string[]) => {
-            const key: string = param[0],
-              value: string = param[1]
-            return (
-              <>
-                <Label for={key}>{key}</Label>
-                <Input id={key} type="text" value={value} onChange={(evt: any) => this.updateVehicleParam(evt, key)} />
-              </>
-            )
-          })}
+          <ul>
+            {this.props.editVehicle.settings.map((param: string[]) => {
+              const key: string = param[0],
+                value: string = param[1]
+              return (
+                <li key={key}>
+                  <Label for={key}>{key}</Label>
+                  <Input type="text" value={value} onChange={(evt: any) => this.updateVehicleParam(evt, key)} />
+                </li>
+              )
+            })}
+          </ul>
         </ModalBody>
         <ModalFooter>
           <Button color="primary" onClick={this.onEditVehicle}>
@@ -771,7 +773,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     try {
       const response = await this.soiService.updateSoiSettings(
         this.props.editVehicle.imcid,
-        this.vehicleChangedSettings,
+        this.vehicleChangedSettings
       )
       const vehicleCopy = JSON.parse(JSON.stringify(this.props.vehicles[index]))
       vehicleCopy.settings = [...this.props.editVehicle.settings]
@@ -821,5 +823,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators,
+  actionCreators
 )(RipplesMap)
