@@ -116,7 +116,20 @@ path.leaflet-polygon {
   color: green
 }
 
+.vehicle-modal {
+  width: 75%;
+  margin: .5rem auto;
+  
+}
+
 .vehicle-modal .modal-body {
-  height: 500px;
+  height: 450px;
+  max-height: 530px;
   overflow-y: auto;
+}
+
+.vehicle-modal ul {
+  list-style: none;
+  padding-inline-start: 0.5em;
+  margin-inline-end: 0.5em;
 }
