@@ -3,9 +3,15 @@ import React, { Component } from 'react'
 import { Polygon } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IAisShip from '../../../model/IAisShip'
+import IAsset from '../../../model/IAsset';
 import IAssetAwareness from '../../../model/IAssetAwareness'
 import IRipplesState from '../../../model/IRipplesState'
-import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
+import {
+  setEditVehicle,
+  setSidePanelContent,
+  setSidePanelTitle,
+  setSidePanelVisibility,
+} from '../../../redux/ripples.actions'
 import AISService from '../../../services/AISUtils'
 import DateService from '../../../services/DateUtils'
 import AssetAwareness from './AssetAwareness'
@@ -21,6 +27,7 @@ interface PropsType {
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
+  setEditVehicle: (v: IAsset | undefined) => void
 }
 
 class AISShip extends Component<PropsType, {}> {
@@ -90,10 +97,10 @@ class AISShip extends Component<PropsType, {}> {
 
   public onShipClick(evt: any, ship: IAisShip) {
     evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-
     this.props.setSidePanelTitle(ship.name)
     this.props.setSidePanelContent(this.getDisplayableProperties(ship))
     this.props.setSidePanelVisibility(true)
+    this.props.setEditVehicle(undefined)
   }
 
   public buildAisShipPolygon() {
@@ -147,6 +154,7 @@ const actionCreators = {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  setEditVehicle,
 }
 
 function mapStateToProps(state: IRipplesState) {

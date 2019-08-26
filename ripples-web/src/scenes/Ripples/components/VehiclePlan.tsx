@@ -5,12 +5,13 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Marker, Polyline, Popup } from 'react-leaflet'
 import { connect } from 'react-redux'
+import IAsset from '../../../model/IAsset';
 import IPosHeadingAtTime from '../../../model/ILatLngHead'
 import IPlan from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
-import { deleteWp, setSelectedWaypointIdx, updateWpTimestamp } from '../../../redux/ripples.actions'
+import { deleteWp, setEditVehicle, setSelectedWaypointIdx, updateWpTimestamp } from '../../../redux/ripples.actions'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
 import { WaypointIcon } from './Icons'
@@ -28,6 +29,7 @@ interface PropsType {
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
+  setEditVehicle: (v: IAsset | undefined) => void
 }
 
 interface StateType {
@@ -80,6 +82,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
     this.props.setSidePanelTitle(`Waypoint ${markerIdx} of ${this.props.plan.id}`)
     this.props.setSidePanelContent(this.getWaypointSidePanelProperties(this.props.plan.waypoints[markerIdx]))
     this.props.setSidePanelVisibility(true)
+    this.props.setEditVehicle(undefined)
   }
 
   public getWaypointSidePanelProperties(wp: IPositionAtTime) {
@@ -214,6 +217,7 @@ const actionCreators = {
   setSidePanelTitle,
   setSidePanelVisibility,
   updateWpTimestamp,
+  setEditVehicle,
 }
 
 export default connect(

@@ -2,7 +2,12 @@ import React, { Component } from 'react'
 import { Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
-import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
+import {
+  setEditVehicle,
+  setSidePanelContent,
+  setSidePanelTitle,
+  setSidePanelVisibility,
+} from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
 import PositionService from '../../../services/PositionUtils'
 
@@ -12,6 +17,7 @@ interface PropsType {
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
+  setEditVehicle: (v: IAsset | undefined) => void
 }
 
 /**
@@ -41,6 +47,7 @@ class SimpleAsset extends Component<PropsType, {}> {
       Lng: asset.lastState.longitude.toFixed(5),
     })
     this.props.setSidePanelVisibility(true)
+    this.props.setEditVehicle(undefined)
   }
 }
 
@@ -48,6 +55,7 @@ const actionCreators = {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  setEditVehicle,
 }
 
 export default connect(

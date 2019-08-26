@@ -27,6 +27,7 @@ import { ToolSelected } from '../../../model/ToolSelected'
 import {
   clearMeasure,
   selectVehicle,
+  setEditVehicle,
   setPlanDescription,
   setSidePanelContent,
   setSidePanelTitle,
@@ -65,6 +66,7 @@ interface PropsType {
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
   toggleGps: () => void
+  setEditVehicle: (v: IAsset | undefined) => void
 }
 
 interface StateType {
@@ -480,6 +482,7 @@ class TopNav extends Component<PropsType, StateType> {
       this.props.setSidePanelVisibility(true)
       this.props.setSidePanelTitle('Measure distance')
       this.props.setSidePanelContent({})
+      this.props.setEditVehicle(undefined)
     }
   }
 
@@ -521,6 +524,7 @@ const actionCreators = {
   setSidePanelTitle,
   setSidePanelContent,
   toggleGps,
+  setEditVehicle,
 }
 
 export default connect(

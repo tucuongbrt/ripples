@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import Card from 'reactstrap/lib/Card'
 import CardBody from 'reactstrap/lib/CardBody'
 import CardTitle from 'reactstrap/lib/CardTitle'
-import IAsset from '../../../model/IAsset';
+import IAsset from '../../../model/IAsset'
 import IRipplesState from '../../../model/IRipplesState'
 import { toggleVehicleModal } from '../../../redux/ripples.actions'
 
@@ -70,5 +70,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(SidePanel)
