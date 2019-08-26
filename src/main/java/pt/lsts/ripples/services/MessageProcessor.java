@@ -251,21 +251,22 @@ public class MessageProcessor {
             logger.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
             break;
         }
-
     }
 
     private void onNewAssetParams(SoiCommand cmd) {
+        AssetParams params;
         if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
             Asset vehicle = assets.findByImcid(cmd.getSrc());
             LinkedHashMap<String, String> cmdSettings = cmd.getSettings();
             Optional<AssetParams> optionalAssetParams = assetParamsRepo.findById(vehicle.getName());
             if (!optionalAssetParams.isPresent()) {
-                assetParamsRepo.save(new AssetParams(vehicle.getName(), cmdSettings));
+                params = assetParamsRepo.save(new AssetParams(vehicle.getName(), cmdSettings));
             } else {
                 AssetParams paramsInDb = optionalAssetParams.get();
                 paramsInDb.addParams(cmdSettings);
-                assetParamsRepo.save(paramsInDb);
+                params = assetParamsRepo.save(paramsInDb);
             }
+            wsController.sendAssetParamsUpdateFromServerToClients(params);
         }
     }
 

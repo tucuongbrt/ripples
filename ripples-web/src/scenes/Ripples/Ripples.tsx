@@ -10,6 +10,7 @@ import IMyMap from '../../model/IMyMap'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
 import IRipplesState from '../../model/IRipplesState'
+import IVehicleParams from '../../model/IVehicleParams'
 import { ILogbook } from '../../model/MyLogbook'
 import {
   addAnnotation,
@@ -34,11 +35,11 @@ import {
   updateVehicle,
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
-import { getCurrentUser } from '../../services/UserUtils'
 import DateService from '../../services/DateUtils'
 import KMLService from '../../services/KMLService'
 import LogbookService from '../../services/LogbookUtils'
 import SoiService from '../../services/SoiUtils'
+import { getCurrentUser } from '../../services/UserUtils'
 import WSService from '../../services/WebSocketService'
 import RipplesMap from './components/RipplesMap'
 import SidePanel from './components/SidePanel'
@@ -57,6 +58,7 @@ interface PropsType {
   selectedPlan: IPlan
   sliderValue: number
   auth: UserState
+  vehicles: IAsset[]
   vehicleSelected: string
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
@@ -108,10 +110,11 @@ class Ripples extends Component<PropsType, StateType> {
     this.updateSoiData = this.updateSoiData.bind(this)
     this.updateAISData = this.updateAISData.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
-    this.handleWSAssetUpdate = this.handleWSAssetUpdate.bind(this)
-    this.handleWSAISUpdate = this.handleWSAISUpdate.bind(this)
-    this.handleWSAnnotationUpdate = this.handleWSAnnotationUpdate.bind(this)
-    this.handleWSUserLocation = this.handleWSUserLocation.bind(this)
+    this.handleWsAssetUpdate = this.handleWsAssetUpdate.bind(this)
+    this.handleWsAISUpdate = this.handleWsAISUpdate.bind(this)
+    this.handleWsAnnotationUpdate = this.handleWsAnnotationUpdate.bind(this)
+    this.handleWsUserLocation = this.handleWsUserLocation.bind(this)
+    this.handleWsVehicleParams = this.handleWsVehicleParams.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -130,24 +133,25 @@ class Ripples extends Component<PropsType, StateType> {
 
     this.webSocketsService.createWSClient()
     this.webSocketsService.subscribeWSUpdates(
-      this.handleWSAssetUpdate,
-      this.handleWSAISUpdate,
-      this.handleWSAnnotationUpdate,
-      this.handleWSUserLocation,
+      this.handleWsAssetUpdate,
+      this.handleWsAISUpdate,
+      this.handleWsAnnotationUpdate,
+      this.handleWsUserLocation,
+      this.handleWsVehicleParams,
     )
     this.setState({ myMaps })
     this.setState({ loading: false })
     this.startUpdates()
   }
 
-  public handleWSAnnotationUpdate(m: Message) {
+  public handleWsAnnotationUpdate(m: Message) {
     if (m.body) {
       const annotation: IAnnotation = JSON.parse(m.body)
       this.props.addAnnotation(annotation)
     }
   }
 
-  public handleWSAISUpdate(m: Message) {
+  public handleWsAISUpdate(m: Message) {
     if (m.body) {
       const aisShipPayload: IAisShip = JSON.parse(m.body)
       const aisShip = this.aisService.convertAISToRipples(aisShipPayload)
@@ -155,7 +159,7 @@ class Ripples extends Component<PropsType, StateType> {
     }
   }
 
-  public handleWSAssetUpdate(m: Message) {
+  public handleWsAssetUpdate(m: Message) {
     if (m.body) {
       const newSystem: IAssetPayload = JSON.parse(m.body)
       const system: IAsset = this.soiService.convertAssetPayloadToAsset(newSystem)
@@ -176,10 +180,23 @@ class Ripples extends Component<PropsType, StateType> {
     }
   }
 
-  public handleWSUserLocation(m: Message) {
+  public handleWsUserLocation(m: Message) {
     if (m.body) {
       const location: IUserLocation = JSON.parse(m.body)
       this.props.updateUserLocation(location)
+    }
+  }
+
+  public handleWsVehicleParams(m: Message) {
+    if (m.body) {
+      const vehicleParams: IVehicleParams = JSON.parse(m.body)
+      const index = this.props.vehicles.findIndex((v: IAsset) => v.name === vehicleParams.name)
+      if (index === -1) {
+        return
+      }
+      const vehicleCopy = JSON.parse(JSON.stringify(this.props.vehicles[index]))
+      vehicleCopy.settings = Object.entries(vehicleParams.params)
+      this.props.updateVehicle(vehicleCopy)
     }
   }
 
@@ -238,7 +255,7 @@ class Ripples extends Component<PropsType, StateType> {
       const soiData = await soiPromise
 
       const { vehicles, spots, ccus } = soiData
-      await this.soiService.fetchSoiSettings([vehicles, spots, ccus ])
+      await this.soiService.fetchSoiSettings([vehicles, spots, ccus])
       await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
 
       // fetch profiles
@@ -398,6 +415,7 @@ function mapStateToProps(state: IRipplesState) {
     plans: state.planSet,
     selectedPlan: state.selectedPlan,
     sliderValue: state.sliderValue,
+    vehicles: state.assets.vehicles,
     vehicleSelected: state.vehicleSelected,
   }
 }
