@@ -32,3 +32,7 @@ export interface IAssetPayload {
   settings: string[][]
   awareness: IPositionAtTime[]
 }
+
+export function isSameAsset(asset1: IAsset, asset2: IAsset) {
+  return asset1.imcid === asset2.imcid
+}

@@ -5,7 +5,7 @@ import {
   GeoJSON,
   LayerGroup,
   LayersControl,
-  Map,
+  Map as LeafletMap,
   Marker,
   Polyline,
   Popup,
@@ -17,7 +17,7 @@ import { connect } from 'react-redux'
 import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
-import IAsset from '../../../model/IAsset'
+import IAsset, { isSameAsset } from '../../../model/IAsset'
 import IAuthState, { IUserLocation } from '../../../model/IAuthState'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap from '../../../model/IMyMap'
@@ -36,12 +36,14 @@ import {
   setSidePanelTitle,
   setSidePanelVisibility,
   toggleVehicleModal,
+  updateVehicle,
   updateWpLocation,
 } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
 import LogbookService from '../../../services/LogbookUtils'
 import MapUtils from '../../../services/MapUtils'
 import PositionService from '../../../services/PositionUtils'
+import SoiService from '../../../services/SoiUtils'
 import AISCanvas from './AISCanvas'
 import AISShip from './AISShip'
 import ClientLocation from './ClientLocation'
@@ -84,6 +86,7 @@ interface PropsType {
   clearMeasure: () => void
   toggleVehicleModal: () => void
   setEditVehicle: (v: IAsset | undefined) => void
+  updateVehicle: (v: IAsset) => void
 }
 
 interface StateType {
@@ -106,6 +109,8 @@ class RipplesMap extends Component<PropsType, StateType> {
   private blueCircleIcon = new BlueCircleIcon()
   private logBookService = new LogbookService()
   private newAnnotationPopupRef: React.RefObject<Popup> = React.createRef()
+  private vehicleChangedSettings: Map<string, string> = new Map()
+  private soiService = new SoiService()
 
   constructor(props: PropsType) {
     super(props)
@@ -127,6 +132,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
     this.onMapAnnotationClick = this.onMapAnnotationClick.bind(this)
     this.onLocationClick = this.onLocationClick.bind(this)
+    this.onEditVehicle = this.onEditVehicle.bind(this)
   }
 
   public async componentDidMount() {
@@ -201,6 +207,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                     this.props.setSidePanelTitle(feature.properties.name)
                     this.props.setSidePanelContent(this.getGeoJSONSidePanelProperties(feature.properties))
                     this.props.setSidePanelVisibility(true)
+                    this.props.setEditVehicle(undefined)
                   })
                 }
               }}
@@ -304,7 +311,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   public render() {
     return (
       <>
-        <Map
+        <LeafletMap
           fullscreenControl={true}
           center={this.state.initCoords}
           zoom={this.initZoom}
@@ -543,7 +550,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             </Overlay>
           </LayersControl>
           {this.buildNewAnnotationMarker()}
-        </Map>
+        </LeafletMap>
         {this.state.activeLegend}
       </>
     )
@@ -583,6 +590,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       Timestamp: DateService.timestampMsToReadableDate(u.timestamp),
     })
     this.props.setSidePanelVisibility(true)
+    this.props.setEditVehicle(undefined)
   }
 
   private buildAnnotations() {
@@ -599,6 +607,7 @@ class RipplesMap extends Component<PropsType, StateType> {
               content: a.content,
             })
             this.props.setSidePanelVisibility(true)
+            this.props.setEditVehicle(undefined)
           }}
         />
       )
@@ -637,6 +646,7 @@ class RipplesMap extends Component<PropsType, StateType> {
         length: `${distance} m`,
       })
     }
+    this.props.setEditVehicle(undefined)
   }
 
   private onMapAddClick(clickLocation: ILatLng) {
@@ -740,17 +750,36 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (!this.props.editVehicle) {
       return
     }
+    const newValue = evt.target.value
     const editVehicle = JSON.parse(JSON.stringify(this.props.editVehicle))
     editVehicle.settings.forEach((param: string[]) => {
       if (param[0] === key) {
-        param[1] = evt.target.value
+        param[1] = newValue
       }
     })
     this.props.setEditVehicle(editVehicle)
+    this.vehicleChangedSettings.set(key, newValue)
   }
 
-  private onEditVehicle() {
-  
+  private async onEditVehicle() {
+    const index = this.props.vehicles.findIndex(
+      (v: IAsset) => this.props.editVehicle && isSameAsset(v, this.props.editVehicle)
+    )
+    if (index === -1 || !this.props.editVehicle) {
+      return
+    }
+    try {
+      const response = await this.soiService.updateSoiSettings(
+        this.props.editVehicle.imcid,
+        this.vehicleChangedSettings,
+      )
+      const vehicleCopy = JSON.parse(JSON.stringify(this.props.vehicles[index]))
+      vehicleCopy.settings = [...this.props.editVehicle.settings]
+      this.props.updateVehicle(vehicleCopy)
+      NotificationManager.success(response.message)
+    } catch (error) {
+      NotificationManager.error(error.message)
+    }
   }
 }
 
@@ -787,9 +816,10 @@ const actionCreators = {
   clearMeasure,
   toggleVehicleModal,
   setEditVehicle,
+  updateVehicle,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(RipplesMap)

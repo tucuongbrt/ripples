@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,29 +78,9 @@ public class SoiController {
 	AssetsErrorsRepository assetsErrorsRepository;
 
 	@Autowired
-    WebSocketsController wsController;
+	WebSocketsController wsController;
 
 	private static Logger logger = LoggerFactory.getLogger(SoiController.class);
-
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
-	@RequestMapping(path = {"/soi/assets/{imcId}/settings", "/soi/assets/{imcId}/settings"}, method = RequestMethod.GET) 
-	public ResponseEntity<HTTPResponse> fetchSoiSettings(@PathVariable int imcId) throws SendSoiCommandException, AssetNotFoundException {
-		Asset asset = assetsRepo.findByImcid(imcId);
-		if (asset != null) {
-			SoiCommand cmd = new SoiCommand();
-			cmd.setCommand(COMMAND.GET_PARAMS);
-			cmd.setType(TYPE.REQUEST);
-			try {
-				soiInteraction.sendCommand(cmd, asset);
-			} catch (Exception e) {
-				logger.warn(e.getMessage());
-				throw new SendSoiCommandException(e.getMessage());
-			}
-			return new ResponseEntity<>(new HTTPResponse("success", "Settings for " + asset.getName() + " requested."),
-					HttpStatus.OK);
-		}
-		throw new AssetNotFoundException("Asset of imcId " + imcId + " not found");
-	}
 
 	@RequestMapping(path = { "/soi/", "/soi" }, method = RequestMethod.GET)
 	public List<Asset> listAssets() {
@@ -142,6 +123,7 @@ public class SoiController {
 
 	/**
 	 * To be used by neptus to update assets in real time
+	 * 
 	 * @param asset
 	 * @return
 	 */
@@ -149,8 +131,9 @@ public class SoiController {
 	public ResponseEntity<HTTPResponse> updateAssets(@RequestBody ArrayList<Asset> assets) {
 		assets.forEach(asset -> {
 			Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
-			// logger.info("Received update for asset " + asset.getName() + " in " + 
-			// asset.getLastState().getLatitude() + ";" + asset.getLastState().getLongitude());
+			// logger.info("Received update for asset " + asset.getName() + " in " +
+			// asset.getLastState().getLatitude() + ";" +
+			// asset.getLastState().getLongitude());
 			if (!optAsset.isPresent()) {
 				assetsRepo.save(asset);
 				wsController.sendAssetUpdateFromServerToClients(asset);
@@ -163,9 +146,10 @@ public class SoiController {
 				assetsRepo.save(oldAsset);
 				wsController.sendAssetUpdateFromServerToClients(oldAsset);
 			}
-			
+
 		});
-		return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."), HttpStatus.OK);
+		return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
+				HttpStatus.OK);
 	}
 
 	/**
@@ -199,8 +183,9 @@ public class SoiController {
 	}
 
 	/**
-	 * Use to add a plan that is not assigned to any vehicle.
-	 * This can be used by scientists to share plans that operators can then assign.
+	 * Use to add a plan that is not assigned to any vehicle. This can be used by
+	 * scientists to share plans that operators can then assign.
+	 * 
 	 * @param message
 	 * @return
 	 * @throws SendSoiCommandException
@@ -277,6 +262,51 @@ public class SoiController {
 		});
 		logger.info("Found " + messages.size() + " for asset " + assetName);
 		return String.join("\n", messages);
+	}
+
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@RequestMapping(path = { "/soi/assets/{imcId}/settings",
+			"/soi/assets/{imcId}/settings" }, method = RequestMethod.GET)
+	public ResponseEntity<HTTPResponse> fetchSoiSettings(@PathVariable int imcId)
+			throws SendSoiCommandException, AssetNotFoundException {
+		Asset asset = assetsRepo.findByImcid(imcId);
+		if (asset != null) {
+			SoiCommand cmd = new SoiCommand();
+			cmd.setCommand(COMMAND.GET_PARAMS);
+			cmd.setType(TYPE.REQUEST);
+			try {
+				soiInteraction.sendCommand(cmd, asset);
+			} catch (Exception e) {
+				logger.warn(e.getMessage());
+				throw new SendSoiCommandException(e.getMessage());
+			}
+			return new ResponseEntity<>(new HTTPResponse("Success", "Settings for " + asset.getName() + " requested."),
+					HttpStatus.OK);
+		}
+		throw new AssetNotFoundException("Asset of imcId " + imcId + " not found");
+	}
+
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@RequestMapping(path = { "/soi/assets/{imcId}/settings",
+			"/soi/assets/{imcId}/settings" }, method = RequestMethod.POST)
+	public ResponseEntity<HTTPResponse> updateSoiSettings(@PathVariable int imcId,
+			@RequestBody LinkedHashMap<String,String> settings) throws SendSoiCommandException, AssetNotFoundException {
+		Asset asset = assetsRepo.findByImcid(imcId);
+		if (asset != null) {
+			SoiCommand cmd = new SoiCommand();
+			cmd.setCommand(COMMAND.SET_PARAMS);
+			cmd.setType(TYPE.REQUEST);
+			cmd.setSettings(settings);
+			try {
+				soiInteraction.sendCommand(cmd, asset);
+			} catch (Exception e) {
+				logger.warn(e.getMessage());
+				throw new SendSoiCommandException(e.getMessage());
+			}
+			return new ResponseEntity<>(new HTTPResponse("Success", "Settings for " + asset.getName() + " sent."),
+					HttpStatus.OK);
+		}
+		throw new AssetNotFoundException("Asset of imcId " + imcId + " not found");
 	}
 
 	@RequestMapping(path = { "/soi/errors/{name}" }, method = RequestMethod.GET)

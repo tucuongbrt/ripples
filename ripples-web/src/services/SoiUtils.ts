@@ -46,6 +46,18 @@ export default class SoiService {
     return Object.assign({}, plan)
   }
 
+  /**
+   * Method used to convert a string-keyed map to a JSON obj
+   * @param strMap String-keyed map
+   */
+  public convertMapToObj(strMap: Map<string, string>) {
+    let obj = Object.create(null)
+    for (const [key, val] of strMap) {
+      obj[key] = val
+    }
+    return obj
+  }
+
   public async fetchSoiData() {
     const response = await fetch(`${apiURL}/soi`)
     const data = await response.json()
@@ -73,9 +85,18 @@ export default class SoiService {
     assets.forEach((assetType: IAsset[]) => {
       assetType.forEach((asset: IAsset) => {
         return request({
-          url:  `${apiURL}/soi/assets/${asset.imcid}/settings`
+          url: `${apiURL}/soi/assets/${asset.imcid}/settings`,
         })
       })
+    })
+  }
+
+  public async updateSoiSettings(assetImcId: number, settings: Map<string, string>) {
+    const settingsObj = this.convertMapToObj(settings)
+    return request({
+      body: JSON.stringify(settingsObj),
+      method: 'POST',
+      url: `${apiURL}/soi/assets/${assetImcId}/settings`,
     })
   }
 
