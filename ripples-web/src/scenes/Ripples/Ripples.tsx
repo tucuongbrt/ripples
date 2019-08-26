@@ -27,6 +27,7 @@ import {
   setSpots,
   setUser,
   setVehicles,
+  toggleVehicleModal,
   updateAIS,
   updateCCU,
   updatePlan,
@@ -80,6 +81,7 @@ interface PropsType {
   addAnnotation: (a: IAnnotation) => void
   setAnnotations: (a: IAnnotation[]) => void
   updateUserLocation: (u: IUserLocation) => void
+  toggleVehicleModal: () => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -115,6 +117,7 @@ class Ripples extends Component<PropsType, StateType> {
     this.handleWsAnnotationUpdate = this.handleWsAnnotationUpdate.bind(this)
     this.handleWsUserLocation = this.handleWsUserLocation.bind(this)
     this.handleWsVehicleParams = this.handleWsVehicleParams.bind(this)
+    this.onSettingsClick = this.onSettingsClick.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -383,6 +386,10 @@ class Ripples extends Component<PropsType, StateType> {
     this.props.setSlider(sliderValue)
   }
 
+  public onSettingsClick() {
+    this.props.toggleVehicleModal()
+  }
+
   public render() {
     if (!this.state.loading) {
       return (
@@ -398,8 +405,8 @@ class Ripples extends Component<PropsType, StateType> {
               handleUpdatePlanId={this.handleUpdatePlanId}
             />
           </div>
-          <RipplesMap myMaps={this.state.myMaps} />
-          <SidePanel />
+          <RipplesMap myMaps={this.state.myMaps} onSettingsClick={this.onSettingsClick}/>
+          <SidePanel onSettingsClick={this.onSettingsClick}/>
           <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
         </div>
       )
@@ -441,9 +448,10 @@ const actionCreators = {
   updatePlan,
   updateAIS,
   updateUserLocation,
+  toggleVehicleModal,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(Ripples)

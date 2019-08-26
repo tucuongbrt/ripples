@@ -14,7 +14,7 @@ interface PropsType {
   visibility: boolean
   authenticated: boolean
   selectedVehicle?: IAsset
-  toggleVehicleModal: () => void
+  onSettingsClick: () => void
 }
 
 class SidePanel extends Component<PropsType, {}> {
@@ -40,7 +40,7 @@ class SidePanel extends Component<PropsType, {}> {
               <CardTitle>
                 <h4 className="mr-auto">{this.props.title}</h4>
                 {this.props.authenticated && this.props.selectedVehicle && (
-                  <i className="fas fa-cog fa-lg" onClick={this.props.toggleVehicleModal} />
+                  <i className="fas fa-cog fa-lg" onClick={this.props.onSettingsClick} />
                 )}
               </CardTitle>
               <div>{content}</div>

@@ -87,6 +87,7 @@ interface PropsType {
   toggleVehicleModal: () => void
   setEditVehicle: (v: IAsset | undefined) => void
   updateVehicle: (v: IAsset) => void
+  onSettingsClick: () => void
 }
 
 interface StateType {
@@ -723,8 +724,8 @@ class RipplesMap extends Component<PropsType, StateType> {
       return
     }
     return (
-      <Modal className="vehicle-modal" isOpen={this.props.isVehicleModalOpen} toggle={this.props.toggleVehicleModal}>
-        <ModalHeader toggle={this.props.toggleVehicleModal}>Edit vehicle settings</ModalHeader>
+      <Modal className="vehicle-modal" isOpen={this.props.isVehicleModalOpen} toggle={this.props.onSettingsClick}>
+        <ModalHeader toggle={this.props.onSettingsClick}>Edit vehicle settings</ModalHeader>
         <ModalBody>
           <ul>
             {this.props.editVehicle.settings.map((param: string[]) => {
