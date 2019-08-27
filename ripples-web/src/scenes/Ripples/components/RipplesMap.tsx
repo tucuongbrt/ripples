@@ -763,11 +763,8 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
     const newValue = evt.target.value
     const editVehicle = JSON.parse(JSON.stringify(this.props.editVehicle))
-    editVehicle.settings.forEach((param: string[]) => {
-      if (param[0] === key) {
-        param[1] = newValue
-      }
-    })
+    const index = editVehicle.settings.findIndex((param: string[]) => param[0] === key)
+    editVehicle.settings[index][1] = newValue
     this.props.setEditVehicle(editVehicle)
     this.vehicleChangedSettings.set(key, newValue)
   }
