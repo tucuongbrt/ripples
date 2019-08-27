@@ -568,7 +568,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   private buildUsersLocations() {
     return (
       <>
-        {this.props.isGpsActive ? <ClientLocation onLocationClick={this.onLocationClick} /> : <></>}
+        {this.props.isGpsActive && <ClientLocation onLocationClick={this.onLocationClick} />}
         {this.props.auth.authenticated &&
           this.props.usersLocations.map((u: IUserLocation) => {
             const center = {
@@ -829,5 +829,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(RipplesMap)

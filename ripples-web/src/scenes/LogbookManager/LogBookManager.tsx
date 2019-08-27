@@ -114,7 +114,7 @@ export default class LogbookManager extends Component<{}, StateType> {
               {this.buildAnnotationModal()}
             </>
           ) : (
-            <span>There is currently no logbook available!</span>
+            <span className="m-auto">There is currently no logbook available!</span>
           )}
           <LogbookEntries
             logbooks={this.state.logbooks}

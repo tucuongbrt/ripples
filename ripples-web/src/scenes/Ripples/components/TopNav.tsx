@@ -211,9 +211,7 @@ class TopNav extends Component<PropsType, StateType> {
       const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
       return (
         <div>
-          {isPlanAssigned ? (
-            <></>
-          ) : (
+          {!isPlanAssigned && (
             <>
               <DropdownItem key="save" onClick={this.handleSavePlan}>
                 Save plan
@@ -343,7 +341,7 @@ class TopNav extends Component<PropsType, StateType> {
     if (isScientist(this.props.auth)) {
       return (
         <>
-          {this.state.isEditingPlan ? (
+          {this.state.isEditingPlan && (
             <NavItem className="mr-2">
               <Button
                 color="primary"
@@ -386,8 +384,6 @@ class TopNav extends Component<PropsType, StateType> {
                 Unschedule
               </Button>
             </NavItem>
-          ) : (
-            <></>
           )}
           <Dropdown
             className="mr-4"
@@ -399,14 +395,12 @@ class TopNav extends Component<PropsType, StateType> {
               {this.state.plansDropdownText}
             </DropdownToggle>
             <DropdownMenu right={true}>
-              {this.state.isEditingPlan ? (
-                <></>
-              ) : (
+              {!this.state.isEditingPlan && (
                 <DropdownItem key="new" onClick={() => this.handleStartNewPlan()}>
                   New Plan
                 </DropdownItem>
               )}
-              {isOperator(this.props.auth) ? this.buildPlanList() : <></>}
+              {isOperator(this.props.auth) && this.buildPlanList()}
             </DropdownMenu>
           </Dropdown>
           {this.buildVehicleSelector()}
@@ -444,8 +438,9 @@ class TopNav extends Component<PropsType, StateType> {
           />
         </NavItem>
         <NavItem className="mt-auto mb-auto mr-4" active={this.props.isGpsActive} onClick={this.onGpsClick}>
-          <i className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
-           title="Enable Gps Tracking"
+          <i
+            className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
+            title="Enable Gps Tracking"
           />
         </NavItem>
       </>
@@ -459,12 +454,8 @@ class TopNav extends Component<PropsType, StateType> {
         <Collapse isOpen={this.state.isNavOpen} navbar={true}>
           <TopNavLinks />
           <Nav navbar={true}>
-            <div id="planEditToolbar">
-              {this.buildPlanEditToolbar()}
-            </div>
-            <div id="generalToolbar">
-              {this.buildGeneralToolbar()}
-            </div>
+            <div id="planEditToolbar">{this.buildPlanEditToolbar()}</div>
+            <div id="generalToolbar">{this.buildGeneralToolbar()}</div>
             <Login />
           </Nav>
         </Collapse>
@@ -529,5 +520,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(TopNav)

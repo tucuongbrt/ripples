@@ -279,12 +279,10 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
               <Button color="secondary" onClick={() => this.toggleErrorsModal(assetName)}>
                 Close
               </Button>
-              {isOperator(this.props.auth) ? (
+              {isOperator(this.props.auth) && (
                 <Button color="primary" onClick={() => this.clearAssetErrors(assetName)}>
                   Clear
                 </Button>
-              ) : (
-                <></>
               )}
             </ModalFooter>
           </Modal>

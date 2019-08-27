@@ -5,7 +5,7 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Marker, Polyline, Popup } from 'react-leaflet'
 import { connect } from 'react-redux'
-import IAsset from '../../../model/IAsset';
+import IAsset from '../../../model/IAsset'
 import IPosHeadingAtTime from '../../../model/ILatLngHead'
 import IPlan from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
@@ -120,14 +120,14 @@ class VehiclePlan extends Component<PropsType, StateType> {
   }
 
   public buildWaypointEta(timestamp: number) {
-    return timestamp !== 0 ? (
-      <>
-        {' '}
-        <li>ETA: {DateService.timeFromNow(timestamp)}</li>
-        <li>Exact ETA: {DateService.timestampMsToReadableDate(timestamp)}</li>
-      </>
-    ) : (
-      <></>
+    return (
+      timestamp !== 0 && (
+        <>
+          {' '}
+          <li>ETA: {DateService.timeFromNow(timestamp)}</li>
+          <li>Exact ETA: {DateService.timestampMsToReadableDate(timestamp)}</li>
+        </>
+      )
     )
   }
 
@@ -222,5 +222,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(VehiclePlan)

@@ -30,7 +30,8 @@ export default class LogbookEntries extends Component<PropsType, {}> {
           )}
         </div>
         <Table id="logbook-entries" responsive={true} hover>
-          {this.props.isLogbookEntriesOpen ? (
+          {this.props.isLogbookEntriesOpen && 
+            (this.props.logbooks.length > 0 ? (
             <>
               <thead>
                 <tr>
@@ -44,8 +45,8 @@ export default class LogbookEntries extends Component<PropsType, {}> {
               <tbody>{this.buildLogbookRows()}</tbody>
             </>
           ) : (
-            <></>
-          )}
+            <span>There are no logbook entries!</span>
+          ))}
         </Table>
       </>
     )
