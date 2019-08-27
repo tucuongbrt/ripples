@@ -106,6 +106,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   public upgradedOptions: any
   public initZoom = 10
   public oneSecondTimer = 0
+  private map!: LeafletMap
   private positionService = new PositionService()
   private blueCircleIcon = new BlueCircleIcon()
   private logBookService = new LogbookService()
@@ -142,6 +143,7 @@ class RipplesMap extends Component<PropsType, StateType> {
         this.setState({ currentTime: Date.now() })
       }, 2000)
     }
+    this.map = this.refs.map as LeafletMap
   }
 
   public componentWillUnmount() {
@@ -257,7 +259,12 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public buildAisShips() {
-    return this.props.aisShips.map(ship => {
+    let ships = this.props.aisShips
+    if (this.map) {
+      const mapBounds = this.map.leafletElement.getBounds()
+      ships = ships.filter(ship => mapBounds.contains([ship.latitude, ship.longitude]))
+    }
+    return ships.map(ship => {
       return (
         <AISShip
           key={'ship_' + ship.mmsi}
@@ -313,6 +320,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     return (
       <>
         <LeafletMap
+          ref="map"
           fullscreenControl={true}
           center={this.state.initCoords}
           zoom={this.initZoom}
