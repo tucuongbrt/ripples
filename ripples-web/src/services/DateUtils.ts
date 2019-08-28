@@ -29,8 +29,28 @@ export default class DateService {
     return moment(date).format('YYYYMMDDhhmmss')
   }
 
-  private static formatDate(date: Date) {
+  public static formatDate(date: Date) {
     return moment(date).format('h:mm:ss a, MMMM Do YYYY')
+  }
+
+  public static timeOffsetToRealTime(decimalHours: number) {
+    let date: Date = new Date()
+    if (decimalHours !== 0) {
+      let interval = moment.duration(Math.abs(decimalHours), 'hours').as('hours')
+      if (decimalHours < 0) {
+        interval = -interval
+      }
+      date = moment()
+        .add(interval, 'h')
+        .toDate()
+    }
+    return date
+  }
+
+  public static formatDateForRequest(date: Date) {
+    return moment(date)
+      .format('YYYY-MM-DDThh:00:00.000')
+      .concat('Z')
   }
 
   private static secondsToTime(secondsInput: number) {

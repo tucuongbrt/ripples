@@ -1,4 +1,16 @@
+import DateService from './DateUtils'
+
 export default class MapUtils {
+  public static buildRequestTime(deltaHours: number, updateIntervalInHours: number) {
+    const date = DateService.timeOffsetToRealTime(deltaHours)
+    let hour = date.getHours()
+    if (hour % updateIntervalInHours !== 0) {
+      hour -= hour % updateIntervalInHours
+    }
+    date.setHours(hour)
+    return DateService.formatDateForRequest(date)
+  }
+
   public static buildLegendURL(layer: any) {
     let url = layer._url + '?'
     for (const key in layer.wmsParams) {
@@ -11,5 +23,9 @@ export default class MapUtils {
       }
     }
     return url
+  }
+
+  public static resetMapTime(updateIntervalInHours: number) {
+    return MapUtils.buildRequestTime(0, updateIntervalInHours)
   }
 }

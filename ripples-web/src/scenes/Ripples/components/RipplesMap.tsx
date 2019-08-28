@@ -35,6 +35,7 @@ import {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  toggleSliderChange,
   toggleVehicleModal,
   updateVehicle,
   updateWpLocation,
@@ -57,6 +58,7 @@ const { NotificationManager } = require('react-notifications')
 
 const CanvasLayer = require('react-leaflet-canvas-layer')
 const { BaseLayer, Overlay } = LayersControl
+
 interface PropsType {
   auth: IAuthState
   aisLocations: IShipLocation[]
@@ -76,6 +78,8 @@ interface PropsType {
   usersLocations: IUserLocation[]
   isVehicleModalOpen: boolean
   editVehicle?: IAsset
+  sliderValue: number
+  hasSliderChanged: boolean
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -88,6 +92,7 @@ interface PropsType {
   setEditVehicle: (v: IAsset | undefined) => void
   updateVehicle: (v: IAsset) => void
   onSettingsClick: () => void
+  toggleSliderChange: () => void
 }
 
 interface StateType {
@@ -110,9 +115,11 @@ class RipplesMap extends Component<PropsType, StateType> {
   private positionService = new PositionService()
   private blueCircleIcon = new BlueCircleIcon()
   private logBookService = new LogbookService()
+  private soiService = new SoiService()
   private newAnnotationPopupRef: React.RefObject<Popup> = React.createRef()
   private vehicleChangedSettings: Map<string, string> = new Map()
-  private soiService = new SoiService()
+  private lastWaveMapTime: string = MapUtils.resetMapTime(3)
+  private lastWindMapTime: string = MapUtils.resetMapTime(6)
 
   constructor(props: PropsType) {
     super(props)
@@ -140,10 +147,23 @@ class RipplesMap extends Component<PropsType, StateType> {
   public async componentDidMount() {
     if (!this.oneSecondTimer) {
       this.oneSecondTimer = window.setInterval(() => {
+        this.updateCopernicusMaps()
         this.setState({ currentTime: Date.now() })
       }, 2000)
     }
     this.map = this.refs.map as LeafletMap
+  }
+
+  public updateCopernicusMaps() {
+    if (this.props.hasSliderChanged) {
+      this.lastWaveMapTime = MapUtils.buildRequestTime(this.props.sliderValue, 3)
+      if (this.props.sliderValue < 0) {
+        this.lastWindMapTime = MapUtils.buildRequestTime(this.props.sliderValue, 6)
+      } else {
+        this.lastWindMapTime = MapUtils.resetMapTime(6)
+      }
+      this.props.toggleSliderChange()
+    }
   }
 
   public componentWillUnmount() {
@@ -485,6 +505,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             <Overlay name="Copernicus Waves">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-wav-001-027"
+                time={this.lastWaveMapTime}
                 styles="boxfill/rainbow"
                 layers="VHM0"
                 colorscalerange="0.01,10.0"
@@ -499,6 +520,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             <Overlay name="Copernicus Wind">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-BLENDED_WIND_L4-V6-OBS_FULL_TIME_SERIE"
+                time={this.lastWindMapTime}
                 styles="vector/rainbow"
                 layers="wind"
                 elevation={10}
@@ -810,6 +832,8 @@ function mapStateToProps(state: IRipplesState) {
     usersLocations: state.usersLocations,
     isVehicleModalOpen: state.isVehicleModalOpen,
     editVehicle: state.editVehicle,
+    sliderValue: state.sliderValue,
+    hasSliderChanged: state.hasSliderChanged,
   }
 }
 
@@ -825,6 +849,7 @@ const actionCreators = {
   toggleVehicleModal,
   setEditVehicle,
   updateVehicle,
+  toggleSliderChange,
 }
 
 export default connect(
