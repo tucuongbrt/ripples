@@ -35,6 +35,7 @@ export default interface IRipplesState {
   usersLocations: IUserLocation[]
   isVehicleModalOpen: boolean
   editVehicle?: IAsset
+  hasSliderChanged: boolean
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

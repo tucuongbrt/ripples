@@ -37,6 +37,7 @@ import {
   setVehicles,
   toggleGps,
   togglePlanVisibility,
+  toggleSliderChange,
   toggleVehicleModal,
   unschedulePlan,
   updateAIS,
@@ -71,6 +72,7 @@ const startState: IRipplesState = {
   annotations: [],
   usersLocations: [],
   isVehicleModalOpen: false,
+  hasSliderChanged: false,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -287,6 +289,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [toggleVehicleModal.type]: (state, _) => {
     state.isVehicleModalOpen = !state.isVehicleModalOpen
+  },
+  [toggleSliderChange.type]: (state,_) => {
+    state.hasSliderChanged = !state.hasSliderChanged
   },
   [setEditVehicle.type]: (state, action) => {
     state.editVehicle = action.payload

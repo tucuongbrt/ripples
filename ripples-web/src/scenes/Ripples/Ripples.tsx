@@ -27,6 +27,7 @@ import {
   setSpots,
   setUser,
   setVehicles,
+  toggleSliderChange,
   toggleVehicleModal,
   updateAIS,
   updateCCU,
@@ -82,6 +83,7 @@ interface PropsType {
   setAnnotations: (a: IAnnotation[]) => void
   updateUserLocation: (u: IUserLocation) => void
   toggleVehicleModal: () => void
+  toggleSliderChange: () => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -384,6 +386,7 @@ class Ripples extends Component<PropsType, StateType> {
       this.stopUpdates()
     }
     this.props.setSlider(sliderValue)
+    this.props.toggleSliderChange()
   }
 
   public onSettingsClick() {
@@ -405,8 +408,8 @@ class Ripples extends Component<PropsType, StateType> {
               handleUpdatePlanId={this.handleUpdatePlanId}
             />
           </div>
-          <RipplesMap myMaps={this.state.myMaps} onSettingsClick={this.onSettingsClick}/>
-          <SidePanel onSettingsClick={this.onSettingsClick}/>
+          <RipplesMap myMaps={this.state.myMaps} onSettingsClick={this.onSettingsClick} />
+          <SidePanel onSettingsClick={this.onSettingsClick} />
           <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
         </div>
       )
@@ -448,10 +451,11 @@ const actionCreators = {
   updatePlan,
   updateAIS,
   updateUserLocation,
+  toggleSliderChange,
   toggleVehicleModal,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators,
+  actionCreators
 )(Ripples)
