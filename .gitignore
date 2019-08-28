@@ -2,6 +2,7 @@
 /build/
 !gradle/wrapper/gradle-wrapper.jar
 application.yml
+application_sv.yml
 spreadsheet-credentials.json
 rock7accounts.tsv
 src/main/resources/public/
