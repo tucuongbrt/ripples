@@ -415,7 +415,7 @@ class Ripples extends Component<PropsType, StateType> {
           </div>
           <RipplesMap myMaps={this.state.myMaps} onSettingsClick={this.onSettingsClick} />
           <SidePanel onSettingsClick={this.onSettingsClick} />
-          <Slider onChange={this.onSliderChange} min={-12} max={12} value={this.props.sliderValue} />
+          <Slider onChange={this.onSliderChange} min={-48} max={48} value={this.props.sliderValue} />
         </div>
       )
     }

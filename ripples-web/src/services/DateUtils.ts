@@ -5,8 +5,12 @@ export default class DateService {
     if (decimalHours === 0) {
       return 'Now'
     }
-    const absTime = moment.utc(moment.duration(Math.abs(decimalHours), 'hours').as('milliseconds')).format('H[h]m[m]')
-    return decimalHours < 0 ? '-' + absTime : absTime
+    const absTime = moment.duration(Math.abs(decimalHours), 'hours')
+    const date = decimalHours > 0 ? moment().add(absTime, 'h') : moment().subtract(absTime, 'h')
+    const hours = Math.floor(absTime.asHours())
+    const mins = Math.floor(absTime.asMinutes()) - hours * 60
+    const time = `${hours}h${mins}m [${date}]`
+    return decimalHours < 0 ? '-' + time : time
   }
 
   public static timestampSecToReadableDate(timestamp: number) {

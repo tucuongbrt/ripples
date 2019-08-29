@@ -2,7 +2,7 @@ import IAisShip from '../model/IAisShip'
 import PositionService from './PositionUtils'
 
 const oneHourInMs = 3600000
-const deltaHours = 12
+const deltaHours = 48
 
 export default class AISService {
   private positionService: PositionService = new PositionService()
