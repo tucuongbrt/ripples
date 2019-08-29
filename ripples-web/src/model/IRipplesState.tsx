@@ -3,6 +3,7 @@ import IAnnotation from './IAnnotations'
 import IAsset from './IAsset'
 import IUserState, { IUserLocation } from './IAuthState'
 import ILatLng from './ILatLng'
+import IOverlayInfo from './IOverlayInfo'
 import IPlan from './IPlan'
 import IProfile from './IProfile'
 import { ToolSelected } from './ToolSelected'
@@ -36,6 +37,7 @@ export default interface IRipplesState {
   isVehicleModalOpen: boolean
   editVehicle?: IAsset
   hasSliderChanged: boolean
+  mapOverlayInfo: IOverlayInfo
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

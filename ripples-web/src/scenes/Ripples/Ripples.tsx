@@ -7,6 +7,7 @@ import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser, IUserLocation } from '../../model/IAuthState'
 import IMyMap from '../../model/IMyMap'
+import IOverlayInfo from '../../model/IOverlayInfo'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IProfile from '../../model/IProfile'
 import IRipplesState from '../../model/IRipplesState'
@@ -21,6 +22,7 @@ import {
   setAis,
   setAnnotations,
   setCcus,
+  setMapOverlayInfo,
   setPlans,
   setProfiles,
   setSlider,
@@ -62,6 +64,7 @@ interface PropsType {
   auth: UserState
   vehicles: IAsset[]
   vehicleSelected: string
+  mapOverlayInfo: IOverlayInfo
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
   setCcus: (_: IAsset[]) => void
@@ -84,6 +87,7 @@ interface PropsType {
   updateUserLocation: (u: IUserLocation) => void
   toggleVehicleModal: () => void
   toggleSliderChange: () => void
+  setMapOverlayInfo: (m: string) => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -387,6 +391,7 @@ class Ripples extends Component<PropsType, StateType> {
     }
     this.props.setSlider(sliderValue)
     this.props.toggleSliderChange()
+    this.props.setMapOverlayInfo(this.props.mapOverlayInfo.name)
   }
 
   public onSettingsClick() {
@@ -427,6 +432,7 @@ function mapStateToProps(state: IRipplesState) {
     sliderValue: state.sliderValue,
     vehicles: state.assets.vehicles,
     vehicleSelected: state.vehicleSelected,
+    mapOverlayInfo: state.mapOverlayInfo,
   }
 }
 
@@ -439,6 +445,7 @@ const actionCreators = {
   setAis,
   setAnnotations,
   setCcus,
+  setMapOverlayInfo,
   setPlans,
   setProfiles,
   setSlider,
@@ -457,5 +464,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(Ripples)

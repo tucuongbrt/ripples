@@ -3,6 +3,7 @@ import IAisShip from '../../model/IAisShip'
 import IAsset from '../../model/IAsset'
 import { isUserEqual, IUserLocation, noAuth } from '../../model/IAuthState'
 import ILatLng from '../../model/ILatLng'
+import { DefaultOverlayInfo } from '../../model/IOverlayInfo'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
@@ -23,6 +24,7 @@ import {
   setAnnotations,
   setCcus,
   setEditVehicle,
+  setMapOverlayInfo,
   setPlanDescription,
   setPlans,
   setProfiles,
@@ -73,6 +75,7 @@ const startState: IRipplesState = {
   usersLocations: [],
   isVehicleModalOpen: false,
   hasSliderChanged: false,
+  mapOverlayInfo: DefaultOverlayInfo,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -290,11 +293,34 @@ const ripplesReducer = createReducer(startState, {
   [toggleVehicleModal.type]: (state, _) => {
     state.isVehicleModalOpen = !state.isVehicleModalOpen
   },
-  [toggleSliderChange.type]: (state,_) => {
+  [toggleSliderChange.type]: (state, _) => {
     state.hasSliderChanged = !state.hasSliderChanged
   },
   [setEditVehicle.type]: (state, action) => {
     state.editVehicle = action.payload
+  },
+  [setMapOverlayInfo.type]: (state, action) => {
+    const overlayName: string = action.payload
+    const isLayerUpdated = overlayName.endsWith('Waves') || overlayName.endsWith('Wind')
+    const variable = overlayName.substr(overlayName.indexOf(' '))
+    if (overlayName !== '') {
+      const overlayInfo = isLayerUpdated
+        ? state.sliderValue > 0
+          ? `${variable} Forecast`
+          : state.sliderValue !== 0
+          ? `${variable} Past History`
+          : `Current ${variable}`
+        : `${variable} Last Received Update`
+      state.mapOverlayInfo = {
+        name: overlayName,
+        info: overlayInfo,
+      }
+    } else {
+      state.mapOverlayInfo = {
+        name: '',
+        info: '',
+      }
+    }
   },
 })
 

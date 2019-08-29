@@ -31,6 +31,7 @@ import {
   addWpToPlan,
   clearMeasure,
   setEditVehicle,
+  setMapOverlayInfo,
   setSelectedWaypointIdx,
   setSidePanelContent,
   setSidePanelTitle,
@@ -93,6 +94,7 @@ interface PropsType {
   updateVehicle: (v: IAsset) => void
   onSettingsClick: () => void
   toggleSliderChange: () => void
+  setMapOverlayInfo: (m: string) => void
 }
 
 interface StateType {
@@ -354,10 +356,12 @@ class RipplesMap extends Component<PropsType, StateType> {
             } else if (evt.name === 'Vehicles') {
               this.setState({ isVehiclesLayerActive: true })
             } else if (evt.name.startsWith('Copernicus')) {
+              this.props.setMapOverlayInfo(evt.name)
               const url = MapUtils.buildLegendURL(evt.layer)
               this.setState({
                 activeLegend: <img className="mapLegend" src={url} alt="Map legend" />,
               })
+              return
             }
           }}
           onOverlayRemove={(evt: any) => {
@@ -369,6 +373,7 @@ class RipplesMap extends Component<PropsType, StateType> {
               this.setState({
                 activeLegend: <></>,
               })
+              this.props.setMapOverlayInfo('')
             }
           }}
         >
@@ -848,6 +853,7 @@ const actionCreators = {
   clearMeasure,
   toggleVehicleModal,
   setEditVehicle,
+  setMapOverlayInfo,
   updateVehicle,
   toggleSliderChange,
 }
