@@ -13,10 +13,25 @@
   padding: 0.3em 2em;
   user-select: none;
   outline: 0;
+  text-align: center;
 }
 
 .row {
-  align-items: baseline;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+@media(max-width: 600px) {
+  .row {
+    padding-bottom: 1em;
+  }
+  .slider {
+    margin-bottom: 3em;
+  }
+  #overlay-info {
+    margin-right: 1em;
+  }
 }
 
 .left {
