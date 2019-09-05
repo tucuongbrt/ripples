@@ -1,4 +1,9 @@
+import ILatLng from '../model/ILatLng'
+import { WeatherParam } from '../model/WeatherParam'
 import DateService from './DateUtils'
+import { request } from './RequestUtils'
+
+const apiURL = process.env.REACT_APP_API_BASE_URL
 
 export default class MapUtils {
   public static buildRequestTime(deltaHours: number, updateIntervalInHours: number) {
@@ -27,5 +32,11 @@ export default class MapUtils {
 
   public static resetMapTime(updateIntervalInHours: number) {
     return MapUtils.buildRequestTime(0, updateIntervalInHours)
+  }
+
+  public static fetchWeatherData(location: ILatLng, params: WeatherParam) {
+    return request({
+      url: `${apiURL}/weather?lat=${location.latitude}&lng=${location.longitude}&params=${params}`,
+    })
   }
 }

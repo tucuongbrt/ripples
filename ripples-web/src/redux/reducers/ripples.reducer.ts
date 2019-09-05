@@ -37,6 +37,7 @@ import {
   setToolSelected,
   setUser,
   setVehicles,
+  setWeatherParam,
   toggleGps,
   togglePlanVisibility,
   toggleSliderChange,
@@ -76,6 +77,7 @@ const startState: IRipplesState = {
   isVehicleModalOpen: false,
   hasSliderChanged: false,
   mapOverlayInfo: DefaultOverlayInfo,
+  weatherParam: null,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -321,6 +323,9 @@ const ripplesReducer = createReducer(startState, {
         info: '',
       }
     }
+  },
+  [setWeatherParam.type]: (state, action) => {
+    state.weatherParam = action.payload
   },
 })
 

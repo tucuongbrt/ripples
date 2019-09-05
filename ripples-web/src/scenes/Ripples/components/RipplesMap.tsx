@@ -10,6 +10,7 @@ import {
   Polyline,
   Popup,
   TileLayer,
+  Tooltip,
   WMSTileLayer,
 } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
@@ -25,7 +26,10 @@ import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
 import IRipplesState from '../../../model/IRipplesState'
+import IWeather from '../../../model/IWeather'
+import { formatWeatherSource } from '../../../model/IWeather'
 import { ToolSelected } from '../../../model/ToolSelected'
+import { formatWeatherParam, formatWeatherValue, WeatherParam } from '../../../model/WeatherParam'
 import {
   addMeasurePoint,
   addWpToPlan,
@@ -45,7 +49,8 @@ import DateService from '../../../services/DateUtils'
 import LogbookService from '../../../services/LogbookUtils'
 import MapUtils from '../../../services/MapUtils'
 import PositionService from '../../../services/PositionUtils'
-import SoiService from '../../../services/SoiUtils'
+import SoiService, { ParamsType } from '../../../services/SoiUtils'
+import '../styles/Ripples.css'
 import AISCanvas from './AISCanvas'
 import AISShip from './AISShip'
 import ClientLocation from './ClientLocation'
@@ -81,6 +86,7 @@ interface PropsType {
   editVehicle?: IAsset
   sliderValue: number
   hasSliderChanged: boolean
+  weatherParam: WeatherParam | null
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -105,8 +111,9 @@ interface StateType {
   isAISLayerActive: boolean
   isVehiclesLayerActive: boolean
   activeLegend: JSX.Element
-  annotationClickLocation: ILatLng | null
+  toolClickLocation: ILatLng | null
   newAnnotationContent: string
+  clickLocationWeather: any | null
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -134,8 +141,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       isAISLayerActive: true,
       isVehiclesLayerActive: true,
       activeLegend: <></>,
-      annotationClickLocation: null,
+      toolClickLocation: null,
       newAnnotationContent: '',
+      clickLocationWeather: null,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -193,6 +201,10 @@ class RipplesMap extends Component<PropsType, StateType> {
       }
       case ToolSelected.ANNOTATION: {
         this.onMapAnnotationClick(clickLocation)
+        break
+      }
+      case ToolSelected.TOOLPICK: {
+        this.onMapToolpickClick(clickLocation)
         break
       }
     }
@@ -586,6 +598,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             </Overlay>
           </LayersControl>
           {this.buildNewAnnotationMarker()}
+          {this.buildToolpickMarker()}
         </LeafletMap>
         {this.state.activeLegend}
       </>
@@ -705,14 +718,17 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   private buildNewAnnotationMarker() {
-    if (this.state.annotationClickLocation != null) {
-      const location = this.state.annotationClickLocation
+    if (this.props.toolSelected === ToolSelected.ANNOTATION) {
+      const location = this.state.toolClickLocation
+      if (location == null) {
+        return <></>
+      }
       return (
         <Marker position={{ lat: location.latitude, lng: location.longitude }}>
           <Popup
             ref={this.newAnnotationPopupRef}
             onClose={() => {
-              this.setState({ annotationClickLocation: null })
+              this.setState({ toolClickLocation: null })
             }}
           >
             <textarea
@@ -743,7 +759,6 @@ class RipplesMap extends Component<PropsType, StateType> {
         </Marker>
       )
     }
-    return <></>
   }
 
   /**
@@ -751,7 +766,7 @@ class RipplesMap extends Component<PropsType, StateType> {
    * @param location The click location
    */
   private onMapAnnotationClick(location: ILatLng) {
-    this.setState({ annotationClickLocation: location })
+    this.setState({ toolClickLocation: location })
   }
 
   private buildEditVehicleModal() {
@@ -816,6 +831,54 @@ class RipplesMap extends Component<PropsType, StateType> {
       NotificationManager.error(error.message)
     }
   }
+
+  private async onMapToolpickClick(clickLocation: ILatLng) {
+    try {
+      if (!this.props.weatherParam) {
+        return
+      }
+      const response = await MapUtils.fetchWeatherData(clickLocation, this.props.weatherParam)
+      this.setState({ toolClickLocation: clickLocation, clickLocationWeather: response })
+    } catch (error) {
+      NotificationManager.error(error.message)
+    }
+  }
+
+  private buildToolpickMarker() {
+    if (this.props.toolSelected === ToolSelected.TOOLPICK) {
+      const location = this.state.toolClickLocation
+      const weather: IWeather = this.state.clickLocationWeather
+      if (!(location && weather && this.props.weatherParam && weather[this.props.weatherParam])) {
+        return <></>
+      }
+      const weatherSources = weather[this.props.weatherParam] as ParamsType
+      return (
+        <Marker position={{ lat: location.latitude, lng: location.longitude }}>
+          <Tooltip className="tooltip" direction="top" offset={[0, 4]} opacity={1} permanent={true}>
+            {this.buildWeatherPanel(weatherSources)}
+          </Tooltip>
+        </Marker>
+      )
+    }
+  }
+
+  private buildWeatherPanel(weatherSources: ParamsType) {
+    return (
+      this.props.weatherParam && (
+        <ul>
+          <h5>{formatWeatherParam(this.props.weatherParam)}</h5>
+          {Object.keys(weatherSources).map((source, i) => (
+            <li key={i}>
+              <div>
+                <span>{formatWeatherSource(source)}:</span>
+                {this.props.weatherParam && formatWeatherValue(weatherSources[source], this.props.weatherParam)}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )
+    )
+  }
 }
 
 function mapStateToProps(state: IRipplesState) {
@@ -839,6 +902,7 @@ function mapStateToProps(state: IRipplesState) {
     editVehicle: state.editVehicle,
     sliderValue: state.sliderValue,
     hasSliderChanged: state.hasSliderChanged,
+    weatherParam: state.weatherParam,
   }
 }
 
@@ -860,5 +924,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators,
+  actionCreators
 )(RipplesMap)

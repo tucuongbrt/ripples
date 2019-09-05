@@ -218,7 +218,7 @@ export default class SoiService {
   }
 }
 
-interface ParamsType {
+export interface ParamsType {
   [key: string]: string
 }
 

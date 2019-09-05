@@ -17,9 +17,13 @@ export async function request(options: OptionsType) {
   options = Object.assign({}, defaults, options)
 
   const response = await fetch(options.url, options)
-  const json = await response.json()
-  if (!response.ok) {
-    return Promise.reject(json)
+  try {
+    const json = await response.json()
+    if (!response.ok) {
+      return Promise.reject(json)
+    }
+    return json
+  } catch(error) {
+    return error
   }
-  return json
 }

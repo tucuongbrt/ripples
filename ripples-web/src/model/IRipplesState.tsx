@@ -7,6 +7,7 @@ import IOverlayInfo from './IOverlayInfo'
 import IPlan from './IPlan'
 import IProfile from './IProfile'
 import { ToolSelected } from './ToolSelected'
+import { WeatherParam } from './WeatherParam'
 
 export interface IAssetsGroup {
   vehicles: IAsset[]
@@ -38,6 +39,7 @@ export default interface IRipplesState {
   editVehicle?: IAsset
   hasSliderChanged: boolean
   mapOverlayInfo: IOverlayInfo
+  weatherParam: WeatherParam | null
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {
