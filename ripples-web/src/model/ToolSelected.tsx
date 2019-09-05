@@ -6,4 +6,5 @@ export enum ToolSelected {
   UNSCHEDULE,
   MEASURE,
   ANNOTATION,
+  TOOLPICK,
 }

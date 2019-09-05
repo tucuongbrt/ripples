@@ -16,6 +16,7 @@ import {
   Navbar,
   NavbarToggler,
   NavItem,
+  UncontrolledDropdown,
 } from 'reactstrap'
 import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
@@ -24,6 +25,7 @@ import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
 import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
+import { WeatherParam } from '../../../model/WeatherParam'
 import {
   clearMeasure,
   selectVehicle,
@@ -33,6 +35,7 @@ import {
   setSidePanelTitle,
   setSidePanelVisibility,
   setToolSelected,
+  setWeatherParam,
   toggleGps,
   togglePlanVisibility,
   unschedulePlan,
@@ -48,6 +51,7 @@ interface PropsType {
   isGpsActive: boolean
   selectedPlan: IPlan
   vehicleSelected: string
+  weatherParam: WeatherParam | null
   handleEditPlan: (_: IPlan) => void
   handleSendPlanToVehicle: () => void
   handleCancelEditPlan: () => void
@@ -67,6 +71,7 @@ interface PropsType {
   setSidePanelContent: (_: any) => void
   toggleGps: () => void
   setEditVehicle: (v: IAsset | undefined) => void
+  setWeatherParam: (p: WeatherParam | null) => void
 }
 
 interface StateType {
@@ -88,7 +93,6 @@ class TopNav extends Component<PropsType, StateType> {
 
   constructor(props: PropsType) {
     super(props)
-
     this.state = {
       isDescriptionModalOpen: false,
       isEditPlanIdModalOpen: false,
@@ -121,6 +125,7 @@ class TopNav extends Component<PropsType, StateType> {
     this.onMeasureToggle = this.onMeasureToggle.bind(this)
     this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
     this.onGpsClick = this.onGpsClick.bind(this)
+    this.onToolpickToogle = this.onToolpickToogle.bind(this)
   }
 
   public onNavToggle() {
@@ -437,6 +442,35 @@ class TopNav extends Component<PropsType, StateType> {
             title="Annotation Tool"
           />
         </NavItem>
+        <UncontrolledDropdown nav={true} className="mr-4 active">
+          <DropdownToggle nav={true} caret={false}>
+            <i
+              className={
+                'fas fa-map-pin fa-lg ' + (this.props.toolSelected === ToolSelected.TOOLPICK ? 'selected' : '')
+              }
+              title="Enable Weather Toolpick"
+            />
+          </DropdownToggle>
+          <DropdownMenu right={true}>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.AIR_TEMPERATURE)}>
+              <i className="fas fa-cloud-sun fa-sm" />
+              Air Temperature
+            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>
+              <i className="fas fa-water fa-sm" />
+              Current Speed
+            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
+              <i className="fas fa-thermometer-half fa-sm mr-2" />
+              Water Temperature
+            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>
+              <i className="fas fa-wind fa-sm" />
+              Wind Speed
+            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
+          </DropdownMenu>
+        </UncontrolledDropdown>
         <NavItem className="mt-auto mb-auto mr-4" active={this.props.isGpsActive} onClick={this.onGpsClick}>
           <i
             className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
@@ -489,6 +523,15 @@ class TopNav extends Component<PropsType, StateType> {
   private onGpsClick() {
     this.props.toggleGps()
   }
+
+  private onToolpickToogle(weatherParam: WeatherParam | null) {
+    if (weatherParam !== null) {
+      this.props.setToolSelected(ToolSelected.TOOLPICK)
+    } else if (this.props.toolSelected === ToolSelected.TOOLPICK) {
+      this.props.setToolSelected(ToolSelected.ADD)
+    }
+    this.props.setWeatherParam(weatherParam)
+  }
 }
 
 function mapStateToProps(state: IRipplesState) {
@@ -500,6 +543,7 @@ function mapStateToProps(state: IRipplesState) {
     vehicleSelected: state.vehicleSelected,
     vehicles: state.assets.vehicles,
     isGpsActive: state.isGpsActive,
+    weatherParam: state.weatherParam,
   }
 }
 
@@ -516,9 +560,10 @@ const actionCreators = {
   setSidePanelContent,
   toggleGps,
   setEditVehicle,
+  setWeatherParam,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators,
+  actionCreators
 )(TopNav)

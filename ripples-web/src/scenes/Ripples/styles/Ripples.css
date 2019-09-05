@@ -133,3 +133,27 @@ path.leaflet-polygon {
   padding-inline-start: 0.5em;
   margin-inline-end: 0.5em;
 }
+
+.dropdown button {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: baseline;
+}
+
+.tooltip {
+  margin: 0;
+  padding: 0.5em 0em;
+  width: 18em;
+}
+
+.tooltip span {
+  display: table;
+  margin: 0 auto;
+}
+
+.tooltip ul {
+  list-style: none;
+  text-align: center;
+  padding: 0 1em;
+  margin: 0 auto;
+}
