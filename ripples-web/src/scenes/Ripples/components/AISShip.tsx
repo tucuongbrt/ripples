@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { Polygon } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IAisShip from '../../../model/IAisShip'
-import IAsset from '../../../model/IAsset';
+import IAsset from '../../../model/IAsset'
 import IAssetAwareness from '../../../model/IAssetAwareness'
 import IRipplesState from '../../../model/IRipplesState'
 import {
@@ -166,5 +166,5 @@ function mapStateToProps(state: IRipplesState) {
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(AISShip)

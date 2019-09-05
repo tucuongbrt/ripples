@@ -45,8 +45,6 @@ dependencies {
 
 	compile 'org.springframework.security:spring-security-oauth2-client'
 	compile 'org.springframework.boot:spring-boot-starter-security'
-
-
 	
 	compile 'com.google.api-client:google-api-client:1.23.0'
 	compile 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
@@ -59,6 +57,8 @@ dependencies {
     compile("org.webjars:sockjs-client:1.1.2")
     compile("org.webjars:stomp-websocket:2.3.3-1")
 	compile group: "com.twilio.sdk", name: "twilio", version: "7.40.1"
+
+	compile group: 'org.json', name: 'json', version: '20190722'
 
 	compile files('libs/libimc.jar','libs/ais-contact-manager-1.0.jar')
 	

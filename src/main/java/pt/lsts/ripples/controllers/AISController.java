@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.lsts.ripples.domain.wg.AISShip;
 import pt.lsts.ripples.repo.AISRepository;
 import pt.lsts.ripples.services.AISHubFetcher;
-import pt.lsts.ripples.util.HTTPResponse;
 
 @RestController
 public class AISController {
