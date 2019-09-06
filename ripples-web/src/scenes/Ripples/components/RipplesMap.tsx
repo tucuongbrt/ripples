@@ -865,17 +865,20 @@ class RipplesMap extends Component<PropsType, StateType> {
   private buildWeatherPanel(weatherSources: ParamsType) {
     return (
       this.props.weatherParam && (
-        <ul>
-          <h5>{formatWeatherParam(this.props.weatherParam)}</h5>
-          {Object.keys(weatherSources).map((source, i) => (
-            <li key={i}>
-              <div>
-                <span>{formatWeatherSource(source)}:</span>
-                {this.props.weatherParam && formatWeatherValue(weatherSources[source], this.props.weatherParam)}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul>
+            <h5>{formatWeatherParam(this.props.weatherParam)}</h5>
+            {Object.keys(weatherSources).map((source, i) => (
+              <li key={i}>
+                <div>
+                  <span>{formatWeatherSource(source)}:</span>
+                  {this.props.weatherParam && formatWeatherValue(weatherSources[source], this.props.weatherParam)}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {this.props.weatherParam.includes('Direction') && <span>0º points North</span>}
+        </>
       )
     )
   }

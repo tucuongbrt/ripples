@@ -146,14 +146,20 @@ path.leaflet-polygon {
   width: 18em;
 }
 
-.tooltip span {
-  display: table;
-  margin: 0 auto;
-}
-
 .tooltip ul {
   list-style: none;
   text-align: center;
   padding: 0 1em;
   margin: 0 auto;
+}
+
+.tooltip span {
+  display: table;
+  margin: 0 auto;
+}
+
+.tooltip ul + span {
+  font-weight: lighter;
+  font-size: 80%;
+  margin-top: 0.5em;
 }

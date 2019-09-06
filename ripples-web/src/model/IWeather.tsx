@@ -2,10 +2,15 @@ import { ParamsType } from '../services/SoiUtils'
 
 export default interface IWeather {
   airTemperature?: ParamsType
+  currentDirection?: ParamsType
   currentSpeed?: ParamsType
-  timestamp: ParamsType
+  gust?: ParamsType
   waterTemperature?: ParamsType
+  waveDirection?: ParamsType
+  waveHeight?: ParamsType
+  windDirection?: ParamsType
   windSpeed?: ParamsType
+  timestamp: ParamsType
 }
 
 export function formatWeatherSource(source: string) {

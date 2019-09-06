@@ -453,19 +453,26 @@ class TopNav extends Component<PropsType, StateType> {
           </DropdownToggle>
           <DropdownMenu right={true}>
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.AIR_TEMPERATURE)}>
-              <i className="fas fa-cloud-sun fa-sm" />
               Air Temperature
             </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_DIRECTION)}>
+              Current Direction
+            </DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>
-              <i className="fas fa-water fa-sm" />
               Current Speed
             </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.GUST)}>Wind gust</DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
-              <i className="fas fa-thermometer-half fa-sm mr-2" />
               Water Temperature
             </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_DIRECTION)}>
+              Wave Direction
+            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_HEIGHT)}>Wave Height</DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_DIRECTION)}>
+              Wind Direction
+            </DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>
-              <i className="fas fa-wind fa-sm" />
               Wind Speed
             </DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
