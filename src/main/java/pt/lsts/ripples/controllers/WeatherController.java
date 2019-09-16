@@ -4,12 +4,12 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-
-import com.google.gson.Gson;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,24 +28,35 @@ import pt.lsts.ripples.domain.assets.WeatherStatus;
 public class WeatherController {
 
 	private final Logger logger = LoggerFactory.getLogger(WeatherController.class);
-	
+
 	@Value("${stormGlass.apiKey}")
 	private String apiKey;
 
 	private String url = "https://api.stormglass.io/v1/weather/point?";
-	
+
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
-    @GetMapping(path = {"/weather", "/weather/"}, produces = "application/json")
-    public WeatherStatus fetchWeather(@RequestParam(required=true) Double lat, @RequestParam(required=true) Double lng, @RequestParam(required=false) String params) {
+	@GetMapping(path = { "/weather", "/weather/" }, produces = "application/json")
+	public List<WeatherStatus> fetchWeather(@RequestParam(required = true) Double lat,
+			@RequestParam(required = true) Double lng, @RequestParam(required = false) String params) {
 		try {
 			StringBuilder finalUrl = new StringBuilder(url);
 			finalUrl.append("lat=").append(lat);
 			finalUrl.append("&lng=").append(lng);
 			finalUrl.append("&params=").append(params);
-			Date currentTime = Calendar.getInstance().getTime();
-			String currentTimeStr = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(currentTime);
-			finalUrl.append("&start=").append(currentTimeStr);
-			finalUrl.append("&end=").append(currentTimeStr);
+
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(new Date());
+			calendar.add(Calendar.DAY_OF_YEAR, -2);
+			Date startTime = calendar.getTime();
+			calendar.add(Calendar.DAY_OF_YEAR, 4);
+			Date endTime = calendar.getTime();
+
+			String startTimeStr = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(startTime);
+			String endTimeStr = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(endTime);
+
+			finalUrl.append("&start=").append(startTimeStr);
+			finalUrl.append("&end=").append(endTimeStr);
+
 			URL stormGlass = new URL(finalUrl.toString());
 
 			HttpURLConnection con = (HttpURLConnection) stormGlass.openConnection();
@@ -67,13 +78,26 @@ public class WeatherController {
 
 			JSONParser parser = new JSONParser(JSONParser.MODE_JSON_SIMPLE);
 			JSONObject json = (JSONObject) parser.parse(response.toString());
-			JSONObject currentWeather = (JSONObject) ((JSONArray) json.get("hours")).get(0);
-
-			return new WeatherStatus(currentTime, currentWeather);
-		}
-		catch (Exception e) {
-			e.printStackTrace();		
+			List<WeatherStatus> weatherStatus = this.parseWeatherJsonArray((JSONArray) json.get("hours"));
+			return weatherStatus;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return null;
-    }
+	}
+
+	public List<WeatherStatus> parseWeatherJsonArray(JSONArray jsonArray) {
+		ArrayList<WeatherStatus> weatherData = new ArrayList<WeatherStatus>();
+		for (int i = 0; i < jsonArray.size(); i++) {
+			JSONObject currentObj = (JSONObject) jsonArray.get(i);
+			try {
+				Date timestamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(currentObj.get("time").toString());
+				WeatherStatus status = new WeatherStatus(timestamp, currentObj);
+				weatherData.add(status);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+		return weatherData;
+	}
 }
