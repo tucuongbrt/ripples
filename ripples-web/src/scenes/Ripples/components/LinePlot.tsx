@@ -7,7 +7,7 @@ interface PropsType {
   data: IProfile
 }
 
-interface XYPoint {
+export interface XYPoint {
   x: number
   y: number
 }

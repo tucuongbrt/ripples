@@ -10,7 +10,6 @@ import {
   Polyline,
   Popup,
   TileLayer,
-  Tooltip,
   WMSTileLayer,
 } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
@@ -26,10 +25,8 @@ import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
 import IRipplesState from '../../../model/IRipplesState'
-import IWeather from '../../../model/IWeather'
-import { formatWeatherSource } from '../../../model/IWeather'
 import { ToolSelected } from '../../../model/ToolSelected'
-import { formatWeatherParam, formatWeatherValue, WeatherParam } from '../../../model/WeatherParam'
+import { WeatherParam } from '../../../model/WeatherParam'
 import {
   addMeasurePoint,
   addWpToPlan,
@@ -49,7 +46,8 @@ import DateService from '../../../services/DateUtils'
 import LogbookService from '../../../services/LogbookUtils'
 import MapUtils from '../../../services/MapUtils'
 import PositionService from '../../../services/PositionUtils'
-import SoiService, { ParamsType } from '../../../services/SoiUtils'
+import SoiService from '../../../services/SoiUtils'
+import WeatherService, { IWeather, WeatherData, WeatherSource } from '../../../services/WeatherUtils'
 import '../styles/Ripples.css'
 import AISCanvas from './AISCanvas'
 import AISShip from './AISShip'
@@ -59,6 +57,7 @@ import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
+import WeatherLinePlot from './WeatherLinePlot'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -113,7 +112,7 @@ interface StateType {
   activeLegend: JSX.Element
   toolClickLocation: ILatLng | null
   newAnnotationContent: string
-  clickLocationWeather: any | null
+  clickLocationWeather: IWeather[]
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -125,6 +124,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   private blueCircleIcon = new BlueCircleIcon()
   private logBookService = new LogbookService()
   private soiService = new SoiService()
+  private weatherService = new WeatherService()
   private newAnnotationPopupRef: React.RefObject<Popup> = React.createRef()
   private vehicleChangedSettings: Map<string, string> = new Map()
   private lastWaveMapTime: string = MapUtils.resetMapTime(3)
@@ -143,7 +143,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       activeLegend: <></>,
       toolClickLocation: null,
       newAnnotationContent: '',
-      clickLocationWeather: null,
+      clickLocationWeather: [],
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -847,40 +847,20 @@ class RipplesMap extends Component<PropsType, StateType> {
   private buildToolpickMarker() {
     if (this.props.toolSelected === ToolSelected.TOOLPICK) {
       const location = this.state.toolClickLocation
-      const weather: IWeather = this.state.clickLocationWeather
-      if (!(location && weather && this.props.weatherParam && weather[this.props.weatherParam])) {
-        return <></>
+      const weather: IWeather[] = this.state.clickLocationWeather
+      if (!(location && weather.length > 0 && this.props.weatherParam)) {
+        return
       }
-      const weatherSources = weather[this.props.weatherParam] as ParamsType
+      const sourcesData: WeatherSource = this.weatherService.joinSourceValues(weather, this.props.weatherParam)
+      const graphData: WeatherData[] = this.weatherService.preparePlotData(sourcesData)
       return (
-        <Marker position={{ lat: location.latitude, lng: location.longitude }}>
-          <Tooltip className="tooltip" direction="top" offset={[0, 4]} opacity={1} permanent={true}>
-            {this.buildWeatherPanel(weatherSources)}
-          </Tooltip>
+        <Marker position={this.positionService.getLatLng(location)}>
+          <Popup minWidth={300} maxWidth={600}>
+            <WeatherLinePlot param={this.props.weatherParam} data={graphData} />
+          </Popup>
         </Marker>
       )
     }
-  }
-
-  private buildWeatherPanel(weatherSources: ParamsType) {
-    return (
-      this.props.weatherParam && (
-        <>
-          <ul>
-            <h5>{formatWeatherParam(this.props.weatherParam)}</h5>
-            {Object.keys(weatherSources).map((source, i) => (
-              <li key={i}>
-                <div>
-                  <span>{formatWeatherSource(source)}:</span>
-                  {this.props.weatherParam && formatWeatherValue(weatherSources[source], this.props.weatherParam)}
-                </div>
-              </li>
-            ))}
-          </ul>
-          {this.props.weatherParam.includes('Direction') && <span>0º points North</span>}
-        </>
-      )
-    )
   }
 }
 

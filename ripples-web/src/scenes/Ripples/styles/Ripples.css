@@ -13,8 +13,18 @@
 }
 
 .chartwrapper {
+  width: 35vw;
   height: 300px;
-  width: 100%;
+}
+
+.chartwrapper div {
+  margin-top: -1em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.chartwrapper span {
+  margin: 0 auto;
 }
 
 section.map.mode-create {
@@ -119,7 +129,6 @@ path.leaflet-polygon {
 .vehicle-modal {
   width: 75%;
   margin: .5rem auto;
-  
 }
 
 .vehicle-modal .modal-body {
