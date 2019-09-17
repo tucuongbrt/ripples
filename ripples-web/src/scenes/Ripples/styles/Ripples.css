@@ -76,6 +76,7 @@ path.leaflet-polygon {
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
+  padding-bottom: 1em;
 }
 
 .react-datepicker {

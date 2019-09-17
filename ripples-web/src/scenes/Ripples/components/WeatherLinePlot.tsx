@@ -105,6 +105,7 @@ export default class WeatherLinePlot extends Component<PropsType, StateType> {
             },
           ]}
         />
+        {this.props.param.includes('Direction') && <span>0º points North</span>}
       </div>
     )
   }
