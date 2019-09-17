@@ -40,6 +40,7 @@ export default interface IRipplesState {
   hasSliderChanged: boolean
   mapOverlayInfo: IOverlayInfo
   weatherParam: WeatherParam | null
+  toolClickLocation: ILatLng | null
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

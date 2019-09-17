@@ -37,6 +37,7 @@ import {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  setToolClickLocation,
   toggleSliderChange,
   toggleVehicleModal,
   updateVehicle,
@@ -86,6 +87,7 @@ interface PropsType {
   sliderValue: number
   hasSliderChanged: boolean
   weatherParam: WeatherParam | null
+  toolClickLocation: ILatLng | null
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -100,6 +102,7 @@ interface PropsType {
   onSettingsClick: () => void
   toggleSliderChange: () => void
   setMapOverlayInfo: (m: string) => void
+  setToolClickLocation: (l: ILatLng | null) => void
 }
 
 interface StateType {
@@ -110,7 +113,6 @@ interface StateType {
   isAISLayerActive: boolean
   isVehiclesLayerActive: boolean
   activeLegend: JSX.Element
-  toolClickLocation: ILatLng | null
   newAnnotationContent: string
   clickLocationWeather: IWeather[]
 }
@@ -141,7 +143,6 @@ class RipplesMap extends Component<PropsType, StateType> {
       isAISLayerActive: true,
       isVehiclesLayerActive: true,
       activeLegend: <></>,
-      toolClickLocation: null,
       newAnnotationContent: '',
       clickLocationWeather: [],
     }
@@ -719,7 +720,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   private buildNewAnnotationMarker() {
     if (this.props.toolSelected === ToolSelected.ANNOTATION) {
-      const location = this.state.toolClickLocation
+      const location = this.props.toolClickLocation
       if (location == null) {
         return <></>
       }
@@ -728,7 +729,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           <Popup
             ref={this.newAnnotationPopupRef}
             onClose={() => {
-              this.setState({ toolClickLocation: null })
+              this.props.setToolClickLocation(null)
             }}
           >
             <textarea
@@ -766,7 +767,7 @@ class RipplesMap extends Component<PropsType, StateType> {
    * @param location The click location
    */
   private onMapAnnotationClick(location: ILatLng) {
-    this.setState({ toolClickLocation: location })
+    this.props.setToolClickLocation(location)
   }
 
   private buildEditVehicleModal() {
@@ -833,12 +834,13 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   private async onMapToolpickClick(clickLocation: ILatLng) {
+    this.props.setToolClickLocation(clickLocation)
     try {
       if (!this.props.weatherParam) {
         return
       }
       const response = await MapUtils.fetchWeatherData(clickLocation, this.props.weatherParam)
-      this.setState({ toolClickLocation: clickLocation, clickLocationWeather: response })
+      this.setState({ clickLocationWeather: response })
     } catch (error) {
       NotificationManager.error(error.message)
     }
@@ -846,7 +848,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   private buildToolpickMarker() {
     if (this.props.toolSelected === ToolSelected.TOOLPICK) {
-      const location = this.state.toolClickLocation
+      const location = this.props.toolClickLocation
       const weather: IWeather[] = this.state.clickLocationWeather
       if (!(location && weather.length > 0 && this.props.weatherParam)) {
         return
@@ -886,6 +888,7 @@ function mapStateToProps(state: IRipplesState) {
     sliderValue: state.sliderValue,
     hasSliderChanged: state.hasSliderChanged,
     weatherParam: state.weatherParam,
+    toolClickLocation: state.toolClickLocation,
   }
 }
 
@@ -901,11 +904,12 @@ const actionCreators = {
   toggleVehicleModal,
   setEditVehicle,
   setMapOverlayInfo,
+  setToolClickLocation,
   updateVehicle,
   toggleSliderChange,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(RipplesMap)

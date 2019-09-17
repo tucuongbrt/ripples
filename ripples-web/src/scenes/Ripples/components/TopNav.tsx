@@ -22,6 +22,7 @@ import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
 import IAsset from '../../../model/IAsset'
 import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
+import ILatLng from '../../../model/ILatLng'
 import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
@@ -34,6 +35,7 @@ import {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  setToolClickLocation,
   setToolSelected,
   setWeatherParam,
   toggleGps,
@@ -42,6 +44,7 @@ import {
   updatePlanId,
 } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
+
 
 interface PropsType {
   vehicles: IAsset[]
@@ -72,6 +75,7 @@ interface PropsType {
   toggleGps: () => void
   setEditVehicle: (v: IAsset | undefined) => void
   setWeatherParam: (p: WeatherParam | null) => void
+  setToolClickLocation: (l: ILatLng | null) => void
 }
 
 interface StateType {
@@ -538,6 +542,7 @@ class TopNav extends Component<PropsType, StateType> {
       this.props.setToolSelected(ToolSelected.ADD)
     }
     this.props.setWeatherParam(weatherParam)
+    this.props.setToolClickLocation(null)
   }
 }
 
@@ -568,9 +573,10 @@ const actionCreators = {
   toggleGps,
   setEditVehicle,
   setWeatherParam,
+  setToolClickLocation,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(TopNav)

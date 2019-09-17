@@ -52,6 +52,7 @@ import {
   updateVehicle,
   updateWpLocation,
   updateWpTimestamp,
+  setToolClickLocation,
 } from '../ripples.actions'
 
 const positionService: PositionService = new PositionService()
@@ -78,6 +79,7 @@ const startState: IRipplesState = {
   hasSliderChanged: false,
   mapOverlayInfo: DefaultOverlayInfo,
   weatherParam: null,
+  toolClickLocation: null,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -326,6 +328,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [setWeatherParam.type]: (state, action) => {
     state.weatherParam = action.payload
+  },
+  [setToolClickLocation.type]: (state, action) => {
+    state.toolClickLocation = action.payload
   },
 })
 
