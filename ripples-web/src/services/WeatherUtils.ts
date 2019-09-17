@@ -33,7 +33,7 @@ export default class WeatherService {
       }
       for (let [key, value] of Object.entries(row)) {
         result[key] = result[key] || []
-        result[key].push(parseFloat(value))
+        result[key].push(+value)
       }
     })
     return result

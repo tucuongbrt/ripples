@@ -12,19 +12,40 @@
   padding-top: 0.5em;
 }
 
-.chartwrapper {
-  width: 35vw;
+.chartwrapper, .chartAreaWrapper {
+  width: 500px;
   height: 300px;
 }
 
-.chartwrapper div {
-  margin-top: -1em;
-  margin-left: auto;
-  margin-right: auto;
+.chartwrapper {
+  position: relative;
+  margin: 0 auto;
 }
 
-.chartwrapper span {
+.chartAreaWrapper {
+  margin-top: -1em;
+}
+
+#weatherPlot span:first-of-type {
   margin: 0 auto;
+}
+
+#weatherPlot span:last-of-type {
+  margin: 1em auto 0 auto;
+}
+
+@media(max-width: 640px) {
+  .chartwrapper, .chartAreaWrapper {
+    width: 60vw;
+  }
+  .chartwrapper {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    margin-left: 0;
+  }
+  .chartAreaWrapper > div {
+    width: 200% !important
+  }
 }
 
 section.map.mode-create {
