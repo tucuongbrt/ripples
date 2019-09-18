@@ -1,4 +1,3 @@
-import { LatLngLiteral } from 'leaflet'
 import React, { Component } from 'react'
 import {
   Circle,
@@ -20,7 +19,7 @@ import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
 import IAuthState, { IUserLocation } from '../../../model/IAuthState'
 import ILatLng from '../../../model/ILatLng'
-import IMyMap from '../../../model/IMyMap'
+import IMyMap, { IMapSettings } from '../../../model/IMyMap'
 import IPlan, { getPlanKey } from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
@@ -106,7 +105,7 @@ interface PropsType {
 }
 
 interface StateType {
-  initCoords: LatLngLiteral
+  settings: IMapSettings
   isToDrawAISPolygons: boolean
   perpLinesSize: number
   currentTime: number
@@ -134,9 +133,13 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   constructor(props: PropsType) {
     super(props)
-    const initCoords = { lat: 41.18, lng: -8.7 }
+
     this.state = {
-      initCoords,
+      settings: {
+        lat: MapUtils.initCoords.lat,
+        lng: MapUtils.initCoords.lng,
+        zoom: MapUtils.initZoom,
+      },
       isToDrawAISPolygons: false,
       perpLinesSize: 10,
       currentTime: Date.now(),
@@ -148,11 +151,16 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
+    this.handleMove = this.handleMove.bind(this)
     this.drawCanvas = this.drawCanvas.bind(this)
     this.toggleDrawAisLocations = this.toggleDrawAisLocations.bind(this)
     this.onMapAnnotationClick = this.onMapAnnotationClick.bind(this)
     this.onLocationClick = this.onLocationClick.bind(this)
     this.onEditVehicle = this.onEditVehicle.bind(this)
+
+    if (this.props.auth.authenticated) {
+      this.fetchMapSettings()
+    }
   }
 
   public async componentDidMount() {
@@ -325,6 +333,20 @@ class RipplesMap extends Component<PropsType, StateType> {
     })
   }
 
+  public async handleMove(e: any) {
+    if (!this.props.auth.authenticated) {
+      return
+    }
+    const center = this.map.leafletElement.getBounds().getCenter()
+    const zoom = this.map.leafletElement.getZoom()
+    const newSettings: IMapSettings = {
+      lat: center.lat,
+      lng: center.lng,
+      zoom,
+    }
+    await MapUtils.updateMapSettings(newSettings)
+  }
+
   public handleZoom(e: any) {
     const newZoom = e.target._animateToZoom
     let newLineLength = 0
@@ -343,6 +365,7 @@ class RipplesMap extends Component<PropsType, StateType> {
         }
       }
     }
+    this.handleMove(e)
   }
 
   public toggleDrawAisLocations() {
@@ -357,10 +380,11 @@ class RipplesMap extends Component<PropsType, StateType> {
         <LeafletMap
           ref="map"
           fullscreenControl={true}
-          center={this.state.initCoords}
-          zoom={this.initZoom}
+          center={{ lat: this.state.settings.lat, lng: this.state.settings.lng }}
+          zoom={this.state.settings.zoom}
           maxZoom={20}
           onClick={this.handleMapClick}
+          onMoveend={this.handleMove}
           onZoomend={this.handleZoom}
           onOverlayAdd={(evt: any) => {
             // this is done for perfomance reasons
@@ -604,6 +628,17 @@ class RipplesMap extends Component<PropsType, StateType> {
         {this.state.activeLegend}
       </>
     )
+  }
+
+  private async fetchMapSettings() {
+    const userMapSettings: IMapSettings = await MapUtils.fetchUserMapSettings()
+    this.setState({
+      settings: {
+        lat: userMapSettings.lat,
+        lng: userMapSettings.lng,
+        zoom: userMapSettings.zoom,
+      },
+    })
   }
 
   private buildUsersLocations() {
