@@ -76,4 +76,8 @@ public class AssetPosition {
         this.setLon(location.getLongitude());
         this.setTimestamp(location.getTimestamp());
     }
+
+    public String toString() {
+		return "{ lat: " + lat + ", lng: " + lon + " }";
+	}
 }
