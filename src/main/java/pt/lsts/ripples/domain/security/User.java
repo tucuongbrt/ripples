@@ -1,14 +1,15 @@
 package pt.lsts.ripples.domain.security;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import pt.lsts.ripples.domain.maps.MapSettings;
 
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Table(name = "users", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "email")
-})
+@Table(name = "users", uniqueConstraints = { @UniqueConstraint(columnNames = "email") })
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +38,9 @@ public class User {
     private AuthProvider provider;
 
     private String providerId;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private MapSettings mapSettings = new MapSettings();
 
     public Long getId() {
         return id;
@@ -108,5 +112,13 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public MapSettings getMapSettings() {
+        return mapSettings;
+    }
+
+    public void setMapSettings(MapSettings mapSettings) {
+        this.mapSettings = mapSettings;
     }
 }

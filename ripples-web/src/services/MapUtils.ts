@@ -1,4 +1,5 @@
 import ILatLng from '../model/ILatLng'
+import { IMapSettings } from '../model/IMyMap'
 import { WeatherParam } from '../model/WeatherParam'
 import DateService from './DateUtils'
 import { request } from './RequestUtils'
@@ -6,6 +7,9 @@ import { request } from './RequestUtils'
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
 export default class MapUtils {
+  public static initCoords = { lat: 41.18, lng: -8.7 }
+  public static initZoom = 10
+
   public static buildRequestTime(deltaHours: number, updateIntervalInHours: number) {
     const date = DateService.timeOffsetToRealTime(deltaHours)
     let hour = date.getHours()
@@ -37,6 +41,20 @@ export default class MapUtils {
   public static fetchWeatherData(location: ILatLng, params: WeatherParam) {
     return request({
       url: `${apiURL}/weather?lat=${location.latitude}&lng=${location.longitude}&params=${params}`,
+    })
+  }
+
+  public static fetchUserMapSettings() {
+    return request({
+      url: `${apiURL}/users/map/settings`,
+    })
+  }
+
+  public static updateMapSettings(settings: IMapSettings) {
+    return request({
+      method: 'POST',
+      body: JSON.stringify(settings),
+      url: `${apiURL}/users/map/settings`,
     })
   }
 }

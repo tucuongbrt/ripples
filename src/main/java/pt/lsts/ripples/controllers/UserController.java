@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.assets.UserLocation;
+import pt.lsts.ripples.domain.maps.MapSettings;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.exceptions.ResourceNotFoundException;
 import pt.lsts.ripples.repo.PositionsRepository;
@@ -44,7 +45,7 @@ public class UserController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userPrincipal.getId()));
     }
 
-    @GetMapping(path={"/users/location/", "/users/location/"}, produces="application/json")
+    @GetMapping(path = { "/users/location/", "/users/location/" }, produces = "application/json")
     @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
     public UserLocation getUserLastLocation(@CurrentUser UserPrincipal user) {
         Optional<UserLocation> opt = userLocationRepository.findByEmail(user.getEmail());
@@ -54,9 +55,11 @@ public class UserController {
         throw new ResourceNotFoundException("User location", "e-mail", user.getEmail());
     }
 
-    @PostMapping(path={"/users/location", "/users/location/"}, consumes="application/json", produces="application/json")
+    @PostMapping(path = { "/users/location",
+            "/users/location/" }, consumes = "application/json", produces = "application/json")
     @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
-    public ResponseEntity<HTTPResponse> updateUserLocation(@CurrentUser UserPrincipal user, @RequestBody UserLocation location) {
+    public ResponseEntity<HTTPResponse> updateUserLocation(@CurrentUser UserPrincipal user,
+            @RequestBody UserLocation location) {
         UserLocation newLocation;
         Optional<UserLocation> opt = userLocationRepository.findByEmail(user.getEmail());
         if (opt.isPresent()) {
@@ -79,6 +82,34 @@ public class UserController {
         }
         positionsRepository.save(pos);
         wsController.sendUserLocationUpdate(newLocation);
-        return new ResponseEntity<>(new HTTPResponse("Success","Location of user " + user.getEmail() + " updated"), HttpStatus.OK);
+        return new ResponseEntity<>(new HTTPResponse("Success", "Location of user " + user.getEmail() + " updated to " + pos),
+                HttpStatus.OK);
+    }
+
+    @GetMapping(path = { "/users/map/settings", "/users/map/settings/" }, produces = "application/json")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    public MapSettings getUserMapSettings(@CurrentUser UserPrincipal user) {
+        Optional<User> opt = userRepository.findByEmail(user.getEmail());
+        if (opt.isPresent()) {
+            User currentUser = opt.get();
+            return currentUser.getMapSettings();
+        }
+        throw new ResourceNotFoundException("User", "e-mail", user.getEmail());
+    }
+
+    @PostMapping(path = { "/users/map/settings",
+            "/users/map/settings/" }, consumes = "application/json", produces = "application/json")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    public ResponseEntity<HTTPResponse> updateUserMapSettings(@CurrentUser UserPrincipal user,
+            @RequestBody MapSettings settings) {
+        Optional<User> opt = userRepository.findByEmail(user.getEmail());
+        if (opt.isPresent()) {
+            User currentUser = opt.get();
+            currentUser.setMapSettings(settings);
+            userRepository.save(currentUser);
+            return new ResponseEntity<>(
+                    new HTTPResponse("Success", "Map settings of user " + user.getEmail() + " updated to " + settings), HttpStatus.OK);
+        }
+        throw new ResourceNotFoundException("User", "e-mail", user.getEmail());
     }
 }
