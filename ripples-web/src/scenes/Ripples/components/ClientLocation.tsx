@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { geolocated, GeolocatedProps } from 'react-geolocated'
 import { Circle, Marker } from 'react-leaflet'
 import { connect } from 'react-redux'
-import { IUser, IUserLocation } from '../../../model/IAuthState'
+import IUserState, { IUserLocation } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
 import { getUserLastLocation, updateUserLocation } from '../../../services/UserUtils'
 import { MobileIcon, PCIcon } from './Icons'
@@ -12,7 +12,7 @@ const { NotificationManager } = require('react-notifications')
 const onMobile = new MobileDetect(window.navigator.userAgent).mobile()
 
 interface PropsType {
-  authUser: IUser
+  auth: IUserState
   onLocationClick: (u: IUserLocation) => void
 }
 
@@ -60,6 +60,9 @@ class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public async componentDidMount() {
+    if (!this.props.auth.authenticated) {
+      return
+    }
     await this.fetchInitialPos()
     if (!this.sendLocationTimer) {
       this.sendLocation()
@@ -87,9 +90,7 @@ class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
   private async fetchInitialPos() {
     try {
       const location = await getUserLastLocation()
-      if (location) {
-        this.setState({ lastLocation: location })
-      }
+      this.setState({ lastLocation: location })
     } catch(error) {
       console.log('User does not have a saved position')
     }
@@ -98,8 +99,8 @@ class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
   private buildUserLocation() {
     if (this.props.coords) {
       const location: IUserLocation = {
-        name: this.props.authUser.name,
-        email: this.props.authUser.email,
+        name: this.props.auth.currentUser.name,
+        email: this.props.auth.currentUser.email,
         latitude: this.props.coords.latitude,
         longitude: this.props.coords.longitude,
         accuracy: this.props.coords.accuracy,
@@ -115,7 +116,7 @@ class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
 
 function mapStateToProps(state: IRipplesState) {
   return {
-    authUser: state.auth.currentUser,
+    auth: state.auth,
   }
 }
 

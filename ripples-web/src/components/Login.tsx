@@ -3,7 +3,8 @@ import { connect } from 'react-redux'
 import { Button } from 'reactstrap'
 import IAuthState from '../model/IAuthState'
 import IRipplesState from '../model/IRipplesState'
-import { removeUser } from '../redux/ripples.actions'
+import { ToolSelected } from '../model/ToolSelected'
+import { removeUser, setToolSelected } from '../redux/ripples.actions'
 
 const GOOGLE_AUTH_URL =
   process.env.REACT_APP_API_BASE_URL +
@@ -13,6 +14,7 @@ const GOOGLE_AUTH_URL =
 interface PropsType {
   auth: IAuthState
   removeUser: () => void
+  setToolSelected: (_: ToolSelected) => void
 }
 
 class Login extends Component<PropsType, {}> {
@@ -26,6 +28,7 @@ class Login extends Component<PropsType, {}> {
   }
 
   public handleLogout() {
+    this.props.setToolSelected(ToolSelected.ADD)
     localStorage.removeItem('ACCESS_TOKEN')
     this.props.removeUser()
   }
@@ -54,9 +57,10 @@ function mapStateToProps(state: IRipplesState) {
 
 const actionCreators = {
   removeUser,
+  setToolSelected,
 }
 
 export default connect(
   mapStateToProps,
-  actionCreators
+  actionCreators,
 )(Login)
