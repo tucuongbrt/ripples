@@ -1,20 +1,47 @@
 package pt.lsts.ripples.services;
 
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import pt.lsts.imc.*;
-import pt.lsts.ripples.controllers.WebSocketsController;
-import pt.lsts.ripples.domain.assets.*;
-import pt.lsts.ripples.domain.soi.VerticalProfileData;
-import pt.lsts.ripples.iridium.*;
-import pt.lsts.ripples.repo.*;
-import pt.lsts.ripples.util.RipplesUtils;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Optional;
+
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import pt.lsts.imc.Announce;
+import pt.lsts.imc.IMCMessage;
+import pt.lsts.imc.SoiCommand;
+import pt.lsts.imc.SoiPlan;
+import pt.lsts.imc.StateReport;
+import pt.lsts.imc.VerticalProfile;
+import pt.lsts.ripples.controllers.WebSocketsController;
+import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.AssetErrors;
+import pt.lsts.ripples.domain.assets.AssetParams;
+import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.assets.AssetState;
+import pt.lsts.ripples.domain.assets.Plan;
+import pt.lsts.ripples.domain.assets.SystemAddress;
+import pt.lsts.ripples.domain.assets.Waypoint;
+import pt.lsts.ripples.domain.soi.VerticalProfileData;
+import pt.lsts.ripples.iridium.ActivateSubscription;
+import pt.lsts.ripples.iridium.DeactivateSubscription;
+import pt.lsts.ripples.iridium.DeviceUpdate;
+import pt.lsts.ripples.iridium.ExtendedDeviceUpdate;
+import pt.lsts.ripples.iridium.ImcIridiumMessage;
+import pt.lsts.ripples.iridium.IridiumCommand;
+import pt.lsts.ripples.iridium.IridiumMessage;
+import pt.lsts.ripples.iridium.PlainTextReport;
+import pt.lsts.ripples.iridium.Position;
+import pt.lsts.ripples.repo.AddressesRepository;
+import pt.lsts.ripples.repo.AssetsErrorsRepository;
+import pt.lsts.ripples.repo.AssetsParamsRepository;
+import pt.lsts.ripples.repo.AssetsRepository;
+import pt.lsts.ripples.repo.PositionsRepository;
+import pt.lsts.ripples.repo.SubscriptionsRepo;
+import pt.lsts.ripples.repo.VertProfilesRepo;
+import pt.lsts.ripples.util.RipplesUtils;
 
 @Service
 public class MessageProcessor {
@@ -51,6 +78,9 @@ public class MessageProcessor {
 
     @Autowired
     WebSocketsController wsController;
+    
+    @Autowired
+    SubscriptionsRepo subscriptionsRepo;
 
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
 
@@ -74,11 +104,40 @@ public class MessageProcessor {
             break;
         case IridiumMessage.TYPE_IRIDIUM_COMMAND:
             onIridiumCommand((IridiumCommand) msg);
+            break;
+        case IridiumMessage.TYPE_ACTIVATE_SUBSCRIPTION:
+        	onActivateSubscription((ActivateSubscription) msg);
+        	break;
+        case IridiumMessage.TYPE_DEACTIVATE_SUBSCRIPTION:
+        	onDeactivateSubscription((DeactivateSubscription) msg);
+        	break;	
         default:
             break;
         }
     }
-
+    
+    public void onActivateSubscription(ActivateSubscription msg) {
+    	logger.warn(msg.source+" has activated iridium subscriptions.");
+    	SystemAddress address = addresses.findByImcId(msg.source);
+    	if (address == null) {
+    		logger.error("Received a subscription from an unknown source: "+address);
+    		return;
+    	}
+    	
+    	logger.warn(msg.source+" has deactivated iridium subscriptions.");
+    } 
+    
+    public void onDeactivateSubscription(DeactivateSubscription msg) {
+    	SystemAddress address = addresses.findByImcId(msg.source);
+    	if (address == null) {
+    		logger.error("Received a de-subscription from an unknown source: "+address);
+    		return;
+    	}
+    	
+    	logger.warn(msg.source+" has deactivated iridium subscriptions.");
+    	
+    }
+   
     public void on(IMCMessage msg) {
         logger.info("Received IMC msg of type " + msg.getClass().getSimpleName() + " from " + msg.getSourceName());
 
