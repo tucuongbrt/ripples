@@ -68,6 +68,6 @@ public class SystemAddress {
     
     @Override
     public String toString() {
-    	return this.getName() + " / " + this.getImei() +" / "+this.getRock7Email();
+    	return "[SystemAddress "+this.getName() + " | " + this.getImei() +" | "+this.getRock7Email()+"]";
     }
 }

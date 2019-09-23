@@ -118,7 +118,7 @@ public class RockBlockIridiumSender {
 
         SystemAddress system = addressesRepo.findByImcId(msg.getDestination());
         if (system == null || system.getImei() == null || system.getRock7Email() == null) {
-        	logger.warn("Not sending to unknown destination: "+system);
+        	logger.warn("Not sending "+msg.getClass().getSimpleName()+" to unknown destination: "+system);
         	return;
         }
         Rock7Account rock7Account = rock7AccountsRepo.findById(system.getRock7Email()).get();

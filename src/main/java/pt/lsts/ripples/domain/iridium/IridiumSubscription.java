@@ -32,4 +32,8 @@ public class IridiumSubscription {
         this.deadline = deadline;
     }
 
+    @Override
+    public String toString() {
+    	return "[Subscriber "+imei+" : "+deadline+"]";
+    }
 }
