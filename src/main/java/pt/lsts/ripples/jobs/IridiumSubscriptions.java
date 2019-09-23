@@ -48,7 +48,7 @@ public class IridiumSubscriptions {
 		}
 	}
 	
-	@Scheduled(fixedRate = 300_000) // every 5 minutes
+	@Scheduled(fixedRate = 120_000) // every 2 minutes
 	public void sendPositions() {
 		Iterator<IridiumSubscription> subscribers = repo.findAll().iterator();
 		if (!subscribers.hasNext()) {
@@ -69,7 +69,7 @@ public class IridiumSubscriptions {
 				logger.warn("Device "+asset+" has no positions.");
 				continue;
 			}
-			if (System.currentTimeMillis() - latest.getTimestamp().getTime() > 300_000) {
+			if (System.currentTimeMillis() - latest.getTimestamp().getTime() > 121_000) {
 				logger.warn(asset+"'s position is too old and won't be transmitted: "+latest.getTimestamp());
 				continue;
 			}

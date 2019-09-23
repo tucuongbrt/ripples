@@ -35,6 +35,7 @@ import pt.lsts.ripples.iridium.IridiumCommand;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.iridium.PlainTextReport;
 import pt.lsts.ripples.iridium.Position;
+import pt.lsts.ripples.jobs.IridiumSubscriptions;
 import pt.lsts.ripples.repo.AddressesRepository;
 import pt.lsts.ripples.repo.AssetsErrorsRepository;
 import pt.lsts.ripples.repo.AssetsParamsRepository;
@@ -82,6 +83,9 @@ public class MessageProcessor {
     
     @Autowired
     SubscriptionsRepo subscriptionsRepo;
+    
+    @Autowired
+    IridiumSubscriptions subscriptionsJob;
 
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
 
@@ -135,6 +139,8 @@ public class MessageProcessor {
     	subscriptionsRepo.save(subscription);
     	
     	logger.warn(imei+" has activated iridium subscriptions.");
+    	
+    	subscriptionsJob.sendPositions();
     } 
     
     public void onDeactivateSubscription(DeactivateSubscription msg, String imei) {
