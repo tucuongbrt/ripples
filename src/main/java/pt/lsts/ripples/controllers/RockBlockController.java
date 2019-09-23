@@ -91,7 +91,7 @@ public class RockBlockController {
 
 		repo.save(m);
 
-		msgProcessor.process(msg);
+		msgProcessor.process(msg, null);
 		try {
 			rockBlockService.sendMessage(msg); // redirect message to rockBlock
 		} catch(Exception e){
@@ -146,8 +146,7 @@ public class RockBlockController {
 		repo.save(m);
 		// process incoming message
 		if (msg != null)
-			msgProcessor.process(msg);
-
+			msgProcessor.process(msg, imei);
 
 		return new ResponseEntity<String>("Message received successfully.", HttpStatus.OK);
 	}

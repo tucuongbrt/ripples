@@ -24,6 +24,7 @@ import pt.lsts.ripples.domain.assets.AssetState;
 import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.assets.Waypoint;
+import pt.lsts.ripples.domain.iridium.IridiumSubscription;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.iridium.ActivateSubscription;
 import pt.lsts.ripples.iridium.DeactivateSubscription;
@@ -88,7 +89,7 @@ public class MessageProcessor {
 
     }
 
-    public void process(IridiumMessage msg) {
+    public void process(IridiumMessage msg, String imei) {
         switch (msg.message_type) {
         case IridiumMessage.TYPE_DEVICE_UPDATE:
             onDeviceUpdate((DeviceUpdate) msg);
@@ -106,36 +107,51 @@ public class MessageProcessor {
             onIridiumCommand((IridiumCommand) msg);
             break;
         case IridiumMessage.TYPE_ACTIVATE_SUBSCRIPTION:
-        	onActivateSubscription((ActivateSubscription) msg);
+        	onActivateSubscription((ActivateSubscription) msg, imei);
         	break;
         case IridiumMessage.TYPE_DEACTIVATE_SUBSCRIPTION:
-        	onDeactivateSubscription((DeactivateSubscription) msg);
+        	onDeactivateSubscription((DeactivateSubscription) msg, imei);
         	break;	
         default:
             break;
         }
     }
     
-    public void onActivateSubscription(ActivateSubscription msg) {
-    	logger.warn(msg.source+" has activated iridium subscriptions.");
-    	SystemAddress address = addresses.findByImcId(msg.source);
-    	if (address == null) {
-    		logger.error("Received a subscription from an unknown source: "+address);
+    public void onActivateSubscription(ActivateSubscription msg, String imei) {
+    	if (imei == null) {
+    		logger.error("Received an ActivateSubscription from the internet.");
     		return;
     	}
     	
-    	logger.warn(msg.source+" has deactivated iridium subscriptions.");
+    	IridiumSubscription subscription = subscriptionsRepo.findByImei(imei);
+
+    	if (subscription == null)
+    		subscription = new IridiumSubscription();
+    	else
+    		logger.info("The IMEI "+imei+" has requested to extend its Iridium subscription.");
+    	subscription.setImei(imei);
+    	subscription.setDeadline(new Date(System.currentTimeMillis() + 3600_000 * 12));
+    	
+    	subscriptionsRepo.save(subscription);
+    	
+    	logger.warn(imei+" has activated iridium subscriptions.");
     } 
     
-    public void onDeactivateSubscription(DeactivateSubscription msg) {
-    	SystemAddress address = addresses.findByImcId(msg.source);
-    	if (address == null) {
-    		logger.error("Received a de-subscription from an unknown source: "+address);
+    public void onDeactivateSubscription(DeactivateSubscription msg, String imei) {
+    	if (imei == null) {
+    		logger.error("Received a DeactivateSubscription from the internet.");
     		return;
     	}
     	
-    	logger.warn(msg.source+" has deactivated iridium subscriptions.");
+    	IridiumSubscription subscription = subscriptionsRepo.findByImei(imei);
     	
+    	if (subscription == null) {
+    		logger.error("Received a DeactivateSubscription from a system not previously subscribed.");
+    	}
+    	
+    	subscriptionsRepo.delete(subscription);
+    	
+    	logger.warn(msg.source+" has deactivated iridium subscriptions.");
     }
    
     public void on(IMCMessage msg) {
