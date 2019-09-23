@@ -65,4 +65,9 @@ public class SystemAddress {
     public void setRock7Email(String rockblockEmail) {
         this.rock7Email = rockblockEmail;
     }
+    
+    @Override
+    public String toString() {
+    	return this.getName() + " / " + this.getImei() +" / "+this.getRock7Email();
+    }
 }
