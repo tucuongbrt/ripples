@@ -40,7 +40,7 @@ public class IridiumSubscriptions {
 	
 	@Scheduled(fixedRate = 60_000) // every minute
 	public void clearOldSubscribers() {
-		List<IridiumSubscription> oldSubscribers = repo.findAllByDeadlineAfter(new Date());
+		List<IridiumSubscription> oldSubscribers = repo.findAllByDeadlineBefore(new Date());
 		
 		for (IridiumSubscription sub : oldSubscribers) {
 			repo.delete(sub);
