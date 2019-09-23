@@ -10,5 +10,5 @@ public interface AddressesRepository extends CrudRepository<SystemAddress, Strin
 
     SystemAddress findByImcId(int imc_id);
 
-    SystemAddress findByImei(long imei);
+    SystemAddress findByImei(String imei);
 }

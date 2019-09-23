@@ -90,7 +90,7 @@ public class IridiumSubscriptions {
 		
 		subscribers.forEachRemaining(sub -> {
 		
-			SystemAddress address = addressesRepo.findByImei(Long.valueOf(sub.getImei()));
+			SystemAddress address = addressesRepo.findByImei(sub.getImei());
 			if (address == null) {
 				logger.error("Could not find imc_id for imei "+sub.getImei());
 				return;
