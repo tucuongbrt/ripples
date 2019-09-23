@@ -13,4 +13,6 @@ public interface SubscriptionsRepo extends CrudRepository<IridiumSubscription, L
     IridiumSubscription findByImei(String imei);
 
     List<IridiumSubscription> findAllByDeadlineAfter(Date date);
+    List<IridiumSubscription> findAllByDeadlineBefore(Date date);
+    
 }
