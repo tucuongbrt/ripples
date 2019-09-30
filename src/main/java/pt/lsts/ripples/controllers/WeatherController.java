@@ -29,7 +29,7 @@ public class WeatherController {
 
 	private final Logger logger = LoggerFactory.getLogger(WeatherController.class);
 
-	@Value("${stormGlass.apiKey}")
+	@Value("${stormglass.api-key}")
 	private String apiKey;
 
 	private String url = "https://api.stormglass.io/v1/weather/point?";
