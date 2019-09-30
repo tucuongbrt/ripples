@@ -13,7 +13,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import pt.lsts.ripples.domain.iridium.Rock7Account;
-import pt.lsts.ripples.repo.Rock7AccountsRepository;
+import pt.lsts.ripples.repo.main.Rock7AccountsRepository;
 
 @Component
 public class Rock7AccountsUpdater {

@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
 import pt.lsts.ripples.util.RipplesUtils;
 
 import javax.annotation.PostConstruct;

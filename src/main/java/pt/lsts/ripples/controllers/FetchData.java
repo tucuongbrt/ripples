@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
 import pt.lsts.ripples.util.DateUtil;
 import pt.lsts.ripples.util.netcdf.NetCDFUtils;
 import pt.lsts.ripples.util.netcdf.exporter.NetCDFExportWriter;

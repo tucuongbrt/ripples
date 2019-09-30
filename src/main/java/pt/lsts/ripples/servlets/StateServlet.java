@@ -14,7 +14,7 @@ import org.springframework.web.servlet.HttpServletBean;
 import com.google.gson.Gson;
 
 import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
 
 @WebServlet(name="StateServlet", urlPatterns= {"/state/*"})
 public class StateServlet extends HttpServletBean{

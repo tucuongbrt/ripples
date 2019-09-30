@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.maps.MyMaps;
-import pt.lsts.ripples.repo.MyMapsRepository;
+import pt.lsts.ripples.repo.main.MyMapsRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
 @RestController

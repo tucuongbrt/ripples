@@ -1,5 +1,6 @@
-package pt.lsts.ripples.repo;
+package pt.lsts.ripples.repo.main;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,8 @@ import pt.lsts.ripples.domain.assets.AssetPosition;
 
 @Repository
 public interface PositionsRepository extends CrudRepository<AssetPosition, Long> {
+    List<AssetPosition> findAll();
+
     List<AssetPosition> findByName(String name);
     AssetPosition findByImcId(int imcId);
     AssetPosition findTopByImcIdOrderByTimestampDesc(int imcId);
@@ -22,4 +25,6 @@ public interface PositionsRepository extends CrudRepository<AssetPosition, Long>
     List<AssetPosition> findByNameOrderByTimestamp(String name);
     List<AssetPosition> findTopByNameOrderByTimestamp(String name);
     List<AssetPosition> findTopByNameOrderByTimestampDesc(String name);
+
+    List<AssetPosition> findByTimestampAfter(Date date);
 }

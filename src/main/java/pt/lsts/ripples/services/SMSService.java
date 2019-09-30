@@ -6,7 +6,7 @@ import com.twilio.type.PhoneNumber;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import pt.lsts.ripples.repo.SMSSubscriptionsRepository;
+import pt.lsts.ripples.repo.main.SMSSubscriptionsRepository;
 
 import javax.annotation.PostConstruct;
 

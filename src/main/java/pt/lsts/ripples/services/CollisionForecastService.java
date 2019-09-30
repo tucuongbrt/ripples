@@ -9,7 +9,7 @@ import pt.lsts.aismanager.api.AisContactManager;
 import pt.lsts.ripples.domain.assets.AssetState;
 import pt.lsts.ripples.domain.soi.PotentialCollision;
 import pt.lsts.ripples.domain.soi.VehicleRiskAnalysis;
-import pt.lsts.ripples.repo.AssetsRepository;
+import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.util.WGS84Utilities;
 
 import java.text.SimpleDateFormat;

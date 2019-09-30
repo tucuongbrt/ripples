@@ -1,6 +1,7 @@
-package pt.lsts.ripples.repo;
+package pt.lsts.ripples.repo.main;
 
 import java.util.Date;
+
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

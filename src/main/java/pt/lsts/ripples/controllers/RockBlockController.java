@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.iridium.RockBlockIridiumSender;
-import pt.lsts.ripples.repo.Rock7Repository;
+import pt.lsts.ripples.repo.main.Rock7Repository;
 import pt.lsts.ripples.services.MessageProcessor;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;

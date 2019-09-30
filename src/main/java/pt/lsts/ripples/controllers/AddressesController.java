@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.repo.AddressesRepository;
+import pt.lsts.ripples.repo.main.AddressesRepository;
 
 @RestController
 public class AddressesController {

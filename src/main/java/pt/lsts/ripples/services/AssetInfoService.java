@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import pt.lsts.ripples.domain.assets.AssetInfo;
-import pt.lsts.ripples.repo.AssetInfoRepository;
+import pt.lsts.ripples.repo.main.AssetInfoRepository;
 
 @Service
 public class AssetInfoService {

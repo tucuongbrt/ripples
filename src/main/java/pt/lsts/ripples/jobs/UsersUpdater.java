@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.lsts.ripples.domain.security.AuthProvider;
 import pt.lsts.ripples.domain.security.User;
-import pt.lsts.ripples.repo.UserRepository;
+import pt.lsts.ripples.repo.main.UserRepository;
 import pt.lsts.ripples.services.GoogleSheetsService;
 import java.io.IOException;
 import java.security.GeneralSecurityException;

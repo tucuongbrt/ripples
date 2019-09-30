@@ -11,9 +11,9 @@ import org.springframework.stereotype.Component;
 import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.repo.AddressesRepository;
-import pt.lsts.ripples.repo.EnvDataRepository;
-import pt.lsts.ripples.repo.PositionsRepository;
+import pt.lsts.ripples.repo.main.AddressesRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
+import pt.lsts.ripples.repo.main.PositionsRepository;
 import pt.lsts.ripples.services.FirebaseAdapter;
 
 @Component

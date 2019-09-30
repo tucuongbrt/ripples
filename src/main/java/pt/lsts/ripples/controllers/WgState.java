@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
 
 @RestController()
 public class WgState {

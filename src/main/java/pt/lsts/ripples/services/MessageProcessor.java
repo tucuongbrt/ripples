@@ -6,9 +6,10 @@ import org.springframework.stereotype.Service;
 import pt.lsts.imc.*;
 import pt.lsts.ripples.controllers.WebSocketsController;
 import pt.lsts.ripples.domain.assets.*;
+import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.iridium.*;
-import pt.lsts.ripples.repo.*;
+import pt.lsts.ripples.repo.main.*;
 import pt.lsts.ripples.util.RipplesUtils;
 
 import java.util.ArrayList;

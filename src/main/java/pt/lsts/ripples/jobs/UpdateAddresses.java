@@ -22,7 +22,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.repo.AddressesRepository;
+import pt.lsts.ripples.repo.main.AddressesRepository;
 
 @Component
 public class UpdateAddresses {

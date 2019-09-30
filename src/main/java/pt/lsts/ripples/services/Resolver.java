@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 import pt.lsts.imc.IMCDefinition;
 import pt.lsts.ripples.domain.assets.SystemAddress;
-import pt.lsts.ripples.repo.AddressesRepository;
+import pt.lsts.ripples.repo.main.AddressesRepository;
 
 @Service
 public class Resolver {

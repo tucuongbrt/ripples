@@ -68,9 +68,9 @@ import org.springframework.stereotype.Service;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.iridium.Rock7Account;
 import pt.lsts.ripples.domain.soi.IncomingMessage;
-import pt.lsts.ripples.repo.AddressesRepository;
-import pt.lsts.ripples.repo.IncomingMessagesRepository;
-import pt.lsts.ripples.repo.Rock7AccountsRepository;
+import pt.lsts.ripples.repo.main.AddressesRepository;
+import pt.lsts.ripples.repo.main.IncomingMessagesRepository;
+import pt.lsts.ripples.repo.main.Rock7AccountsRepository;
 import pt.lsts.ripples.util.ByteUtil;
 import org.apache.commons.codec.binary.Hex;
 

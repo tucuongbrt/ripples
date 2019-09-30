@@ -9,10 +9,9 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import pt.lsts.ripples.domain.security.AuthProvider;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.exceptions.OAuth2AuthenticationProcessingException;
-import pt.lsts.ripples.repo.UserRepository;
+import pt.lsts.ripples.repo.main.UserRepository;
 import pt.lsts.ripples.security.oauth2.user.OAuth2UserInfo;
 import pt.lsts.ripples.security.oauth2.user.OAuth2UserInfoFactory;
 

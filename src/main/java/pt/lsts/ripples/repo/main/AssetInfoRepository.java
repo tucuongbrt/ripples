@@ -1,4 +1,4 @@
-package pt.lsts.ripples.repo;
+package pt.lsts.ripples.repo.main;
 
 import org.springframework.data.repository.CrudRepository;
 

@@ -19,7 +19,7 @@ import pt.lsts.ripples.domain.logbook.MyAnnotation;
 import pt.lsts.ripples.domain.logbook.MyLogbook;
 import pt.lsts.ripples.domain.logbook.NewAnnotation;
 import pt.lsts.ripples.exceptions.ResourceNotFoundException;
-import pt.lsts.ripples.repo.MyLogbookRepository;
+import pt.lsts.ripples.repo.main.MyLogbookRepository;
 import pt.lsts.ripples.security.CurrentUser;
 import pt.lsts.ripples.security.UserPrincipal;
 import pt.lsts.ripples.util.HTTPResponse;

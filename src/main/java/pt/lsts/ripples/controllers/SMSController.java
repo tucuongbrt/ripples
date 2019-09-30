@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.sms.SMSSubscription;
-import pt.lsts.ripples.repo.SMSSubscriptionsRepository;
+import pt.lsts.ripples.repo.main.SMSSubscriptionsRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
 @RestController

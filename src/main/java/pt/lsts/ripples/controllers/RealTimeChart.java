@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.wg.EnvDatum;
-import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
 import pt.lsts.ripples.util.DateUtil;
 
 @RestController

@@ -7,8 +7,8 @@ import pt.lsts.ripples.domain.assets.AssetPosition;
 import pt.lsts.ripples.domain.assets.Plan;
 import pt.lsts.ripples.domain.soi.AwarenessData;
 import pt.lsts.ripples.domain.soi.PositionAtTime;
-import pt.lsts.ripples.repo.AssetsRepository;
-import pt.lsts.ripples.repo.PositionsRepository;
+import pt.lsts.ripples.repo.main.AssetsRepository;
+import pt.lsts.ripples.repo.main.PositionsRepository;
 
 import java.time.Duration;
 import java.time.Instant;

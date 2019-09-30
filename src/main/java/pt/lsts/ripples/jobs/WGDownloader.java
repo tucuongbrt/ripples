@@ -17,8 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.wg.*;
-import pt.lsts.ripples.repo.AISDataRepository;
-import pt.lsts.ripples.repo.EnvDataRepository;
+import pt.lsts.ripples.repo.main.AISDataRepository;
+import pt.lsts.ripples.repo.main.EnvDataRepository;
 import pt.lsts.ripples.util.RipplesUtils;
 
 import javax.annotation.PostConstruct;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.exceptions.ResourceNotFoundException;
-import pt.lsts.ripples.repo.UserRepository;
+import pt.lsts.ripples.repo.main.UserRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
