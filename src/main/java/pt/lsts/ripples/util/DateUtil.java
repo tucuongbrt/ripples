@@ -1,9 +1,12 @@
 package pt.lsts.ripples.util;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Formatter;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
@@ -60,5 +63,29 @@ public class DateUtil {
 		date.set(Calendar.MINUTE, Integer.parseInt(timeParts[1]));
 		date.set(Calendar.SECOND, Integer.parseInt(timeParts[2]));
 		return date.getTime();
+	}
+
+	public static String parseDateToString(Calendar cal) {
+		int year = cal.get(Calendar.YEAR);
+		int month = cal.get(Calendar.MONTH) + 1;
+		int day = cal.get(Calendar.DAY_OF_MONTH);
+		StringBuilder sbuf = new StringBuilder();
+		Formatter fmt = new Formatter(sbuf);
+		fmt.format("%02d-%02d-%4d", day, month, year);
+		fmt.close();
+		return sbuf.toString();
+	}
+
+	public static Calendar stringDateToCalendar(String dateStr) {
+		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+		Calendar cal = null;
+		try {
+			Date date = sdf.parse(dateStr);
+			cal = Calendar.getInstance();
+			cal.setTime(date);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return cal;
 	}
 }
