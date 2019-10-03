@@ -72,7 +72,7 @@ public class BackupSaver {
     }
 
     public void backupAisPositions(Date fromDate) {
-        ArrayList<AISShip> aisList = aisRepo.findByTimestampAfter(fromDate);
+        List<AISShip> aisList = aisRepo.findByTimestampAfter(fromDate);
         aisList.forEach(ship -> {
             aisBackupRepo.save(ship);
         });
