@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.PositionsRepository;

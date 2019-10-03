@@ -1,26 +1,34 @@
-package pt.lsts.ripples.domain.backup;
+package pt.lsts.ripples.domain.shared;
 
 import java.util.Date;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
-public class AssetPositionRecord extends BackupRecord {
+public class AssetPosition {
 
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    @JsonProperty("imcId")
     private int imcId;
     private Date timestamp;
     private double lat;
     private double lon;
     private String name;
 
-    public AssetPositionRecord(AssetPosition assetPos) {
-        this.imcId = assetPos.getImcId();
-        this.timestamp = assetPos.getTimestamp();
-        this.lat = assetPos.getLat();
-        this.lon = assetPos.getLon();
-        this.name = assetPos.getName();
+    public Long getId() {
+        return id;
+    }
+
+    @SuppressWarnings("unused")
+	private void setId(Long id) {
+        this.id = id;
     }
 
     public int getImcId() {
@@ -62,4 +70,14 @@ public class AssetPositionRecord extends BackupRecord {
     public void setName(String name) {
         this.name = name;
     }
+
+    public void update(UserLocation location) {
+        this.setLat(location.getLatitude());
+        this.setLon(location.getLongitude());
+        this.setTimestamp(location.getTimestamp());
+    }
+
+    public String toString() {
+		return "{ lat: " + lat + ", lng: " + lon + " }";
+	}
 }

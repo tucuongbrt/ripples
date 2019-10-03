@@ -6,9 +6,9 @@ import org.springframework.stereotype.Component;
 
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetParams;
-import pt.lsts.ripples.domain.assets.UserLocation;
+import pt.lsts.ripples.domain.shared.UserLocation;
 import pt.lsts.ripples.domain.logbook.MyAnnotation;
-import pt.lsts.ripples.domain.wg.AISShip;
+import pt.lsts.ripples.domain.shared.AISShip;
 
 @Component
 public class WebSocketsController {

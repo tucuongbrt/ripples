@@ -1,4 +1,4 @@
-package pt.lsts.ripples.domain.assets;
+package pt.lsts.ripples.domain.shared;
 
 import java.io.Serializable;
 import java.util.Date;

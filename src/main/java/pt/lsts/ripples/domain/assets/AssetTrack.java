@@ -32,6 +32,7 @@
  */
 
 package pt.lsts.ripples.domain.assets;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -50,6 +51,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import pt.lsts.ripples.domain.shared.Plan;
+import pt.lsts.ripples.domain.shared.Waypoint;
 import pt.lsts.ripples.util.LocationType;
 
 /**

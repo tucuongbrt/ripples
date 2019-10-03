@@ -10,6 +10,8 @@ import javax.persistence.Lob;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import pt.lsts.ripples.domain.shared.Plan;
+
 @Entity
 @Cache(usage=CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 public class Asset implements Serializable {

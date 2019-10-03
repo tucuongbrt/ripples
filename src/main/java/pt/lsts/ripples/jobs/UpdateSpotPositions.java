@@ -18,7 +18,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.services.MessageProcessor;
 import pt.lsts.ripples.services.Resolver;

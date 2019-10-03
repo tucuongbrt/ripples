@@ -1,4 +1,4 @@
-package pt.lsts.ripples.domain.assets;
+package pt.lsts.ripples.domain.shared;
 
 import pt.lsts.imc.SoiPlan;
 import pt.lsts.imc.SoiWaypoint;

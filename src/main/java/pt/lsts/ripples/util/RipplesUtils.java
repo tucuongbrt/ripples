@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.domain.assets.SystemAddress;
 import pt.lsts.ripples.domain.wg.EnvDatum;
 import pt.lsts.ripples.repo.main.AddressesRepository;

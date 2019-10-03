@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import pt.lsts.ripples.domain.assets.AssetPosition;
-import pt.lsts.ripples.domain.assets.UserLocation;
+import pt.lsts.ripples.domain.shared.AssetPosition;
+import pt.lsts.ripples.domain.shared.UserLocation;
 import pt.lsts.ripples.domain.maps.MapSettings;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.exceptions.ResourceNotFoundException;

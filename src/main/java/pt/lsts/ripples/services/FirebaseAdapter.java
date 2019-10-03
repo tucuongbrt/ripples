@@ -15,7 +15,7 @@ import com.firebase.client.Firebase;
 import pt.lsts.imc.SoiPlan;
 import pt.lsts.imc.SoiWaypoint;
 import pt.lsts.ripples.domain.assets.Asset;
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.util.SystemType;
 
 @Service

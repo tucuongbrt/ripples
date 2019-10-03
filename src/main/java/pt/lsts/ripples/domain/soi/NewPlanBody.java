@@ -1,7 +1,7 @@
 package pt.lsts.ripples.domain.soi;
 
-import pt.lsts.ripples.domain.assets.Plan;
-import pt.lsts.ripples.domain.assets.Waypoint;
+import pt.lsts.ripples.domain.shared.Plan;
+import pt.lsts.ripples.domain.shared.Waypoint;
 
 import java.util.ArrayList;
 import java.util.List;

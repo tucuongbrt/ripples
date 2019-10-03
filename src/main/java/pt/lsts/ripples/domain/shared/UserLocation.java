@@ -1,4 +1,4 @@
-package pt.lsts.ripples.domain.backup;
+package pt.lsts.ripples.domain.shared;
 
 import java.util.Date;
 
@@ -8,11 +8,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import pt.lsts.ripples.domain.assets.UserLocation;
-
 @Entity
-public class UserLocationRecord extends BackupRecord {
-	
+public class UserLocation {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer imcId;
 
 	@Column(nullable = false)
@@ -28,14 +28,15 @@ public class UserLocationRecord extends BackupRecord {
 
 	private Date timestamp;
 
-	public UserLocationRecord(UserLocation location) {
-		this.imcId = location.getImcId();
-		this.email = location.getEmail();
-		this.name = location.getName();
-		this.latitude = location.getLatitude();
-		this.longitude = location.getLongitude();
-		this.accuracy = location.getAccuracy();
-		this.timestamp = location.getTimestamp();
+	public UserLocation() { }
+
+	public UserLocation(String email, String name, double latitude, double longitude, double accuracy, Date timestamp) {
+		this.setEmail(email);
+		this.setName(name);
+		this.setLatitude(latitude);
+		this.setLongitude(longitude);
+		this.setAccuracy(accuracy);
+		this.setTimestamp(timestamp);
 	}
 
 	public Integer getImcId() {
@@ -88,5 +89,12 @@ public class UserLocationRecord extends BackupRecord {
 
 	private void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
+	}
+
+	public void update(UserLocation newLocation) {
+		this.setLatitude(newLocation.latitude);
+		this.setLongitude(newLocation.longitude);
+		this.setAccuracy(newLocation.accuracy);
+		this.setTimestamp(newLocation.timestamp);
 	}
 }

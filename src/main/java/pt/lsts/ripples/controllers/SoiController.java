@@ -31,7 +31,7 @@ import pt.lsts.imc.SoiCommand.COMMAND;
 import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetErrors;
-import pt.lsts.ripples.domain.assets.Plan;
+import pt.lsts.ripples.domain.shared.Plan;
 import pt.lsts.ripples.domain.soi.AwarenessData;
 import pt.lsts.ripples.domain.soi.EntityWithId;
 import pt.lsts.ripples.domain.soi.NewPlanBody;

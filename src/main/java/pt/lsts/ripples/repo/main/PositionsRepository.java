@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 
 @Repository
 public interface PositionsRepository extends CrudRepository<AssetPosition, Long> {

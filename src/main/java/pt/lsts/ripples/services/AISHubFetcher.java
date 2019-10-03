@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import pt.lsts.aismanager.api.AisContactManager;
-import pt.lsts.ripples.domain.wg.AISShip;
+import pt.lsts.ripples.domain.shared.AISShip;
 import pt.lsts.ripples.repo.main.AISRepository;
 
 import javax.annotation.PostConstruct;

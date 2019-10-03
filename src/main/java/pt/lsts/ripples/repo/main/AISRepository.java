@@ -1,13 +1,14 @@
 package pt.lsts.ripples.repo.main;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import pt.lsts.ripples.domain.wg.AISShip;
+import pt.lsts.ripples.domain.shared.AISShip;
 
 @Repository
 public interface AISRepository extends CrudRepository<AISShip, Integer> {
-    Iterable<AISShip> findByTimestampAfter(Date since);
+    ArrayList<AISShip> findByTimestampAfter(Date since);
 }

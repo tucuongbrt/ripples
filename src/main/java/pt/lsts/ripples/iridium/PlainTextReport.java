@@ -1,7 +1,7 @@
 package pt.lsts.ripples.iridium;
 
 import pt.lsts.imc.*;
-import pt.lsts.ripples.domain.assets.AssetPosition;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.util.DateUtil;
 
 import java.util.Collection;

@@ -1,4 +1,4 @@
-package pt.lsts.ripples.domain.wg;
+package pt.lsts.ripples.domain.shared;
 
 import java.util.Date;
 
