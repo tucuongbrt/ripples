@@ -45,9 +45,7 @@ public class DataSourceConfig {
             final HashMap<String, Object> properties = new HashMap<String, Object>();
             properties.put("hibernate.hbm2ddl.auto", env.getProperty("spring.jpa.hibernate.ddl-auto"));
             properties.put("hibernate.dialect", env.getProperty("spring.jpa.persistent.database-platform"));
-            final String[] pckgs = { "pt.lsts.ripples.domain.assets", "pt.lsts.ripples.domain.iridium",
-                    "pt.lsts.ripples.domain.logbook", "pt.lsts.ripples.domain.maps", "pt.lsts.ripples.domain.security",
-                    "pt.lsts.ripples.domain.sms", "pt.lsts.ripples.domain.soi", "pt.lsts.ripples.domain.wg" };
+            final String[] pckgs = { "pt.lsts.ripples.domain" };
             return builder.dataSource(dataSource).packages(pckgs).persistenceUnit("mainDb").properties(properties)
                     .build();
         }
@@ -80,7 +78,7 @@ public class DataSourceConfig {
             final HashMap<String, Object> properties = new HashMap<String, Object>();
             properties.put("hibernate.hbm2ddl.auto", env.getProperty("spring.jpa.hibernate.ddl-auto"));
             properties.put("hibernate.dialect", env.getProperty("database.backup-db.datasource.database-platform"));
-            final String[] pckgs = { "pt.lsts.ripples.domain.backup" };
+            final String[] pckgs = { "pt.lsts.ripples.domain.shared" };
             return builder.dataSource(dataSource).packages(pckgs).persistenceUnit("backupDb").properties(properties)
                     .build();
         }
