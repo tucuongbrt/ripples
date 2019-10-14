@@ -64,7 +64,6 @@ dependencies {
 
 	compile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.4.4'
 	
-	runtime('com.h2database:h2')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('org.springframework.security:spring-security-test')
 	implementation 'com.squareup.retrofit2:retrofit:2.5.0'
