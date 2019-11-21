@@ -11,7 +11,7 @@ interface PropsType {
   min: number
   max: number
   value: number
-  mapOverlayInfo: IOverlayInfo
+  mapOverlayInfo?: IOverlayInfo
   onChange: (e: number) => void
 }
 
@@ -23,7 +23,7 @@ class Slider extends Component<PropsType, {}> {
     return (
       <div className="slider">
         <Row>
-          {this.props.mapOverlayInfo.name !== '' && (
+          {this.props.mapOverlayInfo && this.props.mapOverlayInfo.name !== '' && (
             <Alert id="overlay-info" color="primary" className="left">
               {this.props.mapOverlayInfo.info}
             </Alert>
