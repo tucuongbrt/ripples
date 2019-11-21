@@ -194,3 +194,12 @@ path.leaflet-polygon {
   font-size: 80%;
   margin-top: 0.5em;
 }
+
+.leaflet-control-layers label > div {
+  display: flex;
+  padding-top: 0.2em;
+}
+
+.leaflet-control-layers span {
+  padding-left: 0.5em;
+}
