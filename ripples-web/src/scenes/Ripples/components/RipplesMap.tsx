@@ -18,6 +18,7 @@ import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
 import IAuthState, { IUserLocation } from '../../../model/IAuthState'
+import IGeoLayer from '../../../model/IGeoLayer'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap, { IMapSettings } from '../../../model/IMyMap'
 import IPlan, { getPlanKey } from '../../../model/IPlan'
@@ -78,6 +79,8 @@ interface PropsType {
   toolSelected: ToolSelected
   isGpsActive: boolean
   myMaps: IMyMap[]
+  geoLayers?: IGeoLayer[] | null
+  geoServerAddr?: string
   measurePath: ILatLng[]
   annotations: IAnnotation[]
   usersLocations: IUserLocation[]
@@ -259,6 +262,29 @@ class RipplesMap extends Component<PropsType, StateType> {
               }}
             />
           </LayerGroup>
+        </Overlay>
+      )
+    })
+  }
+
+  public buildGeoLayers() {
+    if (!this.props.auth.authenticated || !this.props.geoServerAddr || !this.props.geoLayers) {
+      return <></>
+    }
+    return this.props.geoLayers.map(layer => {
+      const key = `GeoLayer_${layer.layerGroup}:${layer.layerName}`
+      return (
+        <Overlay key={key} checked={false} name={layer.layerName}>
+          <WMSTileLayer
+            url={`${this.props.geoServerAddr}/${layer.layerGroup}/wms`}
+            service="WMS"
+            version="1.1.0"
+            request="GetMap"
+            layers={key}
+            format="image/png"
+            transparent={true}
+            tiled={true}
+          />
         </Overlay>
       )
     })
@@ -590,6 +616,7 @@ class RipplesMap extends Component<PropsType, StateType> {
               />
             </Overlay>
             {this.buildMyMaps()}
+            {this.buildGeoLayers()}
             <Overlay checked={true} name="Vehicles">
               <LayerGroup>{this.buildVehicles()}</LayerGroup>
               {this.buildEditVehicleModal()}
@@ -924,6 +951,7 @@ function mapStateToProps(state: IRipplesState) {
     hasSliderChanged: state.hasSliderChanged,
     weatherParam: state.weatherParam,
     toolClickLocation: state.toolClickLocation,
+    geoLayers: state.geoLayers,
   }
 }
 
@@ -946,5 +974,5 @@ const actionCreators = {
 
 export default connect(
   mapStateToProps,
-  actionCreators,
+  actionCreators
 )(RipplesMap)

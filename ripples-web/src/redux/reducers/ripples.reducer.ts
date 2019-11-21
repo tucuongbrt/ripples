@@ -17,6 +17,7 @@ import {
   clearMeasure,
   deleteWp,
   editPlan,
+  removeGeoLayers,
   removeUser,
   savePlan,
   selectVehicle,
@@ -24,6 +25,7 @@ import {
   setAnnotations,
   setCcus,
   setEditVehicle,
+  setGeoLayers,
   setMapOverlayInfo,
   setPlanDescription,
   setPlans,
@@ -34,6 +36,7 @@ import {
   setSidePanelVisibility,
   setSlider,
   setSpots,
+  setToolClickLocation,
   setToolSelected,
   setUser,
   setVehicles,
@@ -52,7 +55,6 @@ import {
   updateVehicle,
   updateWpLocation,
   updateWpTimestamp,
-  setToolClickLocation,
 } from '../ripples.actions'
 
 const positionService: PositionService = new PositionService()
@@ -80,6 +82,7 @@ const startState: IRipplesState = {
   mapOverlayInfo: DefaultOverlayInfo,
   weatherParam: null,
   toolClickLocation: null,
+  geoLayers: null,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -332,6 +335,12 @@ const ripplesReducer = createReducer(startState, {
   [setToolClickLocation.type]: (state, action) => {
     state.toolClickLocation = action.payload
   },
+  [setGeoLayers.type]: (state, action) => {
+    state.geoLayers = action.payload
+  },
+  [removeGeoLayers.type]: (state, _) => {
+    state.geoLayers = []
+  }
 })
 
 export default ripplesReducer

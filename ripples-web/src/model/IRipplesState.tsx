@@ -8,6 +8,7 @@ import IPlan from './IPlan'
 import IProfile from './IProfile'
 import { ToolSelected } from './ToolSelected'
 import { WeatherParam } from './WeatherParam'
+import IGeoLayer from './IGeoLayer'
 
 export interface IAssetsGroup {
   vehicles: IAsset[]
@@ -41,6 +42,7 @@ export default interface IRipplesState {
   mapOverlayInfo: IOverlayInfo
   weatherParam: WeatherParam | null
   toolClickLocation: ILatLng | null
+  geoLayers: IGeoLayer[] | null
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

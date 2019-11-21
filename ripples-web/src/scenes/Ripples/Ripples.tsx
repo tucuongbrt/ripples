@@ -6,6 +6,7 @@ import IAisShip from '../../model/IAisShip'
 import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser, IUserLocation } from '../../model/IAuthState'
+import IGeoLayer from '../../model/IGeoLayer'
 import IMyMap from '../../model/IMyMap'
 import IOverlayInfo from '../../model/IOverlayInfo'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
@@ -22,6 +23,7 @@ import {
   setAis,
   setAnnotations,
   setCcus,
+  setGeoLayers,
   setMapOverlayInfo,
   setPlans,
   setProfiles,
@@ -40,6 +42,7 @@ import {
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
 import DateService from '../../services/DateUtils'
+import GeoLayerService from '../../services/GeoLayerService'
 import KMLService from '../../services/KMLService'
 import LogbookService from '../../services/LogbookUtils'
 import SoiService from '../../services/SoiUtils'
@@ -55,6 +58,7 @@ const { NotificationManager } = require('react-notifications')
 interface StateType {
   loading: boolean
   myMaps: IMyMap[]
+  geoServerAddr?: string
 }
 
 interface PropsType {
@@ -88,6 +92,7 @@ interface PropsType {
   toggleVehicleModal: () => void
   toggleSliderChange: () => void
   setMapOverlayInfo: (m: string) => void
+  setGeoLayers: (layers: IGeoLayer[]) => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -96,6 +101,7 @@ class Ripples extends Component<PropsType, StateType> {
   private webSocketsService: WSService = new WSService()
   private aisService: AISService = new AISService()
   private kmlService: KMLService = new KMLService()
+  private geoLayerService: GeoLayerService = new GeoLayerService()
   private soiService: SoiService = new SoiService()
   private logbookService: LogbookService = new LogbookService()
 
@@ -139,7 +145,10 @@ class Ripples extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     const myMaps = await this.loadMyMapsData()
-
+    if (this.props.auth.authenticated) {
+      const geoLayers = await this.loadGeoLayers()
+      this.props.setGeoLayers(geoLayers)
+    }
     this.webSocketsService.createWSClient()
     this.webSocketsService.subscribeWSUpdates(
       this.handleWsAssetUpdate,
@@ -250,6 +259,14 @@ class Ripples extends Component<PropsType, StateType> {
       })
     )
     return await maps
+  }
+
+  public async loadGeoLayers() {
+    if (!this.state.geoServerAddr) {
+      const geoServer = await this.geoLayerService.fetchGeoServerAddr()
+      this.setState({ geoServerAddr: geoServer.url })
+    }
+    return await this.geoLayerService.fetchGeoLayers()
   }
 
   public async updateSoiData() {
@@ -415,7 +432,11 @@ class Ripples extends Component<PropsType, StateType> {
               handleUpdatePlanId={this.handleUpdatePlanId}
             />
           </div>
-          <RipplesMap myMaps={this.state.myMaps} onSettingsClick={this.onSettingsClick} />
+          <RipplesMap
+            myMaps={this.state.myMaps}
+            geoServerAddr={this.state.geoServerAddr}
+            onSettingsClick={this.onSettingsClick}
+          />
           <SidePanel onSettingsClick={this.onSettingsClick} />
           <Slider onChange={this.onSliderChange} min={-48} max={48} value={this.props.sliderValue} />
         </div>
@@ -462,6 +483,7 @@ const actionCreators = {
   updateUserLocation,
   toggleSliderChange,
   toggleVehicleModal,
+  setGeoLayers,
 }
 
 export default connect(
