@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.PostConstruct;
 import javax.xml.bind.DatatypeConverter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -40,10 +40,13 @@ public class GeoServerController {
     @Value("${geoserver.pass}")
     String geoServerPass;
 
-    @PostConstruct
-    public void init() {
+    @Scheduled(fixedRate = 60_000)
+    public void updateLayers() {
         // Fetch all GeoServer layers
         List<JSONObject> geoLayersObjs = this.fetchGeoServerLayers();
+        if (geoLayersObjs == null) {
+            return;
+        }
         geoLayersObjs.forEach(layerObj -> {
             String pattern = "(.+):(.+)";
             Pattern r = Pattern.compile(pattern);
@@ -71,6 +74,9 @@ public class GeoServerController {
     }
 
     private List<JSONObject> fetchGeoServerLayers() {
+        if (geoServerUrl == null) {
+            return null;
+        }
         try {
             URL layersUrl = new URL(geoServerUrl + "/rest/layers.json");
             HttpURLConnection con = (HttpURLConnection) layersUrl.openConnection();
@@ -98,9 +104,8 @@ public class GeoServerController {
 
             return layers;
         } catch (Exception e) {
-            e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     public List<JSONObject> getGeoLayersJsonObject(JSONObject layersJsonObj) {
