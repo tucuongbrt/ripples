@@ -481,16 +481,21 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="GEBCO (multiple sources)"
               />
             </BaseLayer>
-            <Overlay name="Argos">
-              <WMSTileLayer
-                url="http://www.ifremer.fr/services/wms/coriolis/co_argo_floats_activity"
-                layers="StationProject"
-                attribution="IFREMER"
+            <Overlay name="EMODNET Bathymetry">
+            <WMSTileLayer
+                url="https://ows.emodnet-bathymetry.eu/wms"
+                layers="mean_multicolour"
                 format="image/png"
-                project=""
-                transparent={true}
+                //styles="boxfill/sst_36"
+                //transparent={true}
+                //colorscalerange="0,36"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.5}
+                attribution="EMODNET"
               />
             </Overlay>
+           
             <Overlay name="AIS density">
               <TileLayer
                 url="https://tiles2.marinetraffic.com/ais/density_tiles2015/{z}/{x}/tile_{z}_{x}_{y}.png"
