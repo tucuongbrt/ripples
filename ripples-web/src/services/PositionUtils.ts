@@ -184,7 +184,7 @@ export default class PositionService {
 
   private getSpeedBetweenWaypoints(waypoints: IPositionAtTime[]) {
     // need to find two waypoints with timestamps different from 0
-    const scheduledWaypoints = waypoints.filter(wp => wp.timestamp > 0)
+    const scheduledWaypoints = waypoints.filter((wp) => wp.timestamp > 0)
     if (scheduledWaypoints.length < 2) {
       return 1
     }

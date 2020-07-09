@@ -155,7 +155,7 @@ class Ripples extends Component<PropsType, StateType> {
       this.handleWsAISUpdate,
       this.handleWsAnnotationUpdate,
       this.handleWsUserLocation,
-      this.handleWsVehicleParams,
+      this.handleWsVehicleParams
     )
     this.setState({ myMaps })
     this.setState({ loading: false })
@@ -253,7 +253,7 @@ class Ripples extends Component<PropsType, StateType> {
   public async loadMyMapsData(): Promise<IMyMap[]> {
     const mapNames: string[] = await this.kmlService.fetchMapsNames()
     const maps = Promise.all(
-      mapNames.map(async mapName => {
+      mapNames.map(async (mapName) => {
         const mapData = await this.kmlService.fetchMapData(mapName)
         return { name: mapName, data: mapData }
       })
@@ -288,17 +288,17 @@ class Ripples extends Component<PropsType, StateType> {
 
       // fetch profiles
       let profiles = await profilesPromise
-      profiles = profiles.filter(p => p.samples.length > 0)
+      profiles = profiles.filter((p) => p.samples.length > 0)
       // make heights symmetric
-      profiles.forEach(p => {
-        p.samples.forEach(a => (a[0] = -a[0]))
+      profiles.forEach((p) => {
+        p.samples.forEach((a) => (a[0] = -a[0]))
       })
       this.props.setProfiles(profiles)
 
       // fetch soi awareness
       const assetsAwareness = await awarenessPromise
-      assetsAwareness.forEach(assetAwareness => {
-        const vehicle = vehicles.find(v => v.name === assetAwareness.name)
+      assetsAwareness.forEach((assetAwareness) => {
+        const vehicle = vehicles.find((v) => v.name === assetAwareness.name)
         if (vehicle) {
           vehicle.awareness = assetAwareness.positions
         }
@@ -346,7 +346,7 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async handleSendPlanToVehicle() {
     try {
-      const plan: IPlan | undefined = this.props.plans.find(p => isPlanEqual(p, this.props.selectedPlan))
+      const plan: IPlan | undefined = this.props.plans.find((p) => isPlanEqual(p, this.props.selectedPlan))
       const vehicle = this.props.vehicleSelected
       if (!plan) {
         return
@@ -367,7 +367,7 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async handleSavePlan() {
     // send plan to server
-    const plan: IPlan | undefined = this.props.plans.find(p => isPlanEqual(p, this.props.selectedPlan))
+    const plan: IPlan | undefined = this.props.plans.find((p) => isPlanEqual(p, this.props.selectedPlan))
     if (plan) {
       try {
         const response = await this.soiService.sendUnassignedPlan(plan)
@@ -486,7 +486,4 @@ const actionCreators = {
   setGeoLayers,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators,
-)(Ripples)
+export default connect(mapStateToProps, actionCreators)(Ripples)

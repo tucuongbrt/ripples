@@ -125,7 +125,4 @@ function mapStateToProps(state: IRipplesState) {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators
-)(Vehicle)
+export default connect(mapStateToProps, actionCreators)(Vehicle)

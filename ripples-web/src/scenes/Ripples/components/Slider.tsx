@@ -39,7 +39,7 @@ class Slider extends Component<PropsType, {}> {
               min={this.props.min}
               max={this.props.max}
               value={this.props.value}
-              onChange={e => this.props.onChange(+e.target.value)}
+              onChange={(e) => this.props.onChange(+e.target.value)}
               step={1 / 50}
             />
           </Col>
@@ -60,7 +60,4 @@ function mapStateToProps(state: IRipplesState) {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  null
-)(Slider)
+export default connect(mapStateToProps, null)(Slider)

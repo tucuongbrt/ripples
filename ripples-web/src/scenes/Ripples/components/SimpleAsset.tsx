@@ -58,7 +58,4 @@ const actionCreators = {
   setEditVehicle,
 }
 
-export default connect(
-  null,
-  actionCreators
-)(SimpleAsset)
+export default connect(null, actionCreators)(SimpleAsset)

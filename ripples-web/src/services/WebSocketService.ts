@@ -12,7 +12,7 @@ export default class WSService {
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
     })
-    this.client.onStompError = frame => {
+    this.client.onStompError = (frame) => {
       // Will be invoked in case of error encountered at Broker
       alert('Broker reported error: ' + frame.headers.message)
       alert('Additional details: ' + frame.body)
@@ -24,9 +24,9 @@ export default class WSService {
     aisHandler: (m: Message) => any,
     annotationHandler: (m: Message) => any,
     userLocationHandler: (m: Message) => any,
-    vehicleParamsHandler: (m: Message) => any,
+    vehicleParamsHandler: (m: Message) => any
   ) {
-    this.client.onConnect = frame => {
+    this.client.onConnect = (frame) => {
       // Do something, all subscribes must be done is this callback
       // This is needed because this will be executed after a (re)connect
       this.client.subscribe('/topic/asset', assetHandler)

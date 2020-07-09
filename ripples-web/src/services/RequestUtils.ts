@@ -23,7 +23,7 @@ export async function request(options: OptionsType) {
       return Promise.reject(json)
     }
     return json
-  } catch(error) {
+  } catch (error) {
     return error
   }
 }

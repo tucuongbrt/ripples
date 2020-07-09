@@ -105,7 +105,4 @@ function mapStateToProps(state: IRipplesState) {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  null
-)(TopNav)
+export default connect(mapStateToProps, null)(TopNav)

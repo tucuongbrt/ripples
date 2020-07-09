@@ -15,11 +15,11 @@ export default class SoiService {
     if (isScientist(authState)) {
       const settingsPromise = this.fetchAssetsSettings()
       const assetSettings = await settingsPromise
-      assetSettings.forEach(entry => {
-        const vehicle = vehicles.filter(v => v.name === entry.name)[0]
+      assetSettings.forEach((entry) => {
+        const vehicle = vehicles.filter((v) => v.name === entry.name)[0]
         Object.keys(entry.params)
           .sort()
-          .forEach(key => {
+          .forEach((key) => {
             vehicle.settings.push([key, entry.params[key]])
           })
       })
@@ -40,7 +40,7 @@ export default class SoiService {
 
   public convertAssetPayloadToPlan(system: IAssetPayload): IPlan {
     const plan: IPlan = JSON.parse(JSON.stringify(system.plan))
-    plan.waypoints = plan.waypoints.map(wp => this.convertWaypoint(wp))
+    plan.waypoints = plan.waypoints.map((wp) => this.convertWaypoint(wp))
     plan.assignedTo = system.name
     plan.visible = true
     return Object.assign({}, plan)
@@ -51,7 +51,7 @@ export default class SoiService {
    * @param strMap String-keyed map
    */
   public convertMapToObj(strMap: Map<string, string>) {
-    let obj = Object.create(null)
+    const obj = Object.create(null)
     for (const [key, val] of strMap) {
       obj[key] = val
     }
@@ -144,8 +144,8 @@ export default class SoiService {
     let plans: IPlan[] = await request({
       url: `${apiURL}/soi/unassigned/plans/`,
     })
-    plans = plans.map(p => Object.assign(p, { assignedTo: '', visible: true }))
-    plans.forEach(p => (p.waypoints = p.waypoints.map(wp => this.convertWaypoint(wp))))
+    plans = plans.map((p) => Object.assign(p, { assignedTo: '', visible: true }))
+    plans.forEach((p) => (p.waypoints = p.waypoints.map((wp) => this.convertWaypoint(wp))))
     return plans
   }
 
@@ -170,7 +170,7 @@ export default class SoiService {
   public async fetchCollisions(): Promise<IPotentialCollision[]> {
     const response = await fetch(`${apiURL}/soi/risk`)
     const payload: IPotentialCollisionPayload[] = await response.json()
-    const data: IPotentialCollision[] = payload.map(p =>
+    const data: IPotentialCollision[] = payload.map((p) =>
       Object.assign({}, p, { timestamp: new Date(p.timestamp).getTime() })
     )
     return data
@@ -178,8 +178,11 @@ export default class SoiService {
 
   public async fetchAssetsErrors(): Promise<AssetErrors[]> {
     const response: any[] = await request({ url: `${apiURL}/soi/errors` })
-    return response.map(r => {
-      return new AssetErrors(r.name, r.errors.sort((a: AssetError, b: AssetError) => a.timestamp < b.timestamp))
+    return response.map((r) => {
+      return new AssetErrors(
+        r.name,
+        r.errors.sort((a: AssetError, b: AssetError) => a.timestamp < b.timestamp)
+      )
     })
   }
 

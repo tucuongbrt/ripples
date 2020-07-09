@@ -44,17 +44,13 @@ export default class DateService {
       if (decimalHours < 0) {
         interval = -interval
       }
-      date = moment()
-        .add(interval, 'h')
-        .toDate()
+      date = moment().add(interval, 'h').toDate()
     }
     return date
   }
 
   public static formatDateForRequest(date: Date) {
-    return moment(date)
-      .format('YYYY-MM-DDThh:00:00.000')
-      .concat('Z')
+    return moment(date).format('YYYY-MM-DDThh:00:00.000').concat('Z')
   }
 
   private static secondsToTime(secondsInput: number) {

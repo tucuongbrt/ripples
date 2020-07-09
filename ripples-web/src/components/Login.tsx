@@ -63,7 +63,4 @@ const actionCreators = {
   setToolSelected,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators
-)(Login)
+export default connect(mapStateToProps, actionCreators)(Login)

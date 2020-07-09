@@ -4,44 +4,45 @@
   "private": true,
   "dependencies": {
     "@mapbox/togeojson": "^0.16.0",
-    "@nivo/line": "^0.59.3",
-    "@stomp/stompjs": "^5.4.2",
-    "@types/jest": "^24.0.9",
-    "@types/node": "^12.6.8",
-    "@types/react": "^16.8.6",
-    "@types/react-datepicker": "^2.3.0",
-    "@types/react-dom": "^16.8.2",
-    "@types/react-leaflet": "^2.2.0",
+    "@nivo/line": "^0.62.0",
+    "@reduxjs/toolkit": "^1.4.0",
+    "@stomp/stompjs": "^5.4.4",
+    "@types/jest": "^26.0.4",
+    "@types/node": "^14.0.20",
+    "@types/react": "^16.9.41",
+    "@types/react-datepicker": "^3.0.2",
+    "@types/react-dom": "^16.9.8",
+    "@types/react-leaflet": "^2.5.2",
     "@types/react-notification-system": "^0.2.39",
-    "@types/react-router-dom": "^4.3.1",
-    "@types/reactstrap": "^8.0.1",
+    "@types/react-redux": "^7.1.9",
+    "@types/react-router-dom": "^5.1.5",
+    "@types/reactstrap": "^8.5.0",
     "add": "^2.0.6",
-    "bootstrap": "^4.2.1",
-    "chart.js": "^2.7.3",
-    "geolib": "^3.0.4",
-    "html-react-parser": "^0.9.1",
-    "leaflet": "^1.4.0",
+    "bootstrap": "^4.5.0",
+    "chart.js": "^2.9.3",
+    "geolib": "^3.3.1",
+    "html-react-parser": "^0.13.0",
+    "leaflet": "^1.6.0",
     "leaflet-rotatedmarker": "^0.2.0",
-    "mobile-detect": "^1.4.3",
-    "moment": "^2.24.0",
-    "ramda": "^0.26.1",
-    "react": "^16.7.0",
-    "react-datepicker": "^2.5.0",
-    "react-dom": "^16.7.0",
-    "react-geolocated": "^2.5.0",
-    "react-leaflet": "^2.2.0",
+    "mobile-detect": "^1.4.4",
+    "moment": "^2.27.0",
+    "ramda": "^0.27.0",
+    "react": "^16.13.1",
+    "react-datepicker": "^3.0.0",
+    "react-dom": "^16.13.1",
+    "react-geolocated": "^3.0.1",
+    "react-leaflet": "^2.7.0",
     "react-leaflet-canvas-layer": "^1.0.0",
     "react-leaflet-fullscreen-control": "^0.0.4",
-    "react-notifications": "^1.4.3",
-    "react-redux": "^7.1.0",
-    "react-router-dom": "^5.0.1",
-    "react-scripts": "^3.0.1",
+    "react-notifications": "^1.6.0",
+    "react-redux": "^7.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "^3.4.1",
     "react-style-object-to-css": "^1.1.2",
-    "reactstrap": "^8.0.1",
-    "redux": "^4.0.1",
-    "redux-starter-kit": "^0.6.1",
+    "reactstrap": "^8.5.1",
+    "redux": "^4.0.5",
     "typescript": "^3.5.2",
-    "yarn": "^1.22.0"
+    "yarn": "^1.22.4"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -49,8 +50,18 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test:debug": "react-scripts --inspect-brk test --runInBand --no-cache",
-    "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "lint": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose"
+    "tslint": "tslint -c tslint.json src/**/*.{ts,tsx}",
+    "tslint:fix": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "yarn run --silent tslint:fix"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -62,12 +73,13 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@types/react-redux": "^7.0.6",
-    "eslint-plugin-react-hooks": "^1.6.1",
-    "prettier": "^1.18.2",
-    "tslint": "^5.18.0",
+    "eslint-plugin-react-hooks": "^4.0.6",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
+    "prettier": "^2.0.5",
+    "tslint": "^6.1.2",
     "tslint-config-prettier": "^1.18.0",
-    "tslint-plugin-prettier": "^2.0.1",
-    "tslint-react": "^4.0.0"
+    "tslint-plugin-prettier": "^2.3.0",
+    "tslint-react": "^5.0.0"
   }
 }

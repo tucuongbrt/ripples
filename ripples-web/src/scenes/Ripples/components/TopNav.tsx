@@ -45,7 +45,6 @@ import {
 } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
 
-
 interface PropsType {
   vehicles: IAsset[]
   plans: IPlan[]
@@ -254,7 +253,7 @@ class TopNav extends Component<PropsType, StateType> {
         </div>
       )
     }
-    return this.props.plans.map(p => {
+    return this.props.plans.map((p) => {
       return (
         <div className="dropdown-item" key={getPlanKey(p)}>
           <i
@@ -277,7 +276,7 @@ class TopNav extends Component<PropsType, StateType> {
   }
 
   public buildVehicleSelector() {
-    const vehicleItems = this.props.vehicles.map(v => (
+    const vehicleItems = this.props.vehicles.map((v) => (
       <DropdownItem key={v.name} onClick={() => this.onVehicleSelected(v.name)}>
         {v.name}
       </DropdownItem>
@@ -306,7 +305,7 @@ class TopNav extends Component<PropsType, StateType> {
             type="textarea"
             placeholder="Set plan description"
             value={this.props.selectedPlan.description}
-            onChange={evt => this.updatePlanDescription(evt)}
+            onChange={(evt) => this.updatePlanDescription(evt)}
           />
         </ModalBody>
       </Modal>
@@ -322,7 +321,7 @@ class TopNav extends Component<PropsType, StateType> {
             type="textarea"
             placeholder="Set plan id"
             value={this.props.selectedPlan.id}
-            onChange={evt => this.updatePlanId(evt)}
+            onChange={(evt) => this.updatePlanId(evt)}
           />
         </ModalBody>
         <ModalFooter>
@@ -462,9 +461,7 @@ class TopNav extends Component<PropsType, StateType> {
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_DIRECTION)}>
               Current Direction
             </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>
-              Current Speed
-            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>Current Speed</DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.GUST)}>Wind gust</DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
               Water Temperature
@@ -476,9 +473,7 @@ class TopNav extends Component<PropsType, StateType> {
             <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_DIRECTION)}>
               Wind Direction
             </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>
-              Wind Speed
-            </DropdownItem>
+            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>Wind Speed</DropdownItem>
             <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
           </DropdownMenu>
         </UncontrolledDropdown>
@@ -576,7 +571,4 @@ const actionCreators = {
   setToolClickLocation,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators,
-)(TopNav)
+export default connect(mapStateToProps, actionCreators)(TopNav)

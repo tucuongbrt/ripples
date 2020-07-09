@@ -27,11 +27,11 @@ interface StateType {
 export default class LinePlot extends Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props)
-    const data: XYPoint[] = props.data.samples.map(point => {
+    const data: XYPoint[] = props.data.samples.map((point) => {
       return { y: +(point[0] / 10), x: +point[1] }
     })
-    const maxDepth = Math.max(...data.map(p => p.y)) - 0.9
-    const xMap = data.map(p => p.x)
+    const maxDepth = Math.max(...data.map((p) => p.y)) - 0.9
+    const xMap = data.map((p) => p.x)
     const minTemp = Math.min(...xMap)
     const maxTemp = Math.max(...xMap)
     const humanReadableTime = DateService.timestampMsToReadableDate(this.props.data.timestamp)

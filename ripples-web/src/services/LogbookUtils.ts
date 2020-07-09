@@ -1,4 +1,3 @@
-
 import { Annotation, INewAnnotation } from '../model/IAnnotations'
 import MyLogbook from '../model/MyLogbook'
 import { request } from './RequestUtils'
