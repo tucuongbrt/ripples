@@ -50,8 +50,19 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "test:debug": "react-scripts --inspect-brk test --runInBand --no-cache",
-    "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "lint": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose"
+    "tslint": "tslint -c tslint.json src/**/*.{ts,tsx}",
+    "tslint:fix": "tslint -c tslint.json src/**/*.{ts,tsx} --fix --format verbose"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": [
+      "yarn run --silent tslint:fix",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -64,6 +75,8 @@
   ],
   "devDependencies": {
     "eslint-plugin-react-hooks": "^4.0.6",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.2.11",
     "prettier": "^2.0.5",
     "tslint": "^6.1.2",
     "tslint-config-prettier": "^1.18.0",
