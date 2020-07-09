@@ -64,7 +64,7 @@ export default class KMLManager extends Component<{}, StateType> {
                 type="text"
                 name="mapName"
                 id="mapName"
-                onChange={evt => this.setState({ mapName: evt.target.value })}
+                onChange={(evt) => this.setState({ mapName: evt.target.value })}
                 value={this.state.mapName}
               />
             </FormGroup>
@@ -76,7 +76,7 @@ export default class KMLManager extends Component<{}, StateType> {
                 type="text"
                 name="mapURL"
                 id="mapURL"
-                onChange={evt => this.setState({ mapURL: evt.target.value })}
+                onChange={(evt) => this.setState({ mapURL: evt.target.value })}
                 value={this.state.mapURL}
               />
             </FormGroup>

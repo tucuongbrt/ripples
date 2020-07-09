@@ -164,7 +164,4 @@ function mapStateToProps(state: IRipplesState) {
   }
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators,
-)(AISShip)
+export default connect(mapStateToProps, actionCreators)(AISShip)

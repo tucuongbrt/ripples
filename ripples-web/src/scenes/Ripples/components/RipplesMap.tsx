@@ -124,6 +124,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   public initZoom = 10
   public oneSecondTimer = 0
   private map!: LeafletMap
+  private mapRef: React.RefObject<LeafletMap> = React.createRef()
   private positionService = new PositionService()
   private blueCircleIcon = new BlueCircleIcon()
   private logBookService = new LogbookService()
@@ -237,7 +238,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public buildMyMaps() {
-    return this.props.myMaps.map(map => {
+    return this.props.myMaps.map((map) => {
       return (
         <Overlay key={`Overlay_${map.name}`} checked={false} name={map.name}>
           <LayerGroup>
@@ -271,7 +272,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (!this.props.auth.authenticated || !this.props.geoServerAddr || !this.props.geoLayers) {
       return <></>
     }
-    return this.props.geoLayers.map(layer => {
+    return this.props.geoLayers.map((layer) => {
       const key = `GeoLayer_${layer.layerGroup}:${layer.layerName}`
       return (
         <Overlay key={key} checked={false} name={layer.layerName}>
@@ -297,25 +298,25 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public buildSpots() {
-    return this.props.spots.map(spot => {
+    return this.props.spots.map((spot) => {
       return <SimpleAsset key={'spot_' + spot.imcid} data={spot} icon={new SpotIcon()} />
     })
   }
 
   public buildCcus() {
-    return this.props.ccus.map(ccu => {
+    return this.props.ccus.map((ccu) => {
       return <SimpleAsset key={'ccu_' + ccu.name} data={ccu} icon={new PCIcon()} />
     })
   }
 
   public buildPlans(): JSX.Element[] {
-    return this.props.plans.map(p => {
+    return this.props.plans.map((p) => {
       return <VehiclePlan key={getPlanKey(p)} plan={p} vehicle={p.assignedTo} currentTime={this.state.currentTime} />
     })
   }
 
   public buildVehicles() {
-    return this.props.vehicles.map(vehicle => {
+    return this.props.vehicles.map((vehicle) => {
       return (
         <Vehicle
           key={'vehicle_' + vehicle.imcid}
@@ -331,9 +332,9 @@ class RipplesMap extends Component<PropsType, StateType> {
     let ships = this.props.aisShips
     if (this.map) {
       const mapBounds = this.map.leafletElement.getBounds()
-      ships = ships.filter(ship => mapBounds.contains([ship.latitude, ship.longitude]))
+      ships = ships.filter((ship) => mapBounds.contains([ship.latitude, ship.longitude]))
     }
-    return ships.map(ship => {
+    return ships.map((ship) => {
       return (
         <AISShip
           key={'ship_' + ship.mmsi}
@@ -350,7 +351,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     const ctx = info.canvas.getContext('2d')
     ctx.clearRect(0, 0, info.canvas.width, info.canvas.height)
     ctx.fillStyle = 'rgba(255,116,0, 0.2)'
-    this.props.aisShips.forEach(ship => {
+    this.props.aisShips.forEach((ship) => {
       const aisCanvas = new AISCanvas({
         perpLinesSize: this.state.perpLinesSize,
         ship,
@@ -400,11 +401,15 @@ class RipplesMap extends Component<PropsType, StateType> {
     })
   }
 
+  private setLeafletMapRef(map: any) {
+    this.mapRef = map && map.leafletElement
+  }
+
   public render() {
     return (
       <>
         <LeafletMap
-          ref="map"
+          ref={(m) => this.setLeafletMapRef(m)}
           fullscreenControl={true}
           center={{ lat: this.state.settings.lat, lng: this.state.settings.lng }}
           zoom={this.state.settings.zoom}
@@ -482,20 +487,20 @@ class RipplesMap extends Component<PropsType, StateType> {
               />
             </BaseLayer>
             <Overlay name="EMODNET Bathymetry">
-            <WMSTileLayer
+              <WMSTileLayer
                 url="https://ows.emodnet-bathymetry.eu/wms"
                 layers="mean_multicolour"
                 format="image/png"
-                //styles="boxfill/sst_36"
-                //transparent={true}
-                //colorscalerange="0,36"
+                // styles="boxfill/sst_36"
+                // transparent={true}
+                // colorscalerange="0,36"
                 belowmincolor="extend"
                 belowmaxcolor="extend"
                 opacity={0.5}
                 attribution="EMODNET"
               />
             </Overlay>
-           
+
             <Overlay name="AIS density">
               <TileLayer
                 url="https://tiles2.marinetraffic.com/ais/density_tiles2015/{z}/{x}/tile_{z}_{x}_{y}.png"
@@ -732,7 +737,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   private buildMeasureTrack() {
-    const positions = this.props.measurePath.map(p => {
+    const positions = this.props.measurePath.map((p) => {
       return { lat: p.latitude, lng: p.longitude }
     })
     const markers = positions.map((location, i) => (
@@ -802,7 +807,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             <textarea
               name="content"
               placeholder="Add your note"
-              onChange={evt => {
+              onChange={(evt) => {
                 this.setState({ newAnnotationContent: evt.target.value })
               }}
               value={this.state.newAnnotationContent}
@@ -847,8 +852,8 @@ class RipplesMap extends Component<PropsType, StateType> {
         <ModalBody>
           <ul>
             {this.props.editVehicle.settings.map((param: string[]) => {
-              const key: string = param[0],
-                value: string = param[1]
+              const key: string = param[0]
+              const value: string = param[1]
               return (
                 <li key={key}>
                   <Label for={key}>{key}</Label>
@@ -977,7 +982,4 @@ const actionCreators = {
   toggleSliderChange,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators
-)(RipplesMap)
+export default connect(mapStateToProps, actionCreators)(RipplesMap)

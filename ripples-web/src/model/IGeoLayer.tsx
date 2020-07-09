@@ -1,4 +1,4 @@
 export default interface IGeoLayer {
-	layerGroup: string
-  	layerName: string
+  layerGroup: string
+  layerName: string
 }

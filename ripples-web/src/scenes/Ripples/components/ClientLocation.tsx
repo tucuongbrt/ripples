@@ -21,7 +21,6 @@ interface StateType {
 }
 
 class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
-
   public icon = onMobile ? new MobileIcon() : new PCIcon()
   private sendLocationTimer: number = 0
   private SENDER_INTERVAL = 10000 // Send client position every 10 seconds
@@ -91,7 +90,7 @@ class ClientLocation extends Component<PropsType & GeolocatedProps, StateType> {
     try {
       const location = await getUserLastLocation()
       this.setState({ lastLocation: location })
-    } catch(error) {
+    } catch (error) {
       console.log('User does not have a saved position')
     }
   }

@@ -68,7 +68,4 @@ const actionCreators = {
   toggleVehicleModal,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators,
-)(SidePanel)
+export default connect(mapStateToProps, actionCreators)(SidePanel)

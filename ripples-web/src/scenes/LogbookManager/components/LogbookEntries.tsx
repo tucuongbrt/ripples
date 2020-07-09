@@ -29,24 +29,24 @@ export default class LogbookEntries extends Component<PropsType, {}> {
             </Button>
           )}
         </div>
-        <Table id="logbook-entries" responsive={true} hover>
-          {this.props.isLogbookEntriesOpen && 
+        <Table id="logbook-entries" responsive={true} hover={true}>
+          {this.props.isLogbookEntriesOpen &&
             (this.props.logbooks.length > 0 ? (
-            <>
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Creation Date</th>
-                  <th>Export as HTML</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>{this.buildLogbookRows()}</tbody>
-            </>
-          ) : (
-            <span>There are no logbook entries!</span>
-          ))}
+              <>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Creation Date</th>
+                    <th>Export as HTML</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>{this.buildLogbookRows()}</tbody>
+              </>
+            ) : (
+              <span>There are no logbook entries!</span>
+            ))}
         </Table>
       </>
     )

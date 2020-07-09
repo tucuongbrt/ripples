@@ -13,7 +13,7 @@ export class LatLngFactory {
 }
 
 export function inRange(coordinates: ILatLng): boolean {
-  return latInRange(coordinates.latitude) && longInRange(coordinates.longitude);
+  return latInRange(coordinates.latitude) && longInRange(coordinates.longitude)
 }
 
 export function latInRange(latitude: number): boolean {

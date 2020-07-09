@@ -19,7 +19,7 @@ interface StateType {
 export default class WeatherLinePlot extends Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props)
-    const yValues = props.data.map((wd: WeatherData) => wd.data.map(p => p.y)).flat()
+    const yValues = props.data.map((wd: WeatherData) => wd.data.map((p) => p.y)).flat()
     const yMin = Math.min(...yValues)
     const yMax = Math.max(...yValues)
     this.state = {

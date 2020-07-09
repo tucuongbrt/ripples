@@ -33,7 +33,7 @@ export default class LogbookTable extends Component<PropsType, {}> {
           <h5>Selected Logbook: {this.props.selectedLogbookName}</h5>
         </div>
         {this.props.logbookHasAnnotations(this.props.selectedLogbookName) ? (
-          <Table id="logbook-table" responsive striped>
+          <Table id="logbook-table" responsive={true} striped={true}>
             <thead>
               <tr className="d-flex">
                 <th className="col-3">Creation Date</th>

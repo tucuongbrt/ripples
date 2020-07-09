@@ -92,7 +92,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                 type="text"
                 name="mapName"
                 id="mapName"
-                onChange={evt => this.setState({ logbookName: evt.target.value })}
+                onChange={(evt) => this.setState({ logbookName: evt.target.value })}
                 value={this.state.logbookName}
               />
             </FormGroup>
@@ -147,7 +147,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                 type="number"
                 placeholder="Set annotation latitude"
                 value={this.state.editAnnotation.latitude}
-                onChange={evt => this.updateAnnotationLatitude(evt)}
+                onChange={(evt) => this.updateAnnotationLatitude(evt)}
               />
               <Label for="annLongitude">Longitude</Label>
               <Input
@@ -155,7 +155,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                 type="number"
                 placeholder="Set annotation longitude"
                 value={this.state.editAnnotation.longitude}
-                onChange={evt => this.updateAnnotationLongitude(evt)}
+                onChange={(evt) => this.updateAnnotationLongitude(evt)}
               />
               <Label for="annContent">Content</Label>
               <Input
@@ -163,7 +163,7 @@ export default class LogbookManager extends Component<{}, StateType> {
                 type="textarea"
                 placeholder="Set annotation content"
                 value={this.state.editAnnotation.content}
-                onChange={evt => this.updateAnnotationContent(evt)}
+                onChange={(evt) => this.updateAnnotationContent(evt)}
               />
             </>
           ) : (
@@ -174,21 +174,21 @@ export default class LogbookManager extends Component<{}, StateType> {
                   id="annLatitude"
                   type="number"
                   placeholder="Set annotation latitude"
-                  onChange={evt => this.updateAnnotationLatitude(evt)}
+                  onChange={(evt) => this.updateAnnotationLatitude(evt)}
                 />
                 <Label for="annLongitude">Longitude</Label>
                 <Input
                   id="annLongitude"
                   type="number"
                   placeholder="Set annotation longitude"
-                  onChange={evt => this.updateAnnotationLongitude(evt)}
+                  onChange={(evt) => this.updateAnnotationLongitude(evt)}
                 />
                 <Label for="annContent">Content</Label>
                 <Input
                   id="annContent"
                   type="textarea"
                   placeholder="Set annotation content"
-                  onChange={evt => this.updateAnnotationContent(evt)}
+                  onChange={(evt) => this.updateAnnotationContent(evt)}
                 />
               </>
             )
@@ -277,7 +277,7 @@ export default class LogbookManager extends Component<{}, StateType> {
       selectedLogbookName: logbookName,
     })
   }
-  
+
   private async onAddLogbook() {
     const index = this.state.logbooks.findIndex((lb: ILogbook) => lb.name === this.state.logbookName)
     if (this.state.logbookName === '') {
@@ -435,7 +435,7 @@ export default class LogbookManager extends Component<{}, StateType> {
       const fileContent = this.generateHtml(logbook)
       const data = new Blob([fileContent], { type: 'text/html' })
       const url = window.URL.createObjectURL(data)
-      let link = document.createElement('a')
+      const link = document.createElement('a')
       link.setAttribute('download', fileName)
       link.href = url
       document.body.appendChild(link)

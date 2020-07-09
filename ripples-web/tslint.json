@@ -8,6 +8,7 @@
     "no-var-requires": false,
     "forin": false,
     "max-classes-per-file": false,
-    "object-literal-sort-keys": false
+    "object-literal-sort-keys": false,
+    "no-console": false
   }
 }

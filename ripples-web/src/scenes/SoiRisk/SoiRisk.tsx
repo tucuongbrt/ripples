@@ -109,9 +109,9 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
       return -1
     }
     const lastCommTimestamp = vehicle.lastState.timestamp
-    const timeIntervals = waypoints.map(wp => Math.abs(wp.timestamp - lastCommTimestamp))
+    const timeIntervals = waypoints.map((wp) => Math.abs(wp.timestamp - lastCommTimestamp))
     const minInterval = Math.min(...timeIntervals)
-    const minIntervalIdx = timeIntervals.findIndex(d => d === minInterval)
+    const minIntervalIdx = timeIntervals.findIndex((d) => d === minInterval)
     const minIntervalWP = waypoints[minIntervalIdx]
     if (minIntervalWP.timestamp === 0) {
       return -1
@@ -166,7 +166,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
 
   public buildVehicle(vehicle: IAsset) {
     const vehiclePlan: IPlan | undefined = this.state.plans.find(
-      p => p.id === vehicle.planId && p.assignedTo === vehicle.name
+      (p) => p.id === vehicle.planId && p.assignedTo === vehicle.name
     )
     if (!vehiclePlan) {
       return
@@ -186,18 +186,18 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public buildAllVehicles() {
-    return this.state.vehicles.map(vehicle => this.buildVehicle(vehicle))
+    return this.state.vehicles.map((vehicle) => this.buildVehicle(vehicle))
   }
 
   public toggleCollisionsModal(assetName: string) {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       isCollisionsModalOpen: !prevState.isCollisionsModalOpen,
       vehicleSelected: assetName,
     }))
   }
 
   public toggleErrorsModal(assetName: string) {
-    this.setState(prevState => ({
+    this.setState((prevState) => ({
       isErrorsModalOpen: !prevState.isErrorsModalOpen,
       vehicleSelected: assetName,
     }))
@@ -205,7 +205,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
 
   public buildVehicleCollisions(assetName: string) {
     const allCollisions = this.state.collisions
-    const assetCollisions = allCollisions.filter(c => c.asset === assetName)
+    const assetCollisions = allCollisions.filter((c) => c.asset === assetName)
     assetCollisions.sort((a, b) => a.timestamp - b.timestamp)
     if (assetCollisions.length === 0) {
       return <td className="bg-green">0</td>
@@ -247,7 +247,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
 
   public buildVehicleErrors(assetName: string) {
     const allErrors = this.state.assetErrors
-    const assetErrors = allErrors.find(e => e.getName() === assetName)
+    const assetErrors = allErrors.find((e) => e.getName() === assetName)
     if (!assetErrors) {
       return <td className="bg-green">0</td>
     }
@@ -263,7 +263,7 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
           >
             <ModalHeader toggle={() => this.toggleErrorsModal(assetName)}>{assetName} errors</ModalHeader>
             <ModalBody>
-              {errors.map(e => {
+              {errors.map((e) => {
                 return (
                   <div key={`error_at_${e.timestamp}`}>
                     <ul>
@@ -324,7 +324,4 @@ const actionCreators = {
   setUser,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators
-)(geolocated()(SoiRisk))
+export default connect(mapStateToProps, actionCreators)(geolocated()(SoiRisk))

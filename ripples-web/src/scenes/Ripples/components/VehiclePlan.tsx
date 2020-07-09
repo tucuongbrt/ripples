@@ -105,7 +105,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
         : this.props.plan.type === 'dune'
         ? '#008000'
         : '#000080'
-    const positions = this.props.plan.waypoints.map(wp => {
+    const positions = this.props.plan.waypoints.map((wp) => {
       return { lat: wp.latitude, lng: wp.longitude }
     })
     const polylines = []
@@ -144,7 +144,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
         <Popup>
           <DatePicker
             selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
-            onChange={newDate => this.onWpChange(newDate, wpIndex)}
+            onChange={(newDate) => this.onWpChange(newDate, wpIndex)}
             showTimeSelect={true}
             timeFormat="HH:mm"
             timeIntervals={15}
@@ -159,7 +159,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
   public buildPlanWaypoints() {
     const plan = this.props.plan
     const waypoints = [...plan.waypoints]
-    const positions = waypoints.map(wp => {
+    const positions = waypoints.map((wp) => {
       return { lat: wp.latitude, lng: wp.longitude }
     })
     const iconMarkup = renderToStaticMarkup(<i className="editing-waypoint" />)
@@ -220,7 +220,4 @@ const actionCreators = {
   setEditVehicle,
 }
 
-export default connect(
-  mapStateToProps,
-  actionCreators,
-)(VehiclePlan)
+export default connect(mapStateToProps, actionCreators)(VehiclePlan)

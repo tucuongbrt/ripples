@@ -43,7 +43,7 @@ export default class TextMessages extends Component<{}, StateType> {
 
   public updateMessages() {
     fetchTextMessages()
-      .then(data => {
+      .then((data) => {
         const messages = data.map((m: any) =>
           Object.assign({}, m, {
             date: DateService.timestampMsToReadableDate(m.updated_at),
@@ -52,7 +52,7 @@ export default class TextMessages extends Component<{}, StateType> {
         )
         this.setState({ messages: messages.reverse() })
       })
-      .catch(_ => {
+      .catch((_) => {
         NotificationManager.warning('Failed to fetch text messages')
       })
   }
@@ -67,7 +67,7 @@ export default class TextMessages extends Component<{}, StateType> {
   }
 
   public renderMessages() {
-    return this.state.messages.map(msg => this.renderMessage(msg))
+    return this.state.messages.map((msg) => this.renderMessage(msg))
   }
   public render() {
     return (

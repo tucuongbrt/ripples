@@ -26,12 +26,12 @@ export default class WeatherService {
     const weatherByHour = weather.map((w: IWeather) => {
       return w[param]
     })
-    let result: { [x: string]: number[] } = {}
-    weatherByHour.forEach(row => {
+    const result: { [x: string]: number[] } = {}
+    weatherByHour.forEach((row) => {
       if (!row) {
         return
       }
-      for (let [key, value] of Object.entries(row)) {
+      for (const [key, value] of Object.entries(row)) {
         result[key] = result[key] || []
         result[key].push(+value)
       }

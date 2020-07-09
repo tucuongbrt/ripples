@@ -1,5 +1,5 @@
 import { GeoJsonObject } from 'geojson'
-import { LatLngLiteral } from 'leaflet';
+import { LatLngLiteral } from 'leaflet'
 
 export default interface IMyMap {
   name: string
