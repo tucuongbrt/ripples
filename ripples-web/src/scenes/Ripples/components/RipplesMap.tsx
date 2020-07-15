@@ -402,7 +402,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   private setLeafletMapRef(map: any) {
-    this.mapRef = map && map.leafletElement
+    this.map = map
   }
 
   public render() {
