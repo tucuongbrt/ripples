@@ -71,4 +71,6 @@ dependencies {
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('org.springframework.security:spring-security-test')
 	implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+
+	implementation 'com.squareup.okhttp3:okhttp:3.0.1' 
 }
