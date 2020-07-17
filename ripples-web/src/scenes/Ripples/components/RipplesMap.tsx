@@ -124,7 +124,6 @@ class RipplesMap extends Component<PropsType, StateType> {
   public initZoom = 10
   public oneSecondTimer = 0
   private map!: LeafletMap
-  private mapRef: React.RefObject<LeafletMap> = React.createRef()
   private positionService = new PositionService()
   private blueCircleIcon = new BlueCircleIcon()
   private logBookService = new LogbookService()
@@ -361,7 +360,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public async handleMove(e: any) {
-    if (!this.props.auth.authenticated) {
+    if (!this.props.auth.authenticated || !this.map) {
       return
     }
     const center = this.map.leafletElement.getBounds().getCenter()

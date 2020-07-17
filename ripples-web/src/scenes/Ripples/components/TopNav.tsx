@@ -452,46 +452,46 @@ class TopNav extends Component<PropsType, StateType> {
             title="Annotation Tool"
           />
         </NavItem>
-        <UncontrolledDropdown nav={true} className="mr-4 active">
-          <DropdownToggle nav={true} caret={false}>
-            <i
-              className={
-                'fas fa-map-pin fa-lg ' + (this.props.toolSelected === ToolSelected.TOOLPICK ? 'selected' : '')
-              }
-              title="Enable Weather Toolpick"
-            />
-          </DropdownToggle>
-          <DropdownMenu right={true}>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.AIR_TEMPERATURE)}>
-              Air Temperature
-            </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_DIRECTION)}>
-              Current Direction
-            </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>Current Speed</DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.GUST)}>Wind gust</DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
-              Water Temperature
-            </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_DIRECTION)}>
-              Wave Direction
-            </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_HEIGHT)}>Wave Height</DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_DIRECTION)}>
-              Wind Direction
-            </DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>Wind Speed</DropdownItem>
-            <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
-          </DropdownMenu>
-        </UncontrolledDropdown>
+        {this.buildWeatherSelector()}
         <NavItem className="mt-auto mb-auto mr-4" active={this.props.isGpsActive} onClick={this.onGpsClick}>
           <i
             className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
             title="Enable Gps Tracking"
           />
         </NavItem>
-        {this.buildZerotierSelector()}
+        {this.props.auth.authenticated && this.buildZerotierSelector()}
       </>
+    )
+  }
+
+  public buildWeatherSelector() {
+    return (
+      <UncontrolledDropdown nav={true} className="mr-4 active">
+        <DropdownToggle nav={true} caret={false}>
+          <i
+            className={'fas fa-map-pin fa-lg ' + (this.props.toolSelected === ToolSelected.TOOLPICK ? 'selected' : '')}
+            title="Enable Weather Toolpick"
+          />
+        </DropdownToggle>
+        <DropdownMenu right={true}>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.AIR_TEMPERATURE)}>
+            Air Temperature
+          </DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_DIRECTION)}>
+            Current Direction
+          </DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>Current Speed</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.GUST)}>Wind gust</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
+            Water Temperature
+          </DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_DIRECTION)}>Wave Direction</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_HEIGHT)}>Wave Height</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_DIRECTION)}>Wind Direction</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>Wind Speed</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
+        </DropdownMenu>
+      </UncontrolledDropdown>
     )
   }
 
