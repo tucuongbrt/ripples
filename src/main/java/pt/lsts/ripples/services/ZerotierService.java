@@ -48,7 +48,7 @@ public class ZerotierService {
         this.client = new OkHttpClient.Builder().addInterceptor(interceptor).build();
     }
 
-    public void joinNetwork(String nodeId, String username, String email) {
+    public Boolean joinNetwork(String nodeId, String username, String email) {
         final HttpUrl targetUrl = apiUrl.newBuilder().addPathSegment("network").addPathSegment(nwid)
                 .addPathSegment("member").addPathSegment(nodeId).build();
 
@@ -69,7 +69,9 @@ public class ZerotierService {
         JSONObject response = makeRequest(request);
         if (response != null) {
             logger.info("Node " + nodeId + " joined the Ripples Zerotier network!");
+            return true;
         }
+        return false;
     }
 
     public JSONObject makeRequest(Request request) {

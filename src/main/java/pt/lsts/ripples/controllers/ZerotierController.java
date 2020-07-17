@@ -25,8 +25,14 @@ public class ZerotierController {
     @GetMapping(path = { "/zt/member/{nodeId}", "/zt/member/{nodeId}/" }, produces = "application/json")
     public ResponseEntity<HTTPResponse> addMember(@CurrentUser UserPrincipal user,
             @PathVariable(required = true) String nodeId) {
-        ztService.joinNetwork(nodeId, user.getName(), user.getEmail());
-        String msg = "User " + user.getName() + " added node " + nodeId + " to ripples network";
-        return new ResponseEntity<>(new HTTPResponse("Success", msg), HttpStatus.OK);
+        Boolean success = ztService.joinNetwork(nodeId, user.getName(), user.getEmail());
+        String msg;
+        if (success) {
+            msg = "Node " + nodeId + " joined Ripples Zerotier network!";
+            return new ResponseEntity<>(new HTTPResponse("Success", msg), HttpStatus.OK);
+        } else {
+            msg = "An error occurred while adding node " + nodeId + " to Ripples Zerotier network";
+            return new ResponseEntity<>(new HTTPResponse("Error", msg), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
