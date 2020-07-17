@@ -17,6 +17,7 @@ import {
   NavbarToggler,
   NavItem,
   UncontrolledDropdown,
+  InputGroup,
 } from 'reactstrap'
 import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
@@ -44,6 +45,9 @@ import {
   updatePlanId,
 } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
+import ZerotierService from '../../../services/ZerotierUtils'
+
+const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
   vehicles: IAsset[]
@@ -88,11 +92,13 @@ interface StateType {
   isVehiclesDropdownOpen: boolean
   vehiclesDropdownText: string
   previousPlanId: string
+  nodeId?: string
 }
 
 class TopNav extends Component<PropsType, StateType> {
   private plansDropdownDefaultText = 'Plan Editor'
   private vehiclesDropdownDefaultText = 'Select Vehicle'
+  private ztService: ZerotierService = new ZerotierService()
 
   constructor(props: PropsType) {
     super(props)
@@ -129,6 +135,7 @@ class TopNav extends Component<PropsType, StateType> {
     this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
     this.onGpsClick = this.onGpsClick.bind(this)
     this.onToolpickToogle = this.onToolpickToogle.bind(this)
+    this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
   }
 
   public onNavToggle() {
@@ -483,8 +490,38 @@ class TopNav extends Component<PropsType, StateType> {
             title="Enable Gps Tracking"
           />
         </NavItem>
+        {this.buildZerotierSelector()}
       </>
     )
+  }
+
+  public buildZerotierSelector() {
+    return (
+      <UncontrolledDropdown id="tooltip-zt" nav={true} className="mr-4 active">
+        <DropdownToggle nav={true} caret={false}>
+          <i className={'fas fa-network-wired fa-lg'} title="Join Ripples Zerotier Network" />
+        </DropdownToggle>
+        <DropdownMenu right={true}>
+          <InputGroup>
+            <Input
+              placeholder="Node address"
+              onChange={(evt) => this.setState({ nodeId: evt.target.value })}
+              value={this.state.nodeId}
+              type="text"
+              required={true}
+            />
+          </InputGroup>
+          <Button onClick={this.onNodeIdSubmission}>Add node</Button>
+        </DropdownMenu>
+      </UncontrolledDropdown>
+    )
+  }
+
+  public async onNodeIdSubmission() {
+    const { nodeId } = this.state
+    if (!nodeId) return
+    const { status, message } = await this.ztService.joinNetwork(nodeId)
+    status === 'Success' ? NotificationManager.success(message) : NotificationManager.error(message)
   }
 
   public render() {

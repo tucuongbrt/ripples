@@ -12,7 +12,8 @@
   padding-top: 0.5em;
 }
 
-.chartwrapper, .chartAreaWrapper {
+.chartwrapper,
+.chartAreaWrapper {
   width: 500px;
   height: 300px;
 }
@@ -34,8 +35,9 @@
   margin: 1em auto 0 auto;
 }
 
-@media(max-width: 640px) {
-  .chartwrapper, .chartAreaWrapper {
+@media (max-width: 640px) {
+  .chartwrapper,
+  .chartAreaWrapper {
     width: 60vw;
   }
   .chartwrapper {
@@ -44,7 +46,7 @@
     margin-left: 0;
   }
   .chartAreaWrapper > div {
-    width: 200% !important
+    width: 200% !important;
   }
 }
 
@@ -145,12 +147,12 @@ path.leaflet-polygon {
 }
 
 .selected {
-  color: green
+  color: green;
 }
 
 .vehicle-modal {
   width: 75%;
-  margin: .5rem auto;
+  margin: 0.5rem auto;
 }
 
 .vehicle-modal .modal-body {
@@ -193,6 +195,14 @@ path.leaflet-polygon {
   font-weight: lighter;
   font-size: 80%;
   margin-top: 0.5em;
+}
+
+#tooltip-zt .dropdown-menu {
+  padding: 1em;
+}
+
+#tooltip-zt .dropdown-menu button {
+  width: 100%;
 }
 
 .leaflet-control-layers label > div {
