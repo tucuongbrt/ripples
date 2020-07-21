@@ -1,9 +1,12 @@
 package pt.lsts.ripples.services;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +15,8 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import pt.lsts.ripples.domain.assets.ZerotierNode;
+import pt.lsts.ripples.repo.main.ZerotierRepository;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
@@ -39,6 +44,9 @@ public class ZerotierService {
 
     private OkHttpClient client;
 
+    @Autowired
+    private ZerotierRepository ztRepos;
+
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     @PostConstruct
@@ -57,6 +65,7 @@ public class ZerotierService {
             // Operator information
             nodeInfo.put("name", username);
             nodeInfo.put("description", email);
+            nodeInfo.put("hidden", false);
             // Auto-authorization
             JSONObject config = new JSONObject();
             config.put("authorized", true);
@@ -68,13 +77,37 @@ public class ZerotierService {
         final Request request = new Request.Builder().url(targetUrl).post(body).build();
         JSONObject response = makeRequest(request);
         if (response != null) {
+            ztRepos.save(new ZerotierNode(nodeId));
             logger.info("Node " + nodeId + " joined the Ripples Zerotier network!");
             return true;
         }
         return false;
     }
 
-    public JSONObject makeRequest(Request request) {
+    public void leaveNetwork(String nodeId) {
+        final HttpUrl targetUrl = apiUrl.newBuilder().addPathSegment("network").addPathSegment(nwid)
+                .addPathSegment("member").addPathSegment(nodeId).build();
+        final Request request = new Request.Builder().url(targetUrl).delete().build();
+        try {
+            client.newCall(request).execute();
+        } catch (IOException e) {
+            logger.error("Could not remove node of id %s!", nodeId);
+        }
+    }
+
+    public void clearNodes() {
+        logger.info("Cleansing temporary nodes from the Ripples network...");
+        CompletableFuture.runAsync(() -> {
+            List<ZerotierNode> nodes = ztRepos.findAll();
+            for (ZerotierNode node : nodes) {
+                leaveNetwork(node.getId());
+            }
+        }).thenRun(() -> {
+            ztRepos.deleteAll();
+        });
+    }
+
+    private JSONObject makeRequest(Request request) {
         JSONObject jsonResponse = null;
         try {
             Response response = client.newCall(request).execute();
