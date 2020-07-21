@@ -92,7 +92,7 @@ interface StateType {
   isVehiclesDropdownOpen: boolean
   vehiclesDropdownText: string
   previousPlanId: string
-  nodeId?: string
+  nodeId: string
 }
 
 class TopNav extends Component<PropsType, StateType> {
@@ -113,6 +113,7 @@ class TopNav extends Component<PropsType, StateType> {
       plansDropdownText: this.plansDropdownDefaultText,
       previousPlanId: '',
       vehiclesDropdownText: this.vehiclesDropdownDefaultText,
+      nodeId: '',
     }
 
     this.onNavToggle = this.onNavToggle.bind(this)
@@ -519,9 +520,13 @@ class TopNav extends Component<PropsType, StateType> {
 
   public async onNodeIdSubmission() {
     const { nodeId } = this.state
-    if (!nodeId) return
+    if (nodeId === '' || nodeId.length !== 10) {
+      NotificationManager.error('Please insert a valid 10-digit ZeroTier node ID!')
+      return
+    }
     const { status, message } = await this.ztService.joinNetwork(nodeId)
     status === 'Success' ? NotificationManager.success(message) : NotificationManager.error(message)
+    this.setState({ nodeId: '' })
   }
 
   public render() {
