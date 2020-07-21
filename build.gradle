@@ -24,6 +24,7 @@ repositories {
 	maven {
 		url "https://artifacts.unidata.ucar.edu/repository/unidata-all/"
 	}
+	maven { url 'https://jitpack.io' }
 }
 
 
@@ -72,5 +73,8 @@ dependencies {
 	testCompile('org.springframework.security:spring-security-test')
 	implementation 'com.squareup.retrofit2:retrofit:2.5.0'
 
-	implementation 'com.squareup.okhttp3:okhttp:3.0.1' 
+	implementation 'com.squareup.okhttp3:okhttp:3.0.1'
+
+	implementation 'com.github.zepinto.imc4j:core:1.0.5'
+
 }
