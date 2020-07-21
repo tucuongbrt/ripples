@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.lsts.imc4j.annotations.Consume;
 import pt.lsts.imc4j.annotations.Periodic;
+import pt.lsts.imc4j.def.SystemType;
 import pt.lsts.imc4j.msg.*;
+import pt.lsts.imc4j.net.ImcNetwork;
 import pt.lsts.imc4j.net.UdpClient;
 import pt.lsts.imc4j.util.PlanUtilities;
 import pt.lsts.imc4j.util.WGS84Utilities;
@@ -116,11 +118,19 @@ public class ImcUdpListener {
         try {
             udpClient.register(this);
             udpClient.bind(port);
-            Logger.getLogger(getClass().getName()).info("Bound to port "+port+".");
+
+            ImcNetwork network = new ImcNetwork("RipplesImc", 7007, SystemType.CCU);
+            network.setConnectionPolicy(p -> true);
+            network.bind(EstimatedState.class, this::on);
+            network.bind(Announce.class, this::on);
+            network.bind(FuelLevel.class, this::on);
+            network.bind(PlanControlState.class, this::on);
+            network.bind(PlanDB.class, this::on);
+            network.startListening(port+1);
+            Logger.getLogger(getClass().getName()).info("Bound to port "+(port+1)+".");
         }
         catch (Exception e) {
             Logger.getLogger(getClass().getName()).warning("Could not bind to IMC.");
         }
     }
-
 }
