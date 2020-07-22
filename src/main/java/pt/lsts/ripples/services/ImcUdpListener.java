@@ -15,6 +15,7 @@ import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.shared.Plan;
 import pt.lsts.ripples.domain.shared.Waypoint;
 
+import java.net.SocketAddress;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +33,7 @@ public class ImcUdpListener {
     private ConcurrentHashMap<Integer, Asset> assets = new ConcurrentHashMap<>();
 
     @Consume
-    void on(EstimatedState msg) {
+    public void on(EstimatedState msg) {
         if (!assets.containsKey(msg.src))
             return;
 
@@ -46,7 +47,10 @@ public class ImcUdpListener {
     }
 
     @Consume
-    void on(Announce msg) {
+    public void on(Announce msg) {
+
+        Logger.getLogger(getClass().getSimpleName()).info("Received announce from "+msg.sys_name);
+
         Asset asset = assets.getOrDefault(msg.sys_name, new Asset(msg.sys_name));
         asset.setImcid(msg.src);
         asset.getLastState().setDate(new Date((long)(1000*msg.timestamp)));
@@ -57,7 +61,7 @@ public class ImcUdpListener {
     }
 
     @Consume
-    void on (FuelLevel msg) {
+    public void on (FuelLevel msg) {
         if (!assets.containsKey(msg.src))
             return;
         Asset asset = assets.get(msg.src);
@@ -66,10 +70,10 @@ public class ImcUdpListener {
     }
 
     @Consume
-    void on(PlanControlState msg) {
+    public void on(PlanControlState msg) {
         if (!assets.containsKey(msg.src))
             return;
-        Asset asset = assets.get(msg);
+        Asset asset = assets.get(msg.src);
 
         if (msg.state != PlanControlState.STATE.PCS_EXECUTING) {
             if (!asset.getPlan().getId().equals("idle")) {
@@ -87,7 +91,7 @@ public class ImcUdpListener {
     }
 
     @Consume
-    void on(PlanDB msg) {
+    public void on(PlanDB msg) {
         if (!assets.containsKey(msg.src))
             return;
         Asset asset = assets.get(msg);
@@ -115,22 +119,45 @@ public class ImcUdpListener {
     }
 
     ImcUdpListener() {
+
         try {
             udpClient.register(this);
             udpClient.bind(port);
 
-            ImcNetwork network = new ImcNetwork("RipplesImc", 7007, SystemType.CCU);
-            network.setConnectionPolicy(p -> true);
-            network.bind(EstimatedState.class, this::on);
-            network.bind(Announce.class, this::on);
-            network.bind(FuelLevel.class, this::on);
-            network.bind(PlanControlState.class, this::on);
-            network.bind(PlanDB.class, this::on);
+            ImcNetwork network = new ImcNetwork("RipplesImc", 7007, SystemType.CCU) {
+                @Override
+                public void handleMessage(Message msg, SocketAddress remoteAddress) {
+                    super.handleMessage(msg, remoteAddress);
+                    switch (msg.mgid()) {
+                        case EstimatedState.ID_STATIC: {
+                            on((EstimatedState) msg);
+                            break;
+                        }
+                        case Announce.ID_STATIC: {
+                            on((Announce) msg);
+                            break;
+                        }
+                        case FuelLevel.ID_STATIC: {
+                            on((FuelLevel) msg);
+                            break;
+                        }
+                        case PlanControlState.ID_STATIC: {
+                            on((PlanControlState) msg);
+                            break;
+                        }
+                        case PlanDB.ID_STATIC: {
+                            on((PlanDB) msg);
+                            break;
+                        }
+                        default: {
+                            break;
+                        }
+                    }
+                }
+            };
             network.startListening(port+1);
-            Logger.getLogger(getClass().getName()).info("Bound to port "+(port+1)+".");
-        }
-        catch (Exception e) {
-            Logger.getLogger(getClass().getName()).warning("Could not bind to IMC.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
