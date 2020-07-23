@@ -3,7 +3,6 @@ package pt.lsts.ripples.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pt.lsts.imc4j.annotations.Consume;
-import pt.lsts.imc4j.annotations.Periodic;
 import pt.lsts.imc4j.def.SystemType;
 import pt.lsts.imc4j.msg.*;
 import pt.lsts.imc4j.net.ImcNetwork;
@@ -38,7 +37,7 @@ public class ImcUdpListener {
             return;
 
         Asset asset = assets.get(msg.src);
-        asset.getLastState().setDate(new Date((long)(1000*msg.timestamp)));
+        asset.getLastState().setDate(new Date((long) (1000 * msg.timestamp)));
         double[] lld = WGS84Utilities.toLatLonDepth(msg);
         asset.getLastState().setLatitude(lld[0]);
         asset.getLastState().setLongitude(lld[1]);
@@ -48,12 +47,11 @@ public class ImcUdpListener {
 
     @Consume
     public void on(Announce msg) {
-
-        Logger.getLogger(getClass().getSimpleName()).info("Received announce from "+msg.sys_name);
+        Logger.getLogger(getClass().getSimpleName()).info("Received announce from " + msg.sys_name);
 
         Asset asset = assets.getOrDefault(msg.sys_name, new Asset(msg.sys_name));
         asset.setImcid(msg.src);
-        asset.getLastState().setDate(new Date((long)(1000*msg.timestamp)));
+        asset.getLastState().setDate(new Date((long) (1000 * msg.timestamp)));
         asset.getLastState().setLatitude(Math.toDegrees(msg.lat));
         asset.getLastState().setLongitude(Math.toDegrees(msg.lon));
         assets.putIfAbsent(msg.src, asset);
@@ -61,7 +59,7 @@ public class ImcUdpListener {
     }
 
     @Consume
-    public void on (FuelLevel msg) {
+    public void on(FuelLevel msg) {
         if (!assets.containsKey(msg.src))
             return;
         Asset asset = assets.get(msg.src);
@@ -81,8 +79,7 @@ public class ImcUdpListener {
                 asset.setPlan(plan);
             }
             return;
-        }
-        else if (!asset.getPlan().getId().equals(msg.plan_id)) {
+        } else if (!asset.getPlan().getId().equals(msg.plan_id)) {
             Plan plan = new Plan();
             plan.setId(msg.plan_id);
             asset.setPlan(plan);
@@ -94,7 +91,7 @@ public class ImcUdpListener {
     public void on(PlanDB msg) {
         if (!assets.containsKey(msg.src))
             return;
-        Asset asset = assets.get(msg);
+        Asset asset = assets.get(msg.src);
 
         if (msg.type == PlanDB.TYPE.DBT_SUCCESS && msg.op == PlanDB.OP.DBOP_GET) {
             if (asset.getPlan().getId().equals(msg.plan_id)) {
@@ -119,7 +116,6 @@ public class ImcUdpListener {
     }
 
     ImcUdpListener() {
-
         try {
             udpClient.register(this);
             udpClient.bind(port);
@@ -155,7 +151,7 @@ public class ImcUdpListener {
                     }
                 }
             };
-            network.startListening(port+1);
+            network.startListening(port + 1);
         } catch (Exception e) {
             e.printStackTrace();
         }
