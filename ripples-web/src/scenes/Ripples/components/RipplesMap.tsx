@@ -59,6 +59,7 @@ import Vehicle from './Vehicle'
 import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
+import PolygonEditor from './PolygonEditor'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -499,7 +500,6 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="EMODNET"
               />
             </Overlay>
-
             <Overlay name="AIS density">
               <TileLayer
                 url="https://tiles2.marinetraffic.com/ais/density_tiles2015/{z}/{x}/tile_{z}_{x}_{y}.png"
@@ -632,6 +632,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             </Overlay>
             <Overlay checked={true} name="Plans">
               <LayerGroup>{this.buildPlans()}</LayerGroup>
+              <PolygonEditor />
             </Overlay>
             <Overlay checked={true} name="Spots">
               <LayerGroup>{this.buildSpots()}</LayerGroup>

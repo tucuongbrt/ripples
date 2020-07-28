@@ -213,3 +213,8 @@ path.leaflet-polygon {
 .leaflet-control-layers span {
   padding-left: 0.5em;
 }
+
+.leaflet-draw.leaflet-control a {
+  color: white;
+  text-decoration: none;
+}
