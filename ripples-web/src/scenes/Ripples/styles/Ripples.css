@@ -91,8 +91,12 @@ path.leaflet-polygon {
 }
 
 .leaflet-div-icon {
-  background: transparent;
-  border: none;
+  /*background: transparent;
+  border: none;*/
+}
+
+.sr-only {
+  display: none;
 }
 
 .leaflet-popup-content {
