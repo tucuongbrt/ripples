@@ -5,7 +5,7 @@ import { EditControl } from 'react-leaflet-draw'
 import { WaypointIcon } from './Icons'
 import L from 'leaflet'
 import DateService from '../../../services/DateUtils'
-import IPositionAtTime from '../../../model/IPositionAtTime'
+import IPositionAtTime, { ILatLngAtTime } from '../../../model/IPositionAtTime'
 import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import {
@@ -13,24 +13,30 @@ import {
   setSidePanelContent,
   setSidePanelVisibility,
   setEditVehicle,
+  addNewPlan,
 } from '../../../redux/ripples.actions'
 import IPlan from '../../../model/IPlan'
 import PositionService from '../../../services/PositionUtils'
-import ILatLng from '../../../model/ILatLng'
 import IRipplesState from '../../../model/IRipplesState'
+import { IUser } from '../../../model/IAuthState'
+import SoiService from '../../../services/SoiUtils'
+const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
+  currentUser: IUser
   plans: IPlan[]
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (v: IAsset | undefined) => void
+  addNewPlan: (plan: IPlan) => void
 }
 
 interface StateType {
   collection: any
-  plansWp: ILatLng[][]
+  plansWp: ILatLngAtTime[][]
   onEditMode: boolean
+  loadedPlans: boolean
 }
 
 /**
@@ -39,6 +45,7 @@ interface StateType {
  */
 class PolygonEditor extends Component<PropsType, StateType> {
   private posService: PositionService = new PositionService()
+  private soiService: SoiService = new SoiService()
   private _editableFG = null
 
   public constructor(props: any) {
@@ -47,6 +54,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       collection: null,
       plansWp: [],
       onEditMode: false,
+      loadedPlans: false,
     }
   }
 
@@ -100,7 +108,11 @@ class PolygonEditor extends Component<PropsType, StateType> {
         const coordinates = [wp.longitude, wp.latitude]
         plan.geometry.coordinates.push(coordinates)
         // Save waypoints
-        const pos = wp as ILatLng
+        const pos: ILatLngAtTime = {
+          lat: wp.latitude,
+          lng: wp.longitude,
+          timestamp: 0,
+        }
         plansWp.push([pos])
       })
 
@@ -126,18 +138,19 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   _onCreated = (e: any) => {
+    const { getPosAtTime } = this.posService
     const { plansWp } = this.state
 
-    let waypoints = []
+    let waypoints: any = []
 
     switch (e.layerType) {
       case 'polyline':
-        waypoints = e.layer._latlngs
+        waypoints = getPosAtTime(e.layer._latlngs)
         console.log('_onCreated: polyline created:')
         break
       case 'rectangle':
       case 'polygon':
-        waypoints = e.layer._latlngs[0]
+        waypoints = getPosAtTime(e.layer._latlngs[0])
         console.log('_onCreated: polygon created', e)
         break
       default:
@@ -150,6 +163,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
       plansWp: [...plansWp, waypoints],
     })
 
+    // Store plan
+    this.insertPlan(waypoints)
+
     this._onChange()
   }
 
@@ -159,6 +175,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
       numDeleted += 1
     })
     console.log(`onDeleted: removed ${numDeleted} layers`, e)
+
+    this.handleDeletePlans()
 
     this._onChange()
   }
@@ -186,9 +204,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   _onFeatureGroupReady = (reactFGref: any) => {
-    if (!reactFGref) return
+    const { collection, loadedPlans } = this.state
 
-    const { collection } = this.state
+    if (!reactFGref || !collection || loadedPlans) return
 
     // populate FeatureGroup with the existent plans
     const leafletGeoJSON = new L.GeoJSON(collection)
@@ -199,6 +217,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
     })
 
     this._editableFG = reactFGref
+
+    this.setState({ loadedPlans: true })
   }
 
   _onChange = () => {
@@ -217,13 +237,13 @@ class PolygonEditor extends Component<PropsType, StateType> {
     setEditVehicle(undefined)
   }
 
-  buildWaypoints = (polygon: ILatLng[]) => {
+  buildWaypoints = (polygon: ILatLngAtTime[]) => {
     const icon = new WaypointIcon()
     return polygon.map((p, i) => (
       <Marker
         key={'Waypoint' + i + '_' + i}
         index={i}
-        position={this.posService.getLatLng(p)}
+        position={p}
         icon={icon}
         onClick={() => this.handleMarkerClick(i)}
       >
@@ -234,13 +254,57 @@ class PolygonEditor extends Component<PropsType, StateType> {
     ))
   }
 
-  public getWaypointSidePanelProperties(wp: IPositionAtTime) {
+  getWaypointSidePanelProperties(wp: IPositionAtTime) {
     return {
       eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp) : 'N/D',
       'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp) : 'N/D',
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
     }
+  }
+
+  insertPlan = (waypoints: ILatLngAtTime[]) => {
+    const { currentUser, addNewPlan } = this.props
+    const { getILatLngFromArray } = this.posService
+
+    const wps = getILatLngFromArray(waypoints)
+    const planId = `${currentUser.name}-${DateService.idfromDate(new Date())}`
+
+    const plan: IPlan = {
+      assignedTo: '',
+      description: `Plan created by ${currentUser.email} on ${DateService.timestampMsToReadableDate(Date.now())}`,
+      id: planId,
+      waypoints: wps,
+      visible: true,
+      type: 'backseat',
+    }
+
+    // Store to redux
+    addNewPlan(plan)
+    // Store to server
+    this.handleSavePlan(plan)
+  }
+
+  async handleSavePlan(plan: IPlan) {
+    try {
+      const response = await this.soiService.sendUnassignedPlan(plan)
+      NotificationManager.success(response.message)
+    } catch (error) {
+      NotificationManager.warning(error.message)
+    }
+  }
+
+  async handleDeletePlans() {
+    const { plans } = this.props
+
+    plans.forEach(async (p) => {
+      try {
+        await this.soiService.deleteUnassignedPlan(p.id)
+      } catch (error) {
+        NotificationManager.warning(error.message)
+      }
+    })
+    NotificationManager.success(`All plans have been deleted`)
   }
 
   render() {
@@ -274,9 +338,10 @@ class PolygonEditor extends Component<PropsType, StateType> {
               maintainColor: true,
               fillOpacity: 0.3,
             },
+            featureGroup: this._editableFG,
           }}
         />
-        {!onEditMode && plansWp.map((p: ILatLng[]) => this.buildWaypoints(p))}
+        {!onEditMode && plansWp.map((p: ILatLngAtTime[]) => this.buildWaypoints(p))}
       </FeatureGroup>
     )
   }
@@ -284,11 +349,13 @@ class PolygonEditor extends Component<PropsType, StateType> {
 
 function mapStateToProps(state: IRipplesState) {
   return {
+    currentUser: state.auth.currentUser,
     plans: state.planSet,
   }
 }
 
 const actionCreators = {
+  addNewPlan,
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
