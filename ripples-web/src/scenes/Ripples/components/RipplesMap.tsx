@@ -630,11 +630,13 @@ class RipplesMap extends Component<PropsType, StateType> {
               <LayerGroup>{this.buildVehicles()}</LayerGroup>
               {this.buildEditVehicleModal()}
             </Overlay>
-            <Overlay checked={true} name="Plans">
-              <LayerGroup>
-                <PolygonEditor />
-              </LayerGroup>
-            </Overlay>
+            {this.props.auth.authenticated && (
+              <Overlay checked={true} name="Plans">
+                <LayerGroup>
+                  <PolygonEditor />
+                </LayerGroup>
+              </Overlay>
+            )}
             <Overlay checked={true} name="Spots">
               <LayerGroup>{this.buildSpots()}</LayerGroup>
             </Overlay>
