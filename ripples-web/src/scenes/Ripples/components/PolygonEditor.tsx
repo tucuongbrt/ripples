@@ -15,6 +15,7 @@ import {
   setSidePanelTitle,
   setSidePanelContent,
   setSidePanelVisibility,
+  updatePlan,
 } from '../../../redux/ripples.actions'
 import IPlan from '../../../model/IPlan'
 import PositionService from '../../../services/PositionUtils'
@@ -32,6 +33,7 @@ interface PropsType {
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (v: IAsset | undefined) => void
+  updatePlan: (plan: IPlan) => void
 }
 
 interface StateType {
@@ -132,11 +134,26 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   _onEdited = (e: any) => {
-    let numEdited = 0
-    e.layers.eachLayer(() => {
-      numEdited += 1
+    const { plans } = this.props
+    const { getILatLngFromArray } = this.posService
+
+    const editedPlans: IPlan[] = []
+    e.layers.eachLayer((layer: any) => {
+      // Find current plan
+      const plan: IPlan | undefined = plans.find((p) => p.id === layer.options.id)
+      if (!plan) return
+
+      // Update plan waypoint coordinates
+      const planCopy = JSON.parse(JSON.stringify(plan))
+      const coordinates = plan.survey ? layer._latlngs[0] : layer._latlngs
+      planCopy.waypoints = getILatLngFromArray(coordinates)
+
+      editedPlans.push(planCopy)
     })
-    console.log(`_onEdited: edited ${numEdited} layers`, e)
+
+    this.handleEditPlan(editedPlans)
+
+    console.log(`_onEdited: edited ${editedPlans.length} layers`, e)
 
     this._onChange()
   }
@@ -241,19 +258,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  handleMarkerClick(i: number, plan: IPlan): any {
-    const { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility, setEditVehicle } = this.props
-    setSidePanelTitle(`Waypoint ${i} of ${plan.id}`)
-    setSidePanelContent(this.getWaypointSidePanelProperties(plan.waypoints[i]))
-    setSidePanelVisibility(true)
-    setEditVehicle(undefined)
-  }
-
   buildWaypoints = () => {
     const { plans } = this.props
     const { getLatLng } = this.posService
-
-    console.log(plans)
 
     return plans.map((plan) => {
       const wps = plan.waypoints
@@ -269,6 +276,14 @@ class PolygonEditor extends Component<PropsType, StateType> {
         )
       })
     })
+  }
+
+  handleMarkerClick(i: number, plan: IPlan): any {
+    const { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility, setEditVehicle } = this.props
+    setSidePanelTitle(`Waypoint ${i} of ${plan.id}`)
+    setSidePanelContent(this.getWaypointSidePanelProperties(plan.waypoints[i]))
+    setSidePanelVisibility(true)
+    setEditVehicle(undefined)
   }
 
   getWaypointSidePanelProperties(wp: IPositionAtTime) {
@@ -328,21 +343,42 @@ class PolygonEditor extends Component<PropsType, StateType> {
     if (planIds.length === 0) return
 
     let errorOccurred = false
-    for (const id of planIds) {
+    planIds.forEach(async (planId: string) => {
       try {
-        removePlan(id)
-        await this.soiService.deleteUnassignedPlan(id)
+        removePlan(planId)
+        await this.soiService.deleteUnassignedPlan(planId)
       } catch (error) {
         errorOccurred = true
-        continue
       }
-    }
+    })
 
     errorOccurred
       ? NotificationManager.warning('Some plans could not be deleted!')
       : planIds.length > 1
       ? NotificationManager.success(`Selected plans have been deleted`)
       : NotificationManager.success(`Plan of id ${planIds[0]} has been deleted`)
+  }
+
+  async handleEditPlan(plans: IPlan[]) {
+    const { updatePlan } = this.props
+
+    if (plans.length === 0) return
+
+    let errorOccurred = false
+    plans.forEach(async (plan: IPlan) => {
+      try {
+        updatePlan(plan)
+        await this.soiService.sendUnassignedPlan(plan)
+      } catch (error) {
+        errorOccurred = true
+      }
+    })
+
+    errorOccurred
+      ? NotificationManager.warning('Some plans could not be edited!')
+      : plans.length > 1
+      ? NotificationManager.success(`Selected plans have been edited`)
+      : NotificationManager.success(`Plan of id ${plans[0].id} has been edited`)
   }
 
   render() {
@@ -395,6 +431,7 @@ function mapStateToProps(state: IRipplesState) {
 
 const actionCreators = {
   addNewPlan,
+  updatePlan,
   removePlan,
   setSidePanelContent,
   setSidePanelTitle,
