@@ -98,21 +98,23 @@ class PolygonEditor extends Component<PropsType, StateType> {
         type: 'Feature',
         properties: {},
         geometry: {
-          type: 'LineString',
-          coordinates: [],
+          type: p.survey ? 'Polygon' : 'LineString',
+          coordinates: p.survey ? [[]] : [],
         },
       }
       const wps = p.waypoints
       wps.forEach((wp: IPositionAtTime) => {
         // Save plan geometric properties for layer drawing
         const coordinates = [wp.longitude, wp.latitude]
-        plan.geometry.coordinates.push(coordinates)
+        if (p.survey) {
+          plan.geometry.coordinates[0].push(coordinates)
+        } else {
+          plan.geometry.coordinates.push(coordinates)
+        }
       })
-
       // Save feature on collection
       collection.features.push(plan)
     })
-
     // Store waypoints
     this.setState({ collection })
   }
@@ -143,6 +145,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { getPosAtTime } = this.posService
 
     let waypoints: any = []
+    let isPolygon = false
 
     switch (e.layerType) {
       case 'polyline':
@@ -151,7 +154,10 @@ class PolygonEditor extends Component<PropsType, StateType> {
         break
       case 'rectangle':
       case 'polygon':
+        isPolygon = true
         waypoints = getPosAtTime(e.layer._latlngs[0])
+        // Closing the polygon by repeating the first waypoint
+        waypoints[waypoints.length] = waypoints[0]
         console.log('_onCreated: polygon created', e)
         break
       default:
@@ -160,7 +166,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
 
     // Store plan
-    this.insertPlan(waypoints)
+    this.insertPlan(waypoints, isPolygon)
 
     this._onChange()
   }
@@ -272,7 +278,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  insertPlan = (waypoints: ILatLngAtTime[]) => {
+  insertPlan = (waypoints: ILatLngAtTime[], isPolygon: boolean) => {
     const { currentPlanId } = this.state
     const { currentUser, addNewPlan } = this.props
     const { getILatLngFromArray } = this.posService
@@ -287,6 +293,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       waypoints: wps,
       visible: true,
       type: 'backseat',
+      survey: isPolygon,
     }
 
     // Store to redux
@@ -349,6 +356,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
             rectangle: PolygonEditor.polygonOptions,
             polygon: PolygonEditor.polygonOptions,
             circle: false,
+            marker: false,
             circlemarker: false,
           }}
           edit={{

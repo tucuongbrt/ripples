@@ -15,22 +15,23 @@ import java.util.Vector;
 @Entity
 public class Plan implements Serializable {
 
-	private static final long serialVersionUID = -9138676928142387564L;
+    private static final long serialVersionUID = -9138676928142387564L;
 
-	
-	@Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-	private Long uid;	
-	
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long uid;
+
     private String id;
 
     @ElementCollection
-    @OneToMany(cascade = {CascadeType.ALL})
+    @OneToMany(cascade = { CascadeType.ALL })
     private List<Waypoint> waypoints = new ArrayList<>();
 
     private String description;
 
     private String type;
+
+    private Boolean survey;
 
     public Plan() {
         this.id = "idle";
@@ -60,6 +61,14 @@ public class Plan implements Serializable {
         this.id = id;
     }
 
+    public Boolean getSurvey() {
+        return survey;
+    }
+
+    public void setSurvey(Boolean survey) {
+        this.survey = survey;
+    }
+
     public List<Waypoint> getWaypoints() {
         synchronized (waypoints) {
             return Collections.unmodifiableList(waypoints);
@@ -72,7 +81,7 @@ public class Plan implements Serializable {
             this.waypoints.addAll(waypoints);
         }
     }
-    
+
     public SoiPlan asImc() {
         SoiPlan plan = new SoiPlan();
         if (waypoints != null) {

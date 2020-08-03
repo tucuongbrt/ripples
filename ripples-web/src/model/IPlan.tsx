@@ -7,6 +7,7 @@ export default interface IPlan {
   description: string
   visible: boolean
   type: string
+  survey: boolean
 }
 
 export const EmptyPlan: IPlan = {
@@ -16,6 +17,7 @@ export const EmptyPlan: IPlan = {
   waypoints: [],
   visible: false,
   type: 'backseat',
+  survey: false,
 }
 
 export function isPlanEqual(plan1: IPlan, plan2: IPlan): boolean {

@@ -18,6 +18,8 @@ public class NewPlanBody {
 
 	private String type;
 
+	private Boolean survey;
+
 	public String getId() {
 		return id;
 	}
@@ -42,6 +44,14 @@ public class NewPlanBody {
 		this.id = id;
 	}
 
+	public Boolean getSurvey() {
+		return survey;
+	}
+
+	public void setSurvey(Boolean survey) {
+		this.survey = survey;
+	}
+
 	public List<Waypoint> getWaypoints() {
 		return waypoints;
 	}
@@ -64,6 +74,7 @@ public class NewPlanBody {
 		p.setWaypoints(waypoints);
 		p.setDescription(description);
 		p.setType(type);
+		p.setSurvey(survey);
 		return p;
 	}
 }

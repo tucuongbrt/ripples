@@ -339,6 +339,7 @@ class Ripples extends Component<PropsType, StateType> {
       waypoints: [],
       visible: true,
       type: 'backseat',
+      survey: false,
     }
     this.props.addNewPlan(plan)
     this.stopUpdates()
