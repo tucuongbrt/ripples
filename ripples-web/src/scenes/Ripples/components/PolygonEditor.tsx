@@ -10,8 +10,8 @@ import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import {
   addNewPlan,
+  removePlan,
   setEditVehicle,
-  setPlans,
   setSidePanelTitle,
   setSidePanelContent,
   setSidePanelVisibility,
@@ -27,11 +27,11 @@ interface PropsType {
   currentUser: IUser
   plans: IPlan[]
   addNewPlan: (plan: IPlan) => void
+  removePlan: (planId: string) => void
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (v: IAsset | undefined) => void
-  setPlans: (plans: IPlan[]) => void
 }
 
 interface StateType {
@@ -79,7 +79,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
 
   componentDidUpdate(prevProps: PropsType) {
     const { plans } = this.props
-    if (prevProps.plans !== plans) {
+    const { loadedPlans } = this.state
+    if (prevProps.plans !== plans && !loadedPlans) {
       this.updateReceivedPlans(plans)
     }
   }
@@ -96,7 +97,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
     plans.forEach((p: IPlan) => {
       const plan: any = {
         type: 'Feature',
-        properties: {},
+        properties: {
+          id: p.id,
+        },
         geometry: {
           type: p.survey ? 'Polygon' : 'LineString',
           coordinates: p.survey ? [[]] : [],
@@ -142,10 +145,14 @@ class PolygonEditor extends Component<PropsType, StateType> {
     // Generate new plan ID
     this.seedPlanId()
 
+    const { currentPlanId } = this.state
     const { getPosAtTime } = this.posService
 
     let waypoints: any = []
     let isPolygon = false
+
+    // Set layer's plan ID
+    e.layer.options.id = currentPlanId
 
     switch (e.layerType) {
       case 'polyline':
@@ -157,7 +164,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
         isPolygon = true
         waypoints = getPosAtTime(e.layer._latlngs[0])
         // Closing the polygon by repeating the first waypoint
-        waypoints[waypoints.length] = waypoints[0]
+        waypoints.push(waypoints[0])
         console.log('_onCreated: polygon created', e)
         break
       default:
@@ -172,21 +179,13 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   _onDeleted = (e: any) => {
-    const { setPlans } = this.props
-
-    let numDeleted = 0
-    e.layers.eachLayer(() => {
-      numDeleted += 1
+    const deletedLayers: string[] = []
+    e.layers.eachLayer((layer: any) => {
+      deletedLayers.push(layer.options.id)
     })
 
-    if (numDeleted > 1) {
-      this.handleDeleteAllPlans()
-      setPlans([])
-    } else {
-      // TODO: handle single delete
-    }
-
-    console.log(`onDeleted: removed ${numDeleted} layers`, e)
+    this.handleDeletePlans(deletedLayers)
+    console.log(`onDeleted: removed ${deletedLayers.length} layers`, e)
 
     this._onChange()
   }
@@ -224,7 +223,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const leafletGeoJSON = new L.GeoJSON(collection)
     const leafletFG = reactFGref.leafletElement
 
-    leafletGeoJSON.eachLayer((layer) => {
+    leafletGeoJSON.eachLayer((layer: any) => {
+      layer.options.id = layer.feature.properties.id
       leafletFG.addLayer(layer)
     })
 
@@ -252,6 +252,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
   buildWaypoints = () => {
     const { plans } = this.props
     const { getLatLng } = this.posService
+
+    console.log(plans)
 
     return plans.map((plan) => {
       const wps = plan.waypoints
@@ -311,26 +313,36 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  async handleDeletePlan(plan: IPlan) {
+  async handleDeletePlan(planId: string) {
     try {
-      await this.soiService.deleteUnassignedPlan(plan.id)
-      NotificationManager.success(`Plan ${plan.id} has been deleted`)
+      await this.soiService.deleteUnassignedPlan(planId)
+      NotificationManager.success(`Plan ${planId} has been deleted`)
     } catch (error) {
       NotificationManager.warning(error.message)
     }
   }
 
-  async handleDeleteAllPlans() {
-    const { plans } = this.props
+  async handleDeletePlans(planIds: string[]) {
+    const { removePlan } = this.props
 
-    plans.forEach(async (p) => {
+    if (planIds.length === 0) return
+
+    let errorOccurred = false
+    for (const id of planIds) {
       try {
-        await this.soiService.deleteUnassignedPlan(p.id)
+        removePlan(id)
+        await this.soiService.deleteUnassignedPlan(id)
       } catch (error) {
-        NotificationManager.warning(error.message)
+        errorOccurred = true
+        continue
       }
-    })
-    NotificationManager.success(`All plans have been deleted`)
+    }
+
+    errorOccurred
+      ? NotificationManager.warning('Some plans could not be deleted!')
+      : planIds.length > 1
+      ? NotificationManager.success(`Selected plans have been deleted`)
+      : NotificationManager.success(`Plan of id ${planIds[0]} has been deleted`)
   }
 
   render() {
@@ -383,11 +395,11 @@ function mapStateToProps(state: IRipplesState) {
 
 const actionCreators = {
   addNewPlan,
+  removePlan,
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
   setEditVehicle,
-  setPlans,
 }
 
 export default connect(mapStateToProps, actionCreators)(PolygonEditor)

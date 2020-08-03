@@ -18,6 +18,7 @@ import {
   deleteWp,
   editPlan,
   removeGeoLayers,
+  removePlan,
   removeUser,
   savePlan,
   selectVehicle,
@@ -107,6 +108,11 @@ const ripplesReducer = createReducer(startState, {
   },
   [setPlans.type]: (state, action) => {
     state.planSet = action.payload
+  },
+  [removePlan.type]: (state, action) => {
+    const planId = action.payload
+    const planIdx = state.planSet.findIndex((p) => p.id === planId)
+    state.planSet.splice(planIdx, 1)
   },
   [editPlan.type]: (state, action) => {
     state.selectedPlan = action.payload
