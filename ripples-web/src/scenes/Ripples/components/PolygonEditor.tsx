@@ -3,9 +3,11 @@ import { FeatureGroup, Marker } from 'react-leaflet'
 // @ts-ignore
 import { EditControl } from 'react-leaflet-draw'
 import { WaypointIcon } from './Icons'
-import L from 'leaflet'
+import L, { Layer } from 'leaflet'
+// @ts-ignore
+import 'leaflet-draw'
 import DateService from '../../../services/DateUtils'
-import IPositionAtTime, { ILatLngAtTime } from '../../../model/IPositionAtTime'
+import IPositionAtTime, { ILatLngAtTime, ILatLngs } from '../../../model/IPositionAtTime'
 import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import {
@@ -43,6 +45,11 @@ interface StateType {
   loadedPlans: boolean
 }
 
+interface PlanProperties {
+  length: number
+  area: number
+}
+
 /**
  * Polygon editor template snippet
  * adapted from https://github.com/alex3165/react-leaflet-draw
@@ -50,6 +57,7 @@ interface StateType {
 class PolygonEditor extends Component<PropsType, StateType> {
   private posService: PositionService = new PositionService()
   private soiService: SoiService = new SoiService()
+  private planProperties = new Map<string, PlanProperties>()
   private _editableFG = null
 
   public constructor(props: any) {
@@ -117,6 +125,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
           plan.geometry.coordinates.push(coordinates)
         }
       })
+      // Save plan area / length properties
+      const latlngs = this.posService.getLatLngFromArray(wps)
+      this.savePlanProperties(p.id, latlngs)
       // Save feature on collection
       collection.features.push(plan)
     })
@@ -168,9 +179,10 @@ class PolygonEditor extends Component<PropsType, StateType> {
     let waypoints: any = []
     let isPolygon = false
 
-    // Set layer's plan ID
+    // Layer's plan ID
     e.layer.options.id = currentPlanId
 
+    // Plan waypoints and length / area properties
     switch (e.layerType) {
       case 'polyline':
         waypoints = getPosAtTime(e.layer._latlngs)
@@ -179,9 +191,15 @@ class PolygonEditor extends Component<PropsType, StateType> {
       case 'rectangle':
       case 'polygon':
         isPolygon = true
-        waypoints = getPosAtTime(e.layer._latlngs[0])
+        // Calculate waypoints
+        const latLngs: ILatLngs[] = e.layer._latlngs[0]
+        waypoints = getPosAtTime(latLngs)
         // Closing the polygon by repeating the first waypoint
         waypoints.push(waypoints[0])
+        // Save geodesic area and length
+        this.savePlanProperties(currentPlanId, latLngs)
+        // Show properties
+        this.bindPopupToPlan(e.layer, currentPlanId)
         console.log('_onCreated: polygon created', e)
         break
       default:
@@ -243,6 +261,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
     leafletGeoJSON.eachLayer((layer: any) => {
       layer.options.id = layer.feature.properties.id
       leafletFG.addLayer(layer)
+      // Show plan properties
+      this.bindPopupToPlan(layer, layer.options.id)
     })
 
     this._editableFG = reactFGref
@@ -293,6 +313,35 @@ class PolygonEditor extends Component<PropsType, StateType> {
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
     }
+  }
+
+  bindPopupToPlan(layer: Layer, planId: string) {
+    const properties = this.planProperties.get(planId)
+    if (!properties) return
+    // @ts-ignore
+    const length = L.GeometryUtil.readableDistance(properties.length, true, false, false, 2)
+    // @ts-ignore
+    const area = L.GeometryUtil.readableArea(properties.area, ['km'], 2)
+    const msg =
+      `<strong>${planId}</strong>` +
+      `<div><strong>Length:</strong> ${length}</div>` +
+      `<div><strong>Area:</strong> ${area}</div>`
+    layer.bindPopup(msg)
+  }
+
+  savePlanProperties(planId: string, waypoints: ILatLngs[]) {
+    // Plan coverage area
+    // @ts-ignore
+    const area = L.GeometryUtil.geodesicArea(waypoints)
+
+    // Path full length
+    const wps = this.posService.getPositionsFromArray(waypoints)
+    const length = this.posService.measureTotalDistance(wps)
+
+    this.planProperties.set(planId, {
+      area,
+      length,
+    })
   }
 
   insertPlan = (waypoints: ILatLngAtTime[], isPolygon: boolean) => {

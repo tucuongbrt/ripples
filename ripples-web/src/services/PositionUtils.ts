@@ -1,8 +1,7 @@
 import IAisShip, { IShipLocation } from '../model/IAisShip'
 import ILatLng, { LatLngFactory } from '../model/ILatLng'
 import IPosHeadingAtTime from '../model/ILatLngHead'
-import IPositionAtTime, { ILatLngAtTime } from '../model/IPositionAtTime'
-import { LatLng } from 'leaflet'
+import IPositionAtTime, { ILatLngAtTime, ILatLngs } from '../model/IPositionAtTime'
 const geolib = require('geolib')
 
 const KNOTS_TO_MS = 0.514444
@@ -120,6 +119,15 @@ export default class PositionService {
     return { lat: position.latitude, lng: position.longitude }
   }
 
+  public getLatLngFromArray(positions: IPositionAtTime[]) {
+    return positions.map((p) => {
+      return {
+        lat: p.latitude,
+        lng: p.longitude,
+      }
+    })
+  }
+
   public getILatLngFromArray(positions: ILatLngAtTime[]) {
     return positions.map((p) => {
       return {
@@ -130,7 +138,16 @@ export default class PositionService {
     })
   }
 
-  public getPosAtTime(positions: LatLng[]) {
+  public getPositionsFromArray(positions: ILatLngs[]) {
+    return positions.map((p) => {
+      return {
+        latitude: p.lat,
+        longitude: p.lng,
+      }
+    })
+  }
+
+  public getPosAtTime(positions: ILatLngs[]) {
     return positions.map((p) => {
       return { ...p, timestamp: 0 }
     })

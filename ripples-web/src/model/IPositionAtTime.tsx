@@ -9,3 +9,8 @@ export interface ILatLngAtTime {
   lng: number
   timestamp: number
 }
+
+export interface ILatLngs {
+  lat: number
+  lng: number
+}
