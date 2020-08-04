@@ -90,9 +90,9 @@ path.leaflet-polygon {
   display: inline-block;
 }
 
-.leaflet-div-icon {
-  /*background: transparent;
-  border: none;*/
+.leaflet-editing-icon {
+  width: 14px !important;
+  height: 14px !important;
 }
 
 .sr-only {

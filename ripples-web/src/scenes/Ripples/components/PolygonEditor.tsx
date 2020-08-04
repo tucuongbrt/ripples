@@ -81,7 +81,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       stroke: true,
       color: '#000080',
       weight: 4,
-      opacity: 0.8,
+      opacity: 1,
       fill: false,
       clickable: false,
     },
@@ -198,7 +198,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
         waypoints.push(waypoints[0])
         // Save geodesic area and length
         this.savePlanProperties(currentPlanId, latLngs)
-        // Show properties
+        // Show plan properties
         this.bindPopupToPlan(e.layer, currentPlanId)
         console.log('_onCreated: polygon created', e)
         break
@@ -258,8 +258,14 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const leafletGeoJSON = new L.GeoJSON(collection)
     const leafletFG = reactFGref.leafletElement
 
+    // Shape options
+    const { shapeOptions } = PolygonEditor.polygonOptions
+
     leafletGeoJSON.eachLayer((layer: any) => {
+      // Override layer drawing properties
       layer.options.id = layer.feature.properties.id
+      layer.options.color = shapeOptions.color
+      // Add layer to FeatureGroup
       leafletFG.addLayer(layer)
       // Show plan properties
       this.bindPopupToPlan(layer, layer.options.id)
@@ -458,10 +464,6 @@ class PolygonEditor extends Component<PropsType, StateType> {
           }}
           edit={{
             allowIntersection: false,
-            selectedPathOptions: {
-              maintainColor: true,
-              fillOpacity: 0.3,
-            },
             featureGroup: this._editableFG,
           }}
         />
