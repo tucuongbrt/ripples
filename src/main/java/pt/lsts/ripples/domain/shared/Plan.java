@@ -88,7 +88,7 @@ public class Plan implements Serializable {
             Vector<SoiWaypoint> wps = new Vector<>(waypoints.size());
             for (Waypoint wpt : waypoints) {
                 SoiWaypoint waypoint = new SoiWaypoint();
-                waypoint.setEta(wpt.getEta());
+                waypoint.setTimestamp(wpt.getTimestamp());
                 waypoint.setLat(wpt.getLatitude());
                 waypoint.setLon(wpt.getLongitude());
                 waypoint.setDuration(wpt.getDuration());

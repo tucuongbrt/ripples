@@ -102,7 +102,7 @@ public class ImcUdpListener {
                     waypoint.setLatitude(wpt.getLatitude());
                     waypoint.setLongitude(wpt.getLongitude());
                     waypoint.setDuration(0);
-                    waypoint.setEta(-1);
+                    waypoint.setTimestamp(-1);
                     asset.getPlan().getWaypoints().add(waypoint);
                 }
                 post(asset);

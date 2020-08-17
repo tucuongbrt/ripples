@@ -10,25 +10,25 @@ import javax.persistence.Id;
 @Entity
 public class Waypoint implements Serializable {
 
-	private static final long serialVersionUID = -550933491432200210L;
+    private static final long serialVersionUID = -550933491432200210L;
 
-	@Id
+    @Id
     @GeneratedValue
     private long id;
 
     private double latitude;
     private double longitude;
-    private long eta;
+    private long timestamp;
     private int duration;
 
     public Waypoint() {
 
     }
 
-    public Waypoint(double lat, double lon, long eta, int duration) {
+    public Waypoint(double lat, double lon, long timestamp, int duration) {
         this.latitude = lat;
         this.longitude = lon;
-        this.eta = eta;
+        this.timestamp = timestamp;
         this.duration = duration;
     }
 
@@ -48,12 +48,12 @@ public class Waypoint implements Serializable {
         this.longitude = longitude;
     }
 
-    public long getEta() {
-        return eta;
+    public long getTimestamp() {
+        return timestamp;
     }
 
-    public void setEta(long eta) {
-        this.eta = eta;
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public int getDuration() {
@@ -63,7 +63,8 @@ public class Waypoint implements Serializable {
     public void setDuration(int duration) {
         this.duration = duration;
     }
+
     public Date getArrivalDate() {
-    	return new Date(eta * 1000l);
+        return new Date(timestamp * 1000l);
     }
 }
