@@ -372,7 +372,7 @@ class Ripples extends Component<PropsType, StateType> {
     if (plan) {
       try {
         const response = await this.soiService.sendUnassignedPlan(plan)
-        this.startUpdates()
+        // this.startUpdates()
         this.props.savePlan()
         NotificationManager.success(response.message)
       } catch (error) {

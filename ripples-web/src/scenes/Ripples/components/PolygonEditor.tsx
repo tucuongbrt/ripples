@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FeatureGroup, Marker } from 'react-leaflet'
+import { FeatureGroup, Marker, Popup } from 'react-leaflet'
 // @ts-ignore
 import { EditControl } from 'react-leaflet-draw'
 import { WaypointIcon } from './Icons'
@@ -18,17 +18,23 @@ import {
   setSidePanelContent,
   setSidePanelVisibility,
   updatePlan,
+  updateWpTimestamp,
 } from '../../../redux/ripples.actions'
 import IPlan from '../../../model/IPlan'
 import PositionService from '../../../services/PositionUtils'
 import IRipplesState from '../../../model/IRipplesState'
 import { IUser } from '../../../model/IAuthState'
 import SoiService from '../../../services/SoiUtils'
+import { ToolSelected } from '../../../model/ToolSelected'
+import DatePicker from 'react-datepicker'
 const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
+  mapRef: any
   currentUser: IUser
   plans: IPlan[]
+  selectedPlan: IPlan
+  toolSelected: ToolSelected
   addNewPlan: (plan: IPlan) => void
   removePlan: (planId: string) => void
   setSidePanelTitle: (title: string) => void
@@ -36,6 +42,7 @@ interface PropsType {
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (v: IAsset | undefined) => void
   updatePlan: (plan: IPlan) => void
+  updateWpTimestamp: (_: any) => void
 }
 
 interface StateType {
@@ -207,10 +214,17 @@ class PolygonEditor extends Component<PropsType, StateType> {
         break
     }
 
+    this.focusOnPlan(e.layer.getBounds())
+
     // Store plan
     this.insertPlan(waypoints, isPolygon)
 
     this._onChange()
+  }
+
+  focusOnPlan(layerBounds: any) {
+    const { mapRef } = this.props
+    mapRef.leafletElement.fitBounds(layerBounds)
   }
 
   _onDeleted = (e: any) => {
@@ -290,22 +304,64 @@ class PolygonEditor extends Component<PropsType, StateType> {
 
     return plans.map((plan) => {
       const wps = plan.waypoints
-      return wps.map((pos: IPositionAtTime, i) => {
+      return wps.map((wp: IPositionAtTime, i) => {
         return (
           <Marker
             key={'Waypoint' + i + '_' + plan.id}
             index={i}
-            position={getLatLng(pos)}
+            position={getLatLng(wp)}
             icon={new WaypointIcon()}
             onClick={() => this.handleMarkerClick(i, plan)}
-          />
+          >
+            {this.buildMarkerPopup(wp, i)}
+          </Marker>
         )
       })
     })
   }
 
+  buildMarkerPopup(wp: IPositionAtTime, wpIndex: number) {
+    const { toolSelected } = this.props
+    if (toolSelected === ToolSelected.SCHEDULE) {
+      return (
+        <Popup>
+          <DatePicker
+            selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
+            onChange={(newDate: any) => this.onWpChange(newDate, wpIndex)}
+            showTimeSelect={true}
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            dateFormat="MMMM d, yyyy h:mm aa"
+            timeCaption="time"
+          />
+        </Popup>
+      )
+    }
+  }
+
+  public onWpChange(newDate: Date | null, wpIndex: number) {
+    if (!newDate) {
+      return
+    }
+    const { updateWpTimestamp } = this.props
+    updateWpTimestamp({ timestamp: newDate.getTime(), wpIndex })
+  }
+
   handleMarkerClick(i: number, plan: IPlan): any {
-    const { setSidePanelTitle, setSidePanelContent, setSidePanelVisibility, setEditVehicle } = this.props
+    const {
+      selectedPlan,
+      toolSelected,
+      updateWpTimestamp,
+      setSidePanelTitle,
+      setSidePanelContent,
+      setSidePanelVisibility,
+      setEditVehicle,
+    } = this.props
+
+    if (plan.id === selectedPlan.id && toolSelected === ToolSelected.UNSCHEDULE) {
+      updateWpTimestamp({ timestamp: 0, wpIndex: i })
+    }
+
     setSidePanelTitle(`Waypoint ${i} of ${plan.id}`)
     setSidePanelContent(this.getWaypointSidePanelProperties(plan.waypoints[i]))
     setSidePanelVisibility(true)
@@ -477,6 +533,8 @@ function mapStateToProps(state: IRipplesState) {
   return {
     currentUser: state.auth.currentUser,
     plans: state.planSet,
+    selectedPlan: state.selectedPlan,
+    toolSelected: state.toolSelected,
   }
 }
 
@@ -488,6 +546,7 @@ const actionCreators = {
   setSidePanelTitle,
   setSidePanelVisibility,
   setEditVehicle,
+  updateWpTimestamp,
 }
 
 export default connect(mapStateToProps, actionCreators)(PolygonEditor)

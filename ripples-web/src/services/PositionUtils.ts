@@ -133,7 +133,7 @@ export default class PositionService {
       return {
         latitude: p.lat,
         longitude: p.lng,
-        timestamp: p.timestamp,
+        timestamp: p.timestamp ? p.timestamp : 0,
       }
     })
   }
@@ -189,7 +189,11 @@ export default class PositionService {
       const prevWp = waypoints[i - 1]
       const currentWp = waypoints[i]
       const distanceInMeters = this.distanceInMetersBetweenCoords(prevWp, currentWp)
-      currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000
+      if (prevWp.timestamp === 0) {
+        currentWp.timestamp = 0
+      } else {
+        currentWp.timestamp = prevWp.timestamp + Math.round(distanceInMeters / speed) * 1000
+      }
     }
     return true
   }

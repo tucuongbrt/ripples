@@ -197,7 +197,7 @@ export default class SoiService {
       {
         latitude: wp.latitude,
         longitude: wp.longitude,
-        timestamp: new Date(wp.arrivalDate).getTime(),
+        timestamp: wp.timestamp,
       }
     )
   }
