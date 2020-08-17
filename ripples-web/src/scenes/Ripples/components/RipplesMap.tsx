@@ -200,14 +200,6 @@ class RipplesMap extends Component<PropsType, StateType> {
   public handleMapClick(e: any) {
     const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng }
     switch (this.props.toolSelected) {
-      case ToolSelected.ADD: {
-        this.onMapAddClick(clickLocation)
-        break
-      }
-      case ToolSelected.MOVE: {
-        this.onMapMoveClick(clickLocation)
-        break
-      }
       case ToolSelected.MEASURE: {
         this.onMapMeasureClick(clickLocation)
         break
@@ -630,10 +622,10 @@ class RipplesMap extends Component<PropsType, StateType> {
               <LayerGroup>{this.buildVehicles()}</LayerGroup>
               {this.buildEditVehicleModal()}
             </Overlay>
-            {this.props.auth.authenticated && (
+            {this.props.auth.authenticated && this.map && (
               <Overlay checked={true} name="Plans">
                 <LayerGroup>
-                  <PolygonEditor />
+                  <PolygonEditor mapRef={this.map} />
                 </LayerGroup>
               </Overlay>
             )}

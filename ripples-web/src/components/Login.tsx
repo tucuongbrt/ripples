@@ -29,7 +29,7 @@ class Login extends Component<PropsType, {}> {
   }
 
   public handleLogout() {
-    this.props.setToolSelected(ToolSelected.ADD)
+    this.props.setToolSelected(ToolSelected.NONE)
     localStorage.removeItem('ACCESS_TOKEN')
     this.props.removeGeoLayers()
     this.props.removeUser()

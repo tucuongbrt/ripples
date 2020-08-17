@@ -54,27 +54,8 @@ class VehiclePlan extends Component<PropsType, StateType> {
     }
   }
 
-  public handleMarkerClick(markerIdx: number, isMovable: boolean) {
+  public handleMarkerClick(markerIdx: number) {
     if (this.props.plan.id === this.props.selectedPlan.id) {
-      if (isMovable) {
-        switch (this.props.toolSelected) {
-          case ToolSelected.MOVE: {
-            if (this.props.selectedWaypointIdx === markerIdx) {
-              this.props.setSelectedWaypoint(-1)
-              this.props.setSidePanelVisibility(false)
-              return
-            } else {
-              this.props.setSelectedWaypoint(markerIdx)
-            }
-            break
-          }
-          case ToolSelected.DELETE: {
-            this.props.deleteWp(markerIdx)
-            this.props.setSidePanelVisibility(false)
-            return
-          }
-        }
-      }
       if (this.props.toolSelected === ToolSelected.UNSCHEDULE) {
         this.props.updateWpTimestamp({ timestamp: 0, wpIndex: markerIdx })
       }
@@ -180,7 +161,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
           index={i}
           position={p}
           icon={icon}
-          onClick={() => this.handleMarkerClick(i, isMovable)}
+          onClick={() => this.handleMarkerClick(i)}
           className={className}
         >
           {this.buildPopup(isMovable, i, waypoints[i])}

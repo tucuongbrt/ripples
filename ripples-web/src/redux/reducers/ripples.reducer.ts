@@ -72,7 +72,7 @@ const startState: IRipplesState = {
   sidePanelContent: {},
   sidePanelTitle: 'Click on something to get info',
   sliderValue: 0,
-  toolSelected: ToolSelected.ADD,
+  toolSelected: ToolSelected.NONE,
   isGpsActive: false,
   vehicleSelected: '',
   measurePath: [],
@@ -169,6 +169,7 @@ const ripplesReducer = createReducer(startState, {
   [savePlan.type]: (state, _) => {
     state.previousPlanSet = []
     state.selectedPlan = EmptyPlan
+    state.toolSelected = ToolSelected.NONE
   },
   [setSlider.type]: (state, action) => {
     state.sliderValue = action.payload

@@ -194,7 +194,7 @@ class TopNav extends Component<PropsType, StateType> {
       plansDropdownText: `Editing ${plan.assignedTo} - ${plan.id}`,
     })
     this.props.handleEditPlan(plan)
-    this.props.setToolSelected(ToolSelected.ADD)
+    this.props.setToolSelected(ToolSelected.NONE)
   }
 
   public handleStartNewPlan() {
@@ -229,17 +229,17 @@ class TopNav extends Component<PropsType, StateType> {
         <div>
           {!isPlanAssigned && (
             <>
+              <DropdownItem key="editId" onClick={this.toggleEditPlanIdModal}>
+                Edit plan id
+              </DropdownItem>
+              <DropdownItem key="editDescription" onClick={this.toggleDescriptionModal}>
+                View/Edit description
+              </DropdownItem>
               <DropdownItem key="save" onClick={this.handleSavePlan}>
                 Save plan
               </DropdownItem>
               <DropdownItem key="delete" onClick={this.onDeletePlan}>
                 Delete plan
-              </DropdownItem>
-              <DropdownItem key="editDescription" onClick={this.toggleDescriptionModal}>
-                View/Edit description
-              </DropdownItem>
-              <DropdownItem key="editId" onClick={this.toggleEditPlanIdModal}>
-                Edit plan id
               </DropdownItem>
             </>
           )}
@@ -362,30 +362,6 @@ class TopNav extends Component<PropsType, StateType> {
               <Button
                 color="primary"
                 className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.ADD)}
-                active={this.props.toolSelected === ToolSelected.ADD}
-              >
-                Add
-              </Button>
-              <Button
-                color="warning"
-                className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.MOVE)}
-                active={this.props.toolSelected === ToolSelected.MOVE}
-              >
-                Move
-              </Button>
-              <Button
-                color="danger"
-                className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.DELETE)}
-                active={this.props.toolSelected === ToolSelected.DELETE}
-              >
-                Delete
-              </Button>
-              <Button
-                color="primary"
-                className="mr-1"
                 onClick={() => this.onToolbarClick(ToolSelected.SCHEDULE)}
                 active={this.props.toolSelected === ToolSelected.SCHEDULE}
               >
@@ -410,14 +386,7 @@ class TopNav extends Component<PropsType, StateType> {
             <DropdownToggle nav={true} caret={true}>
               {this.state.plansDropdownText}
             </DropdownToggle>
-            <DropdownMenu right={true}>
-              {!this.state.isEditingPlan && (
-                <DropdownItem key="new" onClick={() => this.handleStartNewPlan()}>
-                  New Plan
-                </DropdownItem>
-              )}
-              {isOperator(this.props.auth) && this.buildPlanList()}
-            </DropdownMenu>
+            <DropdownMenu right={true}>{isOperator(this.props.auth) && this.buildPlanList()}</DropdownMenu>
           </Dropdown>
           {this.buildVehicleSelector()}
         </>
@@ -547,7 +516,7 @@ class TopNav extends Component<PropsType, StateType> {
 
   private onMeasureToggle() {
     if (this.props.toolSelected === ToolSelected.MEASURE) {
-      this.props.setToolSelected(ToolSelected.ADD) // ADD is used as the default selected tool
+      this.props.setToolSelected(ToolSelected.NONE)
       this.props.setSidePanelVisibility(false)
       this.props.clearMeasure()
     } else {
@@ -561,7 +530,7 @@ class TopNav extends Component<PropsType, StateType> {
 
   private onAnnotationToggle() {
     if (this.props.toolSelected === ToolSelected.ANNOTATION) {
-      this.props.setToolSelected(ToolSelected.ADD)
+      this.props.setToolSelected(ToolSelected.NONE)
     } else {
       this.props.setToolSelected(ToolSelected.ANNOTATION)
     }
@@ -576,7 +545,7 @@ class TopNav extends Component<PropsType, StateType> {
     if (weatherParam !== null) {
       this.props.setToolSelected(ToolSelected.TOOLPICK)
     } else if (this.props.toolSelected === ToolSelected.TOOLPICK) {
-      this.props.setToolSelected(ToolSelected.ADD)
+      this.props.setToolSelected(ToolSelected.NONE)
     }
     this.props.setWeatherParam(weatherParam)
     this.props.setToolClickLocation(null)
