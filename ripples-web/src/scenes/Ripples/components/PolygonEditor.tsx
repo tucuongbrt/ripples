@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { FeatureGroup, Marker, Popup } from 'react-leaflet'
 // @ts-ignore
 import { EditControl } from 'react-leaflet-draw'
-import { WaypointIcon } from './Icons'
+import { WaypointIcon, StartWaypointIcon, FinishWaypointIcon } from './Icons'
 import L, { Layer } from 'leaflet'
 // @ts-ignore
 import 'leaflet-draw'
@@ -305,12 +305,14 @@ class PolygonEditor extends Component<PropsType, StateType> {
     return plans.map((plan) => {
       const wps = plan.waypoints
       return wps.map((wp: IPositionAtTime, i) => {
+        const icon =
+          i === 0 ? new StartWaypointIcon() : i < wps.length - 1 ? new WaypointIcon() : new FinishWaypointIcon()
         return (
           <Marker
             key={'Waypoint' + i + '_' + plan.id}
             index={i}
             position={getLatLng(wp)}
-            icon={new WaypointIcon()}
+            icon={icon}
             onClick={() => this.handleMarkerClick(i, plan)}
           >
             {this.buildMarkerPopup(wp, i)}

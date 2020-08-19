@@ -55,10 +55,25 @@ export const RedTriangleIcon = L.Icon.extend({
     iconUrl: 'https://i.imgur.com/hqIGg6n.png',
   },
 })
-export const WaypointIcon = L.Icon.extend({
+
+export const StartWaypointIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
     iconUrl: 'http://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Green-icon.png',
+  },
+})
+
+export const WaypointIcon = L.Icon.extend({
+  options: {
+    iconSize: [22, 22],
+    iconUrl: 'https://i.dlpng.com/static/png/6633660_preview.png',
+  },
+})
+
+export const FinishWaypointIcon = L.Icon.extend({
+  options: {
+    iconSize: [16, 16],
+    iconUrl: 'https://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Red-icon.png',
   },
 })
 
