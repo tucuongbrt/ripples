@@ -65,8 +65,8 @@ export const StartWaypointIcon = L.Icon.extend({
 
 export const WaypointIcon = L.Icon.extend({
   options: {
-    iconSize: [22, 22],
-    iconUrl: 'https://i.dlpng.com/static/png/6633660_preview.png',
+    iconSize: [18, 18],
+    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Blue_sphere.svg',
   },
 })
 

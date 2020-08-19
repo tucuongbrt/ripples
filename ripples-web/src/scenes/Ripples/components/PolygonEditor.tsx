@@ -134,7 +134,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       })
       // Save plan area / length properties
       const latlngs = this.posService.getLatLngFromArray(wps)
-      this.savePlanProperties(p.id, latlngs)
+      this.savePlanProperties(p.id, latlngs, p.survey)
       // Save feature on collection
       collection.features.push(plan)
     })
@@ -184,29 +184,29 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { getPosAtTime } = this.posService
 
     let waypoints: any = []
-    let isPolygon = false
+    let isSurvey = false
 
     // Layer's plan ID
     e.layer.options.id = currentPlanId
 
-    // Plan waypoints and length / area properties
+    // Plan waypoints and properties
+    let latLngs: ILatLngs[] = []
+
     switch (e.layerType) {
       case 'polyline':
-        waypoints = getPosAtTime(e.layer._latlngs)
+        // Calculate waypoints
+        latLngs = e.layer._latlngs
+        waypoints = getPosAtTime(latLngs)
         console.log('_onCreated: polyline created:')
         break
       case 'rectangle':
       case 'polygon':
-        isPolygon = true
+        isSurvey = true
         // Calculate waypoints
-        const latLngs: ILatLngs[] = e.layer._latlngs[0]
+        latLngs = e.layer._latlngs[0]
         waypoints = getPosAtTime(latLngs)
         // Closing the polygon by repeating the first waypoint
         waypoints.push(waypoints[0])
-        // Save geodesic area and length
-        this.savePlanProperties(currentPlanId, latLngs)
-        // Show plan properties
-        this.bindPopupToPlan(e.layer, currentPlanId)
         console.log('_onCreated: polygon created', e)
         break
       default:
@@ -214,10 +214,17 @@ class PolygonEditor extends Component<PropsType, StateType> {
         break
     }
 
+    // Save geodesic area and length
+    this.savePlanProperties(currentPlanId, latLngs, isSurvey)
+
+    // Show plan properties
+    this.bindPopupToPlan(e.layer, currentPlanId)
+
+    // Focus on created plan
     this.focusOnPlan(e.layer.getBounds())
 
     // Store plan
-    this.insertPlan(waypoints, isPolygon)
+    this.insertPlan(waypoints, isSurvey)
 
     this._onChange()
   }
@@ -386,17 +393,15 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const length = L.GeometryUtil.readableDistance(properties.length, true, false, false, 2)
     // @ts-ignore
     const area = L.GeometryUtil.readableArea(properties.area, ['km'], 2)
-    const msg =
-      `<strong>${planId}</strong>` +
-      `<div><strong>Length:</strong> ${length}</div>` +
-      `<div><strong>Area:</strong> ${area}</div>`
+    let msg = `<strong>${planId}</strong>` + `<div><strong>Length:</strong> ${length}</div>`
+    if (properties.area > 0) msg += `<div><strong>Area:</strong> ${area}</div>`
     layer.bindPopup(msg)
   }
 
-  savePlanProperties(planId: string, waypoints: ILatLngs[]) {
+  savePlanProperties(planId: string, waypoints: ILatLngs[], isSurvey: boolean) {
     // Plan coverage area
     // @ts-ignore
-    const area = L.GeometryUtil.geodesicArea(waypoints)
+    const area = isSurvey ? L.GeometryUtil.geodesicArea(waypoints) : 0
 
     // Path full length
     const wps = this.posService.getPositionsFromArray(waypoints)
@@ -408,7 +413,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     })
   }
 
-  insertPlan = (waypoints: ILatLngAtTime[], isPolygon: boolean) => {
+  insertPlan = (waypoints: ILatLngAtTime[], isSurvey: boolean) => {
     const { currentPlanId } = this.state
     const { currentUser, addNewPlan } = this.props
     const { getILatLngFromArray } = this.posService
@@ -423,7 +428,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       waypoints: wps,
       visible: true,
       type: 'backseat',
-      survey: isPolygon,
+      survey: isSurvey,
     }
 
     // Store to redux
