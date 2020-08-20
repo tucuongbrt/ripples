@@ -122,10 +122,10 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { prevSelectedPlan } = this.state
     if (selectedPlan === EmptyPlan) {
       const prevLayer: any = this.getLayerById(prevSelectedPlan.id)
-      prevLayer.setStyle({ color: '#000080' })
+      prevLayer.setStyle({ color: '#000080', dashArray: '0, 0' })
     } else {
       const layer: any = this.getLayerById(selectedPlan.id)
-      layer.setStyle({ color: 'red' })
+      layer.setStyle({ color: 'red', dashArray: '20, 20', dashOffset: '20' })
     }
     this.setState({ prevSelectedPlan: selectedPlan })
   }
