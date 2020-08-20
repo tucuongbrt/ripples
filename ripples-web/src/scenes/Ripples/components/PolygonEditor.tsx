@@ -23,7 +23,7 @@ import {
   updateWpLocation,
   updateWpTimestamp,
 } from '../../../redux/ripples.actions'
-import IPlan from '../../../model/IPlan'
+import IPlan, { EmptyPlan } from '../../../model/IPlan'
 import PositionService from '../../../services/PositionUtils'
 import IRipplesState from '../../../model/IRipplesState'
 import { IUser } from '../../../model/IAuthState'
@@ -58,6 +58,7 @@ interface PropsType {
 interface StateType {
   collection: any
   currentPlanId: string
+  prevSelectedPlan: IPlan
   onEditMode: boolean
   loadedPlans: boolean
 }
@@ -84,6 +85,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       currentPlanId: '',
       onEditMode: false,
       loadedPlans: false,
+      prevSelectedPlan: EmptyPlan,
     }
   }
 
@@ -105,11 +107,27 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType) {
-    const { plans } = this.props
+    const { plans, selectedPlan } = this.props
     const { loadedPlans } = this.state
     if (prevProps.plans !== plans && !loadedPlans) {
       this.updateReceivedPlans(plans)
     }
+    if (prevProps.selectedPlan !== selectedPlan) {
+      this.changeLayerColor()
+    }
+  }
+
+  changeLayerColor() {
+    const { selectedPlan } = this.props
+    const { prevSelectedPlan } = this.state
+    if (selectedPlan === EmptyPlan) {
+      const prevLayer: any = this.getLayerById(prevSelectedPlan.id)
+      prevLayer.setStyle({ color: '#000080' })
+    } else {
+      const layer: any = this.getLayerById(selectedPlan.id)
+      layer.setStyle({ color: 'red' })
+    }
+    this.setState({ prevSelectedPlan: selectedPlan })
   }
 
   updateReceivedPlans = (plans: IPlan[]) => {
@@ -318,7 +336,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   buildWaypoints = () => {
-    const { plans } = this.props
+    const { plans, selectedPlan } = this.props
     const { getLatLng } = this.posService
 
     return plans.map((plan: IPlan) => {
@@ -334,7 +352,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
             icon={icon}
             onClick={() => this.handleMarkerClick(i, plan)}
           >
-            {this.buildMarkerPopup(wp)}
+            {selectedPlan.id === plan.id && this.buildMarkerPopup(wp)}
           </Marker>
         )
       })
