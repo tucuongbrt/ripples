@@ -7,7 +7,7 @@ import L, { Layer } from 'leaflet'
 // @ts-ignore
 import 'leaflet-draw'
 import DateService from '../../../services/DateUtils'
-import IPositionAtTime, { ILatLngAtTime, ILatLngs } from '../../../model/IPositionAtTime'
+import IPositionAtTime, { ILatLngAtTime, ILatLngs, IVehicleAtTime } from '../../../model/IPositionAtTime'
 import { connect } from 'react-redux'
 import IAsset from '../../../model/IAsset'
 import {
@@ -321,9 +321,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { plans } = this.props
     const { getLatLng } = this.posService
 
-    return plans.map((plan) => {
-      const wps = plan.waypoints
-      return wps.map((wp: IPositionAtTime, i) => {
+    return plans.map((plan: IPlan) => {
+      const wps: IVehicleAtTime[] = plan.waypoints
+      return wps.map((wp, i) => {
         const icon =
           i === 0 ? new StartWaypointIcon() : i < wps.length - 1 ? new WaypointIcon() : new FinishWaypointIcon()
         return (
@@ -341,7 +341,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     })
   }
 
-  buildMarkerPopup(wp: IPositionAtTime) {
+  buildMarkerPopup(wp: IVehicleAtTime) {
     const { isEditingPlan, selectedWaypointIdx, updateWpTimestamp } = this.props
     if (isEditingPlan) {
       return (
@@ -350,8 +350,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
             <Label for="latitude">Latitude</Label>
             <Input
               type="number"
-              name="lat"
-              id="lat"
+              name="latitude"
+              id="latitude"
               value={wp.latitude}
               min={-90}
               max={90}
@@ -363,12 +363,24 @@ class PolygonEditor extends Component<PropsType, StateType> {
             <Label for="longitude">Longitude</Label>
             <Input
               type="number"
-              name="lng"
-              id="lng"
+              name="longitude"
+              id="longitude"
               min={-180}
               max={180}
               value={wp.longitude}
               onChange={(e) => this.updateWaypoint(wp, 'longitude', e.target.value)}
+              className="form-control form-control-sm"
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="depth">Depth (m)</Label>
+            <Input
+              type="number"
+              name="depth"
+              id="depth"
+              min={0}
+              value={wp.depth}
+              onChange={(e) => this.updateWaypoint(wp, 'depth', e.target.value)}
               className="form-control form-control-sm"
             />
           </FormGroup>
@@ -396,7 +408,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  updateWaypoint(wp: IPositionAtTime, property: string, value: any) {
+  updateWaypoint(wp: IVehicleAtTime, property: string, value: any) {
     const { updateWp } = this.props
 
     const newWp = Object.assign({}, wp)
@@ -408,6 +420,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
         newWp.longitude = value
         break
       case 'depth':
+        newWp.depth = parseFloat(value)
         break
       case 'timestamp':
         if (value instanceof Date) {
@@ -467,12 +480,13 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  getWaypointSidePanelProperties(wp: IPositionAtTime) {
+  getWaypointSidePanelProperties(wp: IVehicleAtTime) {
     return {
       eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp) : 'N/D',
       'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp) : 'N/D',
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
+      'depth (m)': wp.depth.toFixed(5),
     }
   }
 
@@ -509,7 +523,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { getILatLngFromArray } = this.posService
 
     const date = DateService.timestampMsToReadableDate(Date.now())
-    const wps = getILatLngFromArray(waypoints)
+    const wps: IVehicleAtTime[] = getILatLngFromArray(waypoints)
 
     const plan: IPlan = {
       assignedTo: '',

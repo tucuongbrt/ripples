@@ -1,8 +1,8 @@
-import IPositionAtTime from './IPositionAtTime'
+import { IVehicleAtTime } from './IPositionAtTime'
 
 export default interface IPlan {
   id: string
-  waypoints: IPositionAtTime[]
+  waypoints: IVehicleAtTime[]
   assignedTo: string // asset name
   description: string
   visible: boolean
