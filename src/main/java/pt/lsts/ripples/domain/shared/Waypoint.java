@@ -20,16 +20,18 @@ public class Waypoint implements Serializable {
     private double longitude;
     private long timestamp;
     private int duration;
+    private int depth;
 
     public Waypoint() {
 
     }
 
-    public Waypoint(double lat, double lon, long timestamp, int duration) {
+    public Waypoint(double lat, double lon, long timestamp, int duration, int depth) {
         this.latitude = lat;
         this.longitude = lon;
         this.timestamp = timestamp;
         this.duration = duration;
+        this.depth = depth;
     }
 
     public double getLatitude() {
@@ -62,6 +64,14 @@ public class Waypoint implements Serializable {
 
     public void setDuration(int duration) {
         this.duration = duration;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 
     public Date getArrivalDate() {

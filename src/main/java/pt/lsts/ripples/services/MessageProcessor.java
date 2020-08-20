@@ -63,22 +63,22 @@ public class MessageProcessor {
 
     public void process(IridiumMessage msg) {
         switch (msg.message_type) {
-        case IridiumMessage.TYPE_DEVICE_UPDATE:
-            onDeviceUpdate((DeviceUpdate) msg);
-            break;
-        case IridiumMessage.TYPE_EXTENDED_DEVICE_UPDATE:
-            onExtendedDeviceUpdate((ExtendedDeviceUpdate) msg);
-            break;
-        case IridiumMessage.TYPE_IMC_IRIDIUM_MESSAGE:
-            onImcIridiumMessage((ImcIridiumMessage) msg);
-            break;
-        case IridiumMessage.TYPE_PLAIN_TEXT:
-            onPlainTextReport((PlainTextReport) msg);
-            break;
-        case IridiumMessage.TYPE_IRIDIUM_COMMAND:
-            onIridiumCommand((IridiumCommand) msg);
-        default:
-            break;
+            case IridiumMessage.TYPE_DEVICE_UPDATE:
+                onDeviceUpdate((DeviceUpdate) msg);
+                break;
+            case IridiumMessage.TYPE_EXTENDED_DEVICE_UPDATE:
+                onExtendedDeviceUpdate((ExtendedDeviceUpdate) msg);
+                break;
+            case IridiumMessage.TYPE_IMC_IRIDIUM_MESSAGE:
+                onImcIridiumMessage((ImcIridiumMessage) msg);
+                break;
+            case IridiumMessage.TYPE_PLAIN_TEXT:
+                onPlainTextReport((PlainTextReport) msg);
+                break;
+            case IridiumMessage.TYPE_IRIDIUM_COMMAND:
+                onIridiumCommand((IridiumCommand) msg);
+            default:
+                break;
         }
     }
 
@@ -86,22 +86,22 @@ public class MessageProcessor {
         logger.info("Received IMC msg of type " + msg.getClass().getSimpleName() + " from " + msg.getSourceName());
 
         switch (msg.getMgid()) {
-        case SoiCommand.ID_STATIC:
-            incoming((SoiCommand) msg);
-            break;
-        case StateReport.ID_STATIC:
-            incoming((StateReport) msg);
-            break;
-        case VerticalProfile.ID_STATIC:
-            incoming((VerticalProfile) msg);
-            break;
-        case Announce.ID_STATIC:
-            incoming((Announce) msg);
-            break;
-        default:
-            logger.warn(
-                    "Message of type " + msg.getAbbrev() + " from " + msg.getSourceName() + " is not being processed.");
-            break;
+            case SoiCommand.ID_STATIC:
+                incoming((SoiCommand) msg);
+                break;
+            case StateReport.ID_STATIC:
+                incoming((StateReport) msg);
+                break;
+            case VerticalProfile.ID_STATIC:
+                incoming((VerticalProfile) msg);
+                break;
+            case Announce.ID_STATIC:
+                incoming((Announce) msg);
+                break;
+            default:
+                logger.warn("Message of type " + msg.getAbbrev() + " from " + msg.getSourceName()
+                        + " is not being processed.");
+                break;
         }
     }
 
@@ -173,9 +173,9 @@ public class MessageProcessor {
                 assets.save(asset);
                 wsController.sendAssetUpdateFromServerToClients(asset);
             }
-            
+
         }
-        
+
     }
 
     private Asset getOrCreateAsset(int imcId, String name) {
@@ -211,48 +211,49 @@ public class MessageProcessor {
         Asset vehicle = null;
 
         switch (cmd.getCommand()) {
-        case STOP:
-            if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
-                vehicle = assets.findByImcid(cmd.getSrc());
-                vehicle.setPlan(new Plan());
-                assets.save(vehicle);
-                logger.info("Vehicle stopped: " + vehicle);
-            }
-            break;
-        case EXEC:
-        case GET_PLAN:
-            if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
-                vehicle = assets.findByImcid(cmd.getSrc());
-                if (vehicle != null) {
-                    SoiPlan plan = cmd.getPlan();
-
-                    if (plan == null || plan.getWaypoints().isEmpty()) {
-                        vehicle.setPlan(new Plan());
-                    } else {
-                        Plan p = new Plan();
-                        p.setId("soi_" + plan.getPlanId());
-                        ArrayList<Waypoint> wpts = new ArrayList<>();
-                        plan.getWaypoints().forEach(wpt -> wpts
-                                .add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration())));
-                        p.setWaypoints(wpts);
-                        logger.info("Received plan for " + vehicle + ": " + plan);
-                        vehicle.setPlan(p);
-                        assets.save(vehicle);
-                    }
-                } else {
-                    logger.warn("Trying to set a plan on a non-existent asset - imcId: " + cmd.getSrc());
+            case STOP:
+                if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+                    vehicle = assets.findByImcid(cmd.getSrc());
+                    vehicle.setPlan(new Plan());
+                    assets.save(vehicle);
+                    logger.info("Vehicle stopped: " + vehicle);
                 }
-            }
-            break;
-        case SET_PARAMS:
-            onNewAssetParams(cmd);
-            break;
-        case GET_PARAMS:
-            onNewAssetParams(cmd);
-            break;
-        default:
-            logger.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
-            break;
+                break;
+            case EXEC:
+            case GET_PLAN:
+                if (cmd.getType() == SoiCommand.TYPE.SUCCESS) {
+                    vehicle = assets.findByImcid(cmd.getSrc());
+                    if (vehicle != null) {
+                        SoiPlan plan = cmd.getPlan();
+
+                        if (plan == null || plan.getWaypoints().isEmpty()) {
+                            vehicle.setPlan(new Plan());
+                        } else {
+                            Plan p = new Plan();
+                            p.setId("soi_" + plan.getPlanId());
+                            ArrayList<Waypoint> wpts = new ArrayList<>();
+                            // TODO: Include depth in SoiWaypoint ?
+                            plan.getWaypoints().forEach(wpt -> wpts
+                                    .add(new Waypoint(wpt.getLat(), wpt.getLon(), wpt.getEta(), wpt.getDuration(), 0)));
+                            p.setWaypoints(wpts);
+                            logger.info("Received plan for " + vehicle + ": " + plan);
+                            vehicle.setPlan(p);
+                            assets.save(vehicle);
+                        }
+                    } else {
+                        logger.warn("Trying to set a plan on a non-existent asset - imcId: " + cmd.getSrc());
+                    }
+                }
+                break;
+            case SET_PARAMS:
+                onNewAssetParams(cmd);
+                break;
+            case GET_PARAMS:
+                onNewAssetParams(cmd);
+                break;
+            default:
+                logger.info(cmd.getTypeStr() + " / " + cmd.getCommandStr() + " on " + cmd.getSourceName());
+                break;
         }
     }
 
