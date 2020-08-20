@@ -56,9 +56,7 @@ class VehiclePlan extends Component<PropsType, StateType> {
 
   public handleMarkerClick(markerIdx: number) {
     if (this.props.plan.id === this.props.selectedPlan.id) {
-      if (this.props.toolSelected === ToolSelected.UNSCHEDULE) {
-        this.props.updateWpTimestamp({ timestamp: 0, wpIndex: markerIdx })
-      }
+      this.props.updateWpTimestamp({ timestamp: 0, wpIndex: markerIdx })
     }
     this.props.setSidePanelTitle(`Waypoint ${markerIdx} of ${this.props.plan.id}`)
     this.props.setSidePanelContent(this.getWaypointSidePanelProperties(this.props.plan.waypoints[markerIdx]))
@@ -120,21 +118,19 @@ class VehiclePlan extends Component<PropsType, StateType> {
   }
 
   public buildPopup(isMovable: boolean, wpIndex: number, wp: IPositionAtTime) {
-    if (this.props.toolSelected === ToolSelected.SCHEDULE && isMovable) {
-      return (
-        <Popup>
-          <DatePicker
-            selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
-            onChange={(newDate) => this.onWpChange(newDate, wpIndex)}
-            showTimeSelect={true}
-            timeFormat="HH:mm"
-            timeIntervals={15}
-            dateFormat="MMMM d, yyyy h:mm aa"
-            timeCaption="time"
-          />
-        </Popup>
-      )
-    }
+    return (
+      <Popup>
+        <DatePicker
+          selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
+          onChange={(newDate) => this.onWpChange(newDate, wpIndex)}
+          showTimeSelect={true}
+          timeFormat="HH:mm"
+          timeIntervals={15}
+          dateFormat="MMMM d, yyyy h:mm aa"
+          timeCaption="time"
+        />
+      </Popup>
+    )
   }
 
   public buildPlanWaypoints() {

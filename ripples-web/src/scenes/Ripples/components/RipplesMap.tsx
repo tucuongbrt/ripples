@@ -212,6 +212,9 @@ class RipplesMap extends Component<PropsType, StateType> {
         this.onMapToolpickClick(clickLocation)
         break
       }
+      default:
+        this.props.setSidePanelVisibility(false)
+        break
     }
   }
 

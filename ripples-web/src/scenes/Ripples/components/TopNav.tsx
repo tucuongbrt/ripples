@@ -32,6 +32,7 @@ import {
   clearMeasure,
   selectVehicle,
   setEditVehicle,
+  setEditingPlan,
   setPlanDescription,
   setSidePanelContent,
   setSidePanelTitle,
@@ -58,6 +59,7 @@ interface PropsType {
   selectedPlan: IPlan
   vehicleSelected: string
   weatherParam: WeatherParam | null
+  isEditingPlan: boolean
   handleEditPlan: (_: IPlan) => void
   handleSendPlanToVehicle: () => void
   handleCancelEditPlan: () => void
@@ -72,6 +74,7 @@ interface PropsType {
   updatePlanId: (_: string) => void
   unschedulePlan: () => void
   clearMeasure: () => void
+  setEditingPlan: (_: boolean) => void
   setSidePanelVisibility: (_: boolean) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
@@ -85,7 +88,6 @@ interface StateType {
   isNavOpen: boolean
   isPlansDropdownOpen: boolean
   isExecPlanDisabled: boolean
-  isEditingPlan: boolean
   isDescriptionModalOpen: boolean
   isEditPlanIdModalOpen: boolean
   plansDropdownText: string
@@ -105,7 +107,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.state = {
       isDescriptionModalOpen: false,
       isEditPlanIdModalOpen: false,
-      isEditingPlan: false,
       isExecPlanDisabled: true,
       isNavOpen: true,
       isPlansDropdownOpen: false,
@@ -168,9 +169,9 @@ class TopNav extends Component<PropsType, StateType> {
 
   public resetPlansDropdown() {
     this.setState({
-      isEditingPlan: false,
       plansDropdownText: this.plansDropdownDefaultText,
     })
+    this.props.setEditingPlan(false)
   }
 
   public handleSendToVehicle() {
@@ -190,20 +191,20 @@ class TopNav extends Component<PropsType, StateType> {
 
   public handleEditPlan(plan: IPlan) {
     this.setState({
-      isEditingPlan: true,
       plansDropdownText: `Editing ${plan.assignedTo} - ${plan.id}`,
     })
     this.props.handleEditPlan(plan)
     this.props.setToolSelected(ToolSelected.NONE)
+    this.props.setEditingPlan(true)
   }
 
   public handleStartNewPlan() {
     const planId = `${this.props.auth.currentUser.name}-${DateService.idfromDate(new Date())}`
     this.setState({
-      isEditingPlan: true,
       plansDropdownText: `Editing ${planId}`,
     })
     this.props.handleStartNewPlan(planId)
+    this.props.setEditingPlan(true)
   }
 
   public handleUpdatePlanId() {
@@ -222,8 +223,8 @@ class TopNav extends Component<PropsType, StateType> {
   }
 
   public buildPlanList() {
-    const editingPlan = this.state.isEditingPlan
-    if (editingPlan) {
+    const { isEditingPlan } = this.props
+    if (isEditingPlan) {
       const isPlanAssigned = this.props.selectedPlan.assignedTo.length > 0
       return (
         <div>
@@ -357,26 +358,6 @@ class TopNav extends Component<PropsType, StateType> {
     if (isScientist(this.props.auth)) {
       return (
         <>
-          {this.state.isEditingPlan && (
-            <NavItem className="mr-2">
-              <Button
-                color="primary"
-                className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.SCHEDULE)}
-                active={this.props.toolSelected === ToolSelected.SCHEDULE}
-              >
-                Schedule
-              </Button>
-              <Button
-                color="warning"
-                className="mr-1"
-                onClick={() => this.onToolbarClick(ToolSelected.UNSCHEDULE)}
-                active={this.props.toolSelected === ToolSelected.UNSCHEDULE}
-              >
-                Unschedule
-              </Button>
-            </NavItem>
-          )}
           <Dropdown
             className="mr-4"
             nav={true}
@@ -562,6 +543,7 @@ function mapStateToProps(state: IRipplesState) {
     vehicles: state.assets.vehicles,
     isGpsActive: state.isGpsActive,
     weatherParam: state.weatherParam,
+    isEditingPlan: state.isEditingPlan,
   }
 }
 
@@ -576,10 +558,11 @@ const actionCreators = {
   clearMeasure,
   setSidePanelTitle,
   setSidePanelContent,
-  toggleGps,
+  setEditingPlan,
   setEditVehicle,
   setWeatherParam,
   setToolClickLocation,
+  toggleGps,
 }
 
 export default connect(mapStateToProps, actionCreators)(TopNav)

@@ -14,10 +14,13 @@ import {
   addNewPlan,
   removePlan,
   setEditVehicle,
+  setSelectedWaypointIdx,
   setSidePanelTitle,
   setSidePanelContent,
   setSidePanelVisibility,
   updatePlan,
+  updateWp,
+  updateWpLocation,
   updateWpTimestamp,
 } from '../../../redux/ripples.actions'
 import IPlan from '../../../model/IPlan'
@@ -27,6 +30,8 @@ import { IUser } from '../../../model/IAuthState'
 import SoiService from '../../../services/SoiUtils'
 import { ToolSelected } from '../../../model/ToolSelected'
 import DatePicker from 'react-datepicker'
+import { FormGroup, Label, Input } from 'reactstrap'
+import ILatLng from '../../../model/ILatLng'
 const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
@@ -35,13 +40,18 @@ interface PropsType {
   plans: IPlan[]
   selectedPlan: IPlan
   toolSelected: ToolSelected
+  isEditingPlan: boolean
+  selectedWaypointIdx: number
   addNewPlan: (plan: IPlan) => void
   removePlan: (planId: string) => void
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (v: IAsset | undefined) => void
+  setSelectedWaypointIdx: (_: number) => void
   updatePlan: (plan: IPlan) => void
+  updateWp: (wp: IPositionAtTime) => void
+  updateWpLocation: (_: ILatLng) => void
   updateWpTimestamp: (_: any) => void
 }
 
@@ -142,6 +152,12 @@ class PolygonEditor extends Component<PropsType, StateType> {
     this.setState({ collection })
   }
 
+  getLayerById(id: string) {
+    // @ts-ignore
+    const { _layers } = this._editableFG.leafletElement
+    return Object.values(_layers).find((layer: any) => layer.options.id === id)
+  }
+
   seedPlanId() {
     const { currentUser } = this.props
     const currentDate = DateService.idfromDate(new Date())
@@ -188,6 +204,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
 
     // Layer's plan ID
     e.layer.options.id = currentPlanId
+    console.log(e.layer)
 
     // Plan waypoints and properties
     let latLngs: ILatLngs[] = []
@@ -227,11 +244,6 @@ class PolygonEditor extends Component<PropsType, StateType> {
     this.insertPlan(waypoints, isSurvey)
 
     this._onChange()
-  }
-
-  focusOnPlan(layerBounds: any) {
-    const { mapRef } = this.props
-    mapRef.leafletElement.fitBounds(layerBounds)
   }
 
   _onDeleted = (e: any) => {
@@ -322,59 +334,137 @@ class PolygonEditor extends Component<PropsType, StateType> {
             icon={icon}
             onClick={() => this.handleMarkerClick(i, plan)}
           >
-            {this.buildMarkerPopup(wp, i)}
+            {this.buildMarkerPopup(wp)}
           </Marker>
         )
       })
     })
   }
 
-  buildMarkerPopup(wp: IPositionAtTime, wpIndex: number) {
-    const { toolSelected } = this.props
-    if (toolSelected === ToolSelected.SCHEDULE) {
+  buildMarkerPopup(wp: IPositionAtTime) {
+    const { isEditingPlan, selectedWaypointIdx, updateWpTimestamp } = this.props
+    if (isEditingPlan) {
       return (
-        <Popup>
-          <DatePicker
-            selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
-            onChange={(newDate: any) => this.onWpChange(newDate, wpIndex)}
-            showTimeSelect={true}
-            timeFormat="HH:mm"
-            timeIntervals={15}
-            dateFormat="MMMM d, yyyy h:mm aa"
-            timeCaption="time"
-          />
+        <Popup className="waypoint-popup">
+          <FormGroup>
+            <Label for="latitude">Latitude</Label>
+            <Input
+              type="number"
+              name="lat"
+              id="lat"
+              value={wp.latitude}
+              min={-90}
+              max={90}
+              onChange={(e) => this.updateWaypoint(wp, 'latitude', e.target.value)}
+              className="form-control form-control-sm"
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="longitude">Longitude</Label>
+            <Input
+              type="number"
+              name="lng"
+              id="lng"
+              min={-180}
+              max={180}
+              value={wp.longitude}
+              onChange={(e) => this.updateWaypoint(wp, 'longitude', e.target.value)}
+              className="form-control form-control-sm"
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label for="timestamp">Timestamp</Label>
+            <div className="date-picker-control">
+              <DatePicker
+                selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
+                onChange={(newDate: any) => this.updateWaypoint(wp, 'timestamp', newDate)}
+                showTimeSelect={true}
+                timeFormat="HH:mm"
+                timeIntervals={15}
+                dateFormat="dd/MM/yy, h:mm aa"
+                timeCaption="time"
+                className="form-control form-control-sm"
+              />
+              <i
+                className="far fa-times-circle fa-lg"
+                onClick={() => updateWpTimestamp({ timestamp: 0, wpIndex: selectedWaypointIdx })}
+              />
+            </div>
+          </FormGroup>
         </Popup>
       )
     }
   }
 
-  public onWpChange(newDate: Date | null, wpIndex: number) {
-    if (!newDate) {
-      return
+  updateWaypoint(wp: IPositionAtTime, property: string, value: any) {
+    const { updateWp } = this.props
+
+    const newWp = Object.assign({}, wp)
+    switch (property) {
+      case 'latitude':
+        newWp.latitude = value
+        break
+      case 'longitude':
+        newWp.longitude = value
+        break
+      case 'depth':
+        break
+      case 'timestamp':
+        if (value instanceof Date) {
+          newWp.timestamp = value.getTime()
+        }
+        break
+      default:
+        break
     }
-    const { updateWpTimestamp } = this.props
-    updateWpTimestamp({ timestamp: newDate.getTime(), wpIndex })
+
+    updateWp(newWp)
+
+    // Update layer drawing positions
+    this.updateLayerPositions(newWp)
+  }
+
+  updateLayerPositions(wp: IPositionAtTime) {
+    const { selectedPlan, selectedWaypointIdx } = this.props
+    // @ts-ignore
+    const layer: any = this.getLayerById(selectedPlan.id)
+    if (!layer) return
+    const coords = selectedPlan.survey ? layer._latlngs[0] : layer._latlngs
+    coords[selectedWaypointIdx] = {
+      lat: wp.latitude,
+      lng: wp.longitude,
+    }
+    if (selectedPlan.survey) {
+      // If start / finish waypoint changed, update each other
+      if (selectedWaypointIdx === 0) {
+        coords[coords.length - 1] = coords[0]
+        layer.feature.geometry.coordinates[0][coords.length - 1] = coords[0]
+      } else if (selectedWaypointIdx === coords.length - 1) {
+        coords[0] = coords[coords.length - 1]
+      }
+    }
+    console.log(layer)
   }
 
   handleMarkerClick(i: number, plan: IPlan): any {
     const {
-      selectedPlan,
-      toolSelected,
-      updateWpTimestamp,
+      isEditingPlan,
+      setSelectedWaypointIdx,
       setSidePanelTitle,
       setSidePanelContent,
       setSidePanelVisibility,
       setEditVehicle,
     } = this.props
 
-    if (plan.id === selectedPlan.id && toolSelected === ToolSelected.UNSCHEDULE) {
-      updateWpTimestamp({ timestamp: 0, wpIndex: i })
-    }
+    // Select waypoint
+    setSelectedWaypointIdx(i)
 
-    setSidePanelTitle(`Waypoint ${i} of ${plan.id}`)
-    setSidePanelContent(this.getWaypointSidePanelProperties(plan.waypoints[i]))
-    setSidePanelVisibility(true)
-    setEditVehicle(undefined)
+    if (!isEditingPlan) {
+      setSidePanelTitle(`Waypoint ${i} of ${plan.id}`)
+      setSidePanelContent(this.getWaypointSidePanelProperties(plan.waypoints[i]))
+      setSidePanelVisibility(true)
+      setEditVehicle(undefined)
+    }
   }
 
   getWaypointSidePanelProperties(wp: IPositionAtTime) {
@@ -393,7 +483,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const length = L.GeometryUtil.readableDistance(properties.length, true, false, false, 2)
     // @ts-ignore
     const area = L.GeometryUtil.readableArea(properties.area, ['km'], 2)
-    let msg = `<strong>${planId}</strong>` + `<div><strong>Length:</strong> ${length}</div>`
+    let msg = `<strong>${planId}</strong><div><strong>Length:</strong> ${length}</div>`
     if (properties.area > 0) msg += `<div><strong>Area:</strong> ${area}</div>`
     layer.bindPopup(msg)
   }
@@ -499,6 +589,11 @@ class PolygonEditor extends Component<PropsType, StateType> {
       : NotificationManager.success(`Plan of id ${plans[0].id} has been edited`)
   }
 
+  focusOnPlan(layerBounds: any) {
+    const { mapRef } = this.props
+    mapRef.leafletElement.fitBounds(layerBounds)
+  }
+
   render() {
     const { onEditMode } = this.state
     return (
@@ -542,6 +637,8 @@ function mapStateToProps(state: IRipplesState) {
     plans: state.planSet,
     selectedPlan: state.selectedPlan,
     toolSelected: state.toolSelected,
+    isEditingPlan: state.isEditingPlan,
+    selectedWaypointIdx: state.selectedWaypointIdx,
   }
 }
 
@@ -549,10 +646,13 @@ const actionCreators = {
   addNewPlan,
   updatePlan,
   removePlan,
+  setSelectedWaypointIdx,
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
   setEditVehicle,
+  updateWp,
+  updateWpLocation,
   updateWpTimestamp,
 }
 

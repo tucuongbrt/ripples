@@ -43,6 +43,7 @@ export default interface IRipplesState {
   weatherParam: WeatherParam | null
   toolClickLocation: ILatLng | null
   geoLayers: IGeoLayer[] | null
+  isEditingPlan: boolean
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

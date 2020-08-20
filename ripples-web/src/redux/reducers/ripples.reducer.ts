@@ -42,6 +42,7 @@ import {
   setUser,
   setVehicles,
   setWeatherParam,
+  setEditingPlan,
   toggleGps,
   togglePlanVisibility,
   toggleSliderChange,
@@ -54,6 +55,7 @@ import {
   updateSpot,
   updateUserLocation,
   updateVehicle,
+  updateWp,
   updateWpLocation,
   updateWpTimestamp,
 } from '../ripples.actions'
@@ -84,6 +86,7 @@ const startState: IRipplesState = {
   weatherParam: null,
   toolClickLocation: null,
   geoLayers: null,
+  isEditingPlan: false,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -117,6 +120,13 @@ const ripplesReducer = createReducer(startState, {
   [editPlan.type]: (state, action) => {
     state.selectedPlan = action.payload
     state.previousPlanSet = JSON.parse(JSON.stringify(state.planSet))
+  },
+  [updateWp.type]: (state, action) => {
+    const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
+    if (plan) {
+      plan.waypoints[state.selectedWaypointIdx] = action.payload
+      positionService.updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx + 1)
+    }
   },
   [updateWpLocation.type]: (state, action) => {
     const newLocation = action.payload
@@ -157,6 +167,7 @@ const ripplesReducer = createReducer(startState, {
     state.planSet = JSON.parse(JSON.stringify(state.previousPlanSet))
     state.previousPlanSet = []
     state.selectedPlan = EmptyPlan
+    state.isEditingPlan = false
   },
   [updatePlanId.type]: (state, action) => {
     const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
@@ -347,6 +358,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [removeGeoLayers.type]: (state, _) => {
     state.geoLayers = []
+  },
+  [setEditingPlan.type]: (state, action) => {
+    state.isEditingPlan = action.payload
   },
 })
 

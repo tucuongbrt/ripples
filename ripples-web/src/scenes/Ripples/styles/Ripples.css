@@ -106,8 +106,23 @@ path.leaflet-polygon {
   padding-bottom: 1em;
 }
 
-.react-datepicker {
+.react-datepicker,
+.react-datepicker-wrapper {
   display: flex !important;
+}
+
+.date-picker-control {
+  display: flex;
+  align-items: center;
+}
+
+.waypoint-popup .leaflet-popup-content {
+  width: 15em !important;
+  margin-bottom: 0em;
+}
+
+.date-picker-control > i {
+  margin-left: 0.5em;
 }
 
 .side-panel {
