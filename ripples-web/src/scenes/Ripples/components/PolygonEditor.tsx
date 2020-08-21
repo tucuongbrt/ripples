@@ -222,7 +222,6 @@ class PolygonEditor extends Component<PropsType, StateType> {
 
     // Layer's plan ID
     e.layer.options.id = currentPlanId
-    console.log(e.layer)
 
     // Plan waypoints and properties
     let latLngs: ILatLngs[] = []
@@ -237,6 +236,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
       case 'rectangle':
       case 'polygon':
         isSurvey = true
+        // Set polygon layer to fill
+        e.layer.setStyle({ fill: true })
         // Calculate waypoints
         latLngs = e.layer._latlngs[0]
         waypoints = getPosAtTime(latLngs)

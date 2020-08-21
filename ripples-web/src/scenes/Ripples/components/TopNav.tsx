@@ -24,7 +24,7 @@ import TopNavLinks from '../../../components/TopNavLinks'
 import IAsset from '../../../model/IAsset'
 import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
 import ILatLng from '../../../model/ILatLng'
-import IPlan, { getPlanKey } from '../../../model/IPlan'
+import IPlan, { getPlanKey, EmptyPlan } from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
 import { ToolSelected } from '../../../model/ToolSelected'
 import { WeatherParam } from '../../../model/WeatherParam'
@@ -138,6 +138,16 @@ class TopNav extends Component<PropsType, StateType> {
     this.onGpsClick = this.onGpsClick.bind(this)
     this.onToolpickToogle = this.onToolpickToogle.bind(this)
     this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
+  }
+
+  componentDidUpdate(prevProps: PropsType) {
+    const { selectedPlan, setEditingPlan } = this.props
+    if (prevProps.selectedPlan !== selectedPlan && selectedPlan !== EmptyPlan) {
+      this.setState({
+        plansDropdownText: `Editing ${selectedPlan.assignedTo} - ${selectedPlan.id}`,
+      })
+      setEditingPlan(true)
+    }
   }
 
   public onNavToggle() {
