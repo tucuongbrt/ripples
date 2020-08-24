@@ -68,6 +68,7 @@ const startState: IRipplesState = {
   isSidePanelVisible: false,
   planSet: [],
   previousPlanSet: [],
+  toggledPlan: null,
   profiles: [],
   selectedPlan: EmptyPlan,
   selectedWaypointIdx: -1,
@@ -229,6 +230,7 @@ const ripplesReducer = createReducer(startState, {
     const plan = state.planSet.find((p) => isPlanEqual(p, payloadPlan))
     if (plan) {
       plan.visible = !plan.visible
+      state.toggledPlan = plan
     }
   },
   [updateVehicle.type]: (state, action) => {

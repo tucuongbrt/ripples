@@ -42,6 +42,7 @@ interface PropsType {
   toolSelected: ToolSelected
   isEditingPlan: boolean
   selectedWaypointIdx: number
+  toggledPlan: IPlan
   addNewPlan: (plan: IPlan) => void
   removePlan: (planId: string) => void
   setSidePanelTitle: (title: string) => void
@@ -61,6 +62,7 @@ interface StateType {
   prevSelectedPlan: IPlan
   onEditMode: boolean
   loadedPlans: boolean
+  invisibleLayers: any[]
 }
 
 interface PlanProperties {
@@ -86,6 +88,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
       onEditMode: false,
       loadedPlans: false,
       prevSelectedPlan: EmptyPlan,
+      invisibleLayers: [],
     }
   }
 
@@ -107,18 +110,43 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType) {
-    const { plans, selectedPlan } = this.props
+    const { plans, selectedPlan, toggledPlan } = this.props
     const { loadedPlans } = this.state
+    // Initial laoding of plan layers
     if (prevProps.plans !== plans && !loadedPlans) {
       this.updateReceivedPlans(plans)
     }
+    // Change of the selected plan
     if (prevProps.selectedPlan !== selectedPlan) {
-      this.changeLayerColor()
+      this.changeLayerColor(selectedPlan)
+    }
+    // Change of plan visibility
+    if (prevProps.toggledPlan !== toggledPlan) {
+      this.updateLayerVisibility(toggledPlan)
     }
   }
 
-  changeLayerColor() {
-    const { selectedPlan } = this.props
+  updateLayerVisibility(toggledPlan: IPlan) {
+    const { invisibleLayers } = this.state
+
+    if (!toggledPlan.visible) {
+      const layer = this.getLayerById(toggledPlan.id)
+      // Store invisible layer
+      invisibleLayers.push(layer)
+      // @ts-ignore, remove the layer from the map
+      this._editableFG.leafletElement.removeLayer(layer)
+    } else {
+      const layerIdx = invisibleLayers.findIndex((layer) => layer.options.id === toggledPlan.id)
+      // @ts-ignore, add layer to the map
+      this._editableFG.leafletElement.addLayer(invisibleLayers[layerIdx])
+      // Remove invisible layer
+      invisibleLayers.splice(layerIdx, 1)
+    }
+
+    this.setState({ invisibleLayers })
+  }
+
+  changeLayerColor(selectedPlan: IPlan) {
     const { prevSelectedPlan } = this.state
     if (selectedPlan === EmptyPlan) {
       const prevLayer: any = this.getLayerById(prevSelectedPlan.id)
@@ -340,7 +368,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { plans, selectedPlan } = this.props
     const { getLatLng } = this.posService
 
-    return plans.map((plan: IPlan) => {
+    const visiblePlans = plans.filter((p) => p.visible)
+
+    return visiblePlans.map((plan: IPlan) => {
       const wps: IVehicleAtTime[] = plan.waypoints
       return wps.map((wp, i) => {
         const icon =
@@ -669,6 +699,7 @@ function mapStateToProps(state: IRipplesState) {
     currentUser: state.auth.currentUser,
     plans: state.planSet,
     selectedPlan: state.selectedPlan,
+    toggledPlan: state.toggledPlan,
     toolSelected: state.toolSelected,
     isEditingPlan: state.isEditingPlan,
     selectedWaypointIdx: state.selectedWaypointIdx,
