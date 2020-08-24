@@ -21,6 +21,7 @@ export interface IAssetsGroup {
 export default interface IRipplesState {
   assets: IAssetsGroup
   selectedPlan: IPlan
+  prevSelectedPlan: IPlan | null
   sliderValue: number
   selectedWaypointIdx: number
   auth: IUserState

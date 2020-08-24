@@ -39,10 +39,11 @@ interface PropsType {
   currentUser: IUser
   plans: IPlan[]
   selectedPlan: IPlan
+  prevSelectedPlan: IPlan | null
   toolSelected: ToolSelected
   isEditingPlan: boolean
   selectedWaypointIdx: number
-  toggledPlan: IPlan
+  toggledPlan: IPlan | null
   addNewPlan: (plan: IPlan) => void
   removePlan: (planId: string) => void
   setSidePanelTitle: (title: string) => void
@@ -59,7 +60,6 @@ interface PropsType {
 interface StateType {
   collection: any
   currentPlanId: string
-  prevSelectedPlan: IPlan
   onEditMode: boolean
   loadedPlans: boolean
   invisibleLayers: any[]
@@ -87,7 +87,6 @@ class PolygonEditor extends Component<PropsType, StateType> {
       currentPlanId: '',
       onEditMode: false,
       loadedPlans: false,
-      prevSelectedPlan: EmptyPlan,
       invisibleLayers: [],
     }
   }
@@ -126,7 +125,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  updateLayerVisibility(toggledPlan: IPlan) {
+  updateLayerVisibility(toggledPlan: IPlan | null) {
+    if (!toggledPlan) return
+
     const { invisibleLayers } = this.state
 
     if (!toggledPlan.visible) {
@@ -147,15 +148,15 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   changeLayerColor(selectedPlan: IPlan) {
-    const { prevSelectedPlan } = this.state
-    if (selectedPlan === EmptyPlan) {
+    const { prevSelectedPlan } = this.props
+    if (prevSelectedPlan) {
       const prevLayer: any = this.getLayerById(prevSelectedPlan.id)
       prevLayer.setStyle({ color: '#000080', dashArray: '0, 0' })
-    } else {
+    }
+    if (selectedPlan !== EmptyPlan) {
       const layer: any = this.getLayerById(selectedPlan.id)
       layer.setStyle({ color: 'red', dashArray: '20, 20', dashOffset: '20' })
     }
-    this.setState({ prevSelectedPlan: selectedPlan })
   }
 
   updateReceivedPlans = (plans: IPlan[]) => {
@@ -699,6 +700,7 @@ function mapStateToProps(state: IRipplesState) {
     currentUser: state.auth.currentUser,
     plans: state.planSet,
     selectedPlan: state.selectedPlan,
+    prevSelectedPlan: state.prevSelectedPlan,
     toggledPlan: state.toggledPlan,
     toolSelected: state.toolSelected,
     isEditingPlan: state.isEditingPlan,

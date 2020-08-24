@@ -71,6 +71,7 @@ const startState: IRipplesState = {
   toggledPlan: null,
   profiles: [],
   selectedPlan: EmptyPlan,
+  prevSelectedPlan: null,
   selectedWaypointIdx: -1,
   sidePanelContent: {},
   sidePanelTitle: 'Click on something to get info',
@@ -167,6 +168,7 @@ const ripplesReducer = createReducer(startState, {
   [cancelEditPlan.type]: (state, _) => {
     state.planSet = JSON.parse(JSON.stringify(state.previousPlanSet))
     state.previousPlanSet = []
+    state.prevSelectedPlan = state.selectedPlan
     state.selectedPlan = EmptyPlan
     state.isEditingPlan = false
   },
@@ -193,6 +195,7 @@ const ripplesReducer = createReducer(startState, {
     state.profiles = action.payload
   },
   [addNewPlan.type]: (state, action) => {
+    state.prevSelectedPlan = state.selectedPlan
     state.selectedPlan = action.payload
     state.previousPlanSet = JSON.parse(JSON.stringify(state.planSet))
     state.planSet.push(state.selectedPlan)
