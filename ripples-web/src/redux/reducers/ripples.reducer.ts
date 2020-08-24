@@ -72,6 +72,7 @@ const startState: IRipplesState = {
   profiles: [],
   selectedPlan: EmptyPlan,
   prevSelectedPlan: null,
+  isAnotherSelectedPlan: true,
   selectedWaypointIdx: -1,
   sidePanelContent: {},
   sidePanelTitle: 'Click on something to get info',
@@ -122,6 +123,7 @@ const ripplesReducer = createReducer(startState, {
   [editPlan.type]: (state, action) => {
     state.selectedPlan = action.payload
     state.previousPlanSet = JSON.parse(JSON.stringify(state.planSet))
+    state.isAnotherSelectedPlan = true
   },
   [updateWp.type]: (state, action) => {
     const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
@@ -171,6 +173,7 @@ const ripplesReducer = createReducer(startState, {
     state.prevSelectedPlan = state.selectedPlan
     state.selectedPlan = EmptyPlan
     state.isEditingPlan = false
+    state.isAnotherSelectedPlan = true
   },
   [updatePlanId.type]: (state, action) => {
     const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
@@ -179,11 +182,14 @@ const ripplesReducer = createReducer(startState, {
     }
     state.selectedPlan.id = action.payload
     plan.id = action.payload
+    state.isAnotherSelectedPlan = false
   },
   [savePlan.type]: (state, _) => {
     state.previousPlanSet = []
+    state.prevSelectedPlan = state.selectedPlan
     state.selectedPlan = EmptyPlan
     state.toolSelected = ToolSelected.NONE
+    state.isAnotherSelectedPlan = true
   },
   [setSlider.type]: (state, action) => {
     state.sliderValue = action.payload
@@ -199,6 +205,7 @@ const ripplesReducer = createReducer(startState, {
     state.selectedPlan = action.payload
     state.previousPlanSet = JSON.parse(JSON.stringify(state.planSet))
     state.planSet.push(state.selectedPlan)
+    state.isAnotherSelectedPlan = true
   },
   [setToolSelected.type]: (state, action) => {
     state.toolSelected = action.payload
@@ -211,6 +218,7 @@ const ripplesReducer = createReducer(startState, {
     const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
     if (plan) {
       plan.description = action.payload
+      state.isAnotherSelectedPlan = false
     }
   },
   [setSidePanelTitle.type]: (state, action) => {

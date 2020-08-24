@@ -40,6 +40,7 @@ interface PropsType {
   plans: IPlan[]
   selectedPlan: IPlan
   prevSelectedPlan: IPlan | null
+  isAnotherSelectedPlan: boolean
   toolSelected: ToolSelected
   isEditingPlan: boolean
   selectedWaypointIdx: number
@@ -109,7 +110,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType) {
-    const { plans, selectedPlan, toggledPlan } = this.props
+    const { plans, selectedPlan, toggledPlan, isAnotherSelectedPlan } = this.props
     const { loadedPlans } = this.state
     // Initial laoding of plan layers
     if (prevProps.plans !== plans && !loadedPlans) {
@@ -117,12 +118,25 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
     // Change of the selected plan
     if (prevProps.selectedPlan !== selectedPlan) {
-      this.changeLayerColor(selectedPlan)
+      if (isAnotherSelectedPlan) {
+        console.log('Changed color!')
+        this.changeLayerColor(selectedPlan)
+      } else {
+        console.log('Changed id')
+        const prevId = prevProps.selectedPlan.id
+        this.updateLayerId(prevId, selectedPlan.id)
+      }
     }
     // Change of plan visibility
     if (prevProps.toggledPlan !== toggledPlan) {
       this.updateLayerVisibility(toggledPlan)
     }
+  }
+
+  updateLayerId(prevId: string, newId: string) {
+    const layer: any = this.getLayerById(prevId)
+    if (!layer) return
+    layer.options.id = newId
   }
 
   updateLayerVisibility(toggledPlan: IPlan | null) {
@@ -151,7 +165,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const { prevSelectedPlan } = this.props
     if (prevSelectedPlan) {
       const prevLayer: any = this.getLayerById(prevSelectedPlan.id)
-      prevLayer.setStyle({ color: '#000080', dashArray: '0, 0' })
+      if (prevLayer) prevLayer.setStyle({ color: '#000080', dashArray: '0, 0' })
     }
     if (selectedPlan !== EmptyPlan) {
       const layer: any = this.getLayerById(selectedPlan.id)
@@ -704,6 +718,7 @@ function mapStateToProps(state: IRipplesState) {
     toggledPlan: state.toggledPlan,
     toolSelected: state.toolSelected,
     isEditingPlan: state.isEditingPlan,
+    isAnotherSelectedPlan: state.isAnotherSelectedPlan,
     selectedWaypointIdx: state.selectedWaypointIdx,
   }
 }

@@ -225,6 +225,7 @@ class TopNav extends Component<PropsType, StateType> {
       // and so it does not exist in the server yet
       this.props.handleUpdatePlanId(this.state.previousPlanId, this.props.selectedPlan.id)
     }
+    this.toggleEditPlanIdModal()
   }
 
   public onDeletePlan() {

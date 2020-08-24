@@ -28,6 +28,7 @@ export default interface IRipplesState {
   profiles: IProfile[]
   planSet: IPlan[]
   previousPlanSet: IPlan[]
+  isAnotherSelectedPlan: boolean
   toggledPlan: IPlan | null
   toolSelected: ToolSelected
   isGpsActive: boolean
