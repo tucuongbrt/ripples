@@ -112,17 +112,20 @@ class PolygonEditor extends Component<PropsType, StateType> {
   componentDidUpdate(prevProps: PropsType) {
     const { plans, selectedPlan, toggledPlan, isAnotherSelectedPlan } = this.props
     const { loadedPlans } = this.state
-    // Initial laoding of plan layers
-    if (prevProps.plans !== plans && !loadedPlans) {
-      this.updateReceivedPlans(plans)
+    // Initial loading of plan layers
+    if (prevProps.plans !== plans) {
+      if (!loadedPlans) {
+        this.updateReceivedPlans(plans)
+      } else if (prevProps.plans.length > plans.length) {
+        // Remove deleted layers
+        this.removeDeletedLayers(prevProps.plans, plans)
+      }
     }
     // Change of the selected plan
     if (prevProps.selectedPlan !== selectedPlan) {
       if (isAnotherSelectedPlan) {
-        console.log('Changed color!')
         this.changeLayerColor(selectedPlan)
       } else {
-        console.log('Changed id')
         const prevId = prevProps.selectedPlan.id
         this.updateLayerId(prevId, selectedPlan.id)
       }
@@ -131,6 +134,16 @@ class PolygonEditor extends Component<PropsType, StateType> {
     if (prevProps.toggledPlan !== toggledPlan) {
       this.updateLayerVisibility(toggledPlan)
     }
+  }
+
+  removeDeletedLayers(prevPlans: IPlan[], plans: IPlan[]) {
+    const deletedPlans = prevPlans.filter((p1) => !plans.some((p2) => p1.id === p2.id))
+    deletedPlans.forEach((p) => {
+      const layer = this.getLayerById(p.id)
+      if (!layer) return
+      // @ts-ignore
+      this._editableFG.leafletElement.removeLayer(layer)
+    })
   }
 
   updateLayerId(prevId: string, newId: string) {
@@ -169,7 +182,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
     if (selectedPlan !== EmptyPlan) {
       const layer: any = this.getLayerById(selectedPlan.id)
-      layer.setStyle({ color: 'red', dashArray: '20, 20', dashOffset: '20' })
+      if (layer) layer.setStyle({ color: 'red', dashArray: '20, 20', dashOffset: '20' })
     }
   }
 
