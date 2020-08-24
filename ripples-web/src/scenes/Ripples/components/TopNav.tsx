@@ -274,14 +274,16 @@ class TopNav extends Component<PropsType, StateType> {
     }
     return this.props.plans.map((p) => {
       return (
-        <div className="dropdown-item" key={getPlanKey(p)}>
+        <div className="plan-dropdown-item" key={getPlanKey(p)}>
           <i
             onClick={() => this.props.togglePlanVisibility(p)}
             className={(p.visible ? 'far fa-eye' : 'far fa-eye-slash') + ' mr-1'}
           />
-          <span onClick={() => this.handleEditPlan(p)} className="mouse-pointer">
-            {p.assignedTo}-{p.id}
-          </span>
+          <DropdownItem disabled={!p.visible}>
+            <span onClick={() => this.handleEditPlan(p)} className="mouse-pointer">
+              {p.assignedTo}-{p.id}
+            </span>
+          </DropdownItem>
         </div>
       )
     })

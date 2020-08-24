@@ -190,6 +190,13 @@ path.leaflet-polygon {
   display: flex;
   justify-content: space-evenly;
   align-items: baseline;
+  width: 15em;
+}
+
+.plan-dropdown-item {
+  display: inline-flex;
+  align-items: baseline;
+  margin-left: 1em;
 }
 
 .tooltip {
