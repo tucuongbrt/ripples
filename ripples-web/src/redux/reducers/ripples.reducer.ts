@@ -130,6 +130,8 @@ const ripplesReducer = createReducer(startState, {
     if (plan) {
       plan.waypoints[state.selectedWaypointIdx] = action.payload
       positionService.updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx + 1)
+      state.selectedPlan = plan
+      state.isAnotherSelectedPlan = false
     }
   },
   [updateWpLocation.type]: (state, action) => {
@@ -140,6 +142,8 @@ const ripplesReducer = createReducer(startState, {
       wp.latitude = newLocation.latitude
       wp.longitude = newLocation.longitude
       positionService.updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx)
+      state.selectedPlan = plan
+      state.isAnotherSelectedPlan = false
     }
   },
   [updateWpTimestamp.type]: (state, action) => {
@@ -149,6 +153,8 @@ const ripplesReducer = createReducer(startState, {
       const wp = plan.waypoints[wpIndex]
       wp.timestamp = timestamp
       positionService.updateWaypointsTimestampFromIndex(plan.waypoints, wpIndex + 1)
+      state.selectedPlan = plan
+      state.isAnotherSelectedPlan = false
     }
   },
   [deleteWp.type]: (state, action) => {

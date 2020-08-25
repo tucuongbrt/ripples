@@ -121,19 +121,26 @@ class PolygonEditor extends Component<PropsType, StateType> {
         this.removeDeletedLayers(prevProps.plans, plans)
       }
     }
-    // Change of the selected plan
+    // Changes of the selected plan
     if (prevProps.selectedPlan !== selectedPlan) {
       if (isAnotherSelectedPlan) {
         this.changeLayerColor(selectedPlan)
-      } else {
+      } else if (prevProps.selectedPlan.id !== selectedPlan.id) {
         const prevId = prevProps.selectedPlan.id
         this.updateLayerId(prevId, selectedPlan.id)
+      } else {
+        this.updatePlanProperties(selectedPlan)
       }
     }
     // Change of plan visibility
     if (prevProps.toggledPlan !== toggledPlan) {
       this.updateLayerVisibility(toggledPlan)
     }
+  }
+
+  updatePlanProperties(plan: IPlan) {
+    const latlngs = this.posService.getLatLngFromArray(plan.waypoints)
+    this.savePlanProperties(plan.id, latlngs, plan.survey)
   }
 
   removeDeletedLayers(prevPlans: IPlan[], plans: IPlan[]) {
@@ -149,7 +156,17 @@ class PolygonEditor extends Component<PropsType, StateType> {
   updateLayerId(prevId: string, newId: string) {
     const layer: any = this.getLayerById(prevId)
     if (!layer) return
+    // Update layer id
     layer.options.id = newId
+    // Update plan properties
+    const prevProperties = this.planProperties.get(prevId)
+    if (prevProperties) {
+      this.planProperties.set(newId, prevProperties)
+      this.planProperties.delete(prevId)
+    }
+    // Update layer popup
+    const content = this.buildPlanPopupContent(newId)
+    layer.getPopup().setContent(content)
   }
 
   updateLayerVisibility(toggledPlan: IPlan | null) {
@@ -227,6 +244,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   getLayerById(id: string) {
+    if (!this._editableFG) return
     // @ts-ignore
     const { _layers } = this._editableFG.leafletElement
     return Object.values(_layers).find((layer: any) => layer.options.id === id)
@@ -259,7 +277,11 @@ class PolygonEditor extends Component<PropsType, StateType> {
       editedPlans.push(planCopy)
     })
 
+    // Save edited plans
     this.handleEditPlan(editedPlans)
+
+    // Update edited plan properties
+    editedPlans.forEach((p) => this.updatePlanProperties(p))
 
     console.log(`_onEdited: edited ${editedPlans.length} layers`, e)
 
@@ -507,7 +529,6 @@ class PolygonEditor extends Component<PropsType, StateType> {
       default:
         break
     }
-
     updateWp(newWp)
 
     // Update layer drawing positions
@@ -516,6 +537,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
 
   updateLayerPositions(wp: IPositionAtTime) {
     const { selectedPlan, selectedWaypointIdx } = this.props
+
     // @ts-ignore
     const layer: any = this.getLayerById(selectedPlan.id)
     if (!layer) return
@@ -567,18 +589,6 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  bindPopupToPlan(layer: Layer, planId: string) {
-    const properties = this.planProperties.get(planId)
-    if (!properties) return
-    // @ts-ignore
-    const length = L.GeometryUtil.readableDistance(properties.length, true, false, false, 2)
-    // @ts-ignore
-    const area = L.GeometryUtil.readableArea(properties.area, ['km'], 2)
-    let msg = `<strong>${planId}</strong><div><strong>Length:</strong> ${length}</div>`
-    if (properties.area > 0) msg += `<div><strong>Area:</strong> ${area}</div>`
-    layer.bindPopup(msg)
-  }
-
   savePlanProperties(planId: string, waypoints: ILatLngs[], isSurvey: boolean) {
     // Plan coverage area
     // @ts-ignore
@@ -588,10 +598,36 @@ class PolygonEditor extends Component<PropsType, StateType> {
     const wps = this.posService.getPositionsFromArray(waypoints)
     const length = this.posService.measureTotalDistance(wps)
 
+    // Store properties
     this.planProperties.set(planId, {
       area,
       length,
     })
+
+    // Update popup
+    const layer: any = this.getLayerById(planId)
+    if (layer) {
+      const popup = layer.getPopup()
+      const content = this.buildPlanPopupContent(planId)
+      if (popup && content) popup.setContent(content)
+    }
+  }
+
+  bindPopupToPlan(layer: Layer, planId: string) {
+    const msg = this.buildPlanPopupContent(planId)
+    if (msg) layer.bindPopup(msg)
+  }
+
+  buildPlanPopupContent(planId: string) {
+    const properties = this.planProperties.get(planId)
+    if (!properties) return
+    // @ts-ignore
+    const length = L.GeometryUtil.readableDistance(properties.length, true, false, false, 2)
+    // @ts-ignore
+    const area = L.GeometryUtil.readableArea(properties.area, ['km'], 2)
+    let msg = `<strong>${planId}</strong><div><strong>Length:</strong> ${length}</div>`
+    if (properties.area > 0) msg += `<div><strong>Area:</strong> ${area}</div>`
+    return msg
   }
 
   insertPlan = (waypoints: ILatLngAtTime[], isSurvey: boolean) => {
