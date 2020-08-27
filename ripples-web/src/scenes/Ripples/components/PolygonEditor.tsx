@@ -112,13 +112,15 @@ class PolygonEditor extends Component<PropsType, StateType> {
   componentDidUpdate(prevProps: PropsType) {
     const { plans, selectedPlan, toggledPlan, isAnotherSelectedPlan } = this.props
     const { loadedPlans } = this.state
-    // Initial loading of plan layers
+
+    // Change of plan set
     if (prevProps.plans !== plans) {
       if (!loadedPlans) {
-        this.updateReceivedPlans(plans)
-      } else if (prevProps.plans.length > plans.length) {
-        // Remove deleted layers
-        this.removeDeletedLayers(prevProps.plans, plans)
+        // Initial loading of plan layers
+        this.loadInitialPlans(plans)
+      } else {
+        // Update of received plans
+        this.updatePlans(prevProps.plans, plans)
       }
     }
     // Changes of the selected plan
@@ -138,19 +140,52 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  updatePlanProperties(plan: IPlan) {
-    const latlngs = this.posService.getLatLngFromArray(plan.waypoints)
-    this.savePlanProperties(plan.id, latlngs, plan.survey)
+  insertPlanLayers(newPlans: IPlan[]) {
+    newPlans.forEach((p) => {
+      const { shapeOptions } = PolygonEditor.polygonOptions
+      const wps = this.posService.getLatLngFromArray(p.waypoints)
+
+      const layer: any = p.survey ? new L.Polygon(wps) : new L.Polyline(wps)
+      // Override layer drawing properties
+      layer.options.id = p.id
+      layer.options.color = shapeOptions.color
+
+      // Save geodesic area and length
+      this.savePlanProperties(p.id, wps, p.survey)
+
+      // @ts-ignore
+      this._editableFG.leafletElement.addLayer(layer)
+
+      // Show plan properties
+      this.bindPopupToPlan(layer, p.id)
+    })
   }
 
-  removeDeletedLayers(prevPlans: IPlan[], plans: IPlan[]) {
-    const deletedPlans = prevPlans.filter((p1) => !plans.some((p2) => p1.id === p2.id))
+  deletePlanLayers(deletedPlans: IPlan[]) {
     deletedPlans.forEach((p) => {
       const layer = this.getLayerById(p.id)
       if (!layer) return
       // @ts-ignore
       this._editableFG.leafletElement.removeLayer(layer)
     })
+  }
+
+  updatePlans(prevPlans: IPlan[], plans: IPlan[]) {
+    // Insert plan layers
+    const newPlans = plans.filter((p1) => !prevPlans.some((p2) => p1.id === p2.id))
+    if (newPlans.length > 0) {
+      this.insertPlanLayers(newPlans)
+    }
+    // Delete plan layers
+    const deletedPlans = prevPlans.filter((p1) => !plans.some((p2) => p1.id === p2.id))
+    if (deletedPlans.length > 0) {
+      this.deletePlanLayers(deletedPlans)
+    }
+  }
+
+  updatePlanProperties(plan: IPlan) {
+    const latlngs = this.posService.getLatLngFromArray(plan.waypoints)
+    this.savePlanProperties(plan.id, latlngs, plan.survey)
   }
 
   updateLayerId(prevId: string, newId: string) {
@@ -203,7 +238,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
-  updateReceivedPlans = (plans: IPlan[]) => {
+  loadInitialPlans = (plans: IPlan[]) => {
     if (!plans) return
 
     const collection: any = {
