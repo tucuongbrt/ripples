@@ -41,7 +41,6 @@ import {
   updateVehicle,
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
-import DateService from '../../services/DateUtils'
 import GeoLayerService from '../../services/GeoLayerService'
 import KMLService from '../../services/KMLService'
 import LogbookService from '../../services/LogbookUtils'
@@ -113,7 +112,6 @@ class Ripples extends Component<PropsType, StateType> {
     }
     this.handleCancelEditPlan = this.handleCancelEditPlan.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
-    this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
     this.handleDeletePlan = this.handleDeletePlan.bind(this)
     this.onSliderChange = this.onSliderChange.bind(this)
@@ -329,22 +327,6 @@ class Ripples extends Component<PropsType, StateType> {
     this.stopUpdates()
   }
 
-  public handleStartNewPlan = (planId: string) => {
-    const plan: IPlan = {
-      assignedTo: '',
-      description: `Plan created by ${this.props.auth.currentUser.email} on ${DateService.timestampMsToReadableDate(
-        Date.now()
-      )}`,
-      id: planId,
-      waypoints: [],
-      visible: true,
-      type: 'backseat',
-      survey: false,
-    }
-    this.props.addNewPlan(plan)
-    this.stopUpdates()
-  }
-
   public async handleSendPlanToVehicle() {
     try {
       const plan: IPlan | undefined = this.props.plans.find((p) => isPlanEqual(p, this.props.selectedPlan))
@@ -427,7 +409,6 @@ class Ripples extends Component<PropsType, StateType> {
               handleEditPlan={this.handleEditPlan}
               handleSendPlanToVehicle={this.handleSendPlanToVehicle}
               handleCancelEditPlan={this.handleCancelEditPlan}
-              handleStartNewPlan={this.handleStartNewPlan}
               handleSavePlan={this.handleSavePlan}
               handleDeletePlan={this.handleDeletePlan}
               handleUpdatePlanId={this.handleUpdatePlanId}

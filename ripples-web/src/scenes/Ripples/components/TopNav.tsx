@@ -45,7 +45,6 @@ import {
   unschedulePlan,
   updatePlanId,
 } from '../../../redux/ripples.actions'
-import DateService from '../../../services/DateUtils'
 import ZerotierService from '../../../services/ZerotierUtils'
 
 const { NotificationManager } = require('react-notifications')
@@ -63,7 +62,6 @@ interface PropsType {
   handleEditPlan: (_: IPlan) => void
   handleSendPlanToVehicle: () => void
   handleCancelEditPlan: () => void
-  handleStartNewPlan: (_: string) => void
   handleSavePlan: () => void
   handleDeletePlan: () => void
   handleUpdatePlanId: (prevId: string, newId: string) => void
@@ -124,7 +122,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.handleSendToVehicle = this.handleSendToVehicle.bind(this)
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleCancelEditing = this.handleCancelEditing.bind(this)
-    this.handleStartNewPlan = this.handleStartNewPlan.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
     this.handleUpdatePlanId = this.handleUpdatePlanId.bind(this)
     this.onVehicleSelected = this.onVehicleSelected.bind(this)
@@ -205,15 +202,6 @@ class TopNav extends Component<PropsType, StateType> {
     })
     this.props.handleEditPlan(plan)
     this.props.setToolSelected(ToolSelected.NONE)
-    this.props.setEditingPlan(true)
-  }
-
-  public handleStartNewPlan() {
-    const planId = `${this.props.auth.currentUser.name}-${DateService.idfromDate(new Date())}`
-    this.setState({
-      plansDropdownText: `Editing ${planId}`,
-    })
-    this.props.handleStartNewPlan(planId)
     this.props.setEditingPlan(true)
   }
 

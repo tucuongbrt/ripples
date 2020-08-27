@@ -21,7 +21,7 @@ import IAuthState, { IUserLocation } from '../../../model/IAuthState'
 import IGeoLayer from '../../../model/IGeoLayer'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap, { IMapSettings } from '../../../model/IMyMap'
-import IPlan, { getPlanKey } from '../../../model/IPlan'
+import IPlan from '../../../model/IPlan'
 import IPositionAtTime from '../../../model/IPositionAtTime'
 import IProfile from '../../../model/IProfile'
 import IRipplesState from '../../../model/IRipplesState'
@@ -56,7 +56,6 @@ import ClientLocation from './ClientLocation'
 import { BlueCircleIcon, PCIcon, SpotIcon } from './Icons'
 import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
-import VehiclePlan from './VehiclePlan'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
 import PolygonEditor from './PolygonEditor'
@@ -301,12 +300,6 @@ class RipplesMap extends Component<PropsType, StateType> {
   public buildCcus() {
     return this.props.ccus.map((ccu) => {
       return <SimpleAsset key={'ccu_' + ccu.name} data={ccu} icon={new PCIcon()} />
-    })
-  }
-
-  public buildPlans(): JSX.Element[] {
-    return this.props.plans.map((p) => {
-      return <VehiclePlan key={getPlanKey(p)} plan={p} vehicle={p.assignedTo} currentTime={this.state.currentTime} />
     })
   }
 
