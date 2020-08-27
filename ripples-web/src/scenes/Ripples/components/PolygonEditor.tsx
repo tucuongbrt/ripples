@@ -186,8 +186,9 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   updatePlans(prevPlans: IPlan[], plans: IPlan[]) {
-    // Insert plan layers
-    const newPlans = plans.filter((p1) => !prevPlans.some((p2) => p1.id === p2.id))
+    const { selectedPlan } = this.props
+    // Insert plan layers (if the plan is being created, it is selected, so it did not come from SOI)
+    const newPlans = plans.filter((p1) => !prevPlans.some((p2) => p1.id === p2.id) && p1.id !== selectedPlan.id)
     if (newPlans.length > 0) {
       this.insertPlanLayers(newPlans)
     }
