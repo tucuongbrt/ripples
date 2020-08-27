@@ -127,6 +127,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
     if (prevProps.selectedPlan !== selectedPlan) {
       if (isAnotherSelectedPlan) {
         this.changeLayerColor(selectedPlan)
+        this.togglePlanSidePanel(selectedPlan)
       } else if (prevProps.selectedPlan.id !== selectedPlan.id) {
         const prevId = prevProps.selectedPlan.id
         this.updateLayerId(prevId, selectedPlan.id)
@@ -138,6 +139,20 @@ class PolygonEditor extends Component<PropsType, StateType> {
     if (prevProps.toggledPlan !== toggledPlan) {
       this.updateLayerVisibility(toggledPlan)
     }
+  }
+
+  togglePlanSidePanel(plan: IPlan) {
+    const properties = this.planProperties.get(plan.id)
+    if (!properties) return
+
+    const { area, length } = properties
+    const content = {
+      'Length (m)': length.toFixed(5),
+      ...(area > 0 && { 'Area (m²)': area.toFixed(5) }),
+    }
+    this.props.setSidePanelTitle(plan.id)
+    this.props.setSidePanelContent(content)
+    this.props.setSidePanelVisibility(true)
   }
 
   insertPlanLayers(newPlans: IPlan[]) {
