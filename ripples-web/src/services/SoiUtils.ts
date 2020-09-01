@@ -11,6 +11,10 @@ import { request } from './RequestUtils'
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
 export default class SoiService {
+  public isRipplesImc(system: IAssetPayload) {
+    return system.imcid === 7007
+  }
+
   public async mergeAssetSettings(vehicles: IAsset[], authState: IAuthState) {
     if (isScientist(authState)) {
       const settingsPromise = this.fetchAssetsSettings()
@@ -70,7 +74,7 @@ export default class SoiService {
         spots.push(Object.assign({}, system, { planId: '' }))
       } else if (system.name.startsWith('ccu')) {
         ccus.push(Object.assign({}, system, { planId: '' }))
-      } else {
+      } else if (!this.isRipplesImc(system)) {
         const vehicle = this.convertAssetPayloadToAsset(system)
         vehicles.push(vehicle)
         if (system.plan.waypoints.length > 0) {

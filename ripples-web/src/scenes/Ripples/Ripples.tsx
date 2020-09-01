@@ -183,7 +183,7 @@ class Ripples extends Component<PropsType, StateType> {
         this.props.updateSpot(system)
       } else if (system.name.startsWith('ccu')) {
         this.props.updateCCU(system)
-      } else {
+      } else if (!this.soiService.isRipplesImc(newSystem)) {
         this.props.updateVehicle(system)
       }
 
