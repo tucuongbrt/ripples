@@ -58,7 +58,7 @@ import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
-import PolygonEditor from './PolygonEditor'
+import PlanManager from './PlanManager'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -621,7 +621,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             {this.props.auth.authenticated && this.map && (
               <Overlay checked={true} name="Plans">
                 <LayerGroup>
-                  <PolygonEditor mapRef={this.map} />
+                  <PlanManager mapRef={this.map} />
                 </LayerGroup>
               </Overlay>
             )}

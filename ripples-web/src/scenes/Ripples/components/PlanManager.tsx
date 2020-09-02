@@ -364,10 +364,6 @@ class PlanManager extends Component<PropsType, StateType> {
 
     // Update edited plan properties
     editedPlans.forEach((p) => this.updatePlanProperties(p))
-
-    console.log(`_onEdited: edited ${editedPlans.length} layers`, e)
-
-    this._onChange()
   }
 
   _onCreated = (e: any) => {
@@ -391,7 +387,6 @@ class PlanManager extends Component<PropsType, StateType> {
         // Calculate waypoints
         latLngs = e.layer._latlngs
         waypoints = getPosAtTime(latLngs)
-        console.log('_onCreated: polyline created:')
         break
       case 'rectangle':
       case 'polygon':
@@ -403,10 +398,8 @@ class PlanManager extends Component<PropsType, StateType> {
         waypoints = getPosAtTime(latLngs)
         // Closing the polygon by repeating the first waypoint
         waypoints.push(waypoints[0])
-        console.log('_onCreated: polygon created', e)
         break
       default:
-        console.log(e)
         break
     }
 
@@ -421,8 +414,6 @@ class PlanManager extends Component<PropsType, StateType> {
 
     // Store plan
     this.insertPlan(waypoints, isSurvey)
-
-    this._onChange()
   }
 
   _onDeleted = (e: any) => {
@@ -430,35 +421,23 @@ class PlanManager extends Component<PropsType, StateType> {
     e.layers.eachLayer((layer: any) => {
       deletedLayers.push(layer.options.id)
     })
-
     this.handleDeletePlans(deletedLayers)
-    console.log(`onDeleted: removed ${deletedLayers.length} layers`, e)
-
-    this._onChange()
-  }
-
-  _onMounted = (drawControl: any) => {
-    console.log('_onMounted', drawControl)
   }
 
   _onEditStart = (e: any) => {
     this.setState({ onEditMode: true })
-    console.log('_onEditStart', e)
   }
 
   _onEditStop = (e: any) => {
     this.setState({ onEditMode: false })
-    console.log('_onEditStop', e)
   }
 
   _onDeleteStart = (e: any) => {
     this.setState({ onEditMode: true })
-    console.log('_onDeleteStart', e)
   }
 
   _onDeleteStop = (e: any) => {
     this.setState({ onEditMode: false })
-    console.log('_onDeleteStop', e)
   }
 
   _onFeatureGroupReady = (reactFGref: any) => {
@@ -486,14 +465,6 @@ class PlanManager extends Component<PropsType, StateType> {
     this._editableFG = reactFGref
 
     this.setState({ loadedPlans: true })
-  }
-
-  _onChange = () => {
-    if (this._editableFG) {
-      // @ts-ignore
-      const geojsonData = this._editableFG.leafletElement.toGeoJSON()
-      console.log('geojson changed', geojsonData)
-    }
   }
 
   buildWaypoints = () => {
@@ -825,7 +796,6 @@ class PlanManager extends Component<PropsType, StateType> {
           onEdited={this._onEdited}
           onCreated={this._onCreated}
           onDeleted={this._onDeleted}
-          onMounted={this._onMounted}
           onEditStart={this._onEditStart}
           onEditStop={this._onEditStop}
           onDeleteStart={this._onDeleteStart}
