@@ -3,7 +3,7 @@ import { FeatureGroup, Marker, Popup } from 'react-leaflet'
 // @ts-ignore
 import { EditControl } from 'react-leaflet-draw'
 import { WaypointIcon, StartWaypointIcon, FinishWaypointIcon } from './Icons'
-import L, { Layer } from 'leaflet'
+import L, { Layer, LatLng } from 'leaflet'
 // @ts-ignore
 import 'leaflet-draw'
 import DateService from '../../../services/DateUtils'
@@ -110,7 +110,7 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType) {
-    const { plans, selectedPlan, toggledPlan, isAnotherSelectedPlan } = this.props
+    const { plans, isEditingPlan, selectedPlan, toggledPlan, isAnotherSelectedPlan } = this.props
     const { loadedPlans } = this.state
 
     // Change of plan set
@@ -118,6 +118,8 @@ class PolygonEditor extends Component<PropsType, StateType> {
       if (!loadedPlans) {
         // Initial loading of plan layers
         this.loadInitialPlans(plans)
+      } else if (!isEditingPlan) {
+        this.resetPlanLayer()
       } else {
         // Update of received plans
         this.updatePlans(prevProps.plans, plans)
@@ -141,15 +143,44 @@ class PolygonEditor extends Component<PropsType, StateType> {
     }
   }
 
+  resetPlanLayer() {
+    const { plans, prevSelectedPlan } = this.props
+    const { getLatLngFromArray } = this.posService
+
+    if (!prevSelectedPlan) return
+
+    const prevPlan = plans.find((p) => p.id === prevSelectedPlan.id)
+    if (!prevPlan) return
+
+    // @ts-ignore
+    const layer: any = this.getLayerById(prevPlan.id)
+    if (!layer) return
+
+    // Reset path coordinates
+    const waypoints = getLatLngFromArray(prevPlan.waypoints)
+    if (prevPlan.survey) {
+      layer._latlngs[0] = waypoints
+    } else {
+      layer._latlngs = waypoints
+    }
+
+    // Reset plan properties
+    this.updatePlanProperties(prevPlan)
+  }
+
   togglePlanSidePanel(plan: IPlan) {
     const properties = this.planProperties.get(plan.id)
     if (!properties) return
 
-    const { area, length } = properties
+    // @ts-ignore
+    const length = L.GeometryUtil.readableDistance(properties.length, true, false, false, 2)
+    // @ts-ignore
+    const area = L.GeometryUtil.readableArea(properties.area, ['km'], 2)
     const content = {
-      'Length (m)': length.toFixed(5),
-      ...(area > 0 && { 'Area (m²)': area.toFixed(5) }),
+      'Length (km)': length,
+      ...(properties.area > 0 && { 'Area (km²)': area }),
     }
+
     this.props.setSidePanelTitle(plan.id)
     this.props.setSidePanelContent(content)
     this.props.setSidePanelVisibility(true)
@@ -559,54 +590,63 @@ class PolygonEditor extends Component<PropsType, StateType> {
   }
 
   updateWaypoint(wp: IVehicleAtTime, property: string, value: any) {
-    const { updateWp } = this.props
+    const { plans, selectedPlan, updateWp } = this.props
 
-    const newWp = Object.assign({}, wp)
+    const newWp: IVehicleAtTime = Object.assign({}, wp)
+
+    let param
+    if (value instanceof Date) {
+      param = value.getTime()
+    } else {
+      param = value ? parseFloat(value) : value
+    }
+
     switch (property) {
       case 'latitude':
-        newWp.latitude = value
+        newWp.latitude = param
         break
       case 'longitude':
-        newWp.longitude = value
+        newWp.longitude = param
         break
       case 'depth':
-        newWp.depth = parseFloat(value)
+        newWp.depth = param
         break
       case 'timestamp':
-        if (value instanceof Date) {
-          newWp.timestamp = value.getTime()
-        }
+        newWp.timestamp = param
         break
       default:
         break
     }
     updateWp(newWp)
 
+    // Update edited plan properties
+    const plan: IPlan | undefined = plans.find((p) => p.id === selectedPlan.id)
+    if (!plan) return
+    this.updatePlanProperties(plan)
+
     // Update layer drawing positions
     this.updateLayerPositions(newWp)
   }
 
-  updateLayerPositions(wp: IPositionAtTime) {
+  updateLayerPositions(wp: IVehicleAtTime) {
     const { selectedPlan, selectedWaypointIdx } = this.props
 
     // @ts-ignore
     const layer: any = this.getLayerById(selectedPlan.id)
     if (!layer) return
+
+    // Update path coordinates
     const coords = selectedPlan.survey ? layer._latlngs[0] : layer._latlngs
-    coords[selectedWaypointIdx] = {
-      lat: wp.latitude,
-      lng: wp.longitude,
-    }
+    coords[selectedWaypointIdx] = new LatLng(wp.latitude, wp.longitude)
+
     if (selectedPlan.survey) {
       // If start / finish waypoint changed, update each other
       if (selectedWaypointIdx === 0) {
         coords[coords.length - 1] = coords[0]
-        layer.feature.geometry.coordinates[0][coords.length - 1] = coords[0]
       } else if (selectedWaypointIdx === coords.length - 1) {
         coords[0] = coords[coords.length - 1]
       }
     }
-    console.log(layer)
   }
 
   handleMarkerClick(i: number, plan: IPlan): any {

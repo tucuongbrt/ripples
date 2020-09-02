@@ -126,13 +126,22 @@ const ripplesReducer = createReducer(startState, {
     state.isAnotherSelectedPlan = true
   },
   [updateWp.type]: (state, action) => {
-    const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
-    if (plan) {
-      plan.waypoints[state.selectedWaypointIdx] = action.payload
-      positionService.updateWaypointsTimestampFromIndex(plan.waypoints, state.selectedWaypointIdx + 1)
-      state.selectedPlan = plan
-      state.isAnotherSelectedPlan = false
+    const { planSet, selectedPlan, selectedWaypointIdx } = state
+    const plan = planSet.find((p) => isPlanEqual(p, selectedPlan))
+    if (!plan) return
+    // Update waypoint(s)
+    plan.waypoints[selectedWaypointIdx] = action.payload
+    if (plan.survey) {
+      // If start / finish waypoint changed, set each other equal to one another
+      if (selectedWaypointIdx === 0) {
+        plan.waypoints[plan.waypoints.length - 1] = plan.waypoints[0]
+      } else if (selectedWaypointIdx === plan.waypoints.length - 1) {
+        plan.waypoints[0] = plan.waypoints[plan.waypoints.length - 1]
+      }
     }
+    positionService.updateWaypointsTimestampFromIndex(plan.waypoints, selectedWaypointIdx + 1)
+    state.selectedPlan = plan
+    state.isAnotherSelectedPlan = false
   },
   [updateWpLocation.type]: (state, action) => {
     const newLocation = action.payload
@@ -180,6 +189,7 @@ const ripplesReducer = createReducer(startState, {
     state.selectedPlan = EmptyPlan
     state.isEditingPlan = false
     state.isAnotherSelectedPlan = true
+    state.isSidePanelVisible = false
   },
   [updatePlanId.type]: (state, action) => {
     const plan = state.planSet.find((p) => isPlanEqual(p, state.selectedPlan))
