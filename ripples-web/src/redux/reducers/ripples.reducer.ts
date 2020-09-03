@@ -40,6 +40,7 @@ import {
   setToolClickLocation,
   setToolSelected,
   setUser,
+  setUpdatingPlanId,
   setVehicles,
   setWeatherParam,
   setEditingPlan,
@@ -90,6 +91,7 @@ const startState: IRipplesState = {
   toolClickLocation: null,
   geoLayers: null,
   isEditingPlan: false,
+  updatingPlanId: false,
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -390,6 +392,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [setEditingPlan.type]: (state, action) => {
     state.isEditingPlan = action.payload
+  },
+  [setUpdatingPlanId.type]: (state, action) => {
+    state.updatingPlanId = action.payload
   },
 })
 

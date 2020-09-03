@@ -47,6 +47,7 @@ export default interface IRipplesState {
   toolClickLocation: ILatLng | null
   geoLayers: IGeoLayer[] | null
   isEditingPlan: boolean
+  updatingPlanId: boolean
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

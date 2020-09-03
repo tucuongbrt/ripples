@@ -45,6 +45,7 @@ interface PropsType {
   isEditingPlan: boolean
   selectedWaypointIdx: number
   toggledPlan: IPlan | null
+  updatingPlanId: boolean
   addNewPlan: (plan: IPlan) => void
   removePlan: (planId: string) => void
   setSidePanelTitle: (title: string) => void
@@ -110,7 +111,7 @@ class PlanManager extends Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType) {
-    const { plans, isEditingPlan, selectedPlan, toggledPlan, isAnotherSelectedPlan } = this.props
+    const { plans, isEditingPlan, selectedPlan, toggledPlan, isAnotherSelectedPlan, updatingPlanId } = this.props
     const { loadedPlans } = this.state
 
     // Change of plan set
@@ -120,7 +121,7 @@ class PlanManager extends Component<PropsType, StateType> {
         this.loadInitialPlans(plans)
       } else if (!isEditingPlan) {
         this.resetPlanLayer()
-      } else {
+      } else if (!updatingPlanId) {
         // Update of received plans
         this.updatePlans(prevProps.plans, plans)
       }
@@ -130,9 +131,8 @@ class PlanManager extends Component<PropsType, StateType> {
       if (isAnotherSelectedPlan) {
         this.changeLayerColor(selectedPlan)
         this.togglePlanSidePanel(selectedPlan)
-      } else if (prevProps.selectedPlan.id !== selectedPlan.id) {
-        const prevId = prevProps.selectedPlan.id
-        this.updateLayerId(prevId, selectedPlan.id)
+      } else if (updatingPlanId) {
+        this.updateLayerId(prevProps.selectedPlan.id, selectedPlan.id)
       } else {
         this.updatePlanProperties(selectedPlan)
       }
@@ -830,6 +830,7 @@ function mapStateToProps(state: IRipplesState) {
     isEditingPlan: state.isEditingPlan,
     isAnotherSelectedPlan: state.isAnotherSelectedPlan,
     selectedWaypointIdx: state.selectedWaypointIdx,
+    updatingPlanId: state.updatingPlanId,
   }
 }
 

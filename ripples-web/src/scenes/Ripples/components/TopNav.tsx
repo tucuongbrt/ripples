@@ -44,6 +44,7 @@ import {
   togglePlanVisibility,
   unschedulePlan,
   updatePlanId,
+  setUpdatingPlanId,
 } from '../../../redux/ripples.actions'
 import ZerotierService from '../../../services/ZerotierUtils'
 
@@ -80,6 +81,7 @@ interface PropsType {
   setEditVehicle: (v: IAsset | undefined) => void
   setWeatherParam: (p: WeatherParam | null) => void
   setToolClickLocation: (l: ILatLng | null) => void
+  setUpdatingPlanId: (_: boolean) => void
 }
 
 interface StateType {
@@ -123,7 +125,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.handleEditPlan = this.handleEditPlan.bind(this)
     this.handleCancelEditing = this.handleCancelEditing.bind(this)
     this.handleSavePlan = this.handleSavePlan.bind(this)
-    this.handleUpdatePlanId = this.handleUpdatePlanId.bind(this)
     this.onVehicleSelected = this.onVehicleSelected.bind(this)
     this.toggleDescriptionModal = this.toggleDescriptionModal.bind(this)
     this.toggleEditPlanIdModal = this.toggleEditPlanIdModal.bind(this)
@@ -159,7 +160,19 @@ class TopNav extends Component<PropsType, StateType> {
     if (!this.state.isEditPlanIdModalOpen) {
       this.setState({ previousPlanId: this.props.selectedPlan.id })
     }
-    this.setState({ isEditPlanIdModalOpen: !this.state.isEditPlanIdModalOpen })
+    const isOpen = !this.state.isEditPlanIdModalOpen
+    if (!isOpen) {
+      // Update plan id when modal closes
+      this.setState({ plansDropdownText: `Editing - ${this.props.selectedPlan.id}` })
+      if (this.props.selectedPlan.waypoints.length > 0) {
+        // only try to update the plan id if the plan has any waypoints
+        // if the plan has no waypoints it was created just now,
+        // and so it does not exist in the server yet
+        this.props.handleUpdatePlanId(this.state.previousPlanId, this.props.selectedPlan.id)
+      }
+    }
+    this.props.setUpdatingPlanId(isOpen)
+    this.setState({ isEditPlanIdModalOpen: isOpen })
   }
 
   public togglePlansDropdown() {
@@ -203,17 +216,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.props.handleEditPlan(plan)
     this.props.setToolSelected(ToolSelected.NONE)
     this.props.setEditingPlan(true)
-  }
-
-  public handleUpdatePlanId() {
-    this.setState({ plansDropdownText: `Editing - ${this.props.selectedPlan.id}` })
-    if (this.props.selectedPlan.waypoints.length > 0) {
-      // only try to update the plan id if the plan has any waypoints
-      // if the plan has no waypoints it was created just now,
-      // and so it does not exist in the server yet
-      this.props.handleUpdatePlanId(this.state.previousPlanId, this.props.selectedPlan.id)
-    }
-    this.toggleEditPlanIdModal()
   }
 
   public onDeletePlan() {
@@ -334,11 +336,6 @@ class TopNav extends Component<PropsType, StateType> {
             onChange={(evt) => this.updatePlanId(evt)}
           />
         </ModalBody>
-        <ModalFooter>
-          <Button color="primary" onClick={this.handleUpdatePlanId}>
-            Save
-          </Button>
-        </ModalFooter>
       </Modal>
     )
   }
@@ -563,6 +560,7 @@ const actionCreators = {
   setEditVehicle,
   setWeatherParam,
   setToolClickLocation,
+  setUpdatingPlanId,
   toggleGps,
 }
 
