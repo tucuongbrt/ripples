@@ -10,7 +10,6 @@ import {
   Input,
   Modal,
   ModalBody,
-  ModalFooter,
   ModalHeader,
   Nav,
   Navbar,

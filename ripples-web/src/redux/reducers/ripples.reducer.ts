@@ -21,6 +21,7 @@ import {
   removePlan,
   removeUser,
   savePlan,
+  deleteSelectedPlan,
   selectVehicle,
   setAis,
   setAnnotations,
@@ -206,7 +207,14 @@ const ripplesReducer = createReducer(startState, {
     state.previousPlanSet = []
     state.prevSelectedPlan = state.selectedPlan
     state.selectedPlan = EmptyPlan
-    state.toolSelected = ToolSelected.NONE
+    state.isAnotherSelectedPlan = true
+  },
+  [deleteSelectedPlan.type]: (state, _) => {
+    const idx = state.planSet.findIndex((p) => isPlanEqual(p, state.selectedPlan))
+    state.planSet.splice(idx, 1)
+    state.previousPlanSet = []
+    state.prevSelectedPlan = EmptyPlan
+    state.selectedPlan = EmptyPlan
     state.isAnotherSelectedPlan = true
   },
   [setSlider.type]: (state, action) => {

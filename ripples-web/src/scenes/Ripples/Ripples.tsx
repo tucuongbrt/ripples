@@ -20,6 +20,7 @@ import {
   cancelEditPlan,
   editPlan,
   savePlan,
+  deleteSelectedPlan,
   setAis,
   setAnnotations,
   setCcus,
@@ -79,6 +80,7 @@ interface PropsType {
   setProfiles: (profiles: IProfile[]) => any
   setUser: (user: IUser) => any
   savePlan: () => void
+  deleteSelectedPlan: () => void
   cancelEditPlan: () => void
   updateAIS: (s: IAisShip) => void
   updateVehicle: (v: IAsset) => void
@@ -379,7 +381,7 @@ class Ripples extends Component<PropsType, StateType> {
     } catch (error) {
       NotificationManager.warning(error.message)
     } finally {
-      this.props.savePlan() // used to deselect the plan
+      this.props.deleteSelectedPlan() // used to deselect the plan
       this.startUpdates()
     }
   }
@@ -447,6 +449,7 @@ const actionCreators = {
   cancelEditPlan,
   editPlan,
   savePlan,
+  deleteSelectedPlan,
   setAis,
   setAnnotations,
   setCcus,
