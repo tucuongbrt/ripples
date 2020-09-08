@@ -111,7 +111,16 @@ class PlanManager extends Component<PropsType, StateType> {
   }
 
   componentDidUpdate(prevProps: PropsType) {
-    const { plans, isEditingPlan, selectedPlan, toggledPlan, isAnotherSelectedPlan, updatingPlanId } = this.props
+    const {
+      plans,
+      isEditingPlan,
+      selectedPlan,
+      prevSelectedPlan,
+      toggledPlan,
+      isAnotherSelectedPlan,
+      updatingPlanId,
+    } = this.props
+
     const { loadedPlans } = this.state
 
     // Change of plan set
@@ -119,11 +128,11 @@ class PlanManager extends Component<PropsType, StateType> {
       if (!loadedPlans) {
         // Initial loading of plan layers
         this.loadInitialPlans(plans)
-      } else if (!isEditingPlan) {
-        this.resetPlanLayer()
       } else if (!updatingPlanId) {
         // Update of received plans
         this.updatePlans(prevProps.plans, plans)
+      } else if (!isEditingPlan && prevSelectedPlan) {
+        this.resetPlanLayer(prevSelectedPlan)
       }
     }
     // Changes of the selected plan
@@ -143,29 +152,25 @@ class PlanManager extends Component<PropsType, StateType> {
     }
   }
 
-  resetPlanLayer() {
-    const { plans, prevSelectedPlan } = this.props
+  resetPlanLayer(plan: IPlan) {
     const { getLatLngFromArray } = this.posService
 
-    if (!prevSelectedPlan) return
-
-    const prevPlan = plans.find((p) => p.id === prevSelectedPlan.id)
-    if (!prevPlan) return
+    if (!plan) return
 
     // @ts-ignore
-    const layer: any = this.getLayerById(prevPlan.id)
+    const layer: any = this.getLayerById(plan.id)
     if (!layer) return
 
     // Reset path coordinates
-    const waypoints = getLatLngFromArray(prevPlan.waypoints)
-    if (prevPlan.survey) {
+    const waypoints = getLatLngFromArray(plan.waypoints)
+    if (plan.survey) {
       layer._latlngs[0] = waypoints
     } else {
       layer._latlngs = waypoints
     }
 
     // Reset plan properties
-    this.updatePlanProperties(prevPlan)
+    this.updatePlanProperties(plan)
   }
 
   togglePlanSidePanel(plan: IPlan) {
@@ -643,8 +648,8 @@ class PlanManager extends Component<PropsType, StateType> {
 
   getWaypointSidePanelProperties(wp: IVehicleAtTime) {
     return {
-      eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp) : 'N/D',
-      'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp) : 'N/D',
+      eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp * 1000) : 'N/D',
+      'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp * 1000) : 'N/D',
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
       'depth (m)': wp.depth.toFixed(5),

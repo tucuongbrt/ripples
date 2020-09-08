@@ -143,7 +143,6 @@ const ripplesReducer = createReducer(startState, {
       }
     }
     positionService.updateWaypointsTimestampFromIndex(plan.waypoints, selectedWaypointIdx + 1)
-    state.selectedPlan = plan
     state.isAnotherSelectedPlan = false
   },
   [updateWpLocation.type]: (state, action) => {
