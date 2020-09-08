@@ -30,6 +30,7 @@ import { IUser } from '../../../model/IAuthState'
 import SoiService from '../../../services/SoiUtils'
 import { ToolSelected } from '../../../model/ToolSelected'
 import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import { FormGroup, Label, Input } from 'reactstrap'
 import ILatLng from '../../../model/ILatLng'
 const { NotificationManager } = require('react-notifications')
