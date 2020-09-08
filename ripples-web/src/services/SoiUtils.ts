@@ -44,7 +44,7 @@ export default class SoiService {
 
   public convertAssetPayloadToPlan(system: IAssetPayload): IPlan {
     const plan: IPlan = JSON.parse(JSON.stringify(system.plan))
-    plan.waypoints = plan.waypoints.map((wp) => this.convertWaypoint(wp))
+    plan.waypoints = plan.waypoints.map((wp) => this.convertSoiWaypoint(wp))
     plan.assignedTo = system.name
     plan.visible = true
     return Object.assign({}, plan)
@@ -205,6 +205,12 @@ export default class SoiService {
         depth: wp.depth,
       }
     )
+  }
+
+  private convertSoiWaypoint(wp: any) {
+    const waypoint: any = this.convertWaypoint(wp)
+    waypoint.timestamp *= 1000
+    return waypoint
   }
 
   private async fetchAssetsSettings() {

@@ -649,8 +649,8 @@ class PlanManager extends Component<PropsType, StateType> {
 
   getWaypointSidePanelProperties(wp: IVehicleAtTime) {
     return {
-      eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp * 1000) : 'N/D',
-      'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp * 1000) : 'N/D',
+      eta: wp.timestamp ? DateService.timeFromNow(wp.timestamp) : 'N/D',
+      'exact eta': wp.timestamp ? DateService.timestampMsToReadableDate(wp.timestamp) : 'N/D',
       lat: wp.latitude.toFixed(5),
       lng: wp.longitude.toFixed(5),
       'depth (m)': wp.depth.toFixed(5),
