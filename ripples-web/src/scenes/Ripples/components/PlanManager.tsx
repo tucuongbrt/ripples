@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { FeatureGroup, Marker, Popup } from 'react-leaflet'
+import { FeatureGroup, Marker } from 'react-leaflet'
 // @ts-ignore
 import { EditControl } from 'react-leaflet-draw'
 import { WaypointIcon, StartWaypointIcon, FinishWaypointIcon } from './Icons'
@@ -29,10 +29,8 @@ import IRipplesState from '../../../model/IRipplesState'
 import { IUser } from '../../../model/IAuthState'
 import SoiService from '../../../services/SoiUtils'
 import { ToolSelected } from '../../../model/ToolSelected'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
-import { FormGroup, Label, Input } from 'reactstrap'
 import ILatLng from '../../../model/ILatLng'
+import WaypointPopup from './WaypointPopup'
 const { NotificationManager } = require('react-notifications')
 
 interface PropsType {
@@ -92,6 +90,7 @@ class PlanManager extends Component<PropsType, StateType> {
       loadedPlans: false,
       invisibleLayers: [],
     }
+    this.updateWaypoint = this.updateWaypoint.bind(this)
   }
 
   static polygonOptions = {
@@ -474,95 +473,39 @@ class PlanManager extends Component<PropsType, StateType> {
   }
 
   buildWaypoints = () => {
-    const { plans, selectedPlan } = this.props
+    const { plans } = this.props
     const { getLatLng } = this.posService
 
-    const visiblePlans = plans.filter((p) => p.visible)
+    const visiblePlans = plans.filter((p) => p.visible && p.waypoints.length > 0)
 
     return visiblePlans.map((plan: IPlan) => {
       const wps: IVehicleAtTime[] = plan.waypoints
+      const lastWpIdx: number = wps.length - 1
+
       return wps.map((wp, i) => {
-        const icon =
-          i === 0 ? new StartWaypointIcon() : i < wps.length - 1 ? new WaypointIcon() : new FinishWaypointIcon()
         return (
           <Marker
             key={'Waypoint' + i + '_' + plan.id}
             index={i}
             position={getLatLng(wp)}
-            icon={icon}
+            icon={this.getWaypointIcon(i, lastWpIdx)}
             onClick={() => this.handleMarkerClick(i, plan)}
           >
-            {selectedPlan.id === plan.id && this.buildMarkerPopup(wp)}
+            {this.buildMarkerPopup(plan, wp)}
           </Marker>
         )
       })
     })
   }
 
-  buildMarkerPopup(wp: IVehicleAtTime) {
-    const { isEditingPlan, selectedWaypointIdx, updateWpTimestamp } = this.props
-    if (isEditingPlan) {
-      return (
-        <Popup className="waypoint-popup">
-          <FormGroup>
-            <Label for="latitude">Latitude</Label>
-            <Input
-              type="number"
-              name="latitude"
-              id="latitude"
-              value={wp.latitude}
-              min={-90}
-              max={90}
-              onChange={(e) => this.updateWaypoint(wp, 'latitude', e.target.value)}
-              className="form-control form-control-sm"
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="longitude">Longitude</Label>
-            <Input
-              type="number"
-              name="longitude"
-              id="longitude"
-              min={-180}
-              max={180}
-              value={wp.longitude}
-              onChange={(e) => this.updateWaypoint(wp, 'longitude', e.target.value)}
-              className="form-control form-control-sm"
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="depth">Depth (m)</Label>
-            <Input
-              type="number"
-              name="depth"
-              id="depth"
-              min={0}
-              value={wp.depth}
-              onChange={(e) => this.updateWaypoint(wp, 'depth', e.target.value)}
-              className="form-control form-control-sm"
-            />
-          </FormGroup>
-          <FormGroup>
-            <Label for="timestamp">Timestamp</Label>
-            <div className="date-picker-control">
-              <DatePicker
-                selected={wp.timestamp === 0 ? new Date() : new Date(wp.timestamp)}
-                onChange={(newDate: any) => this.updateWaypoint(wp, 'timestamp', newDate)}
-                showTimeSelect={true}
-                timeFormat="HH:mm"
-                timeIntervals={15}
-                dateFormat="dd/MM/yy, h:mm aa"
-                timeCaption="time"
-                className="form-control form-control-sm"
-              />
-              <i
-                className="far fa-times-circle fa-lg"
-                onClick={() => updateWpTimestamp({ timestamp: 0, wpIndex: selectedWaypointIdx })}
-              />
-            </div>
-          </FormGroup>
-        </Popup>
-      )
+  getWaypointIcon(i: number, lastWpIdx: number) {
+    return i === 0 ? new StartWaypointIcon() : i < lastWpIdx ? new WaypointIcon() : new FinishWaypointIcon()
+  }
+
+  buildMarkerPopup(plan: IPlan, wp: IVehicleAtTime) {
+    const { selectedPlan, isEditingPlan } = this.props
+    if (selectedPlan.id === plan.id && isEditingPlan) {
+      return <WaypointPopup wp={wp} updateWaypoint={this.updateWaypoint} />
     }
   }
 
