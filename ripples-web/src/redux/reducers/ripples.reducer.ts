@@ -136,10 +136,13 @@ const ripplesReducer = createReducer(startState, {
     plan.waypoints[selectedWaypointIdx] = action.payload
     if (plan.survey) {
       // If start / finish waypoint changed, set each other equal to one another
+      const lastIdx = plan.waypoints.length - 1
       if (selectedWaypointIdx === 0) {
-        plan.waypoints[plan.waypoints.length - 1] = plan.waypoints[0]
-      } else if (selectedWaypointIdx === plan.waypoints.length - 1) {
-        plan.waypoints[0] = plan.waypoints[plan.waypoints.length - 1]
+        const timestamp = plan.waypoints[lastIdx].timestamp
+        plan.waypoints[lastIdx] = Object.assign(plan.waypoints[lastIdx], plan.waypoints[0], { timestamp })
+      } else if (selectedWaypointIdx === lastIdx) {
+        const timestamp = plan.waypoints[0].timestamp
+        plan.waypoints[0] = Object.assign(plan.waypoints[0], plan.waypoints[lastIdx], { timestamp })
       }
     }
     positionService.updateWaypointsTimestampFromIndex(plan.waypoints, selectedWaypointIdx + 1)
