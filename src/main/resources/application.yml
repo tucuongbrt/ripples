@@ -1,54 +1,64 @@
 spring:
+  profiles:
+    active:
+      - ${ACTIVE_DB:h2}
+---
+spring:
+  profiles: h2
   jpa:
     open-in-view: true
     hibernate:
       ddl-auto: update
   datasource:
-    url: "jdbc:h2:file:./data.db"
+    url: 'jdbc:h2:file:./data.db'
   h2:
     console:
       enabled: true
-      path: "/h2"
+      path: '/h2'
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: 'insert client id'
-            client-secret: 'insert client secret'
-            redirectUriTemplate: "{baseUrl}/oauth2/callback/{registrationId}"
+            client-id: 466564625769-24agntlho87pfufbi9ifln1594f4mqe6.apps.googleusercontent.com
+            client-secret: JvykQiYE7GmqyXXlyF3mZZzI
+            redirectUriTemplate: '{baseUrl}/oauth2/callback/{registrationId}'
             scope:
               - email
               - profile
 
 app:
   auth:
-    tokenSecret: 'insert jwt secret'
+    tokenSecret: 626977716e633565f333264
     tokenExpirationMsec: 864000000
   oauth2:
     authorizedRedirectUris:
-      - "http://localhost:3000/oauth2/redirect"
-      - "http://localhost:9090/oauth2/redirect"
-      - "http://falkor.lsts.pt:9090/oauth2/redirect"
-      - "https://falkor.lsts.pt/oauth2/redirect"
+      - 'http://localhost:3000/oauth2/redirect'
+      - 'http://localhost:9090/oauth2/redirect'
+      - 'http://falkor.lsts.pt:9090/oauth2/redirect'
+      - 'https://falkor.lsts.pt/oauth2/redirect'
+      - 'https://ripples.lsts.pt/oauth2/redirect'
 
-#logging.level.org.hibernate.SQL=debug
+  #logging.level.org.hibernate.SQL=debug
   jackson:
     date-format: com.fasterxml.jackson.databind.util.StdDateFormat
+
+#SSL Configuration
 server:
   port: 9090
+
 #Set username / password
 wgms:
-  user: 'insert wgms user'
-  pass: 'insert wgms password'
+  user: zepinto@gmail.com
+  pass: Welcome2SV3#
 #AIS database
 ais:
   db: AISDB.csv
-  username: 'insert ais username'
-  minlat: 40
+  username: AH_2385_225AC811
+  minlat: 35
   maxlat: 42
   minlng: -10
-  maxlng: -8
+  maxlng: -7
 # Google My Maps KMZ URL
 kml:
   name: 'Ripples'
@@ -59,16 +69,117 @@ skip:
 falkor:
   underway:
     active: false
-
 #IMC id
 ripples:
   imcid: 99
 #GoogleApp
-
 google:
   users:
     spreadsheet:
       id: 1m2EP30f-QeCQHMb-F7WLAj_xW_cw0NauA281LBUcUOA
 twilio:
-  account-sid: 'Insert twilio sid'
-  auth-token: 'Insert twilio auth token'
+  account-sid: AC7c7cef0b44d66d50d5733695f50676c1
+  auth-token: 1a407095fd3f022fbd008aa47d3ac787
+#StormGlass
+stormglass:
+  api-key: d56d2342-d933-11e9-b707-0242ac130004-d56d2464-d933-11e9-b707-0242ac130004
+#GeoServer
+geoserver:
+  url: 'http://10.0.2.100:8080/geoserver'
+  user: admin
+  pass: geoserver
+#Zerotier
+zerotier:
+  zt-central-url: https://my.zerotier.com/api/
+  api-token: mMu3dvlzeMebAOTJ38YNTl5f7q3vbD2a
+  nwid: 0cccb752f73dbea6
+---
+spring:
+  profiles: mariadb
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update
+  datasource:
+    url: jdbc:mariadb://localhost:3306/db
+    username: ripples
+    password: pTtaNnpdCJ
+    driver-class-name: org.mariadb.jdbc.Driver
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 466564625769-24agntlho87pfufbi9ifln1594f4mqe6.apps.googleusercontent.com
+            client-secret: JvykQiYE7GmqyXXlyF3mZZzI
+            redirectUriTemplate: '{baseUrl}/oauth2/callback/{registrationId}'
+            scope:
+              - email
+              - profile
+
+app:
+  auth:
+    tokenSecret: 626977716e633565f333264
+    tokenExpirationMsec: 864000000
+  oauth2:
+    authorizedRedirectUris:
+      - 'http://localhost:3000/oauth2/redirect'
+      - 'http://localhost:9090/oauth2/redirect'
+      - 'http://falkor.lsts.pt:9090/oauth2/redirect'
+      - 'https://falkor.lsts.pt/oauth2/redirect'
+      - 'https://ripples.lsts.pt/oauth2/redirect'
+
+  #logging.level.org.hibernate.SQL=debug
+  jackson:
+    date-format: com.fasterxml.jackson.databind.util.StdDateFormat
+
+#SSL Configuration
+server:
+  port: 9090
+
+#Set username / password
+wgms:
+  user: zepinto@gmail.com
+  pass: Welcome2SV3#
+#AIS database
+ais:
+  db: AISDB.csv
+  username: AH_2385_225AC811
+  minlat: 35
+  maxlat: 42
+  minlng: -10
+  maxlng: -7
+# Google My Maps KMZ URL
+kml:
+  name: 'Ripples'
+  url: 'https://www.google.com/maps/d/u/0/kml?mid=1C_guMPPn8sye2qoPgz9ciuN8Bsw'
+skip:
+  db:
+    initialization: true
+falkor:
+  underway:
+    active: false
+#IMC id
+ripples:
+  imcid: 99
+#GoogleApp
+google:
+  users:
+    spreadsheet:
+      id: 1m2EP30f-QeCQHMb-F7WLAj_xW_cw0NauA281LBUcUOA
+twilio:
+  account-sid: AC7c7cef0b44d66d50d5733695f50676c1
+  auth-token: 1a407095fd3f022fbd008aa47d3ac787
+#StormGlass
+stormglass:
+  api-key: d56d2342-d933-11e9-b707-0242ac130004-d56d2464-d933-11e9-b707-0242ac130004
+#GeoServer
+geoserver:
+  url: 'http://10.0.2.100:8080/geoserver'
+  user: admin
+  pass: geoserver
+#Zerotier
+zerotier:
+  zt-central-url: https://my.zerotier.com/api/
+  api-token: mMu3dvlzeMebAOTJ38YNTl5f7q3vbD2a
+  nwid: 0cccb752f73dbea6
