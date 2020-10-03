@@ -11,6 +11,7 @@ import {
   Modal,
   ModalBody,
   ModalHeader,
+  ModalFooter,
   Nav,
   Navbar,
   NavbarToggler,
@@ -46,6 +47,7 @@ import {
   setUpdatingPlanId,
 } from '../../../redux/ripples.actions'
 import ZerotierService from '../../../services/ZerotierUtils'
+import CopyToClipboard from 'react-copy-to-clipboard'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -89,11 +91,13 @@ interface StateType {
   isExecPlanDisabled: boolean
   isDescriptionModalOpen: boolean
   isEditPlanIdModalOpen: boolean
+  isZtModalOpen: boolean
   plansDropdownText: string
   isVehiclesDropdownOpen: boolean
   vehiclesDropdownText: string
   previousPlanId: string
   nodeId: string
+  ztCmd: string
 }
 
 class TopNav extends Component<PropsType, StateType> {
@@ -106,6 +110,7 @@ class TopNav extends Component<PropsType, StateType> {
     this.state = {
       isDescriptionModalOpen: false,
       isEditPlanIdModalOpen: false,
+      isZtModalOpen: false,
       isExecPlanDisabled: true,
       isNavOpen: true,
       isPlansDropdownOpen: false,
@@ -114,6 +119,7 @@ class TopNav extends Component<PropsType, StateType> {
       previousPlanId: '',
       vehiclesDropdownText: this.vehiclesDropdownDefaultText,
       nodeId: '',
+      ztCmd: '',
     }
 
     this.onNavToggle = this.onNavToggle.bind(this)
@@ -128,6 +134,8 @@ class TopNav extends Component<PropsType, StateType> {
     this.toggleDescriptionModal = this.toggleDescriptionModal.bind(this)
     this.toggleEditPlanIdModal = this.toggleEditPlanIdModal.bind(this)
     this.buildEditDescriptionModal = this.buildEditDescriptionModal.bind(this)
+    this.buildZerotierModal = this.buildZerotierModal.bind(this)
+    this.toggleZtModal = this.toggleZtModal.bind(this)
     this.updatePlanDescription = this.updatePlanDescription.bind(this)
     this.onDeletePlan = this.onDeletePlan.bind(this)
     this.onMeasureToggle = this.onMeasureToggle.bind(this)
@@ -172,6 +180,10 @@ class TopNav extends Component<PropsType, StateType> {
     }
     this.props.setUpdatingPlanId(isOpen)
     this.setState({ isEditPlanIdModalOpen: isOpen })
+  }
+
+  public toggleZtModal() {
+    this.setState({ isZtModalOpen: !this.state.isZtModalOpen })
   }
 
   public togglePlansDropdown() {
@@ -445,23 +457,52 @@ class TopNav extends Component<PropsType, StateType> {
 
   public buildZerotierSelector() {
     return (
-      <UncontrolledDropdown id="tooltip-zt" nav={true} className="mr-4 active">
-        <DropdownToggle nav={true} caret={false}>
-          <i className={'fas fa-network-wired fa-lg'} title="Join Ripples Zerotier Network" />
-        </DropdownToggle>
-        <DropdownMenu right={true}>
-          <InputGroup>
-            <Input
-              placeholder="Node address"
-              onChange={(evt) => this.setState({ nodeId: evt.target.value })}
-              value={this.state.nodeId}
-              type="text"
-              required={true}
-            />
-          </InputGroup>
-          <Button onClick={this.onNodeIdSubmission}>Add node</Button>
-        </DropdownMenu>
-      </UncontrolledDropdown>
+      <>
+        <UncontrolledDropdown id="tooltip-zt" nav={true} className="mr-4 active">
+          <DropdownToggle nav={true} caret={false}>
+            <i className={'fas fa-network-wired fa-lg'} title="Join Ripples Zerotier Network" />
+          </DropdownToggle>
+          <DropdownMenu right={true}>
+            <InputGroup>
+              <Input
+                name="node_address"
+                placeholder="Node address"
+                onChange={(evt) => this.setState({ nodeId: evt.target.value })}
+                value={this.state.nodeId}
+                type="text"
+                required={true}
+              />
+            </InputGroup>
+            <Button onClick={this.onNodeIdSubmission}>Add node</Button>
+          </DropdownMenu>
+        </UncontrolledDropdown>
+        {this.buildZerotierModal()}
+      </>
+    )
+  }
+
+  public onCmdCopy() {
+    NotificationManager.success('Command copied to clipboard!')
+    this.toggleZtModal()
+  }
+
+  public buildZerotierModal() {
+    const { ztCmd } = this.state
+    return (
+      <Modal key={'zt_modal'} isOpen={this.state.isZtModalOpen} toggle={this.toggleZtModal}>
+        <ModalHeader toggle={this.toggleZtModal}>Connect to the Ripples ZeroTier network</ModalHeader>
+        <ModalBody>
+          <code>$ {ztCmd}</code>
+        </ModalBody>
+        <ModalFooter>
+          <CopyToClipboard text={ztCmd} onCopy={() => this.onCmdCopy()}>
+            <Button color="primary">Copy command</Button>
+          </CopyToClipboard>
+          <Button color="secondary" onClick={this.toggleZtModal}>
+            Close
+          </Button>
+        </ModalFooter>
+      </Modal>
     )
   }
 
@@ -472,7 +513,13 @@ class TopNav extends Component<PropsType, StateType> {
       return
     }
     const { status, message } = await this.ztService.joinNetwork(nodeId)
-    status === 'Success' ? NotificationManager.success(message) : NotificationManager.error(message)
+    if (status === 'Success') {
+      NotificationManager.success('Node added successfully to the Ripples Zerotier network!')
+      this.setState({ isZtModalOpen: true, ztCmd: message })
+    } else {
+      NotificationManager.error(message)
+      this.setState({ isZtModalOpen: false })
+    }
     this.setState({ nodeId: '' })
   }
 

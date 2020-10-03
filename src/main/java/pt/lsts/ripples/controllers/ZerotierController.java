@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Value;
 
 import pt.lsts.ripples.util.HTTPResponse;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,9 @@ public class ZerotierController {
     @Autowired
     private ZerotierService ztService;
 
+    @Value("${zerotier.nwid}")
+	private String nwid;
+
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
     @GetMapping(path = { "/zt/member/{nodeId}", "/zt/member/{nodeId}/" }, produces = "application/json")
     public ResponseEntity<HTTPResponse> addMember(@CurrentUser UserPrincipal user,
@@ -28,10 +32,10 @@ public class ZerotierController {
         Boolean success = ztService.joinNetwork(nodeId, user.getName(), user.getEmail());
         String msg;
         if (success) {
-            msg = "Node " + nodeId + " joined Ripples Zerotier network!";
+            msg = "zerotier-cli join " + nwid;
             return new ResponseEntity<>(new HTTPResponse("Success", msg), HttpStatus.OK);
         } else {
-            msg = "An error occurred while adding node " + nodeId + " to Ripples Zerotier network";
+            msg = "An error occurred while adding node " + nodeId + " to the Ripples Zerotier network";
             return new ResponseEntity<>(new HTTPResponse("Error", msg), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
