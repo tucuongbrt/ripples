@@ -130,6 +130,8 @@ class Ripples extends Component<PropsType, StateType> {
     this.handleWsUserLocation = this.handleWsUserLocation.bind(this)
     this.handleWsVehicleParams = this.handleWsVehicleParams.bind(this)
     this.onSettingsClick = this.onSettingsClick.bind(this)
+
+    // this.handleWsAISRealTimeUpdate = this.handleWsAISRealTimeUpdate.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -156,6 +158,7 @@ class Ripples extends Component<PropsType, StateType> {
       this.handleWsAnnotationUpdate,
       this.handleWsUserLocation,
       this.handleWsVehicleParams
+      // this.handleWsAISRealTimeUpdate
     )
     this.setState({ myMaps })
     this.setState({ loading: false })
@@ -173,9 +176,21 @@ class Ripples extends Component<PropsType, StateType> {
     if (m.body) {
       const aisShipPayload: IAisShip = JSON.parse(m.body)
       const aisShip = this.aisService.convertAISToRipples(aisShipPayload)
-      this.props.updateAIS(aisShip)
+      // this.props.updateAIS(aisShip)
+      console.log(aisShip)
     }
   }
+
+  /*
+  public handleWsAISRealTimeUpdate(m: Message) {
+    if (m.body) {
+      const aisShipPayload: IAisShip = JSON.parse(m.body)
+      const aisShip = this.aisService.convertAISToRipples(aisShipPayload)
+      this.props.updateAIS(aisShip)
+      console.log(aisShip)
+    }
+  }
+  */
 
   public handleWsAssetUpdate(m: Message) {
     if (m.body) {

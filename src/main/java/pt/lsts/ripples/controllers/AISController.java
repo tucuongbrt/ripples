@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import pt.lsts.ripples.domain.shared.AISShip;
 import pt.lsts.ripples.repo.main.AISRepository;
@@ -22,7 +23,7 @@ import pt.lsts.ripples.services.AISHubFetcher;
 
 @RestController
 public class AISController {
-    
+
 	@Autowired
 	AISRepository repo;
 	
@@ -56,6 +57,8 @@ public class AISController {
 		AISShip newAISShip = filterNewAISShip(aisShip);
 		repo.save(newAISShip);
 		wsController.sendAISUpdateFromServerToClient(newAISShip);
+		//send to Neptus
+
 		return new ResponseEntity<>("Success, a ship has been updated", HttpStatus.OK);
 	}
 	
@@ -71,4 +74,23 @@ public class AISController {
 		}
 		return newAISShip;
 	}
+
+	/*
+	@PostMapping(path = { "/ais/realTime", "/ais/realTime/" }, consumes="application/json", produces ="text/plain")
+	public ResponseEntity<String> updateAISRealTime(@RequestBody AISShip aisShip) {
+		AISShip newAISShip = filterNewAISShip(aisShip);
+		repo.save(newAISShip);
+		//wsController.sendAISUpdateFromServerToClient(newAISShip);
+		wsController.sendAISRealTimeUpdateFromServerToClient(newAISShip);
+		return new ResponseEntity<>("Success, a ship has been updated", HttpStatus.OK);
+	}
+	*/
+	
+	@DeleteMapping(path = {"/ais" , "/ais/"} )
+	public ResponseEntity<String> deleteShip(){
+		repo.deleteById(204261999);
+		return new ResponseEntity<>("Success, a ship has been removed", HttpStatus.OK);
+	}
+
+
 }

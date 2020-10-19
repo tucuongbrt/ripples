@@ -42,5 +42,10 @@ public class WebSocketsController {
 
 	public void sendAssetParamsUpdateFromServerToClients(AssetParams params) {
         this.template.convertAndSend("/topic/assets/params", params);
-	}
+    }
+/*
+    public void sendAISRealTimeUpdateFromServerToClient(AISShip aisShip){
+        this.template.convertAndSend("/topic/ais/realTime" , aisShip); 
+    }
+*/
 }
