@@ -82,15 +82,7 @@ dependencies {
 
 	implementation 'com.github.zepinto.imc4j:core:1.0.5'
 
-
 }
-
-/*
-configurations.all {
-	exclude group: "org.slf4j", module: "sl4f4j-log4j12"
-}
-*/
-
 
 configurations {
 	all*.exclude module : 'logback-classic'

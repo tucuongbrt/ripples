@@ -35,7 +35,7 @@ class RotatedMarker extends MapLayer {
       }
     }
     if (toProps.rotationAngle !== fromProps.rotationAngle) {
-      //this.leafletElement.setRotationAngle(toProps.rotationAngle);
+      this.leafletElement.setRotationAngle(toProps.rotationAngle);
     }
     if (toProps.rotationOrigin !== fromProps.rotationOrigin) {
       this.leafletElement.setRotationOrigin(toProps.rotationOrigin);
