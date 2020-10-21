@@ -45,19 +45,19 @@ public class AisFetcherService {
     @Autowired
 	WebSocketsController wsController;
 
-    @Value("${udp.port}")
+    @Value("${udp.port: 5100}")
     private int port; 
 
     @PostConstruct
     public void init() throws IOException {
-        logger.info("Started UPD listener on port: " + port);
+        logger.info("Started UDP listener on port: " + port);
 
-        UdpListenner client = new UdpListenner();
+        UDPListener client = new UDPListener();
         ExecutorService exec = Executors.newFixedThreadPool(1);
         exec.submit(client);
     }
 
-    public class UdpListenner implements Runnable {
+    public class UDPListener implements Runnable {
         @Override
         public void run() {
             try (DatagramSocket socket = new DatagramSocket(port)) {
@@ -74,8 +74,6 @@ public class AisFetcherService {
     }
 
     public void onDataReceived(DatagramPacket packet) throws IOException {
-        String data = new String(packet.getData(), 0, packet.getLength());
-        logger.info(String.format("UDP packet received: %s", data));
 
         out.write(packet.getData(), 0, packet.getLength());
 

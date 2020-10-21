@@ -22,7 +22,6 @@ public class WebSocketsController {
         this.template = template;
     }
 
-	// the business logic can call this to update all connected clients
     public void sendAssetUpdateFromServerToClients(Asset asset) {
         this.template.convertAndSend("/topic/asset", asset);
     }
