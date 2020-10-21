@@ -22,7 +22,7 @@ import pt.lsts.ripples.services.AISHubFetcher;
 
 @RestController
 public class AISController {
-    
+
 	@Autowired
 	AISRepository repo;
 	

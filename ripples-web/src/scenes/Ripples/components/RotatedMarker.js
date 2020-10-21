@@ -1,7 +1,7 @@
-import React from 'react'
-import { Marker as LeafletMarker } from 'leaflet'
-import { LeafletProvider, withLeaflet, MapLayer } from 'react-leaflet'
-import 'leaflet-rotatedmarker'
+import React from 'react';
+import { Marker as LeafletMarker } from 'leaflet';
+import { LeafletProvider, withLeaflet, MapLayer } from 'react-leaflet';
+import 'leaflet-rotatedmarker';
 
 class RotatedMarker extends MapLayer {
   static defaultProps = {

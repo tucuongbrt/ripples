@@ -60,15 +60,20 @@ dependencies {
 	compile group: "com.twilio.sdk", name: "twilio", version: "7.40.1"
 
 	compile group: 'org.json', name: 'json', version: '20190722'
-
+	
 	compile files('libs/libimc.jar','libs/ais-contact-manager-1.0.jar')
+
+	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+
+	implementation 'dk.tbsalling:aisutils:1.0.0'
+	implementation 'dk.tbsalling:aismessages:2.2.3'
 
 	if (project.hasProperty('mariadb')) {
 		compile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.4.4'
 	} else {
 		runtime('com.h2database:h2')
 	}
-
+	
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('org.springframework.security:spring-security-test')
 	implementation 'com.squareup.retrofit2:retrofit:2.5.0'
@@ -78,3 +83,13 @@ dependencies {
 	implementation 'com.github.zepinto.imc4j:core:1.0.5'
 
 }
+
+configurations {
+	all*.exclude module : 'logback-classic'
+    all*.exclude module : 'spring-boot-starter-logging'
+}
+
+
+
+
+
