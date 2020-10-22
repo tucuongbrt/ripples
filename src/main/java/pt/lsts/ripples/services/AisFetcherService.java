@@ -38,15 +38,14 @@ public class AisFetcherService {
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();;
 
-
     @Autowired
     AISRepository repo;
-    
+
     @Autowired
-	WebSocketsController wsController;
+    WebSocketsController wsController;
 
     @Value("${udp.port: 5100}")
-    private int port; 
+    private int port;
 
     @PostConstruct
     public void init() throws IOException {
@@ -77,7 +76,7 @@ public class AisFetcherService {
 
         out.write(packet.getData(), 0, packet.getLength());
 
-        if(tracker == null){
+        if (tracker == null) {
             tracker = new AISTracker();
             tracker.registerSubscriber(this);
         }
@@ -89,13 +88,12 @@ public class AisFetcherService {
     public void handleEvent(AisTrackDynamicsUpdatedEvent event) {
         sendData(event.getAisTrack());
     }
-    
+
     private synchronized void sendData(AISTrack track) {
         if (track.getShipName() == null)
             return;
 
-        AISShip ship = new AISShip();
-        ship.setMmsi((int)track.getMmsi());
+        AISShip ship = AISShip.getDefault((int) track.getMmsi()) ;
         ship.setName(track.getShipName());
         ship.setType(track.getShipType().getCode());
         ship.setLatitudeDegs(track.getLatitude().doubleValue());
@@ -109,32 +107,35 @@ public class AisFetcherService {
         ship.setPort(track.getToPort().doubleValue());
         ship.setStern(track.getToStern().doubleValue());
 
-        if( coordsValid(ship.getLatitudeDegs(),ship.getLongitudeDegs()) ) {
-            AISShip newAISShip = filterNewAISShip(ship);
-            repo.save(newAISShip);
-            wsController.sendAISUpdateFromServerToClient(newAISShip);
-            logger.info("Sent " + newAISShip.toString());
+        if (coordsValid(ship.getLatitudeDegs(), ship.getLongitudeDegs())) {
+            try {
+                AISShip newAISShip = filterNewAISShip(ship);
+                repo.save(newAISShip);
+                wsController.sendAISUpdateFromServerToClient(newAISShip);
+                logger.info("Sent " + newAISShip.toString());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            logger.warn("Received invalid ship coordinates [" + ship.getLatitudeDegs() + "," + ship.getLongitudeDegs() + "]");
         }
     }
 
-
     private boolean coordsValid(double latitude, double longitude) {
-		return Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
-	}
+        return Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180;
+    }
 
-    
     private AISShip filterNewAISShip(AISShip aisShip) {
-		AISShip newAISShip = null;
-		Optional<AISShip> optAIS = repo.findById(aisShip.getMmsi());
-		if (optAIS.isPresent()) {
-			if (optAIS.get().getTimestamp().before(aisShip.getTimestamp())) {
-				newAISShip = aisShip;
-			}
-		} else {
-			newAISShip = aisShip;
-		}
-		return newAISShip;
-	}
-
+        AISShip newAISShip = null;
+        Optional<AISShip> optAIS = repo.findById(aisShip.getMmsi());
+        if (optAIS.isPresent()) {
+            if (optAIS.get().getTimestamp().before(aisShip.getTimestamp())) {
+                newAISShip = aisShip;
+            }
+        } else {
+            newAISShip = aisShip;
+        }
+        return newAISShip;
+    }
 
 }
