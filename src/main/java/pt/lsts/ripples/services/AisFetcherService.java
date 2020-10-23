@@ -36,7 +36,7 @@ public class AisFetcherService {
 
     StringBuilder inputMessages = new StringBuilder();
 
-    ByteArrayOutputStream out = new ByteArrayOutputStream();;
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
 
     @Autowired
     AISRepository repo;
@@ -46,6 +46,9 @@ public class AisFetcherService {
 
     @Value("${udp.port: 5100}")
     private int port;
+
+    @Value("${udp.delay: 1}")
+    private int minute;
 
     @PostConstruct
     public void init() throws IOException {
@@ -72,11 +75,11 @@ public class AisFetcherService {
         }
     }
 
-    public void onDataReceived(DatagramPacket packet) throws IOException {
+    public void onDataReceived(DatagramPacket packet) throws IOException, InterruptedException {
 
         out.write(packet.getData(), 0, packet.getLength());
 
-        if (tracker == null) {
+        if(tracker == null){
             tracker = new AISTracker();
             tracker.registerSubscriber(this);
         }
@@ -86,13 +89,16 @@ public class AisFetcherService {
 
     @Subscribe
     public void handleEvent(AisTrackDynamicsUpdatedEvent event) {
-        sendData(event.getAisTrack());
+        try {
+            sendData(event.getAisTrack());
+        } catch (Exception e) {
+        }       
     }
 
     private synchronized void sendData(AISTrack track) {
         if (track.getShipName() == null)
             return;
-
+        
         AISShip ship = AISShip.getDefault((int) track.getMmsi()) ;
         ship.setName(track.getShipName());
         ship.setType(track.getShipType().getCode());
@@ -110,9 +116,11 @@ public class AisFetcherService {
         if (coordsValid(ship.getLatitudeDegs(), ship.getLongitudeDegs())) {
             try {
                 AISShip newAISShip = filterNewAISShip(ship);
-                repo.save(newAISShip);
-                wsController.sendAISUpdateFromServerToClient(newAISShip);
-                logger.info("Sent " + newAISShip.toString());
+                if(newAISShip != null){
+                    repo.save(newAISShip);
+                    wsController.sendAISUpdateFromServerToClient(newAISShip);
+                    logger.info("Sent " + newAISShip.toString());
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -128,8 +136,12 @@ public class AisFetcherService {
     private AISShip filterNewAISShip(AISShip aisShip) {
         AISShip newAISShip = null;
         Optional<AISShip> optAIS = repo.findById(aisShip.getMmsi());
-        if (optAIS.isPresent()) {
-            if (optAIS.get().getTimestamp().before(aisShip.getTimestamp())) {
+        if(optAIS.isPresent()){
+            
+            if ( optAIS.get().getTimestamp().getTime() < (aisShip.getTimestamp().getTime() - minute*60*1000)
+                    && Double.compare(aisShip.getLatitudeDegs(), optAIS.get().getLatitudeDegs()) != 0 
+                        && Double.compare(aisShip.getLongitudeDegs(), optAIS.get().getLongitudeDegs()) != 0 ) {
+
                 newAISShip = aisShip;
             }
         } else {
