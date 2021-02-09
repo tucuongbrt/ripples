@@ -6,6 +6,7 @@ application_sv.yml
 spreadsheet-credentials.json
 rock7accounts.tsv
 src/main/resources/public/
+log/
 
 ### STS ###
 .apt_generated
