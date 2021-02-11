@@ -21,13 +21,18 @@
     "add": "^2.0.6",
     "bootstrap": "^4.5.0",
     "chart.js": "^2.9.3",
+    "eslint": "6.6.0",
     "geolib": "^3.3.1",
     "html-react-parser": "^0.13.0",
+    "jquery": "^3.5.1",
     "leaflet": "^1.6.0",
     "leaflet-draw": "^1.0.4",
+    "leaflet-fullscreen": "^1.0.2",
     "leaflet-rotatedmarker": "^0.2.0",
     "mobile-detect": "^1.4.4",
     "moment": "^2.27.0",
+    "popper.js": "^1.16.1",
+    "prop-types": "15.6.2",
     "ramda": "^0.27.0",
     "react": "^16.13.1",
     "react-copy-to-clipboard": "^5.0.2",
@@ -85,5 +90,8 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-plugin-prettier": "^2.3.0",
     "tslint-react": "^5.0.0"
+  },
+  "resolutions": {
+    "react-leaflet-fullscreen-control/react-leaflet": "1.9.1"
   }
 }
