@@ -2,7 +2,7 @@
 
 ## How to run ripples server locally:
 1. Install JDK 8+
-2. Run: ./gradlew bootRun
+2. Run: ./gradlew build bootRun
 
 ## How to run ripples web client locally:
 1. Install [yarn](https://yarnpkg.com/lang/en/docs/install)
