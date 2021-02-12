@@ -280,7 +280,8 @@ class Ripples extends Component<PropsType, StateType> {
       }
       const soiData = await soiPromise
 
-      const { vehicles, spots, ccus } = soiData
+      const vehicles = soiData.vehicles
+
       /* Temporarily deactivated
       await this.soiService.fetchSoiSettings([vehicles, spots, ccus])
       */
