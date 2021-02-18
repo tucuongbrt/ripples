@@ -11,9 +11,9 @@ import pt.lsts.ripples.config.AppProperties;
 @ServletComponentScan
 @EnableScheduling
 @EnableConfigurationProperties(AppProperties.class)
-public class WgviewerApplication {
+public class RipplesMain {
 
 	public static void main(String[] args) {
-		SpringApplication.run(WgviewerApplication.class, args);		
+		SpringApplication.run(RipplesMain.class, args);		
 	}
 }
