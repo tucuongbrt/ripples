@@ -1,5 +1,6 @@
 package pt.lsts.ripples.domain.security;
 
 public enum AuthProvider {
-    google
+    google,
+    github
 }

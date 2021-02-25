@@ -59,13 +59,13 @@ public class GeoServerController {
         });
     }
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @GetMapping(path = { "/geoserver", "/geoserver/" }, produces = "application/json")
     public @ResponseBody String fetchGeoServerAddr() {
         return "{\"url\":\"" + geoServerUrl + "\"}";
     }
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @GetMapping(path = { "/geolayers", "/geolayers/" }, produces = "application/json")
     public List<GeoLayer> fetchGeoLayersNames() {
         List<GeoLayer> layers = new ArrayList<GeoLayer>();

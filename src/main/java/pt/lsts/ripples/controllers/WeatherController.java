@@ -34,7 +34,7 @@ public class WeatherController {
 
 	private String url = "https://api.stormglass.io/v1/weather/point?";
 
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@GetMapping(path = { "/weather", "/weather/" }, produces = "application/json")
 	public List<WeatherStatus> fetchWeather(@RequestParam(required = true) Double lat,
 			@RequestParam(required = true) Double lng, @RequestParam(required = false) String params) {

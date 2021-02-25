@@ -155,7 +155,7 @@ public class SoiController {
 	/**
 	 * Use to assign and send(via rockblock) a new plan to a vehicle
 	 */
-	@PreAuthorize("hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@PostMapping(path = { "/soi/plan", "/soi/plan/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updatePlan(@RequestBody NewPlanBody message)
 			throws SendSoiCommandException, AssetNotFoundException {
@@ -190,7 +190,7 @@ public class SoiController {
 	 * @return
 	 * @throws SendSoiCommandException
 	 */
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@PostMapping(path = { "/soi/unassigned/plans",
 			"/soi/unassigned/plans/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> addUnassignedPlan(@RequestBody NewPlanBody message)
@@ -211,7 +211,7 @@ public class SoiController {
 		}
 	}
 
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.GET)
 	public List<Plan> getUnassignedPlans() {
 		ArrayList<Plan> plans = new ArrayList<>();
@@ -219,7 +219,7 @@ public class SoiController {
 		return plans;
 	}
 
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteUnassignedPlan(@RequestBody EntityWithId body) {
 
@@ -234,7 +234,7 @@ public class SoiController {
 		}
 	}
 
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans/id", "/soi/unassigned/plans/id/" }, method = RequestMethod.PATCH)
 	public ResponseEntity<HTTPResponse> updatePlanId(@RequestBody UpdateId body) {
 
@@ -264,7 +264,7 @@ public class SoiController {
 		return String.join("\n", messages);
 	}
 
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/assets/{imcId}/settings",
 			"/soi/assets/{imcId}/settings" }, method = RequestMethod.GET)
 	public ResponseEntity<HTTPResponse> fetchSoiSettings(@PathVariable int imcId)
@@ -286,7 +286,7 @@ public class SoiController {
 		throw new AssetNotFoundException("Asset of imcId " + imcId + " not found");
 	}
 
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/assets/{imcId}/settings",
 			"/soi/assets/{imcId}/settings" }, method = RequestMethod.POST)
 	public ResponseEntity<HTTPResponse> updateSoiSettings(@PathVariable int imcId,
@@ -325,7 +325,7 @@ public class SoiController {
 		return errors;
 	}
 
-	@PreAuthorize("hasRole('OPERATOR')")
+	@PreAuthorize("hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@Transactional
 	@RequestMapping(path = { "/soi/errors/{name}" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteAssetErrors(@PathVariable("name") String assetName) {

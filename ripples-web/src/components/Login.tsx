@@ -11,6 +11,11 @@ const GOOGLE_AUTH_URL =
   '/oauth2/authorize/google?redirect_uri=' +
   process.env.REACT_APP_OAUTH2_REDIRECT_URI
 
+const GITHUB_AUTH_URL =
+  process.env.REACT_APP_API_BASE_URL +
+  '/oauth2/authorize/github?redirect_uri=' +
+  process.env.REACT_APP_OAUTH2_REDIRECT_URI
+
 interface PropsType {
   auth: IAuthState
   removeGeoLayers: () => void
@@ -26,6 +31,10 @@ class Login extends Component<PropsType, {}> {
 
   public handleLoginClick() {
     window.location.href = GOOGLE_AUTH_URL
+  }
+
+  public handleLoginClickGithub() {
+    window.location.href = GITHUB_AUTH_URL
   }
 
   public handleLogout() {
@@ -44,9 +53,15 @@ class Login extends Component<PropsType, {}> {
       )
     } else {
       return (
-        <Button className="m-1" color="info" size="sm" onClick={this.handleLoginClick}>
-          Log in with Google
-        </Button>
+        <div id="login-btns">
+          <span className="login-title">Login with</span>
+          <Button className="m-1" color="info" size="sm" onClick={this.handleLoginClick}>
+            <i title="Gmail" className="fab fa-google fa-lg" />
+          </Button>
+          <Button className="m-1" color="info" size="sm" onClick={this.handleLoginClickGithub}>
+            <i title="GitHub" className="fab fa-github fa-lg" />
+          </Button>
+        </div>
       )
     }
   }

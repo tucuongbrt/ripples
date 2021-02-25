@@ -63,3 +63,16 @@ html, body {
 i:hover {
     color: #0000CD;
 }
+
+.fa-map-pin{
+    padding-top: 10px;
+}
+
+#login-btns {
+    text-align: center;
+}
+
+.login-title{
+    display: block;
+    font-size: small;
+}

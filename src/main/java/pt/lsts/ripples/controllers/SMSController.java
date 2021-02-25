@@ -19,7 +19,7 @@ public class SMSController {
     @Autowired
     SMSSubscriptionsRepository smsRepo;
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @RequestMapping(path = { "/sms/subscribe", "/sms/subscribe/" }, method = RequestMethod.POST)
     public ResponseEntity<HTTPResponse> createSMSSubscription(@RequestBody SMSSubscription subscription) {
         smsRepo.save(subscription);
