@@ -1,7 +1,12 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import { Button, Container, Form, FormGroup, Input, Label, Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
+import IAuthState, { IUser } from '../../model/IAuthState'
+import IRipplesState from '../../model/IRipplesState'
 import KMLService from '../../services/KMLService'
+import { setUser } from '../../redux/ripples.actions'
+import { getCurrentUser } from '../../services/UserUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -15,7 +20,12 @@ interface IMap {
   name: string
 }
 
-export default class KMLManager extends Component<{}, StateType> {
+interface PropsType {
+  setUser: (user: IUser) => any
+  auth: IAuthState
+}
+
+export class KMLManager extends Component<PropsType, StateType> {
   private kmlService: KMLService = new KMLService()
   public constructor(props: any) {
     super(props)
@@ -25,9 +35,20 @@ export default class KMLManager extends Component<{}, StateType> {
       maps: [],
     }
     this.onAddMap = this.onAddMap.bind(this)
+    this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
+  }
+
+  public async loadCurrentlyLoggedInUser() {
+    try {
+      const user: IUser = await getCurrentUser()
+      this.props.setUser(user)
+    } catch (error) {
+      localStorage.removeItem('ACCESS_TOKEN')
+    }
   }
 
   public async componentWillMount() {
+    await this.loadCurrentlyLoggedInUser()
     await this.updateMaps()
   }
 
@@ -137,3 +158,15 @@ export default class KMLManager extends Component<{}, StateType> {
     }
   }
 }
+
+function mapStateToProps(state: IRipplesState) {
+  return {
+    auth: state.auth,
+  }
+}
+
+const actionCreators = {
+  setUser,
+}
+
+export default connect(mapStateToProps, actionCreators)(KMLManager)

@@ -22,7 +22,7 @@ import {
 import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
 import IAsset from '../../../model/IAsset'
-import IAuthState, { isOperator, isScientist } from '../../../model/IAuthState'
+import IAuthState, { isAdministrator, isCasual, isOperator, isScientist } from '../../../model/IAuthState'
 import ILatLng from '../../../model/ILatLng'
 import IPlan, { getPlanKey, EmptyPlan } from '../../../model/IPlan'
 import IRipplesState from '../../../model/IRipplesState'
@@ -364,7 +364,7 @@ class TopNav extends Component<PropsType, StateType> {
   }
 
   public buildPlanEditToolbar() {
-    if (isScientist(this.props.auth)) {
+    if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
       return (
         <>
           <Dropdown
@@ -419,7 +419,7 @@ class TopNav extends Component<PropsType, StateType> {
             title="Enable Gps Tracking"
           />
         </NavItem>
-        {this.props.auth.authenticated && this.buildZerotierSelector()}
+        {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildZerotierSelector()}
       </>
     )
   }

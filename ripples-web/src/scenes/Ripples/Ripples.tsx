@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
-import UserState, { isCasual, isScientist, IUser, IUserLocation } from '../../model/IAuthState'
+import UserState, { isAdministrator, isCasual, isScientist, IUser, IUserLocation } from '../../model/IAuthState'
 import IGeoLayer from '../../model/IGeoLayer'
 import IMyMap from '../../model/IMyMap'
 import IOverlayInfo from '../../model/IOverlayInfo'
@@ -279,7 +279,7 @@ class Ripples extends Component<PropsType, StateType> {
       const profilesPromise = this.soiService.fetchProfileData()
       const awarenessPromise = this.soiService.fetchAwareness()
       let unassignedPlansPromise
-      if (isScientist(this.props.auth)) {
+      if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
         unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
       }
       const soiData = await soiPromise

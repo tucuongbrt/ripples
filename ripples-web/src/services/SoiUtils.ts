@@ -1,7 +1,7 @@
 import { AssetError, AssetErrors } from '../model/AssetErrors'
 import IAsset, { EmptyAsset, IAssetPayload } from '../model/IAsset'
 import IAssetAwareness from '../model/IAssetAwareness'
-import IAuthState, { isScientist } from '../model/IAuthState'
+import IAuthState, { isAdministrator, isScientist } from '../model/IAuthState'
 import IPlan from '../model/IPlan'
 import IPositionAtTime from '../model/IPositionAtTime'
 import { IPotentialCollision, IPotentialCollisionPayload } from '../model/IPotentialCollision'
@@ -16,7 +16,7 @@ export default class SoiService {
   }
 
   public async mergeAssetSettings(vehicles: IAsset[], authState: IAuthState) {
-    if (isScientist(authState)) {
+    if (isScientist(authState) || isAdministrator(authState)) {
       const settingsPromise = this.fetchAssetsSettings()
       const assetSettings = await settingsPromise
       assetSettings.forEach((entry) => {
