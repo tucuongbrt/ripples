@@ -24,10 +24,12 @@ public class CookieUtils {
     }
 
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
-        Cookie cookie = new Cookie(name, value);
+        
+        Cookie cookie = new Cookie(removeSpecialChars(name), removeSpecialChars(value));
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(maxAge);
+        cookie.setSecure(true);
         response.addCookie(cookie);
     }
 
@@ -39,11 +41,16 @@ public class CookieUtils {
                     cookie.setValue("");
                     cookie.setPath("/");
                     cookie.setMaxAge(0);
+                    cookie.setSecure(true);
                     response.addCookie(cookie);
                 }
             }
         }
     }
+
+    private static String removeSpecialChars(String str) {
+		return str.replaceAll("[^a-zA-Z ]", "");
+	}
 
     public static String serialize(Object object) {
         return Base64.getUrlEncoder()

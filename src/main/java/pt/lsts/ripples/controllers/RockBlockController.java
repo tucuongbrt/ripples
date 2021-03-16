@@ -137,9 +137,9 @@ public class RockBlockController {
 			m.setPlainText(msg.getMessageType() == -1);
 		} catch (Exception e) {
 		    e.printStackTrace();
-			logger.warn("Unable to parse message data:" + e.getMessage());
+			logger.warn("Unable to parse message data:" + e.getMessage());			
 			return new ResponseEntity<String>(
-					"Unable to parse message data:" + e.getMessage(),
+					"Unable to parse message data",
 					HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
