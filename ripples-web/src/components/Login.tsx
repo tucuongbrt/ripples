@@ -45,11 +45,19 @@ class Login extends Component<PropsType, {}> {
   }
 
   public render() {
+    let userRole: JSX.Element = <></>
+    if (window.location.pathname.includes('/user/manager')) {
+      userRole = <span id="userRole">Role: {this.props.auth.currentUser.role}</span>
+    }
+
     if (this.props.auth.authenticated) {
       return (
-        <Button className="m-1" color="info" size="sm" onClick={() => this.handleLogout()}>
-          Logout
-        </Button>
+        <>
+          {userRole}
+          <Button className="m-1" color="info" size="sm" onClick={() => this.handleLogout()}>
+            Logout
+          </Button>
+        </>
       )
     } else {
       return (

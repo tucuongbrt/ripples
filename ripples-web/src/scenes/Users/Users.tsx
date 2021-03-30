@@ -53,11 +53,11 @@ export class Users extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     this.setState({ loading: false })
-    this.timerID = window.setInterval(this.getUsers, 60000)
     if (!(this.props.auth.authenticated && isAdministrator(this.props.auth))) {
       NotificationManager.error('Only available for administrators')
     } else {
       this.getUsers()
+      this.timerID = window.setInterval(this.getUsers, 60000)
     }
   }
 

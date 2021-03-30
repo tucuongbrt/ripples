@@ -76,3 +76,11 @@ i:hover {
     display: block;
     font-size: small;
 }
+
+#userRole {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    font-size: medium;
+    font-weight: normal;
+}    
