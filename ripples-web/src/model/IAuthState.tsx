@@ -1,5 +1,7 @@
 const OPERATOR = 'operator'
 const SCIENTIST = 'scientist'
+const ADMINISTRATOR = 'administrator'
+const CASUAL = 'casual'
 
 export default interface IAuthState {
   authenticated: boolean
@@ -15,6 +17,14 @@ export function isScientist(auth: IAuthState) {
 
 export function isOperator(auth: IAuthState) {
   return auth.authenticated && auth.currentUser.role.toLowerCase() === OPERATOR
+}
+
+export function isAdministrator(auth: IAuthState) {
+  return auth.authenticated && auth.currentUser.role.toLowerCase() === ADMINISTRATOR
+}
+
+export function isCasual(auth: IAuthState) {
+  return auth.authenticated && auth.currentUser.role.toLowerCase() === CASUAL
 }
 
 export interface IUser {

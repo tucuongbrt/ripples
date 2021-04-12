@@ -83,21 +83,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
                 .cors()
-                .and()
+                    .and()
                 .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .and()
                 .csrf()
-                .disable()
+                    .disable()
                 .formLogin()
-                .disable()
+                    .disable()
                 .httpBasic()
-                .disable()
+                    .disable()
                 .exceptionHandling()
-                .authenticationEntryPoint(new RestAuthenticationEntryPoint())
-                .and()
+                    .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                    .and()
                 .authorizeRequests()
-                .antMatchers(
+                    .antMatchers(
                         "/favicon.ico",
                         "/**/*.png",
                         "/**/*.gif",
@@ -108,46 +108,46 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/**/*.js",
                         "/**/*.js.map",
                         "/**/*.woff")
-                .permitAll()
-                .antMatchers("/auth/**", "/oauth2/**")
-                .permitAll()
-                .antMatchers(
-                    "/ais/**",
-                    "/soi/**",
-                    "/assets/**",
-                    "/asset/**",
-                    "/assetInfo",
-                    "/api/**", 
-                    "/rock7", 
-                    "/addresses/**",
-                    "/sms/**",
-                    "/data/**", 
-                    "/kml/**", 
-                    "/geolayers/**", 
-                    "/positions/**", 
-                    "/plot/**", 
-                    "/imc/**", 
-                    "/ws/**",
-                    "/coral/**")
-                .permitAll()
-                .antMatchers("/", "/ripples", "/soirisk", "/messages/text")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and()
+                        .permitAll()
+                    .antMatchers("/auth/**", "/oauth2/**")
+                        .permitAll()
+                    .antMatchers(
+                        "/ais/**",
+                        "/soi/**",
+                        "/assets/**",
+                        "/asset/**",
+                        "/assetInfo",
+                        "/api/**", 
+                        "/rock7", 
+                        "/addresses/**",
+                        "/sms/**",
+                        "/data/**", 
+                        "/kml/**", 
+                        "/geolayers/**", 
+                        "/positions/**", 
+                        "/plot/**", 
+                        "/imc/**", 
+                        "/ws/**",
+                        "/coral/**")
+                        .permitAll()
+                    .antMatchers("/", "/ripples", "/soirisk", "/messages/text", "/user/manager")
+                        .permitAll()
+                    .anyRequest()
+                        .authenticated()
+                    .and()
                 .oauth2Login()
-                .authorizationEndpoint()
-                .baseUri("/oauth2/authorize")
-                .authorizationRequestRepository(cookieAuthorizationRequestRepository())
-                .and()
-                .redirectionEndpoint()
-                .baseUri("/oauth2/callback/*")
-                .and()
-                .userInfoEndpoint()
-                .userService(customOAuth2UserService)
-                .and()
-                .successHandler(oAuth2AuthenticationSuccessHandler)
-                .failureHandler(oAuth2AuthenticationFailureHandler);
+                    .authorizationEndpoint()
+                        .baseUri("/oauth2/authorize")
+                        .authorizationRequestRepository(cookieAuthorizationRequestRepository())
+                        .and()
+                    .redirectionEndpoint()
+                        .baseUri("/oauth2/callback/*")
+                        .and()
+                    .userInfoEndpoint()
+                        .userService(customOAuth2UserService)
+                        .and()
+                    .successHandler(oAuth2AuthenticationSuccessHandler)
+                    .failureHandler(oAuth2AuthenticationFailureHandler);
 
         // Add our custom Token based authentication filter
         http.addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

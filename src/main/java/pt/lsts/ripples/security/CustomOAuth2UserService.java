@@ -1,5 +1,8 @@
 package pt.lsts.ripples.security;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.AuthenticationException;
@@ -9,6 +12,8 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+
+import pt.lsts.ripples.domain.security.AuthProvider;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.exceptions.OAuth2AuthenticationProcessingException;
 import pt.lsts.ripples.repo.main.UserRepository;
@@ -19,6 +24,8 @@ import java.util.Optional;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -47,11 +54,37 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User user;
         if (userOptional.isPresent()) {
             user = userOptional.get();
+            if(!user.getProvider().equals(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()))) {
+                throw new OAuth2AuthenticationProcessingException("Looks like you're signed up with " +
+                        user.getProvider() + " account. Please use your " + user.getProvider() +
+                        " account to login.");
+            }
+            user = updateExistingUser(user, oAuth2UserInfo);
         } else {
-            throw new OAuth2AuthenticationProcessingException("Your account does not have permission to login");
+            user = registerNewUser(oAuth2UserRequest, oAuth2UserInfo);
         }
 
         return UserPrincipal.create(user, oAuth2User.getAttributes());
+    }
+
+
+    private User registerNewUser(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
+        User user = new User();
+
+        user.setName(oAuth2UserInfo.getName());
+        user.setEmail(oAuth2UserInfo.getEmail());
+        user.setRole("CASUAL");
+        user.setEmailVerified(false);
+        user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
+        user.setProviderId(oAuth2UserInfo.getId());  
+        logger.info("Added user: " + user.getEmail());
+        return userRepository.save(user);
+    }
+
+    private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
+        existingUser.setName(oAuth2UserInfo.getName());
+        logger.info("Updating user: " + oAuth2UserInfo.getEmail());
+        return userRepository.save(existingUser);
     }
 
 }

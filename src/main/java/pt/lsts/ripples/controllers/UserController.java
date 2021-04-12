@@ -1,5 +1,7 @@
 package pt.lsts.ripples.controllers;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +41,14 @@ public class UserController {
     private WebSocketsController wsController;
 
     @GetMapping("/user/me")
-    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR') or hasRole('CASUAL')")
     public User getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
         return userRepository.findById(userPrincipal.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userPrincipal.getId()));
     }
 
     @GetMapping(path = { "/users/location/", "/users/location/" }, produces = "application/json")
-    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     public UserLocation getUserLastLocation(@CurrentUser UserPrincipal user) {
         Optional<UserLocation> opt = userLocationRepository.findByEmail(user.getEmail());
         if (opt.isPresent()) {
@@ -57,7 +59,7 @@ public class UserController {
 
     @PostMapping(path = { "/users/location",
             "/users/location/" }, consumes = "application/json", produces = "application/json")
-    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     public ResponseEntity<HTTPResponse> updateUserLocation(@CurrentUser UserPrincipal user,
             @RequestBody UserLocation location) {
         UserLocation newLocation;
@@ -87,7 +89,7 @@ public class UserController {
     }
 
     @GetMapping(path = { "/users/map/settings", "/users/map/settings/" }, produces = "application/json")
-    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     public MapSettings getUserMapSettings(@CurrentUser UserPrincipal user) {
         Optional<User> opt = userRepository.findByEmail(user.getEmail());
         if (opt.isPresent()) {
@@ -99,7 +101,7 @@ public class UserController {
 
     @PostMapping(path = { "/users/map/settings",
             "/users/map/settings/" }, consumes = "application/json", produces = "application/json")
-    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     public ResponseEntity<HTTPResponse> updateUserMapSettings(@CurrentUser UserPrincipal user,
             @RequestBody MapSettings settings) {
         Optional<User> opt = userRepository.findByEmail(user.getEmail());
@@ -112,4 +114,24 @@ public class UserController {
         }
         throw new ResourceNotFoundException("User", "e-mail", user.getEmail());
     }
+
+    @GetMapping("/user/getUsers")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+	public List<User> listAllUsers() {
+		return userRepository.findAll();
+	}
+
+    @PostMapping("/user/changeUserRole")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+	public ResponseEntity<HTTPResponse> updateUserRole(@RequestBody Map<String, String> payload) {
+		Optional<User> user = userRepository.findByEmail(payload.get("email"));
+		if (user.isPresent()) {
+			User newUserInfo = user.get();
+			newUserInfo.setRole(payload.get("role"));
+			userRepository.save(newUserInfo);
+			return new ResponseEntity<>(new HTTPResponse("Success", "Changed User Role"), HttpStatus.OK);
+		}
+		return new ResponseEntity<>(new HTTPResponse("Error", "Cannot change user role."), HttpStatus.NOT_FOUND);
+	}
+
 }

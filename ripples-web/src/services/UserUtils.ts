@@ -24,3 +24,15 @@ export async function getUserLastLocation() {
     url: `${apiURL}/users/location/`,
   })
 }
+
+export async function fetchUsers() {
+  return request({ url: `${apiURL}/user/getUsers` })
+}
+
+export async function updateUserRole(email: string, role: string) {
+  return request({
+    body: JSON.stringify({ email, role }),
+    method: 'POST',
+    url: `${apiURL}/user/changeUserRole`,
+  })
+}

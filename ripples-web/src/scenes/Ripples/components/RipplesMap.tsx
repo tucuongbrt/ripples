@@ -17,7 +17,7 @@ import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
-import IAuthState, { IUserLocation } from '../../../model/IAuthState'
+import IAuthState, { isCasual, IUserLocation } from '../../../model/IAuthState'
 import IGeoLayer from '../../../model/IGeoLayer'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap, { IMapSettings } from '../../../model/IMyMap'
@@ -161,7 +161,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.onLocationClick = this.onLocationClick.bind(this)
     this.onEditVehicle = this.onEditVehicle.bind(this)
 
-    if (this.props.auth.authenticated) {
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
     }
   }
@@ -359,7 +359,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       lng: center.lng,
       zoom,
     }
-    await MapUtils.updateMapSettings(newSettings)
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
+      await MapUtils.updateMapSettings(newSettings)
+    }
   }
 
   public handleZoom(e: any) {
