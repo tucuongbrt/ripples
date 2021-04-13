@@ -5,6 +5,7 @@ import { isUserEqual, IUserLocation, noAuth } from '../../model/IAuthState'
 import ILatLng from '../../model/ILatLng'
 import { DefaultOverlayInfo } from '../../model/IOverlayInfo'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
+import IPollution from '../../model/IPollution'
 import IRipplesState, { defaultAssetsGroup } from '../../model/IRipplesState'
 import { ToolSelected } from '../../model/ToolSelected'
 import PositionService from '../../services/PositionUtils'
@@ -60,6 +61,8 @@ import {
   updateWp,
   updateWpLocation,
   updateWpTimestamp,
+  setPollution,
+  updatePollution,
 } from '../ripples.actions'
 
 const positionService: PositionService = new PositionService()
@@ -93,6 +96,7 @@ const startState: IRipplesState = {
   geoLayers: null,
   isEditingPlan: false,
   updatingPlanId: false,
+  pollution: [],
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -405,6 +409,15 @@ const ripplesReducer = createReducer(startState, {
   },
   [setUpdatingPlanId.type]: (state, action) => {
     state.updatingPlanId = action.payload
+  },
+  [setPollution.type]: (state, action) => {
+    state.pollution = action.payload
+  },
+  [updatePollution.type]: (state, action) => {
+    const newPollution: IPollution = action.payload
+    if (typeof newPollution !== 'undefined' || newPollution !== null) {
+      state.pollution.push(newPollution)
+    }
   },
 })
 

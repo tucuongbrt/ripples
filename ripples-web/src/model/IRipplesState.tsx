@@ -9,6 +9,7 @@ import IProfile from './IProfile'
 import { ToolSelected } from './ToolSelected'
 import { WeatherParam } from './WeatherParam'
 import IGeoLayer from './IGeoLayer'
+import IPollution from './IPollution'
 
 export interface IAssetsGroup {
   vehicles: IAsset[]
@@ -48,6 +49,7 @@ export default interface IRipplesState {
   geoLayers: IGeoLayer[] | null
   isEditingPlan: boolean
   updatingPlanId: boolean
+  pollution: IPollution[]
 }
 
 export const defaultAssetsGroup: IAssetsGroup = {

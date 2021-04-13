@@ -244,3 +244,28 @@ path.leaflet-polygon {
   color: white;
   text-decoration: none;
 }
+
+.pollutionDialog {
+  position: absolute;
+  left: 10px;
+  top: 350px;
+  z-index: 9999 !important;
+  color: #004085;
+  background-color: #cce5ff;
+  border: 1px solid;
+  border-radius: .25rem;
+  text-align: center;
+  padding: 0.3em 2em;
+  user-select: none;
+  outline: 0;
+  opacity: 0.9;
+  animation: fadein 500ms;
+  -moz-animation: fadein 500ms;        /* Firefox */
+  -webkit-animation: fadein 500ms;     /* Safari and Chrome */
+
+}
+
+.pollutionForm {
+  display: grid;
+  width: 200px;
+}

@@ -59,6 +59,9 @@ import Vehicle from './Vehicle'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
 import PlanManager from './PlanManager'
+import IPollution from '../../../model/IPollution'
+import PollutionService from '../../../services/PollutionUtils'
+import Pollution from './Pollution'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -90,6 +93,7 @@ interface PropsType {
   hasSliderChanged: boolean
   weatherParam: WeatherParam | null
   toolClickLocation: ILatLng | null
+  pollution: IPollution[]
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -117,6 +121,13 @@ interface StateType {
   activeLegend: JSX.Element
   newAnnotationContent: string
   clickLocationWeather: IWeather[]
+  isPollutionLayerActive: boolean
+  pollutionEnable: boolean
+  pollutionDescription: string
+  pollutionLocation?: {
+    latitude: any
+    longitude: any
+  }
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -133,6 +144,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   private vehicleChangedSettings: Map<string, string> = new Map()
   private lastWaveMapTime: string = MapUtils.resetMapTime(3)
   private lastWindMapTime: string = MapUtils.resetMapTime(6)
+  private pollutionService: PollutionService = new PollutionService()
 
   constructor(props: PropsType) {
     super(props)
@@ -151,6 +163,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       activeLegend: <></>,
       newAnnotationContent: '',
       clickLocationWeather: [],
+      isPollutionLayerActive: false,
+      pollutionEnable: false,
+      pollutionDescription: '',
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -160,6 +175,8 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.onMapAnnotationClick = this.onMapAnnotationClick.bind(this)
     this.onLocationClick = this.onLocationClick.bind(this)
     this.onEditVehicle = this.onEditVehicle.bind(this)
+    this.buildPollutionDialog = this.buildPollutionDialog.bind(this)
+    this.handleChangePollutionDescription = this.handleChangePollutionDescription.bind(this)
 
     if (this.props.auth.authenticated) {
       this.fetchMapSettings()
@@ -214,6 +231,14 @@ class RipplesMap extends Component<PropsType, StateType> {
       default:
         this.props.setSidePanelVisibility(false)
         break
+    }
+
+    if (
+      this.state.pollutionEnable &&
+      e.originalEvent.srcElement.nodeName !== 'BUTTON' &&
+      e.originalEvent.srcElement.nodeName !== 'INPUT'
+    ) {
+      this.setState({ pollutionLocation: clickLocation })
     }
   }
 
@@ -314,6 +339,99 @@ class RipplesMap extends Component<PropsType, StateType> {
         />
       )
     })
+  }
+
+  public buildPollutionMarkers() {
+    let pollution = this.props.pollution
+    if (this.map) {
+      const mapBounds = this.map.leafletElement.getBounds()
+      pollution = pollution.filter((pollution) => mapBounds.contains([pollution.latitude, pollution.longitude]))
+    }
+
+    if (this.state.isPollutionLayerActive) {
+      return <Pollution pollutionMarkers={pollution} locationSelected={this.state.pollutionLocation} />
+    } else {
+      return <></>
+    }
+  }
+
+  public buildPollutionDialog() {
+    if (this.state.isPollutionLayerActive && this.props.auth.authenticated) {
+      return (
+        <div className="pollutionDialog">
+          <form className="pollutionForm">
+            {!this.state.pollutionEnable ? (
+              <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
+                New Marker
+              </Button>
+            ) : (
+              <></>
+            )}
+
+            {this.state.pollutionEnable ? (
+              <>
+                <input
+                  type="text"
+                  id="pollutionDescription"
+                  value={this.state.pollutionDescription}
+                  placeholder="Description"
+                  onChange={this.handleChangePollutionDescription}
+                />
+
+                <div className="pollutionBtn">
+                  <Button className="m-1" color="success" size="sm" onClick={() => this.addPollutionMarker()}>
+                    Add
+                  </Button>
+                  <Button className="m-1" color="danger" size="sm" onClick={() => this.disablePollutionMarker()}>
+                    Cancel
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <></>
+            )}
+          </form>
+        </div>
+      )
+    }
+  }
+
+  public handleChangePollutionDescription(event: any) {
+    this.setState({ pollutionDescription: event.target.value })
+  }
+
+  public async addPollutionMarker() {
+    if (this.state.pollutionLocation) {
+      try {
+        const newPollutionMarker = new IPollution(
+          this.state.pollutionDescription,
+          this.state.pollutionLocation.latitude,
+          this.state.pollutionLocation.longitude,
+          Date.now(),
+          this.props.auth.currentUser.email
+        )
+        const response = await this.pollutionService.updatePollution(newPollutionMarker)
+        if (response.status === 'success') {
+          NotificationManager.success('Pollution marker added')
+          this.setState({ pollutionEnable: false, pollutionLocation: undefined, pollutionDescription: '' })
+        } else {
+          NotificationManager.warning('Pollution marker cannot be added')
+        }
+      } catch (error) {
+        NotificationManager.warning('Pollution marker cannot be added')
+      }
+    } else {
+      NotificationManager.warning('No selected location')
+    }
+  }
+
+  public enablePollutionMarker() {
+    NotificationManager.info('Please select a location \non the map')
+    this.setState({ pollutionEnable: true })
+  }
+
+  public disablePollutionMarker() {
+    this.setState({ pollutionEnable: false, pollutionLocation: undefined })
   }
 
   public buildAisShips() {
@@ -418,6 +536,8 @@ class RipplesMap extends Component<PropsType, StateType> {
                 activeLegend: <img className="mapLegend" src={url} alt="Map legend" />,
               })
               return
+            } else if (evt.name === 'Pollution Data') {
+              this.setState({ isPollutionLayerActive: true })
             }
           }}
           onOverlayRemove={(evt: any) => {
@@ -430,6 +550,8 @@ class RipplesMap extends Component<PropsType, StateType> {
                 activeLegend: <></>,
               })
               this.props.setMapOverlayInfo('')
+            } else if (evt.name === 'Pollution Data') {
+              this.setState({ isPollutionLayerActive: false })
             }
           }}
         >
@@ -648,6 +770,10 @@ class RipplesMap extends Component<PropsType, StateType> {
             </Overlay>
             <Overlay checked={true} name="Annotations">
               <LayerGroup>{this.buildAnnotations()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={this.state.isPollutionLayerActive} name="Pollution Data">
+              <LayerGroup>{this.buildPollutionMarkers()}</LayerGroup>
+              {this.buildPollutionDialog()}
             </Overlay>
           </LayersControl>
           {this.buildNewAnnotationMarker()}
@@ -953,6 +1079,7 @@ function mapStateToProps(state: IRipplesState) {
     weatherParam: state.weatherParam,
     toolClickLocation: state.toolClickLocation,
     geoLayers: state.geoLayers,
+    pollution: state.pollution,
   }
 }
 
