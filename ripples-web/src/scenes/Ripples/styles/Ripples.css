@@ -248,7 +248,7 @@ path.leaflet-polygon {
 .pollutionDialog {
   position: absolute;
   left: 10px;
-  top: 350px;
+  top: 300px;
   z-index: 9999 !important;
   color: #004085;
   background-color: #cce5ff;
@@ -268,4 +268,25 @@ path.leaflet-polygon {
 .pollutionForm {
   display: grid;
   width: 200px;
+  margin: 5px;
+}
+
+.pollutionUpdateMarker span {
+  text-align: center;
+  display: block;
+}
+
+.pollutionUpdateMarker label {
+  display: table-cell;
+}
+
+.pollutionForm label {
+  display: flex;
+  margin-top: 4px;
+  margin-bottom: 0px;
+}
+
+#pollutionDescriptionUpdate, #pollutionRadiusUpdate, #pollutionLatitudeUpdate, #pollutionLongitudeUpdate {
+  width: -webkit-fill-available;
+  margin-bottom: 2px;
 }

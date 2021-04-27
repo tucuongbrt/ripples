@@ -10,11 +10,11 @@ export default class PollutionService {
     return pollutions
   }
 
-  public async updatePollution(pollutionLocation: IPollution) {
+  public async updatePollution(pollutionLocation: IPollution, id: number) {
     return request({
       method: 'POST',
       body: JSON.stringify(pollutionLocation),
-      url: `${apiURL}/pollution`,
+      url: `${apiURL}/pollution/${id}`,
     })
   }
 

@@ -10,21 +10,25 @@ import com.eclipsesource.json.JsonObject;
 
 @Entity
 public class PollutionLocation {
-    
+
     @Id
     @GeneratedValue
     private Long id;
 
     private String description;
+    private long radius;
     private double latitude;
-	private double longitude;
+    private double longitude;
     private Date timestamp;
+    private String status;
     private String user;
 
-    public PollutionLocation() {}
+    public PollutionLocation() {
+    }
 
-    public PollutionLocation(String desc, double lat, double lon, Date time, String user) {
+    public PollutionLocation(String desc, long rad, double lat, double lon, Date time, String user) {
         this.setDescription(desc);
+        this.setRadius(rad);
         this.setLatitude(lat);
         this.setLongitude(lon);
         this.setTimestamp(time);
@@ -34,12 +38,19 @@ public class PollutionLocation {
     @Override
     public String toString() {
         JsonObject json = new JsonObject();
+        json.add("id", id);
         json.add("description", description);
+        json.add("radius", radius);
         json.add("latitude", latitude);
         json.add("longitude", longitude);
         json.add("timestamp", timestamp.toString());
+        json.add("status", status);
         json.add("user", user);
         return json.toString();
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getDescription() {
@@ -48,6 +59,14 @@ public class PollutionLocation {
 
     public void setDescription(String desc) {
         this.description = desc;
+    }
+
+    public long getRadius() {
+        return radius;
+    }
+
+    public void setRadius(long rad) {
+        this.radius = rad;
     }
 
     public double getLatitude() {
@@ -66,7 +85,7 @@ public class PollutionLocation {
         this.longitude = lon;
     }
 
-    public Date getTimestamp(){
+    public Date getTimestamp() {
         return timestamp;
     }
 
@@ -74,7 +93,15 @@ public class PollutionLocation {
         this.timestamp = time;
     }
 
-    public String getUser(){
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getUser() {
         return user;
     }
 
@@ -83,4 +110,3 @@ public class PollutionLocation {
     }
 
 }
-

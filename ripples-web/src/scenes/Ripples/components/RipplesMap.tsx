@@ -121,13 +121,21 @@ interface StateType {
   activeLegend: JSX.Element
   newAnnotationContent: string
   clickLocationWeather: IWeather[]
+
   isPollutionLayerActive: boolean
   pollutionEnable: boolean
   pollutionDescription: string
+  pollutionRadius: number
   pollutionLocation?: {
     latitude: any
     longitude: any
   }
+  pollutionOpen: IPollution[]
+  editPollutionMarker?: IPollution
+  pollutionDescriptionUpdate: string
+  pollutionRadiusUpdate: number
+  pollutionLatitudeUpdate: number
+  pollutionLongitudeUpdate: number
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -163,9 +171,17 @@ class RipplesMap extends Component<PropsType, StateType> {
       activeLegend: <></>,
       newAnnotationContent: '',
       clickLocationWeather: [],
+
       isPollutionLayerActive: false,
       pollutionEnable: false,
       pollutionDescription: '',
+      pollutionRadius: 20,
+      pollutionOpen: [],
+      editPollutionMarker: undefined,
+      pollutionDescriptionUpdate: '',
+      pollutionRadiusUpdate: 20,
+      pollutionLatitudeUpdate: 0,
+      pollutionLongitudeUpdate: 0,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -177,6 +193,14 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.onEditVehicle = this.onEditVehicle.bind(this)
     this.buildPollutionDialog = this.buildPollutionDialog.bind(this)
     this.handleChangePollutionDescription = this.handleChangePollutionDescription.bind(this)
+    this.handleChangePollutionDescriptionUpdate = this.handleChangePollutionDescriptionUpdate.bind(this)
+    this.handleChangePollutionRadius = this.handleChangePollutionRadius.bind(this)
+    this.handleChangePollutionRadiusUpdate = this.handleChangePollutionRadiusUpdate.bind(this)
+    this.handleChangePollutionLatitudeUpdate = this.handleChangePollutionLatitudeUpdate.bind(this)
+    this.handleChangePollutionLongitudeUpdate = this.handleChangePollutionLongitudeUpdate.bind(this)
+    this.handlePollutionEdit = this.handlePollutionEdit.bind(this)
+    this.handleAddPollutionCircle = this.handleAddPollutionCircle.bind(this)
+    this.handleRemovePollutionCircle = this.handleRemovePollutionCircle.bind(this)
 
     if (this.props.auth.authenticated) {
       this.fetchMapSettings()
@@ -349,20 +373,28 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
 
     if (this.state.isPollutionLayerActive) {
-      return <Pollution pollutionMarkers={pollution} locationSelected={this.state.pollutionLocation} />
+      return (
+        <Pollution
+          pollutionMarkers={pollution}
+          locationSelected={this.state.pollutionLocation}
+          pollutionOpen={this.state.pollutionOpen}
+          addCircle={this.handleAddPollutionCircle}
+          removeCircle={this.handleRemovePollutionCircle}
+        />
+      )
     } else {
       return <></>
     }
   }
 
   public buildPollutionDialog() {
-    if (this.state.isPollutionLayerActive && this.props.auth.authenticated) {
+    if (this.state.isPollutionLayerActive) {
       return (
         <div className="pollutionDialog">
           <form className="pollutionForm">
             {!this.state.pollutionEnable ? (
               <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
-                New Marker
+                New Pollution Marker
               </Button>
             ) : (
               <></>
@@ -370,12 +402,22 @@ class RipplesMap extends Component<PropsType, StateType> {
 
             {this.state.pollutionEnable ? (
               <>
+                <span className="pollutionSpan">New Pollution Marker</span>
                 <input
                   type="text"
                   id="pollutionDescription"
                   value={this.state.pollutionDescription}
                   placeholder="Description"
                   onChange={this.handleChangePollutionDescription}
+                />
+
+                <label htmlFor="pollutionRadius">Radius (meters)</label>
+                <input
+                  type="number"
+                  id="pollutionRadius"
+                  value={this.state.pollutionRadius}
+                  placeholder="Radius (meters)"
+                  onChange={this.handleChangePollutionRadius}
                 />
 
                 <div className="pollutionBtn">
@@ -390,38 +432,210 @@ class RipplesMap extends Component<PropsType, StateType> {
             ) : (
               <></>
             )}
+
+            {this.state.editPollutionMarker !== undefined ? (
+              <div className="pollutionUpdateMarker">
+                <hr />
+
+                <label htmlFor="pollutionStatus">Status</label>
+                <span id="pollutionStatus">{this.state.editPollutionMarker.status} </span>
+
+                <label htmlFor="pollutionDateUpdate">Date</label>
+                <span id="pollutionDateUpdate">
+                  {DateService.timestampMsToReadableDate(this.state.editPollutionMarker.timestamp)}{' '}
+                </span>
+
+                <label htmlFor="pollutionDescriptionUpdate">Description</label>
+                <input
+                  type="tex3t"
+                  id="pollutionDescriptionUpdate"
+                  value={this.state.pollutionDescriptionUpdate}
+                  placeholder="Description"
+                  onChange={this.handleChangePollutionDescriptionUpdate}
+                />
+
+                <label htmlFor="pollutionRadiusUpdate">Radius (meters)</label>
+                <input
+                  type="number"
+                  id="pollutionRadiusUpdate"
+                  value={this.state.pollutionRadiusUpdate}
+                  placeholder="Radius (meters)"
+                  onChange={this.handleChangePollutionRadiusUpdate}
+                />
+
+                <div>
+                  <label htmlFor="pollutionLatitudeUpdate">Latitude</label>
+                  <input
+                    type="number"
+                    id="pollutionLatitudeUpdate"
+                    value={this.state.pollutionLatitudeUpdate}
+                    placeholder="Latitude"
+                    onChange={this.handleChangePollutionLatitudeUpdate}
+                  />
+
+                  <label htmlFor="pollutionLongitudeUpdate">Longitude</label>
+                  <input
+                    type="number"
+                    id="pollutionLongitudeUpdate"
+                    value={this.state.pollutionLongitudeUpdate}
+                    placeholder="Longitude"
+                    onChange={this.handleChangePollutionLongitudeUpdate}
+                  />
+                </div>
+
+                <div className="pollutionBtn">
+                  <Button
+                    className="m-1"
+                    color="success"
+                    size="sm"
+                    onClick={() => this.updatePollutionMarker(this.state.editPollutionMarker)}
+                  >
+                    Update Pollution Marker
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <></>
+            )}
           </form>
         </div>
       )
     }
   }
 
+  public handleAddPollutionCircle(marker: IPollution) {
+    this.setState({
+      pollutionOpen: [...this.state.pollutionOpen, marker],
+      editPollutionMarker: marker,
+    })
+    this.handlePollutionEdit(this.state.editPollutionMarker)
+  }
+
+  public handleRemovePollutionCircle(marker: IPollution) {
+    const pollutionArray = [...this.state.pollutionOpen]
+    const index = pollutionArray.indexOf(marker)
+    if (index !== -1) {
+      pollutionArray.splice(index, 1)
+      this.setState({ pollutionOpen: pollutionArray })
+    }
+    if (this.state.editPollutionMarker !== undefined) {
+      if (this.state.pollutionOpen.length > 0) {
+        this.setState({
+          editPollutionMarker: this.state.pollutionOpen[this.state.pollutionOpen.length - 1],
+        })
+        this.handlePollutionEdit(this.state.editPollutionMarker)
+      } else {
+        this.setState({
+          editPollutionMarker: undefined,
+          pollutionDescriptionUpdate: '',
+          pollutionRadiusUpdate: 20,
+        })
+      }
+    }
+  }
+
   public handleChangePollutionDescription(event: any) {
     this.setState({ pollutionDescription: event.target.value })
   }
+  public handleChangePollutionRadius(event: any) {
+    this.setState({ pollutionRadius: event.target.value })
+  }
+  public handleChangePollutionDescriptionUpdate(event: any) {
+    this.setState({ pollutionDescriptionUpdate: event.target.value })
+  }
+  public handleChangePollutionRadiusUpdate(event: any) {
+    this.setState({ pollutionRadiusUpdate: event.target.value })
+  }
+  public handleChangePollutionLatitudeUpdate(event: any) {
+    this.setState({ pollutionLatitudeUpdate: event.target.value })
+  }
+  public handleChangePollutionLongitudeUpdate(event: any) {
+    this.setState({ pollutionLongitudeUpdate: event.target.value })
+  }
+
+  public handlePollutionEdit(pollutionMarker: IPollution | undefined) {
+    this.setState({ editPollutionMarker: pollutionMarker })
+    if (pollutionMarker !== undefined) {
+      this.setState({
+        pollutionDescriptionUpdate: pollutionMarker.description,
+        pollutionRadiusUpdate: pollutionMarker.radius,
+        pollutionLatitudeUpdate: pollutionMarker.latitude,
+        pollutionLongitudeUpdate: pollutionMarker.longitude,
+      })
+    }
+  }
 
   public async addPollutionMarker() {
-    if (this.state.pollutionLocation) {
-      try {
-        const newPollutionMarker = new IPollution(
-          this.state.pollutionDescription,
-          this.state.pollutionLocation.latitude,
-          this.state.pollutionLocation.longitude,
-          Date.now(),
-          this.props.auth.currentUser.email
-        )
-        const response = await this.pollutionService.updatePollution(newPollutionMarker)
-        if (response.status === 'success') {
-          NotificationManager.success('Pollution marker added')
-          this.setState({ pollutionEnable: false, pollutionLocation: undefined, pollutionDescription: '' })
-        } else {
+    if (this.state.pollutionRadius < 20) {
+      NotificationManager.warning('The radius must be greater than 20')
+    } else {
+      if (this.state.pollutionLocation) {
+        try {
+          const newPollutionMarker = new IPollution(
+            this.state.pollutionDescription,
+            this.state.pollutionRadius,
+            this.state.pollutionLocation.latitude,
+            this.state.pollutionLocation.longitude,
+            Date.now(),
+            'CREATED',
+            this.props.auth.currentUser.email
+          )
+          const response = await this.pollutionService.updatePollution(newPollutionMarker, -1)
+          if (response.status === 'success') {
+            NotificationManager.success('Pollution marker added')
+            this.setState({
+              pollutionEnable: false,
+              pollutionLocation: undefined,
+              pollutionDescription: '',
+              pollutionRadius: 20,
+            })
+          } else {
+            NotificationManager.warning('Pollution marker cannot be added')
+          }
+        } catch (error) {
           NotificationManager.warning('Pollution marker cannot be added')
         }
-      } catch (error) {
-        NotificationManager.warning('Pollution marker cannot be added')
+      } else {
+        NotificationManager.warning('No selected location')
       }
+    }
+  }
+
+  public async updatePollutionMarker(marker: IPollution | undefined) {
+    if (this.state.pollutionRadiusUpdate < 20) {
+      NotificationManager.warning('The radius must be greater than 20')
     } else {
-      NotificationManager.warning('No selected location')
+      if (marker !== undefined) {
+        try {
+          const newPollutionMarker = new IPollution(
+            this.state.pollutionDescriptionUpdate,
+            this.state.pollutionRadiusUpdate,
+            this.state.pollutionLatitudeUpdate,
+            this.state.pollutionLongitudeUpdate,
+            marker.timestamp,
+            marker.status,
+            marker.user
+          )
+          const response = await this.pollutionService.updatePollution(newPollutionMarker, marker.id)
+          if (response.status === 'success') {
+            NotificationManager.success('Pollution marker updated')
+            this.setState({
+              pollutionEnable: false,
+              pollutionLocation: undefined,
+              pollutionDescriptionUpdate: '',
+              pollutionRadiusUpdate: 20,
+              editPollutionMarker: undefined,
+            })
+            this.handleRemovePollutionCircle(marker)
+          } else {
+            NotificationManager.warning('Pollution marker cannot be updated')
+          }
+        } catch (error) {
+          NotificationManager.warning('Pollution marker cannot be updated')
+        }
+      } else {
+        NotificationManager.error('Please select pollution marker')
+      }
     }
   }
 
@@ -771,10 +985,12 @@ class RipplesMap extends Component<PropsType, StateType> {
             <Overlay checked={true} name="Annotations">
               <LayerGroup>{this.buildAnnotations()}</LayerGroup>
             </Overlay>
-            <Overlay checked={this.state.isPollutionLayerActive} name="Pollution Data">
-              <LayerGroup>{this.buildPollutionMarkers()}</LayerGroup>
-              {this.buildPollutionDialog()}
-            </Overlay>
+            {this.props.auth.authenticated && this.map && (
+              <Overlay checked={this.state.isPollutionLayerActive} name="Pollution Data">
+                <LayerGroup>{this.buildPollutionMarkers()}</LayerGroup>
+                {this.buildPollutionDialog()}
+              </Overlay>
+            )}
           </LayersControl>
           {this.buildNewAnnotationMarker()}
           {this.buildToolpickMarker()}

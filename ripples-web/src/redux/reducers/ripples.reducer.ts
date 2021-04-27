@@ -96,6 +96,7 @@ const startState: IRipplesState = {
   geoLayers: null,
   isEditingPlan: false,
   updatingPlanId: false,
+
   pollution: [],
 }
 
@@ -415,7 +416,14 @@ const ripplesReducer = createReducer(startState, {
   },
   [updatePollution.type]: (state, action) => {
     const newPollution: IPollution = action.payload
-    if (typeof newPollution !== 'undefined' || newPollution !== null) {
+
+    const oldPollution = state.pollution.find((p) => p.id === newPollution.id)
+    if (oldPollution) {
+      oldPollution.description = newPollution.description
+      oldPollution.radius = newPollution.radius
+      oldPollution.latitude = newPollution.latitude
+      oldPollution.longitude = newPollution.longitude
+    } else {
       state.pollution.push(newPollution)
     }
   },
