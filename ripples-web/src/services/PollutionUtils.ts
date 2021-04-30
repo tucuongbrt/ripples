@@ -18,6 +18,13 @@ export default class PollutionService {
     })
   }
 
+  public async updatePollutionStatus(id: number, status: string) {
+    return request({
+      method: 'POST',
+      url: `${apiURL}/pollution/${id}/${status}`,
+    })
+  }
+
   public isPollutionBetweenDate(pollution: IPollution, startDate: any, endDate: any): boolean {
     const pollutionDate = new Date(pollution.timestamp)
     if (pollutionDate >= startDate && pollutionDate <= endDate) {

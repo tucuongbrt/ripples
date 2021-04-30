@@ -57,4 +57,21 @@ public class PollutionController {
         return new ResponseEntity<>(new HTTPResponse("success", "Added pollution marker"), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('SCIENTIST')")
+    @PostMapping(path = { "/pollution/{id}/{status}" }, consumes = "application/json", produces = "application/json")
+    public ResponseEntity<HTTPResponse> updatePollutionStatus(@PathVariable String id, @PathVariable String status) {
+
+        Optional<PollutionLocation> optPollutionMarker = repo.findById(Long.valueOf(id));
+        if (optPollutionMarker.isPresent()) {
+            PollutionLocation updatePollutionInfo = optPollutionMarker.get();
+            updatePollutionInfo.setStatus(status);
+            repo.save(updatePollutionInfo);
+            wsController.sendPollutionAssetFromServerToClients(updatePollutionInfo);
+        } else {
+            return new ResponseEntity<>(new HTTPResponse("error", "Pollution status cannot be updated"), HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(new HTTPResponse("success", "Pollution status updated"), HttpStatus.OK);
+    }
+
 }

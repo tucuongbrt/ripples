@@ -452,6 +452,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                   value={this.state.pollutionDescriptionUpdate}
                   placeholder="Description"
                   onChange={this.handleChangePollutionDescriptionUpdate}
+                  disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
                 />
 
                 <label htmlFor="pollutionRadiusUpdate">Radius (meters)</label>
@@ -461,6 +462,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                   value={this.state.pollutionRadiusUpdate}
                   placeholder="Radius (meters)"
                   onChange={this.handleChangePollutionRadiusUpdate}
+                  disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
                 />
 
                 <div>
@@ -471,6 +473,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                     value={this.state.pollutionLatitudeUpdate}
                     placeholder="Latitude"
                     onChange={this.handleChangePollutionLatitudeUpdate}
+                    disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
                   />
 
                   <label htmlFor="pollutionLongitudeUpdate">Longitude</label>
@@ -480,19 +483,33 @@ class RipplesMap extends Component<PropsType, StateType> {
                     value={this.state.pollutionLongitudeUpdate}
                     placeholder="Longitude"
                     onChange={this.handleChangePollutionLongitudeUpdate}
+                    disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
                   />
                 </div>
 
-                <div className="pollutionBtn">
-                  <Button
-                    className="m-1"
-                    color="success"
-                    size="sm"
-                    onClick={() => this.updatePollutionMarker(this.state.editPollutionMarker)}
-                  >
-                    Update Pollution Marker
-                  </Button>
-                </div>
+                {this.state.editPollutionMarker.status === 'CREATED' ? (
+                  <div className="pollutionBtn">
+                    <Button
+                      className="m-1"
+                      color="success"
+                      size="sm"
+                      onClick={() => this.updatePollutionMarker(this.state.editPollutionMarker)}
+                    >
+                      Update Pollution Marker
+                    </Button>
+
+                    <Button
+                      className="m-1"
+                      color="success"
+                      size="sm"
+                      onClick={() => this.syncPollutionMarker(this.state.editPollutionMarker)}
+                    >
+                      Sync Pollution Marker
+                    </Button>
+                  </div>
+                ) : (
+                  <></>
+                )}
               </div>
             ) : (
               <></>
@@ -636,6 +653,34 @@ class RipplesMap extends Component<PropsType, StateType> {
       } else {
         NotificationManager.error('Please select pollution marker')
       }
+    }
+  }
+
+  public async syncPollutionMarker(marker: IPollution | undefined) {
+    if (marker !== undefined) {
+      // update marker
+      this.updatePollutionMarker(marker)
+
+      try {
+        const response = await this.pollutionService.updatePollutionStatus(marker.id, 'SYNC')
+        if (response.status === 'success') {
+          NotificationManager.success('Pollution marker status updated')
+          this.setState({
+            pollutionEnable: false,
+            pollutionLocation: undefined,
+            pollutionDescriptionUpdate: '',
+            pollutionRadiusUpdate: 20,
+            editPollutionMarker: undefined,
+          })
+          this.handleRemovePollutionCircle(marker)
+        } else {
+          NotificationManager.warning('Pollution marker status cannot be updated')
+        }
+      } catch (error) {
+        NotificationManager.warning('Pollution marker status cannot be updated')
+      }
+    } else {
+      NotificationManager.warning('Pollution marker status cannot be updated')
     }
   }
 

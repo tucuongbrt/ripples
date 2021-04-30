@@ -423,6 +423,7 @@ const ripplesReducer = createReducer(startState, {
       oldPollution.radius = newPollution.radius
       oldPollution.latitude = newPollution.latitude
       oldPollution.longitude = newPollution.longitude
+      oldPollution.status = newPollution.status
     } else {
       state.pollution.push(newPollution)
     }

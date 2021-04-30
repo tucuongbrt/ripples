@@ -280,6 +280,10 @@ path.leaflet-polygon {
   display: table-cell;
 }
 
+.pollutionUpdateMarker hr {
+  margin-bottom: 0px;
+}
+
 .pollutionForm label {
   display: flex;
   margin-top: 4px;
