@@ -25,6 +25,19 @@ export default class PollutionService {
     })
   }
 
+  public async fetchPollutionExternalServer() {
+    return request({
+      url: `${apiURL}/pollution/server`,
+    })
+  }
+
+  public async updatePollutionExternalServer(ipAddress: string) {
+    return request({
+      method: 'POST',
+      url: `${apiURL}/pollution/server/${ipAddress}`,
+    })
+  }
+
   public isPollutionBetweenDate(pollution: IPollution, startDate: any, endDate: any): boolean {
     const pollutionDate = new Date(pollution.timestamp)
     if (pollutionDate >= startDate && pollutionDate <= endDate) {

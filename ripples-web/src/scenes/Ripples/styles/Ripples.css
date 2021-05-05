@@ -290,7 +290,7 @@ path.leaflet-polygon {
   margin-bottom: 0px;
 }
 
-#pollutionDescriptionUpdate, #pollutionRadiusUpdate, #pollutionLatitudeUpdate, #pollutionLongitudeUpdate {
+#pollutionDescriptionUpdate, #pollutionRadiusUpdate, #pollutionLatitudeUpdate, #pollutionLongitudeUpdate, #pollutionConfigUpdate {
   width: -webkit-fill-available;
   margin-bottom: 2px;
 }

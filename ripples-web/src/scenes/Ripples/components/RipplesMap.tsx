@@ -124,6 +124,8 @@ interface StateType {
 
   isPollutionLayerActive: boolean
   pollutionEnable: boolean
+  pollutionConfig: boolean
+  editPollutionConfig: string
   pollutionDescription: string
   pollutionRadius: number
   pollutionLocation?: {
@@ -174,6 +176,8 @@ class RipplesMap extends Component<PropsType, StateType> {
 
       isPollutionLayerActive: false,
       pollutionEnable: false,
+      pollutionConfig: false,
+      editPollutionConfig: '',
       pollutionDescription: '',
       pollutionRadius: 20,
       pollutionOpen: [],
@@ -198,6 +202,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleChangePollutionRadiusUpdate = this.handleChangePollutionRadiusUpdate.bind(this)
     this.handleChangePollutionLatitudeUpdate = this.handleChangePollutionLatitudeUpdate.bind(this)
     this.handleChangePollutionLongitudeUpdate = this.handleChangePollutionLongitudeUpdate.bind(this)
+    this.handleChangePollutionConfig = this.handleChangePollutionConfig.bind(this)
     this.handlePollutionEdit = this.handlePollutionEdit.bind(this)
     this.handleAddPollutionCircle = this.handleAddPollutionCircle.bind(this)
     this.handleRemovePollutionCircle = this.handleRemovePollutionCircle.bind(this)
@@ -215,6 +220,12 @@ class RipplesMap extends Component<PropsType, StateType> {
       }, 2000)
     }
     this.map = this.refs.map as LeafletMap
+
+    /* ADMIN & SCIENTIST*/
+    if (this.props.auth.authenticated) {
+      const pollutionServer = await this.pollutionService.fetchPollutionExternalServer()
+      this.setState({ editPollutionConfig: pollutionServer.url })
+    }
   }
 
   public updateCopernicusMaps() {
@@ -392,6 +403,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       return (
         <div className="pollutionDialog">
           <form className="pollutionForm">
+            {/* only scientist */}
             {!this.state.pollutionEnable ? (
               <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
                 New Pollution Marker
@@ -447,7 +459,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
                 <label htmlFor="pollutionDescriptionUpdate">Description</label>
                 <input
-                  type="tex3t"
+                  type="text"
                   id="pollutionDescriptionUpdate"
                   value={this.state.pollutionDescriptionUpdate}
                   placeholder="Description"
@@ -487,6 +499,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                   />
                 </div>
 
+                {/* only scientist */}
                 {this.state.editPollutionMarker.status === 'CREATED' ? (
                   <div className="pollutionBtn">
                     <Button
@@ -514,10 +527,69 @@ class RipplesMap extends Component<PropsType, StateType> {
             ) : (
               <></>
             )}
+
+            {/* only admin */}
+            {this.state.pollutionConfig ? (
+              <Button className="m-1" color="success" size="sm" onClick={() => this.handlePollutionConfig()}>
+                Config External Server
+              </Button>
+            ) : (
+              <></>
+            )}
+
+            {/* only admin */}
+            {this.state.pollutionConfig ? (
+              <div>
+                <input
+                  type="text"
+                  id="pollutionConfigUpdate"
+                  value={this.state.editPollutionConfig}
+                  placeholder="IP address"
+                  onChange={this.handleChangePollutionConfig}
+                />
+
+                <Button className="m-1" color="success" size="sm" onClick={() => this.handleSavePollutionConfig()}>
+                  Save
+                </Button>
+
+                <Button className="m-1" color="success" size="sm" onClick={() => this.handleClosePollutionConfig()}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <></>
+            )}
           </form>
         </div>
       )
     }
+  }
+
+  public handlePollutionConfig() {
+    NotificationManager.info('Please specify the server for where\n the pollution markers should be send')
+    this.setState({ pollutionConfig: true })
+  }
+
+  public handleChangePollutionConfig(event: any) {
+    this.setState({ editPollutionConfig: event.target.value })
+  }
+
+  public async handleSavePollutionConfig() {
+    try {
+      const response = await this.pollutionService.updatePollutionExternalServer(this.state.editPollutionConfig)
+      if (response.status === 'success') {
+        NotificationManager.success('Pollution server updated')
+        this.setState({ pollutionConfig: false })
+      } else {
+        NotificationManager.warning('Pollution server cannot be updated')
+      }
+    } catch (error) {
+      NotificationManager.warning('Pollution server cannot be updated')
+    }
+  }
+
+  public handleClosePollutionConfig() {
+    this.setState({ pollutionConfig: false })
   }
 
   public handleAddPollutionCircle(marker: IPollution) {
@@ -660,6 +732,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (marker !== undefined) {
       // update marker
       this.updatePollutionMarker(marker)
+      // console.log('Send to: ' + this.state.editPollutionConfig)
 
       try {
         const response = await this.pollutionService.updatePollutionStatus(marker.id, 'SYNC')

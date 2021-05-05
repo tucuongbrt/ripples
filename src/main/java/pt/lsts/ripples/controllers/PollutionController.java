@@ -10,15 +10,19 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import pt.lsts.ripples.domain.shared.ExternalServer;
 import pt.lsts.ripples.domain.shared.PollutionLocation;
+import pt.lsts.ripples.repo.main.ExternalServerRepository;
 import pt.lsts.ripples.repo.main.PollutionDataRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @RestController
 public class PollutionController {
@@ -28,6 +32,9 @@ public class PollutionController {
 
     @Autowired
     PollutionDataRepository repo;
+
+    @Autowired
+    ExternalServerRepository repoServer;
 
     @RequestMapping(path = { "/pollution", "/pollution/" }, method = RequestMethod.GET)
     public List<PollutionLocation> listPollution() {
@@ -74,4 +81,41 @@ public class PollutionController {
         return new ResponseEntity<>(new HTTPResponse("success", "Pollution status updated"), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('SCIENTIST')")
+    @RequestMapping(path = { "/pollution/serverAll", "/pollution/serverAll/" }, method = RequestMethod.GET)
+    public List<ExternalServer> pollutionServerAll() {
+        ArrayList<ExternalServer> serverList = new ArrayList<>();
+        repoServer.findAll().forEach(serverList::add);
+        return serverList;
+    }
+
+    @PreAuthorize("hasRole('SCIENTIST')")
+    @GetMapping(path = { "/pollution/server", "/pollution/server/" }, produces = "application/json")
+    public @ResponseBody String pollutionServer() {
+        Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
+        String serverUrl = "";
+        if (opt.isPresent()) {
+            System.out.println(opt.get().getIP());
+            serverUrl = opt.get().getIP();
+		}
+        return "{\"url\":\"" + serverUrl + "\"}";
+    }
+
+    @PreAuthorize("hasRole('SCIENTIST')")
+    @PostMapping(path = { "/pollution/server/{ip}" }, consumes = "application/json", produces = "application/json")
+    public ResponseEntity<HTTPResponse> updatePollutionServer(@PathVariable String ip) {
+        
+        Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
+        if (opt.isPresent()) {
+            ExternalServer server = opt.get();
+            server.setIP(ip);
+            repoServer.save(server);
+            return new ResponseEntity<>(new HTTPResponse("success", "Pollution server updated"), HttpStatus.OK);
+		} else {
+            System.out.println("NEW");
+            ExternalServer newServer = new ExternalServer("ramp_pollution", ip);
+            repoServer.save(newServer);
+            return new ResponseEntity<>(new HTTPResponse("success", "Pollution server updated"), HttpStatus.OK);
+        }
+    }
 }
