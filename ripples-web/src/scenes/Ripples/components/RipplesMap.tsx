@@ -109,6 +109,7 @@ interface PropsType {
   toggleSliderChange: () => void
   setMapOverlayInfo: (m: string) => void
   setToolClickLocation: (l: ILatLng | null) => void
+  setPollutionMarkers: () => void
 }
 
 interface StateType {
@@ -138,6 +139,7 @@ interface StateType {
   pollutionRadiusUpdate: number
   pollutionLatitudeUpdate: number
   pollutionLongitudeUpdate: number
+  isPollutionModalOpen: boolean
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -186,6 +188,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       pollutionRadiusUpdate: 20,
       pollutionLatitudeUpdate: 0,
       pollutionLongitudeUpdate: 0,
+      isPollutionModalOpen: false,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -206,6 +209,8 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handlePollutionEdit = this.handlePollutionEdit.bind(this)
     this.handleAddPollutionCircle = this.handleAddPollutionCircle.bind(this)
     this.handleRemovePollutionCircle = this.handleRemovePollutionCircle.bind(this)
+    this.handleDeletePollution = this.handleDeletePollution.bind(this)
+    this.togglePollutionModal = this.togglePollutionModal.bind(this)
 
     if (this.props.auth.authenticated) {
       this.fetchMapSettings()
@@ -405,9 +410,20 @@ class RipplesMap extends Component<PropsType, StateType> {
           <form className="pollutionForm">
             {/* only scientist */}
             {!this.state.pollutionEnable ? (
-              <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
-                New Pollution Marker
-              </Button>
+              <div>
+                <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
+                  New Pollution Marker
+                </Button>
+
+                <Button
+                  className="m-1"
+                  color="success"
+                  size="sm"
+                  onClick={() => this.syncPollutionMarker(this.state.editPollutionMarker)}
+                >
+                  Sync Pollution Marker
+                </Button>
+              </div>
             ) : (
               <></>
             )}
@@ -464,7 +480,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                   value={this.state.pollutionDescriptionUpdate}
                   placeholder="Description"
                   onChange={this.handleChangePollutionDescriptionUpdate}
-                  disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
+                  disabled={this.state.editPollutionMarker.status !== 'Created' ? true : false}
                 />
 
                 <label htmlFor="pollutionRadiusUpdate">Radius (meters)</label>
@@ -474,7 +490,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                   value={this.state.pollutionRadiusUpdate}
                   placeholder="Radius (meters)"
                   onChange={this.handleChangePollutionRadiusUpdate}
-                  disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
+                  disabled={this.state.editPollutionMarker.status !== 'Created' ? true : false}
                 />
 
                 <div>
@@ -485,7 +501,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                     value={this.state.pollutionLatitudeUpdate}
                     placeholder="Latitude"
                     onChange={this.handleChangePollutionLatitudeUpdate}
-                    disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
+                    disabled={this.state.editPollutionMarker.status !== 'Created' ? true : false}
                   />
 
                   <label htmlFor="pollutionLongitudeUpdate">Longitude</label>
@@ -495,12 +511,12 @@ class RipplesMap extends Component<PropsType, StateType> {
                     value={this.state.pollutionLongitudeUpdate}
                     placeholder="Longitude"
                     onChange={this.handleChangePollutionLongitudeUpdate}
-                    disabled={this.state.editPollutionMarker.status !== 'CREATED' ? true : false}
+                    disabled={this.state.editPollutionMarker.status !== 'Created' ? true : false}
                   />
                 </div>
 
                 {/* only scientist */}
-                {this.state.editPollutionMarker.status === 'CREATED' ? (
+                {this.state.editPollutionMarker.status === 'Created' ? (
                   <div className="pollutionBtn">
                     <Button
                       className="m-1"
@@ -509,15 +525,6 @@ class RipplesMap extends Component<PropsType, StateType> {
                       onClick={() => this.updatePollutionMarker(this.state.editPollutionMarker)}
                     >
                       Update Pollution Marker
-                    </Button>
-
-                    <Button
-                      className="m-1"
-                      color="success"
-                      size="sm"
-                      onClick={() => this.syncPollutionMarker(this.state.editPollutionMarker)}
-                    >
-                      Sync Pollution Marker
                     </Button>
                   </div>
                 ) : (
@@ -530,9 +537,20 @@ class RipplesMap extends Component<PropsType, StateType> {
 
             {/* only admin */}
             {this.state.pollutionConfig ? (
-              <Button className="m-1" color="success" size="sm" onClick={() => this.handlePollutionConfig()}>
-                Config External Server
-              </Button>
+              <div>
+                <Button className="m-1" color="success" size="sm" onClick={() => this.handlePollutionConfig()}>
+                  Config External Server
+                </Button>
+                {this.state.editPollutionMarker !== undefined && this.state.editPollutionMarker.status === 'Done' ? (
+                  <div>
+                    <Button className="m-1" color="danger" size="sm" onClick={() => this.togglePollutionModal()}>
+                      Delete Pollution Marker
+                    </Button>
+                  </div>
+                ) : (
+                  <></>
+                )}
+              </div>
             ) : (
               <></>
             )}
@@ -560,8 +578,44 @@ class RipplesMap extends Component<PropsType, StateType> {
               <></>
             )}
           </form>
+
+          <Modal isOpen={this.state.isPollutionModalOpen} toggle={this.togglePollutionModal}>
+            <ModalHeader toggle={this.togglePollutionModal}>Remove Focus of Pollution</ModalHeader>
+            <ModalBody>The focus of pollution will be removed permanently. Do you want to continue?</ModalBody>
+            <ModalFooter>
+              <Button color="success" onClick={() => this.handleDeletePollution()}>
+                Yes
+              </Button>
+            </ModalFooter>
+          </Modal>
         </div>
       )
+    }
+  }
+
+  public togglePollutionModal() {
+    this.setState((prevState) => ({
+      isPollutionModalOpen: !prevState.isPollutionModalOpen,
+    }))
+  }
+
+  public async handleDeletePollution() {
+    if (this.state.editPollutionMarker) {
+      this.togglePollutionModal()
+      try {
+        const response = await this.pollutionService.deletePollution(this.state.editPollutionMarker.id)
+        if (response.status === 'Success') {
+          NotificationManager.success(response.message)
+          this.handleRemovePollutionCircle(this.state.editPollutionMarker)
+
+          // update redux store
+          this.props.setPollutionMarkers()
+        } else {
+          NotificationManager.warning(response.message)
+        }
+      } catch (error) {
+        console.log(error)
+      }
     }
   }
 
@@ -666,7 +720,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             this.state.pollutionLocation.latitude,
             this.state.pollutionLocation.longitude,
             Date.now(),
-            'CREATED',
+            'Created',
             this.props.auth.currentUser.email
           )
           const response = await this.pollutionService.updatePollution(newPollutionMarker, -1)
@@ -732,10 +786,10 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (marker !== undefined) {
       // update marker
       this.updatePollutionMarker(marker)
-      // console.log('Send to: ' + this.state.editPollutionConfig)
+      console.log('Send to: ' + this.state.editPollutionConfig)
 
       try {
-        const response = await this.pollutionService.updatePollutionStatus(marker.id, 'SYNC')
+        const response = await this.pollutionService.updatePollutionStatus(marker.id, 'Synched')
         if (response.status === 'success') {
           NotificationManager.success('Pollution marker status updated')
           this.setState({
@@ -752,8 +806,6 @@ class RipplesMap extends Component<PropsType, StateType> {
       } catch (error) {
         NotificationManager.warning('Pollution marker status cannot be updated')
       }
-    } else {
-      NotificationManager.warning('Pollution marker status cannot be updated')
     }
   }
 

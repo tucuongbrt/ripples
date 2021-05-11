@@ -44,7 +44,7 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
-    @PostMapping(path = { "/pollution/{id}" }, consumes = "application/json", produces = "application/json")
+    @PostMapping(path = { "/pollution/{id}" }, consumes = "application/json")
     public ResponseEntity<HTTPResponse> createPollution(@RequestBody PollutionLocation asset, @PathVariable String id) {
 
         Optional<PollutionLocation> optPollutionMarker = repo.findById(Long.valueOf(id));
@@ -65,7 +65,7 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
-    @PostMapping(path = { "/pollution/{id}/{status}" }, consumes = "application/json", produces = "application/json")
+    @PostMapping(path = { "/pollution/{id}/{status}" })
     public ResponseEntity<HTTPResponse> updatePollutionStatus(@PathVariable String id, @PathVariable String status) {
 
         Optional<PollutionLocation> optPollutionMarker = repo.findById(Long.valueOf(id));
@@ -82,6 +82,13 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
+    @PostMapping(path = { "/pollution/remove/{id}", "/pollution/remove/{id}/" })
+    public ResponseEntity<HTTPResponse> deletePollution(@PathVariable String id) {
+        repo.deleteById(Long.valueOf(id));
+        return new ResponseEntity<>(new HTTPResponse("Success", "Pollution marker was deleted"), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('SCIENTIST')")
     @RequestMapping(path = { "/pollution/serverAll", "/pollution/serverAll/" }, method = RequestMethod.GET)
     public List<ExternalServer> pollutionServerAll() {
         ArrayList<ExternalServer> serverList = new ArrayList<>();
@@ -90,28 +97,28 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
-    @GetMapping(path = { "/pollution/server", "/pollution/server/" }, produces = "application/json")
+    @GetMapping(path = { "/pollution/server", "/pollution/server/" })
     public @ResponseBody String pollutionServer() {
         Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
         String serverUrl = "";
         if (opt.isPresent()) {
             System.out.println(opt.get().getIP());
             serverUrl = opt.get().getIP();
-		}
+        }
         return "{\"url\":\"" + serverUrl + "\"}";
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
-    @PostMapping(path = { "/pollution/server/{ip}" }, consumes = "application/json", produces = "application/json")
+    @PostMapping(path = { "/pollution/server/{ip}" })
     public ResponseEntity<HTTPResponse> updatePollutionServer(@PathVariable String ip) {
-        
+
         Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
         if (opt.isPresent()) {
             ExternalServer server = opt.get();
             server.setIP(ip);
             repoServer.save(server);
             return new ResponseEntity<>(new HTTPResponse("success", "Pollution server updated"), HttpStatus.OK);
-		} else {
+        } else {
             System.out.println("NEW");
             ExternalServer newServer = new ExternalServer("ramp_pollution", ip);
             repoServer.save(newServer);

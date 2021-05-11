@@ -25,6 +25,13 @@ export default class PollutionService {
     })
   }
 
+  public async deletePollution(id: number) {
+    return request({
+      method: 'POST',
+      url: `${apiURL}/pollution/remove/${id}`,
+    })
+  }
+
   public async fetchPollutionExternalServer() {
     return request({
       url: `${apiURL}/pollution/server`,

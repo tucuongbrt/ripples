@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import IPollution from '../../../model/IPollution'
 import * as L from 'leaflet'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
-import { BlueCircleIcon, GreenCircleIcon, YellowCircleIcon, RedCircleIcon } from './Icons'
+import { BlueCircleIcon, GreenCircleIcon, YellowCircleIcon, OrangeCircleIcon, RedCircleIcon } from './Icons'
 
 interface PropsType {
   locationSelected?: {
@@ -29,15 +29,15 @@ class Pollution extends Component<PropsType, {}> {
         let color = ''
         let icon: L.Icon
         switch (p.status) {
-          case 'SYNC':
-            color = 'orange'
-            icon = new YellowCircleIcon()
-            break
-          case 'EXEC':
+          case 'Synched':
             color = 'yellow'
             icon = new YellowCircleIcon()
             break
-          case 'DONE':
+          case 'Exec':
+            color = 'orange'
+            icon = new OrangeCircleIcon()
+            break
+          case 'Done':
             color = 'green'
             icon = new GreenCircleIcon()
             break

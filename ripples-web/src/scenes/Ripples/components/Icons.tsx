@@ -91,6 +91,13 @@ export const YellowCircleIcon = L.Icon.extend({
   },
 })
 
+export const OrangeCircleIcon = L.Icon.extend({
+  options: {
+    iconSize: [18, 18],
+    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Orange_sphere.png',
+  },
+})
+
 export const FinishWaypointIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],

@@ -446,6 +446,7 @@ class Ripples extends Component<PropsType, StateType> {
             myMaps={this.state.myMaps}
             geoServerAddr={this.state.geoServerAddr}
             onSettingsClick={this.onSettingsClick}
+            setPollutionMarkers={this.updatePollutionData}
           />
           <SidePanel onSettingsClick={this.onSettingsClick} />
           <Slider onChange={this.onSliderChange} min={-48} max={48} value={this.props.sliderValue} />
