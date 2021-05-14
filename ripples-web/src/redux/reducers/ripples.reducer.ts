@@ -3,6 +3,7 @@ import IAisShip from '../../model/IAisShip'
 import IAsset from '../../model/IAsset'
 import { isUserEqual, IUserLocation, noAuth } from '../../model/IAuthState'
 import ILatLng from '../../model/ILatLng'
+import IObstacle from '../../model/IObstacles'
 import { DefaultOverlayInfo } from '../../model/IOverlayInfo'
 import IPlan, { EmptyPlan, isPlanEqual } from '../../model/IPlan'
 import IPollution from '../../model/IPollution'
@@ -63,6 +64,8 @@ import {
   updateWpTimestamp,
   setPollution,
   updatePollution,
+  setObstacle,
+  updateObstacle,
 } from '../ripples.actions'
 
 const positionService: PositionService = new PositionService()
@@ -96,8 +99,8 @@ const startState: IRipplesState = {
   geoLayers: null,
   isEditingPlan: false,
   updatingPlanId: false,
-
   pollution: [],
+  obstacle: [],
 }
 
 const ripplesReducer = createReducer(startState, {
@@ -427,6 +430,13 @@ const ripplesReducer = createReducer(startState, {
     } else {
       state.pollution.push(newPollution)
     }
+  },
+  [setObstacle.type]: (state, action) => {
+    state.obstacle = action.payload
+  },
+  [updateObstacle.type]: (state, action) => {
+    const newObstacle: IObstacle = action.payload
+    state.obstacle.push(newObstacle)
   },
 })
 

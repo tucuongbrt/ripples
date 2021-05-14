@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
-import { Circle, Marker, GeoJSON } from 'react-leaflet'
+import { Circle, Marker, GeoJSON, Polygon } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IPollution from '../../../model/IPollution'
 import * as L from 'leaflet'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
 import { BlueCircleIcon, GreenCircleIcon, YellowCircleIcon, OrangeCircleIcon, RedCircleIcon } from './Icons'
+import { LatLng } from 'leaflet'
+import IObstacle from '../../../model/IObstacles'
 
 interface PropsType {
   locationSelected?: {
@@ -13,6 +15,11 @@ interface PropsType {
   }
   pollutionMarkers?: IPollution[]
   pollutionOpen: IPollution[]
+  obstaclePolygons?: IObstacle[]
+  obstacleLocationSelected: {
+    latitude: any
+    longitude: any
+  }[]
 
   addCircle: (pollution: IPollution) => void
   removeCircle: (pollution: IPollution) => void
@@ -22,6 +29,11 @@ interface PropsType {
 }
 
 class Pollution extends Component<PropsType, {}> {
+  constructor(props: PropsType) {
+    super(props)
+    this.onObstacleClick = this.onObstacleClick.bind(this)
+  }
+
   public buildPollutionMarkers() {
     if (this.props.pollutionMarkers) {
       return this.props.pollutionMarkers.map((p, index) => {
@@ -79,6 +91,45 @@ class Pollution extends Component<PropsType, {}> {
           icon={new BlueCircleIcon()}
         />
       )
+    }
+  }
+
+  public buildObstaclesPolygons() {
+    if (this.props.obstaclePolygons) {
+      return this.props.obstaclePolygons.map((obstacle, index) => {
+        const positions: L.LatLng[] = []
+        obstacle.positions.forEach((pos) => {
+          const obstaclePosition: L.LatLng = new LatLng(pos[0], pos[1])
+          positions.push(obstaclePosition)
+        })
+
+        return (
+          <Polygon
+            key={'obstaclePolygon_' + index}
+            positions={positions}
+            color="blue"
+            onClick={(e: any) => this.onObstacleClick(e, obstacle)}
+          />
+        )
+      })
+    }
+  }
+
+  public onObstacleClick(evt: any, obstacle: IObstacle) {
+    evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+    this.props.setSidePanelTitle(obstacle.description)
+    this.props.setSidePanelVisibility(true)
+  }
+
+  public drawObstacleLocation() {
+    if (this.props.obstacleLocationSelected) {
+      const positions: L.LatLng[] = []
+      this.props.obstacleLocationSelected.forEach((obstacle) => {
+        const pos: L.LatLng = new LatLng(obstacle.latitude, obstacle.longitude)
+        positions.push(pos)
+      })
+
+      return <Polygon positions={positions} color="red" />
     }
   }
 
@@ -845,6 +896,8 @@ class Pollution extends Component<PropsType, {}> {
         {this.buildAveiroArea()}
         {this.buildPollutionMarkers()}
         {this.buildSelectedLocation()}
+        {this.buildObstaclesPolygons()}
+        {this.drawObstacleLocation()}
       </>
     )
   }

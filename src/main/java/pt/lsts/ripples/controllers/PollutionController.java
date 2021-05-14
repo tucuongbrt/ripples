@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,8 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.shared.ExternalServer;
 import pt.lsts.ripples.domain.shared.PollutionLocation;
+import pt.lsts.ripples.domain.shared.ObstaclePosition;
 import pt.lsts.ripples.repo.main.ExternalServerRepository;
 import pt.lsts.ripples.repo.main.PollutionDataRepository;
+import pt.lsts.ripples.repo.main.ObstacleDataRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,11 +39,14 @@ public class PollutionController {
     @Autowired
     ExternalServerRepository repoServer;
 
+    @Autowired
+    ObstacleDataRepository repoObstacles;
+
     @RequestMapping(path = { "/pollution", "/pollution/" }, method = RequestMethod.GET)
     public List<PollutionLocation> listPollution() {
-        ArrayList<PollutionLocation> missionList = new ArrayList<>();
-        repo.findAll().forEach(missionList::add);
-        return missionList;
+        ArrayList<PollutionLocation> pollutionList = new ArrayList<>();
+        repo.findAll().forEach(pollutionList::add);
+        return pollutionList;
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
@@ -119,10 +125,48 @@ public class PollutionController {
             repoServer.save(server);
             return new ResponseEntity<>(new HTTPResponse("success", "Pollution server updated"), HttpStatus.OK);
         } else {
-            System.out.println("NEW");
             ExternalServer newServer = new ExternalServer("ramp_pollution", ip);
             repoServer.save(newServer);
             return new ResponseEntity<>(new HTTPResponse("success", "Pollution server updated"), HttpStatus.OK);
         }
+    }
+
+    @RequestMapping(path = { "/pollution/obstacles", "/pollution/obstacles/" }, method = RequestMethod.GET)
+    public List<ObstaclePosition> listObstacles() {
+        ArrayList<ObstaclePosition> obstaclesList = new ArrayList<>();
+        repoObstacles.findAll().forEach(obstaclesList::add);
+        return obstaclesList;
+    }
+
+    @PreAuthorize("hasRole('SCIENTIST')")
+    @PostMapping(path = { "/pollution/obstacle" }, consumes = "application/json")
+    public ResponseEntity<HTTPResponse> createPollution(@RequestBody ObstaclePosition asset) {
+
+        ObstaclePosition newObstacle = new ObstaclePosition(asset.getDescription(), asset.getTimestamp(),
+                asset.getUser());
+        for (Double[] pos : asset.getPositions()) {
+            newObstacle.addPosition(pos);
+        }
+        repoObstacles.save(newObstacle);
+        wsController.sendObstacleAssetFromServerToClients(newObstacle);
+
+        return new ResponseEntity<>(new HTTPResponse("success", "Added obstacle polygon"), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('SCIENTIST')")
+    @RequestMapping(path = { "/pollution/alert", "/pollution/alert/" }, method = RequestMethod.GET)
+    public ResponseEntity<String> listAlert() {
+
+        ArrayList<PollutionLocation> pollutionList = new ArrayList<>();
+        repo.findAll().forEach(pollutionList::add);
+
+        ArrayList<ObstaclePosition> obstaclesList = new ArrayList<>();
+        repoObstacles.findAll().forEach(obstaclesList::add);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("Focus", pollutionList);
+        jsonObject.put("Obstacles", obstaclesList);
+
+        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
     }
 }

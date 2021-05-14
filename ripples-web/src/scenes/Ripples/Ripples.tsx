@@ -8,6 +8,7 @@ import IAsset, { IAssetPayload } from '../../model/IAsset'
 import UserState, { isScientist, IUser, IUserLocation } from '../../model/IAuthState'
 import IGeoLayer from '../../model/IGeoLayer'
 import IMyMap from '../../model/IMyMap'
+import IObstacle from '../../model/IObstacles'
 import IOverlayInfo from '../../model/IOverlayInfo'
 import IPlan, { isPlanEqual } from '../../model/IPlan'
 import IPollution from '../../model/IPollution'
@@ -43,6 +44,8 @@ import {
   updateVehicle,
   setPollution,
   updatePollution,
+  setObstacle,
+  updateObstacle,
 } from '../../redux/ripples.actions'
 import AISService from '../../services/AISUtils'
 import GeoLayerService from '../../services/GeoLayerService'
@@ -100,6 +103,8 @@ interface PropsType {
   setGeoLayers: (layers: IGeoLayer[]) => void
   setPollution: (_: IPollution[]) => void
   updatePollution: (p: IPollution) => void
+  setObstacle: (_: IObstacle[]) => void
+  updateObstacle: (o: IObstacle) => void
 }
 
 class Ripples extends Component<PropsType, StateType> {
@@ -139,6 +144,8 @@ class Ripples extends Component<PropsType, StateType> {
     this.onSettingsClick = this.onSettingsClick.bind(this)
     this.updatePollutionData = this.updatePollutionData.bind(this)
     this.handleWsPollutionUpdate = this.handleWsPollutionUpdate.bind(this)
+    this.updateObstacleData = this.updateObstacleData.bind(this)
+    this.handleWsObstacleUpdate = this.handleWsObstacleUpdate.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -165,11 +172,13 @@ class Ripples extends Component<PropsType, StateType> {
       this.handleWsAnnotationUpdate,
       this.handleWsUserLocation,
       this.handleWsVehicleParams,
-      this.handleWsPollutionUpdate
+      this.handleWsPollutionUpdate,
+      this.handleWsObstacleUpdate
     )
     this.setState({ myMaps })
     this.setState({ loading: false })
     this.updatePollutionData()
+    this.updateObstacleData()
     this.startUpdates()
   }
 
@@ -234,6 +243,14 @@ class Ripples extends Component<PropsType, StateType> {
       const pollutionPayload: IPollution = JSON.parse(p.body)
       // update redux
       this.props.updatePollution(pollutionPayload)
+    }
+  }
+
+  public handleWsObstacleUpdate(o: Message) {
+    if (o.body) {
+      const obstaclePayload: IObstacle = JSON.parse(o.body)
+      // update redux
+      this.props.updateObstacle(obstaclePayload)
     }
   }
 
@@ -348,6 +365,12 @@ class Ripples extends Component<PropsType, StateType> {
     const pollutionData: IPollution[] = await this.pollutionService.fetchPollutionData()
     // update redux store
     this.props.setPollution(pollutionData)
+  }
+
+  public async updateObstacleData() {
+    const obstacleData: IObstacle[] = await this.pollutionService.fetchObstaclesData()
+    // update redux store
+    this.props.setObstacle(obstacleData)
   }
 
   public handleEditPlan = (p: IPlan) => {
@@ -498,6 +521,8 @@ const actionCreators = {
   setGeoLayers,
   setPollution,
   updatePollution,
+  setObstacle,
+  updateObstacle,
 }
 
 export default connect(mapStateToProps, actionCreators)(Ripples)

@@ -271,6 +271,15 @@ path.leaflet-polygon {
   margin: 5px;
 }
 
+.obstacleForm {
+  display: grid;
+  border: 1px solid;
+  color: #00408A;
+  background: #b6cce3;
+  border-radius: .25rem;
+  margin: 5px;
+}
+
 .pollutionUpdateMarker span {
   text-align: center;
   display: block;

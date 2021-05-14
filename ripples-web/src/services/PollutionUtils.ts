@@ -1,3 +1,4 @@
+import IObstacle from '../model/IObstacles'
 import IPollution from '../model/IPollution'
 import { request } from './RequestUtils'
 
@@ -52,5 +53,19 @@ export default class PollutionService {
     } else {
       return false
     }
+  }
+
+  public async fetchObstaclesData(): Promise<IObstacle[]> {
+    const response = await fetch(`${apiURL}/pollution/obstacles`)
+    const pollutions = await response.json()
+    return pollutions
+  }
+
+  public async addObstacle(obstaclePosition: IObstacle) {
+    return request({
+      method: 'POST',
+      body: JSON.stringify(obstaclePosition),
+      url: `${apiURL}/pollution/obstacle`,
+    })
   }
 }

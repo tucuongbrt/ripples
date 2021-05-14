@@ -17,7 +17,7 @@ import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
-import IAuthState, { IUserLocation } from '../../../model/IAuthState'
+import IAuthState, { isScientist, IUserLocation } from '../../../model/IAuthState'
 import IGeoLayer from '../../../model/IGeoLayer'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap, { IMapSettings } from '../../../model/IMyMap'
@@ -62,6 +62,7 @@ import PlanManager from './PlanManager'
 import IPollution from '../../../model/IPollution'
 import PollutionService from '../../../services/PollutionUtils'
 import Pollution from './Pollution'
+import IObstacle from '../../../model/IObstacles'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -94,6 +95,7 @@ interface PropsType {
   weatherParam: WeatherParam | null
   toolClickLocation: ILatLng | null
   pollution: IPollution[]
+  obstacle: IObstacle[]
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
@@ -140,6 +142,12 @@ interface StateType {
   pollutionLatitudeUpdate: number
   pollutionLongitudeUpdate: number
   isPollutionModalOpen: boolean
+  obstacleEnable: boolean
+  obstacleDescription: string
+  obstacleLocation: {
+    latitude: any
+    longitude: any
+  }[]
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -189,6 +197,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       pollutionLatitudeUpdate: 0,
       pollutionLongitudeUpdate: 0,
       isPollutionModalOpen: false,
+      obstacleEnable: false,
+      obstacleDescription: '',
+      obstacleLocation: [],
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -205,6 +216,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleChangePollutionRadiusUpdate = this.handleChangePollutionRadiusUpdate.bind(this)
     this.handleChangePollutionLatitudeUpdate = this.handleChangePollutionLatitudeUpdate.bind(this)
     this.handleChangePollutionLongitudeUpdate = this.handleChangePollutionLongitudeUpdate.bind(this)
+    this.handleChangeObstacleDescription = this.handleChangeObstacleDescription.bind(this)
     this.handleChangePollutionConfig = this.handleChangePollutionConfig.bind(this)
     this.handlePollutionEdit = this.handlePollutionEdit.bind(this)
     this.handleAddPollutionCircle = this.handleAddPollutionCircle.bind(this)
@@ -273,12 +285,13 @@ class RipplesMap extends Component<PropsType, StateType> {
         break
     }
 
-    if (
-      this.state.pollutionEnable &&
-      e.originalEvent.srcElement.nodeName !== 'BUTTON' &&
-      e.originalEvent.srcElement.nodeName !== 'INPUT'
-    ) {
-      this.setState({ pollutionLocation: clickLocation })
+    if (e.originalEvent.srcElement.nodeName !== 'BUTTON' && e.originalEvent.srcElement.nodeName !== 'INPUT') {
+      if (this.state.pollutionEnable) {
+        this.setState({ pollutionLocation: clickLocation })
+      }
+      if (this.state.obstacleEnable) {
+        this.setState({ obstacleLocation: [...this.state.obstacleLocation, clickLocation] })
+      }
     }
   }
 
@@ -383,9 +396,11 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildPollutionMarkers() {
     let pollution = this.props.pollution
+    let obstacle = this.props.obstacle
     if (this.map) {
       const mapBounds = this.map.leafletElement.getBounds()
       pollution = pollution.filter((pollution) => mapBounds.contains([pollution.latitude, pollution.longitude]))
+      obstacle = obstacle.filter((o) => mapBounds.contains([o.positions[0][0], o.positions[0][1]]))
     }
 
     if (this.state.isPollutionLayerActive) {
@@ -396,6 +411,8 @@ class RipplesMap extends Component<PropsType, StateType> {
           pollutionOpen={this.state.pollutionOpen}
           addCircle={this.handleAddPollutionCircle}
           removeCircle={this.handleRemovePollutionCircle}
+          obstacleLocationSelected={this.state.obstacleLocation}
+          obstaclePolygons={obstacle}
         />
       )
     } else {
@@ -409,20 +426,42 @@ class RipplesMap extends Component<PropsType, StateType> {
         <div className="pollutionDialog">
           <form className="pollutionForm">
             {/* only scientist */}
-            {!this.state.pollutionEnable ? (
+            {isScientist(this.props.auth) ? (
               <div>
                 <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
                   New Pollution Marker
                 </Button>
 
-                <Button
-                  className="m-1"
-                  color="success"
-                  size="sm"
-                  onClick={() => this.syncPollutionMarker(this.state.editPollutionMarker)}
-                >
-                  Sync Pollution Marker
-                </Button>
+                <div className="obstacleForm">
+                  <span className="pollutionSpan">Obstacles</span>
+                  {!this.state.obstacleEnable ? (
+                    <Button className="m-1" color="info" size="sm" onClick={() => this.drawObstacle()}>
+                      New Obstacle
+                    </Button>
+                  ) : (
+                    <div>
+                      <input
+                        type="text"
+                        id="obstacleDescription"
+                        value={this.state.obstacleDescription}
+                        placeholder="Description"
+                        onChange={this.handleChangeObstacleDescription}
+                      />
+
+                      <Button className="m-1" color="success" size="sm" onClick={() => this.addObstaclePolygon()}>
+                        Add
+                      </Button>
+                      <Button
+                        className="m-1"
+                        color="danger"
+                        size="sm"
+                        onClick={() => this.setState({ obstacleEnable: false, obstacleLocation: [] })}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <></>
@@ -516,7 +555,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 </div>
 
                 {/* only scientist */}
-                {this.state.editPollutionMarker.status === 'Created' ? (
+                {isScientist(this.props.auth) && this.state.editPollutionMarker.status === 'Created' ? (
                   <div className="pollutionBtn">
                     <Button
                       className="m-1"
@@ -525,6 +564,15 @@ class RipplesMap extends Component<PropsType, StateType> {
                       onClick={() => this.updatePollutionMarker(this.state.editPollutionMarker)}
                     >
                       Update Pollution Marker
+                    </Button>
+
+                    <Button
+                      className="m-1"
+                      color="success"
+                      size="sm"
+                      onClick={() => this.syncPollutionMarker(this.state.editPollutionMarker)}
+                    >
+                      Sync Pollution Marker
                     </Button>
                   </div>
                 ) : (
@@ -590,6 +638,45 @@ class RipplesMap extends Component<PropsType, StateType> {
           </Modal>
         </div>
       )
+    }
+  }
+
+  public drawObstacle() {
+    NotificationManager.info('Draw obstacle')
+    this.setState({ obstacleEnable: true })
+  }
+
+  public async addObstaclePolygon() {
+    if (this.state.obstacleLocation.length <= 2) {
+      NotificationManager.warning('The obstacle polygon must have \nat least 3 points')
+      return
+    }
+
+    const allPositions: number[][] = []
+    this.state.obstacleLocation.forEach((o) => {
+      const pos: number[] = []
+      pos.push(o.latitude)
+      pos.push(o.longitude)
+      allPositions.push(pos)
+    })
+
+    try {
+      const newObstaclePolygon = new IObstacle(
+        this.state.obstacleDescription,
+        allPositions,
+        Date.now(),
+        this.props.auth.currentUser.email
+      )
+
+      const response = await this.pollutionService.addObstacle(newObstaclePolygon)
+      if (response.status === 'success') {
+        NotificationManager.success(response.message)
+        this.setState({ obstacleEnable: false, obstacleLocation: [] })
+      } else {
+        NotificationManager.warning('Obstacle polygon cannot be added')
+      }
+    } catch (error) {
+      NotificationManager.warning('Obstacle polygon cannot be added')
     }
   }
 
@@ -695,6 +782,9 @@ class RipplesMap extends Component<PropsType, StateType> {
   public handleChangePollutionLongitudeUpdate(event: any) {
     this.setState({ pollutionLongitudeUpdate: event.target.value })
   }
+  public handleChangeObstacleDescription(event: any) {
+    this.setState({ obstacleDescription: event.target.value })
+  }
 
   public handlePollutionEdit(pollutionMarker: IPollution | undefined) {
     this.setState({ editPollutionMarker: pollutionMarker })
@@ -784,9 +874,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public async syncPollutionMarker(marker: IPollution | undefined) {
     if (marker !== undefined) {
-      // update marker
-      this.updatePollutionMarker(marker)
-      console.log('Send to: ' + this.state.editPollutionConfig)
+      // console.log('Send to: ' + this.state.editPollutionConfig)
 
       try {
         const response = await this.pollutionService.updatePollutionStatus(marker.id, 'Synched')
@@ -1466,6 +1554,7 @@ function mapStateToProps(state: IRipplesState) {
     toolClickLocation: state.toolClickLocation,
     geoLayers: state.geoLayers,
     pollution: state.pollution,
+    obstacle: state.obstacle,
   }
 }
 
