@@ -26,6 +26,13 @@ export default class PollutionService {
     })
   }
 
+  public async syncPolutionMarkers(server: string) {
+    return request({
+      method: 'POST',
+      url: `${apiURL}/pollution/sync/${server}`,
+    })
+  }
+
   public async deletePollution(id: number) {
     return request({
       method: 'POST',

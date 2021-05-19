@@ -107,7 +107,7 @@ class Pollution extends Component<PropsType, {}> {
           <Polygon
             key={'obstaclePolygon_' + index}
             positions={positions}
-            color="blue"
+            color="black"
             onClick={(e: any) => this.onObstacleClick(e, obstacle)}
           />
         )
