@@ -133,7 +133,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/", "/ripples", "/soirisk", "/messages/text", "/user/manager")
                         .permitAll()
                     .antMatchers("/ripples-docs/**", "/ripples-docs**")
-                        .hasRole("ADMINISTRATOR")
+                        .permitAll()
                     .anyRequest()
                         .authenticated()
                     .and()
