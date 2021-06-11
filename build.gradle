@@ -75,7 +75,7 @@ dependencies {
 	implementation group: 'dk.tbsalling', 				name: 'aisutils',						version: '1.0.0'
 	implementation group: 'dk.tbsalling', 				name: 'aismessages',					version: '2.2.3'
 
-
+	compile group: 'org.springdoc', 					name: 'springdoc-openapi-ui', 			version: '1.5.8'
 	
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 	testCompile('org.springframework.security:spring-security-test')

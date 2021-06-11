@@ -33,7 +33,7 @@ public class MyLogbookController {
   @Autowired
   WebSocketsController wsController;
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @GetMapping(path = { "/logbooks", "/logbooks/" }, produces = "application/json")
   public ArrayList<MyLogbook> getLogbooks() {
     ArrayList<MyLogbook> logbooks = new ArrayList<MyLogbook>();
@@ -43,7 +43,7 @@ public class MyLogbookController {
     return logbooks;
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @GetMapping(path = { "/logbooks/{logbookName}", "/logbooks/{logbookName}/" }, produces = "application/json")
   public MyLogbook getLogbook(@PathVariable("logbookName") String logbookName) {
     if (logbookName.equals("default")) {
@@ -66,7 +66,7 @@ public class MyLogbookController {
     return logbooks.get(0);
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @PostMapping(path = { "/logbooks", "/logbooks/" }, consumes = "application/json", produces = "application/json")
   public ResponseEntity<HTTPResponse> addLogbook(@RequestBody MyLogbook newLogbook) {
     myLogbooksRepo.save(newLogbook);
@@ -74,7 +74,7 @@ public class MyLogbookController {
         HttpStatus.OK);
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @PostMapping(path = { "/logbooks/{logbookName}",
       "/logbooks/{logbookName}/" }, consumes = "application/json", produces = "application/json")
   public ResponseEntity<HTTPResponse> addAnnotation(@CurrentUser UserPrincipal user, @PathVariable String logbookName,
@@ -100,7 +100,7 @@ public class MyLogbookController {
         HttpStatus.OK);
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @PostMapping(path = { "/logbooks/{logbookName}/edit",
       "/logbooks/{logbookName}/edit" }, consumes = "application/json", produces = "application/json")
   public ResponseEntity<HTTPResponse> editAnnotation(@PathVariable("logbookName") String logbookName,
@@ -121,14 +121,14 @@ public class MyLogbookController {
         "Annotation of id " + annotation.getId() + " of logbook " + logbookName + " was edited"), HttpStatus.OK);
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @DeleteMapping(path = { "/logbooks/{logbookName}", "/logbooks/{logbookName}/" }, produces = "application/json")
   public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName) {
     myLogbooksRepo.deleteById(logbookName);
     return new ResponseEntity<>(new HTTPResponse("Success", "Logbook " + logbookName + " was deleted"), HttpStatus.OK);
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @DeleteMapping(path = { "/logbooks/{logbookName}/{annotationId}",
       "/logbooks/{logbookName}/{annotationId}/" }, produces = "application/json")
   public ResponseEntity<HTTPResponse> deleteAnnotation(@PathVariable("logbookName") String logbookName,
@@ -150,7 +150,7 @@ public class MyLogbookController {
         HttpStatus.OK);
   }
 
-  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+  @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
   @GetMapping(path = { "/logbooks/{logbookName}/annotations",
       "/logbooks/{logbookName}/annotations/" }, produces = "application/json")
   public MyAnnotation getLastAnnotation(@PathVariable String logbookName) {

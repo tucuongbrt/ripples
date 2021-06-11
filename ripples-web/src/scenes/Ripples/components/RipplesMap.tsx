@@ -17,7 +17,7 @@ import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
-import IAuthState, { isScientist, IUserLocation } from '../../../model/IAuthState'
+import IAuthState, { isScientist, isCasual, IUserLocation, isAdministrator } from '../../../model/IAuthState'
 import IGeoLayer from '../../../model/IGeoLayer'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap, { IMapSettings } from '../../../model/IMyMap'
@@ -224,7 +224,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleDeletePollution = this.handleDeletePollution.bind(this)
     this.togglePollutionModal = this.togglePollutionModal.bind(this)
 
-    if (this.props.auth.authenticated) {
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
     }
   }
@@ -239,7 +239,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.map = this.refs.map as LeafletMap
 
     /* ADMIN & SCIENTIST*/
-    if (this.props.auth.authenticated) {
+    if (this.props.auth.authenticated && (isAdministrator(this.props.auth) || isScientist(this.props.auth))) {
       const pollutionServer = await this.pollutionService.fetchPollutionExternalServer()
       this.setState({ editPollutionConfig: pollutionServer.url })
     }
@@ -578,7 +578,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             )}
 
             {/* only admin */}
-            {this.state.pollutionConfig ? (
+            {isAdministrator(this.props.auth) && !this.state.pollutionConfig ? (
               <div>
                 <Button className="m-1" color="success" size="sm" onClick={() => this.handlePollutionConfig()}>
                   Config External Server
@@ -598,7 +598,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             )}
 
             {/* only admin */}
-            {this.state.pollutionConfig ? (
+            {isAdministrator(this.props.auth) && this.state.pollutionConfig ? (
               <div>
                 <input
                   type="text"
@@ -936,7 +936,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       lng: center.lng,
       zoom,
     }
-    await MapUtils.updateMapSettings(newSettings)
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
+      await MapUtils.updateMapSettings(newSettings)
+    }
   }
 
   public handleZoom(e: any) {

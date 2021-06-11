@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
-import UserState, { isScientist, IUser, IUserLocation } from '../../model/IAuthState'
+import UserState, { isAdministrator, isCasual, isScientist, IUser, IUserLocation } from '../../model/IAuthState'
 import IGeoLayer from '../../model/IGeoLayer'
 import IMyMap from '../../model/IMyMap'
 import IObstacle from '../../model/IObstacles'
@@ -152,7 +152,11 @@ class Ripples extends Component<PropsType, StateType> {
     try {
       const user: IUser = await getCurrentUser()
       this.props.setUser(user)
-      NotificationManager.info(`${user.role.toLowerCase()}: ${user.email}`)
+      if (isCasual(this.props.auth)) {
+        NotificationManager.info('Waiting for validation: ' + user.email)
+      } else {
+        NotificationManager.info(`${user.role.toLowerCase()}: ${user.email}`)
+      }
     } catch (error) {
       localStorage.removeItem('ACCESS_TOKEN')
     }
@@ -161,7 +165,7 @@ class Ripples extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     const myMaps = await this.loadMyMapsData()
-    if (this.props.auth.authenticated) {
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       const geoLayers = await this.loadGeoLayers()
       this.props.setGeoLayers(geoLayers)
     }
@@ -311,7 +315,7 @@ class Ripples extends Component<PropsType, StateType> {
       const profilesPromise = this.soiService.fetchProfileData()
       const awarenessPromise = this.soiService.fetchAwareness()
       let unassignedPlansPromise
-      if (isScientist(this.props.auth)) {
+      if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
         unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
       }
       const soiData = await soiPromise

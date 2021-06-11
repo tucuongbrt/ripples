@@ -72,7 +72,7 @@ public class AssetsController {
         return assets;
     }
 
-    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @RequestMapping(path = {"/assets/params"}, method = RequestMethod.GET)
     public List<AssetParams> listAssetParams() {
         ArrayList<AssetParams> assetsParams = new ArrayList<>();

@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import ReactDOMServer from 'react-dom/server'
 import {
   Button,
@@ -14,10 +15,14 @@ import {
 } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
 import IAnnotation, { Annotation, DefaultAnnotation, INewAnnotation } from '../../model/IAnnotations'
+import IAuthState, { IUser } from '../../model/IAuthState'
 import ILatLng, { inRange } from '../../model/ILatLng'
+import IRipplesState from '../../model/IRipplesState'
 import MyLogbook, { ILogbook } from '../../model/MyLogbook'
+import { setUser } from '../../redux/ripples.actions'
 import DateService from '../../services/DateUtils'
 import LogbookService from '../../services/LogbookUtils'
+import { getCurrentUser } from '../../services/UserUtils'
 import LogbookEntries from './components/LogbookEntries'
 import LogbookTable from './components/LogbookTable'
 import './styles/Logbook.css'
@@ -41,7 +46,12 @@ enum ModalType {
   EDIT_ANNOTATION,
 }
 
-export default class LogbookManager extends Component<{}, StateType> {
+interface PropsType {
+  setUser: (user: IUser) => any
+  auth: IAuthState
+}
+
+export class LogbookManager extends Component<PropsType, StateType> {
   private logbookService: LogbookService = new LogbookService()
   public constructor(props: any) {
     super(props)
@@ -67,9 +77,20 @@ export default class LogbookManager extends Component<{}, StateType> {
     this.logbookHasAnnotations = this.logbookHasAnnotations.bind(this)
     this.savePreviousLogbook = this.savePreviousLogbook.bind(this)
     this.onExportHtml = this.onExportHtml.bind(this)
+    this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
+  }
+
+  public async loadCurrentlyLoggedInUser() {
+    try {
+      const user: IUser = await getCurrentUser()
+      this.props.setUser(user)
+    } catch (error) {
+      localStorage.removeItem('ACCESS_TOKEN')
+    }
   }
 
   public async componentDidMount() {
+    await this.loadCurrentlyLoggedInUser()
     const data = await this.logbookService.fetchLogbooksInfo()
     this.setState({ logbooks: data })
     if (this.state.logbooks.length > 0) {
@@ -487,3 +508,15 @@ export default class LogbookManager extends Component<{}, StateType> {
     )
   }
 }
+
+function mapStateToProps(state: IRipplesState) {
+  return {
+    auth: state.auth,
+  }
+}
+
+const actionCreators = {
+  setUser,
+}
+
+export default connect(mapStateToProps, actionCreators)(LogbookManager)

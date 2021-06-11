@@ -25,7 +25,7 @@ public class ZerotierController {
     @Value("${zerotier.nwid}")
 	private String nwid;
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @GetMapping(path = { "/zt/member/{nodeId}", "/zt/member/{nodeId}/" }, produces = "application/json")
     public ResponseEntity<HTTPResponse> addMember(@CurrentUser UserPrincipal user,
             @PathVariable(required = true) String nodeId) {

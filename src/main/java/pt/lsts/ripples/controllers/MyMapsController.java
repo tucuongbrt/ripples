@@ -51,7 +51,7 @@ public class MyMapsController {
         myMapsRepo.save(defaultMap);
     }
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/kml", "/kml/" }, consumes = "application/json", produces = "application/json")
     public ResponseEntity<HTTPResponse> addKML(@RequestBody MyMaps newMap) {
         // newMap should have a url and a name
@@ -68,7 +68,7 @@ public class MyMapsController {
 
     }
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @DeleteMapping(path = { "/kml/{mapName}", "/kml/{mapName}/" }, produces = "application/json")
     public ResponseEntity<HTTPResponse> deleteKML(@PathVariable("mapName") String mapName) {
         myMapsRepo.deleteById(mapName);

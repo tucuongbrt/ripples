@@ -1,10 +1,15 @@
 import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import { Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
+import IAuthState, { IUser } from '../../model/IAuthState'
+import IRipplesState from '../../model/IRipplesState'
 import ITextMessage from '../../model/ITextMessage'
 import DateService from '../../services/DateUtils'
 import hexToAscii from '../../services/HexToAscii'
 import { fetchTextMessages } from '../../services/Rock7Utils'
+import { setUser } from '../../redux/ripples.actions'
+import { getCurrentUser } from '../../services/UserUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -12,10 +17,15 @@ interface StateType {
   isNavOpen: boolean
 }
 
+interface PropsType {
+  setUser: (user: IUser) => any
+  auth: IAuthState
+}
+
 /**
  * Display iridium / rock7 plain text messages
  */
-export default class TextMessages extends Component<{}, StateType> {
+export class TextMessages extends Component<PropsType, StateType> {
   public notificationSystem: any = null
   public timerID: number = 0
 
@@ -26,9 +36,20 @@ export default class TextMessages extends Component<{}, StateType> {
       messages: [],
     }
     this.updateMessages = this.updateMessages.bind(this)
+    this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
   }
 
-  public componentDidMount() {
+  public async loadCurrentlyLoggedInUser() {
+    try {
+      const user: IUser = await getCurrentUser()
+      this.props.setUser(user)
+    } catch (error) {
+      localStorage.removeItem('ACCESS_TOKEN')
+    }
+  }
+
+  public async componentDidMount() {
+    await this.loadCurrentlyLoggedInUser()
     this.updateMessages()
     this.timerID = window.setInterval(this.updateMessages, 60000)
   }
@@ -88,3 +109,15 @@ export default class TextMessages extends Component<{}, StateType> {
     )
   }
 }
+
+function mapStateToProps(state: IRipplesState) {
+  return {
+    auth: state.auth,
+  }
+}
+
+const actionCreators = {
+  setUser,
+}
+
+export default connect(mapStateToProps, actionCreators)(TextMessages)
