@@ -146,7 +146,7 @@ public class PollutionController {
         }
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/pollution/remove/{id}", "/pollution/remove/{id}/" })
     public ResponseEntity<HTTPResponse> deletePollution(@PathVariable String id) {
         repo.deleteById(Long.valueOf(id));
@@ -162,7 +162,7 @@ public class PollutionController {
         return serverList;
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @GetMapping(path = { "/pollution/server", "/pollution/server/" })
     public @ResponseBody String pollutionServer() {
         Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
@@ -173,7 +173,7 @@ public class PollutionController {
         return "{\"url\":\"" + serverUrl + "\"}";
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/pollution/server/{ip}" })
     public ResponseEntity<HTTPResponse> updatePollutionServer(@PathVariable String ip) {
 
