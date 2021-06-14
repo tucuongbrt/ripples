@@ -79,7 +79,6 @@ public class PollutionController {
         return new ResponseEntity<>(new HTTPResponse("success", "Added pollution marker"), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
     @PostMapping(path = { "/pollution/{id}/{status}" })
     public ResponseEntity<HTTPResponse> updatePollutionStatus(@PathVariable String id, @PathVariable String status) {
 
@@ -114,9 +113,12 @@ public class PollutionController {
         jsonObject.put("Focus", pollutionList);
         jsonObject.put("Obstacles", obstaclesList);
 
+        System.out.println("Sync with: " + "http://" + server);
+        System.out.println(jsonObject.toString());
+
         // send to external server
         try {
-            URL url = new URL(server);
+            URL url = new URL("http://" + server);
             HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
             httpCon.setDoOutput(true);
             httpCon.setRequestMethod("POST");

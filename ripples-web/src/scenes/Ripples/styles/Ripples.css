@@ -247,8 +247,8 @@ path.leaflet-polygon {
 
 .pollutionDialog {
   position: absolute;
-  left: 10px;
-  top: 300px;
+  left: 50px;
+  top: 10px;
   z-index: 9999 !important;
   color: #004085;
   background-color: #cce5ff;
@@ -262,7 +262,6 @@ path.leaflet-polygon {
   animation: fadein 500ms;
   -moz-animation: fadein 500ms;        /* Firefox */
   -webkit-animation: fadein 500ms;     /* Safari and Chrome */
-
 }
 
 .pollutionForm {
