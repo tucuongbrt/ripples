@@ -98,12 +98,11 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")
-    @PostMapping(path = { "/pollution/sync/{server}" })
-    public ResponseEntity<HTTPResponse> syncAllPollutionMarkers(@PathVariable String server) {
+    @PostMapping(path = { "/pollution/sync/" })
+    public ResponseEntity<HTTPResponse> syncAllPollutionMarkers(@RequestBody String server) {
 
         ArrayList<PollutionLocation> pollutionList = new ArrayList<>();
         repo.findByStatus("Created").forEach(pollutionList::add);
-        ;
 
         ArrayList<ObstaclePosition> obstaclesList = new ArrayList<>();
         repoObstacles.findAll().forEach(obstaclesList::add);
@@ -112,13 +111,11 @@ public class PollutionController {
         jsonObject.put("Id", new Date().hashCode());
         jsonObject.put("Focus", pollutionList);
         jsonObject.put("Obstacles", obstaclesList);
-
-        System.out.println("Sync with: " + "http://" + server);
         System.out.println(jsonObject.toString());
 
         // send to external server
         try {
-            URL url = new URL("http://" + server);
+            URL url = new URL(server);
             HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
             httpCon.setDoOutput(true);
             httpCon.setRequestMethod("POST");
@@ -143,6 +140,7 @@ public class PollutionController {
                 return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"), HttpStatus.OK);
             }
         } catch (Exception e) {
+            logger.warn("Pollution markers cannot be synched with external server: " + server);
             e.printStackTrace();
             return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"), HttpStatus.OK);
         }
@@ -172,12 +170,12 @@ public class PollutionController {
         if (opt.isPresent()) {
             serverUrl = opt.get().getIP();
         }
-        return "{\"url\":\"" + serverUrl + "\"}";
+        return serverUrl;
     }
 
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
-    @PostMapping(path = { "/pollution/server/{ip}" })
-    public ResponseEntity<HTTPResponse> updatePollutionServer(@PathVariable String ip) {
+    @PostMapping(path = { "/pollution/server/" })
+    public ResponseEntity<HTTPResponse> updatePollutionServer(@RequestBody String ip) {
 
         Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
         if (opt.isPresent()) {

@@ -29,7 +29,8 @@ export default class PollutionService {
   public async syncPolutionMarkers(server: string) {
     return request({
       method: 'POST',
-      url: `${apiURL}/pollution/sync/${server}`,
+      body: JSON.stringify(server),
+      url: `${apiURL}/pollution/sync/`,
     })
   }
 
@@ -49,7 +50,8 @@ export default class PollutionService {
   public async updatePollutionExternalServer(ipAddress: string) {
     return request({
       method: 'POST',
-      url: `${apiURL}/pollution/server/${ipAddress}`,
+      body: JSON.stringify(ipAddress),
+      url: `${apiURL}/pollution/server/`,
     })
   }
 

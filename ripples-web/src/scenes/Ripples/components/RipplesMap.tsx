@@ -238,10 +238,9 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
     this.map = this.refs.map as LeafletMap
 
-    /* ADMIN & SCIENTIST*/
     if (this.props.auth.authenticated && (isAdministrator(this.props.auth) || isScientist(this.props.auth))) {
       const pollutionServer = await this.pollutionService.fetchPollutionExternalServer()
-      this.setState({ editPollutionConfig: pollutionServer.url })
+      this.setState({ editPollutionConfig: pollutionServer })
     }
   }
 
