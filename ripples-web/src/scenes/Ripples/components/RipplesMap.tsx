@@ -424,7 +424,6 @@ class RipplesMap extends Component<PropsType, StateType> {
       return (
         <div className="pollutionDialog">
           <form className="pollutionForm">
-            {/* only scientist */}
             {isScientist(this.props.auth) ? (
               <div>
                 {!this.state.pollutionEnable ? (
@@ -556,7 +555,6 @@ class RipplesMap extends Component<PropsType, StateType> {
                   />
                 </div>
 
-                {/* only scientist */}
                 {isScientist(this.props.auth) && this.state.editPollutionMarker.status === 'Created' ? (
                   <div className="pollutionBtn">
                     <Button
@@ -576,28 +574,13 @@ class RipplesMap extends Component<PropsType, StateType> {
               <></>
             )}
 
-            {/* only admin */}
             {isAdministrator(this.props.auth) && !this.state.pollutionConfig ? (
               <div>
                 <Button className="m-1" color="success" size="sm" onClick={() => this.handlePollutionConfig()}>
                   Config External Server
                 </Button>
-                {this.state.editPollutionMarker !== undefined && this.state.editPollutionMarker.status === 'Done' ? (
-                  <div>
-                    <Button className="m-1" color="danger" size="sm" onClick={() => this.togglePollutionModal()}>
-                      Delete Pollution Marker
-                    </Button>
-                  </div>
-                ) : (
-                  <></>
-                )}
               </div>
-            ) : (
-              <></>
-            )}
-
-            {/* only admin */}
-            {isAdministrator(this.props.auth) && this.state.pollutionConfig ? (
+            ) : isAdministrator(this.props.auth) && this.state.pollutionConfig ? (
               <div>
                 <input
                   type="text"
@@ -613,6 +596,19 @@ class RipplesMap extends Component<PropsType, StateType> {
 
                 <Button className="m-1" color="success" size="sm" onClick={() => this.handleClosePollutionConfig()}>
                   Cancel
+                </Button>
+              </div>
+            ) : (
+              <></>
+            )}
+
+            {(isAdministrator(this.props.auth) || isScientist(this.props.auth)) &&
+            this.state.editPollutionMarker !== undefined &&
+            (this.state.editPollutionMarker.status === 'Created' ||
+              this.state.editPollutionMarker.status === 'Done') ? (
+              <div>
+                <Button className="m-1" color="danger" size="sm" onClick={() => this.togglePollutionModal()}>
+                  Delete Pollution Marker
                 </Button>
               </div>
             ) : (

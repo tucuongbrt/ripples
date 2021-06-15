@@ -113,9 +113,11 @@ public class PollutionController {
         jsonObject.put("Obstacles", obstaclesList);
         System.out.println(jsonObject.toString());
 
+        final String SERVERURL = server.replaceAll("\"", "");
+
         // send to external server
         try {
-            URL url = new URL(server);
+            URL url = new URL(SERVERURL);
             HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
             httpCon.setDoOutput(true);
             httpCon.setRequestMethod("POST");
@@ -133,14 +135,14 @@ public class PollutionController {
                     repo.save(pollutionLocation);
                     wsController.sendPollutionAssetFromServerToClients(pollutionLocation);
                 }
-                logger.info("Pollution markers synched with external server: " + server);
+                logger.info("Pollution markers synched with the external server: " + SERVERURL);
                 return new ResponseEntity<>(new HTTPResponse("success", "Pollution markers synched"), HttpStatus.OK);
             } else {
-                logger.warn("Pollution markers cannot be synched with external server: " + server);
+                logger.warn("Pollution markers cannot be synched with the external server: " + SERVERURL);
                 return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"), HttpStatus.OK);
             }
         } catch (Exception e) {
-            logger.warn("Pollution markers cannot be synched with external server: " + server);
+            logger.warn("Pollution markers cannot be synched with the external server: " + SERVERURL);
             e.printStackTrace();
             return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"), HttpStatus.OK);
         }
