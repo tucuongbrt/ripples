@@ -202,7 +202,7 @@ public class PollutionController {
 
     @PreAuthorize("hasRole('SCIENTIST')")
     @PostMapping(path = { "/pollution/obstacle" }, consumes = "application/json")
-    public ResponseEntity<HTTPResponse> createPollution(@RequestBody ObstaclePosition asset) {
+    public ResponseEntity<HTTPResponse> createObstacle(@RequestBody ObstaclePosition asset) {
 
         ObstaclePosition newObstacle = new ObstaclePosition(asset.getDescription(), asset.getTimestamp(),
                 asset.getUser());
@@ -213,6 +213,14 @@ public class PollutionController {
         wsController.sendObstacleAssetFromServerToClients(newObstacle);
 
         return new ResponseEntity<>(new HTTPResponse("success", "Added obstacle polygon"), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
+    @PostMapping(path = { "/pollution/remove/obstacle/{id}", "/pollution/remove/obstacle/{id}/" })
+    public ResponseEntity<HTTPResponse> deleteObstacle(@PathVariable String id) {
+        repoObstacles.deleteById(Long.valueOf(id));
+        logger.info("Obstacle removed: " + id);
+        return new ResponseEntity<>(new HTTPResponse("Success", "Obstacle was deleted"), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('SCIENTIST')")

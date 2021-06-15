@@ -23,6 +23,7 @@ interface PropsType {
 
   addCircle: (pollution: IPollution) => void
   removeCircle: (pollution: IPollution) => void
+  setObstacle: (obstacle: IObstacle) => void
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -119,6 +120,7 @@ class Pollution extends Component<PropsType, {}> {
     evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
     this.props.setSidePanelTitle(obstacle.description)
     this.props.setSidePanelVisibility(true)
+    this.props.setObstacle(obstacle)
   }
 
   public drawObstacleLocation() {

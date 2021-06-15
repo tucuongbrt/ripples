@@ -112,6 +112,7 @@ interface PropsType {
   setMapOverlayInfo: (m: string) => void
   setToolClickLocation: (l: ILatLng | null) => void
   setPollutionMarkers: () => void
+  setObstacles: () => void
 }
 
 interface StateType {
@@ -137,11 +138,13 @@ interface StateType {
   }
   pollutionOpen: IPollution[]
   editPollutionMarker?: IPollution
+  editObstacle?: IObstacle
   pollutionDescriptionUpdate: string
   pollutionRadiusUpdate: number
   pollutionLatitudeUpdate: number
   pollutionLongitudeUpdate: number
   isPollutionModalOpen: boolean
+  isObstacleModalOpen: boolean
   obstacleEnable: boolean
   obstacleDescription: string
   obstacleLocation: {
@@ -192,11 +195,13 @@ class RipplesMap extends Component<PropsType, StateType> {
       pollutionRadius: 20,
       pollutionOpen: [],
       editPollutionMarker: undefined,
+      editObstacle: undefined,
       pollutionDescriptionUpdate: '',
       pollutionRadiusUpdate: 20,
       pollutionLatitudeUpdate: 0,
       pollutionLongitudeUpdate: 0,
       isPollutionModalOpen: false,
+      isObstacleModalOpen: false,
       obstacleEnable: false,
       obstacleDescription: '',
       obstacleLocation: [],
@@ -222,7 +227,10 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleAddPollutionCircle = this.handleAddPollutionCircle.bind(this)
     this.handleRemovePollutionCircle = this.handleRemovePollutionCircle.bind(this)
     this.handleDeletePollution = this.handleDeletePollution.bind(this)
+    this.handleDeleteObstacle = this.handleDeleteObstacle.bind(this)
+    this.handleSelectedObstacle = this.handleSelectedObstacle.bind(this)
     this.togglePollutionModal = this.togglePollutionModal.bind(this)
+    this.toggleObstacleModal = this.toggleObstacleModal.bind(this)
 
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
@@ -290,6 +298,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       }
       if (this.state.obstacleEnable) {
         this.setState({ obstacleLocation: [...this.state.obstacleLocation, clickLocation] })
+      }
+      if (this.state.editObstacle) {
+        this.setState({ editObstacle: undefined })
       }
     }
   }
@@ -412,6 +423,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           removeCircle={this.handleRemovePollutionCircle}
           obstacleLocationSelected={this.state.obstacleLocation}
           obstaclePolygons={obstacle}
+          setObstacle={this.handleSelectedObstacle}
         />
       )
     } else {
@@ -614,6 +626,17 @@ class RipplesMap extends Component<PropsType, StateType> {
             ) : (
               <></>
             )}
+
+            {(isAdministrator(this.props.auth) || isScientist(this.props.auth)) &&
+            this.state.editObstacle !== undefined ? (
+              <div>
+                <Button className="m-1" color="danger" size="sm" onClick={() => this.toggleObstacleModal()}>
+                  Delete Obstacle
+                </Button>
+              </div>
+            ) : (
+              <></>
+            )}
           </form>
 
           <Modal isOpen={this.state.isPollutionModalOpen} toggle={this.togglePollutionModal}>
@@ -621,6 +644,16 @@ class RipplesMap extends Component<PropsType, StateType> {
             <ModalBody>The focus of pollution will be removed permanently. Do you want to continue?</ModalBody>
             <ModalFooter>
               <Button color="success" onClick={() => this.handleDeletePollution()}>
+                Yes
+              </Button>
+            </ModalFooter>
+          </Modal>
+
+          <Modal isOpen={this.state.isObstacleModalOpen} toggle={this.toggleObstacleModal}>
+            <ModalHeader toggle={this.toggleObstacleModal}>Remove Obstacle</ModalHeader>
+            <ModalBody>The obstacle will be removed permanently. Do you want to continue?</ModalBody>
+            <ModalFooter>
+              <Button color="success" onClick={() => this.handleDeleteObstacle()}>
                 Yes
               </Button>
             </ModalFooter>
@@ -676,6 +709,12 @@ class RipplesMap extends Component<PropsType, StateType> {
     }))
   }
 
+  public toggleObstacleModal() {
+    this.setState((prevState) => ({
+      isObstacleModalOpen: !prevState.isObstacleModalOpen,
+    }))
+  }
+
   public async handleDeletePollution() {
     if (this.state.editPollutionMarker) {
       this.togglePollutionModal()
@@ -693,6 +732,29 @@ class RipplesMap extends Component<PropsType, StateType> {
       } catch (error) {
         console.log(error)
       }
+    }
+  }
+
+  public async handleDeleteObstacle() {
+    if (this.state.editObstacle) {
+      this.toggleObstacleModal()
+
+      try {
+        const response = await this.pollutionService.deleteObstacle(this.state.editObstacle.id)
+        if (response.status === 'Success') {
+          NotificationManager.success(response.message)
+          this.setState({ editObstacle: undefined })
+
+          // update redux store
+          this.props.setObstacles()
+        } else {
+          NotificationManager.warning(response.message)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      NotificationManager.warning('Please select an obstacle')
     }
   }
 
@@ -752,6 +814,10 @@ class RipplesMap extends Component<PropsType, StateType> {
         })
       }
     }
+  }
+
+  public handleSelectedObstacle(obstacle: IObstacle) {
+    this.setState({ editObstacle: obstacle })
   }
 
   public handleChangePollutionDescription(event: any) {
@@ -867,7 +933,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       NotificationManager.warning('The server is not defined. \nPlease contact an administrator')
     } else {
       try {
-        const response = await this.pollutionService.syncPolutionMarkers(this.state.editPollutionConfig)
+        const response = await this.pollutionService.syncPollutionMarkers(this.state.editPollutionConfig)
         if (response.status === 'success') {
           NotificationManager.success(response.message)
         } else {

@@ -26,7 +26,7 @@ export default class PollutionService {
     })
   }
 
-  public async syncPolutionMarkers(server: string) {
+  public async syncPollutionMarkers(server: string) {
     return request({
       method: 'POST',
       body: JSON.stringify(server),
@@ -75,6 +75,13 @@ export default class PollutionService {
       method: 'POST',
       body: JSON.stringify(obstaclePosition),
       url: `${apiURL}/pollution/obstacle`,
+    })
+  }
+
+  public async deleteObstacle(id: number) {
+    return request({
+      method: 'POST',
+      url: `${apiURL}/pollution/remove/obstacle/${id}`,
     })
   }
 }
