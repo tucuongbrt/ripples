@@ -32,6 +32,7 @@ export interface IUser {
   name: string
   email: string
   role: string
+  domain: string[]
 }
 
 export const noUser: IUser = {
@@ -39,6 +40,7 @@ export const noUser: IUser = {
   id: -1,
   name: '',
   role: '',
+  domain: [],
 }
 
 export const noAuth: IAuthState = {

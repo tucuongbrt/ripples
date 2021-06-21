@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import pt.lsts.ripples.domain.maps.MapSettings;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.*;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -26,6 +29,9 @@ public class User {
 
     @Column(nullable = false)
     private String role;
+
+    @ElementCollection
+    private List<String> domain = new ArrayList<String>();
 
     @Column(nullable = false)
     private Boolean emailVerified = false;
@@ -112,6 +118,14 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public List<String> getDomain() {
+        return domain;
+    }
+
+    public void setDomain(List<String> domain){
+        this.domain = domain;
     }
 
     public MapSettings getMapSettings() {

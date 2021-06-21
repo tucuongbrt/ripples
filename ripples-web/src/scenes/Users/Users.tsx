@@ -5,7 +5,7 @@ import SimpleNavbar from '../../components/SimpleNavbar'
 import IAuthState, { isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
-import { fetchUsers, getCurrentUser, updateUserRole } from '../../services/UserUtils'
+import { fetchUsers, getCurrentUser, updateUserDomain, updateUserRole } from '../../services/UserUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -17,6 +17,7 @@ interface StateType {
     email: string
     role: string
     verified: boolean
+    domain: string[]
   }[]
 }
 
@@ -38,6 +39,7 @@ export class Users extends Component<PropsType, StateType> {
     }
     this.getUsers = this.getUsers.bind(this)
     this.handleChangeRole = this.handleChangeRole.bind(this)
+    this.handleChangeDomain = this.handleChangeDomain.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
   }
 
@@ -86,7 +88,33 @@ export class Users extends Component<PropsType, StateType> {
         this.setState({ users })
         NotificationManager.success('User role updated')
       } else {
-        NotificationManager.error('Cannot update user role', 'Please contact administrator')
+        NotificationManager.error('Cannot update user role')
+      }
+    })
+  }
+
+  private handleChangeDomain(event: any) {
+    const userDomainId = event.target.closest('td').getAttribute('user-domain')
+
+    const domains: any = document.getElementsByClassName('optDomain-' + userDomainId)
+    const domainSelected: any = []
+    for (const domain of domains) {
+      if (domain.checked) domainSelected.push(domain.value)
+    }
+
+    const users = [...this.state.users]
+    const item = {
+      ...users[userDomainId],
+      domain: domainSelected,
+    }
+
+    updateUserDomain(users[userDomainId].email, domainSelected).then((res) => {
+      if (res.status === 'Success') {
+        users[userDomainId] = item
+        this.setState({ users })
+        NotificationManager.success('User domain updated')
+      } else {
+        NotificationManager.error('Cannot update user domain')
       }
     })
   }
@@ -111,7 +139,15 @@ export class Users extends Component<PropsType, StateType> {
       })
   }
 
-  public renderUser(user: { id: number; name: string; email: string; role: string; verified: boolean }, index: number) {
+  public renderUser(
+    user: { id: number; name: string; email: string; role: string; verified: boolean; domain: string[] },
+    index: number
+  ) {
+    const domain: string[] = []
+    user.domain.forEach((d) => {
+      domain.push(d)
+    })
+
     return (
       <tr key={index}>
         <td>{user.name}</td>
@@ -123,6 +159,30 @@ export class Users extends Component<PropsType, StateType> {
             <option value="OPERATOR">Operator</option>
             <option value="CASUAL">Casual</option>
           </select>
+        </td>
+        <td user-domain={index}>
+          <div className="input-domain">
+            <label>
+              <input
+                type="checkbox"
+                className={'optDomain-' + index}
+                value="REP"
+                checked={domain.includes('REP') ? true : false}
+                onChange={this.handleChangeDomain}
+              />
+              REP
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                className={'optDomain-' + index}
+                value="Ramp"
+                checked={domain.includes('Ramp') ? true : false}
+                onChange={this.handleChangeDomain}
+              />
+              Ramp
+            </label>
+          </div>
         </td>
       </tr>
     )
@@ -138,12 +198,13 @@ export class Users extends Component<PropsType, StateType> {
         <>
           <SimpleNavbar />
           <div>
-            <Table responsive={true}>
+            <Table id="users-table" responsive={true} striped={true}>
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Domain</th>
                 </tr>
               </thead>
               <tbody>{this.renderUsers()}</tbody>
@@ -156,12 +217,13 @@ export class Users extends Component<PropsType, StateType> {
         <>
           <SimpleNavbar />
           <div>
-            <Table responsive={true}>
+            <Table id="users-table" responsive={true} striped={true}>
               <thead>
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Domain</th>
                 </tr>
               </thead>
             </Table>

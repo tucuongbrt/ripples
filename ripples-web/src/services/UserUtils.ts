@@ -36,3 +36,11 @@ export async function updateUserRole(email: string, role: string) {
     url: `${apiURL}/user/changeUserRole`,
   })
 }
+
+export async function updateUserDomain(email: string, domain: string[]) {
+  return request({
+    body: JSON.stringify(domain),
+    method: 'POST',
+    url: `${apiURL}/user/changeUserDomain/${email}`,
+  })
+}

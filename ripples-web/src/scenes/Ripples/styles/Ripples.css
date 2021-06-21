@@ -244,3 +244,30 @@ path.leaflet-polygon {
   color: white;
   text-decoration: none;
 }
+
+#users-table thead tr th {
+  float:left;
+  width: 25%;
+}
+
+#users-table tbody{
+  height:85vh;
+  overflow-y:auto;
+  width: 100%;
+}
+
+
+#users-table thead,tbody,tr,td,th{
+  display:flow-root;
+}
+
+#users-table tbody td{
+  float:left;
+  width: 25%;
+}
+
+#users-table label {
+  display: inline-block;
+  padding-right: 20px;
+  white-space: nowrap;
+}
