@@ -39,6 +39,7 @@ export default class SoiService {
     asset.lastState = system.lastState
     asset.lastState.timestamp = system.lastState.timestamp * 1000
     asset.planId = system.plan.id
+    asset.domain = system.domain
     return Object.assign({}, asset)
   }
 
@@ -48,6 +49,26 @@ export default class SoiService {
     plan.assignedTo = system.name
     plan.visible = true
     return Object.assign({}, plan)
+  }
+
+  public updateAssetDomain(system: IAsset, domain: string[]): IAsset {
+    const asset: IAsset = EmptyAsset
+    asset.awareness = system.awareness
+    asset.imcid = system.imcid
+    asset.name = system.name
+    asset.settings = system.settings
+    asset.lastState = system.lastState
+    asset.planId = system.planId
+    asset.domain = domain
+    return Object.assign({}, asset)
+  }
+
+  public async updateAssetDB(system: IAsset) {
+    return request({
+      body: JSON.stringify(system),
+      method: 'POST',
+      url: `${apiURL}/asset/changeDomain/`,
+    })
   }
 
   /**

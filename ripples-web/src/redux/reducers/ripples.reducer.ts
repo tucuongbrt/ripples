@@ -279,6 +279,7 @@ const ripplesReducer = createReducer(startState, {
       oldAsset.lastState = newAsset.lastState
       oldAsset.planId = newAsset.planId
       oldAsset.settings = newAsset.settings
+      oldAsset.domain = newAsset.domain
     } else {
       state.assets.vehicles.push(newAsset)
     }
@@ -288,6 +289,7 @@ const ripplesReducer = createReducer(startState, {
     const oldAsset = state.assets.ccus.find((c) => c.name === newCCU.name)
     if (oldAsset) {
       oldAsset.lastState = newCCU.lastState
+      oldAsset.domain = newCCU.domain
     } else {
       state.assets.ccus.push(newCCU)
     }
@@ -297,6 +299,7 @@ const ripplesReducer = createReducer(startState, {
     const oldAsset = state.assets.spots.find((s) => s.name === newSpot.name)
     if (oldAsset) {
       oldAsset.lastState = newSpot.lastState
+      oldAsset.domain = newSpot.domain
     } else {
       state.assets.spots.push(newSpot)
     }

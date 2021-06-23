@@ -24,6 +24,7 @@ interface PropsType {
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (_: IAsset) => void
+  setAssetSelected: (_: IAsset | undefined) => void
 }
 
 class Vehicle extends Component<PropsType, {}> {
@@ -83,6 +84,7 @@ class Vehicle extends Component<PropsType, {}> {
     this.props.setSidePanelContent(this.getDisplayableProperties(vehicle))
     this.props.setSidePanelVisibility(true)
     this.props.setEditVehicle(vehicle)
+    this.props.setAssetSelected(vehicle)
   }
 
   public buildVehicle() {

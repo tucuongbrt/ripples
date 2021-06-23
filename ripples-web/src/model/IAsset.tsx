@@ -9,6 +9,7 @@ export default interface IAsset {
   lastState: IAssetState
   settings: string[][]
   awareness: IPositionAtTime[]
+  domain: string[]
 }
 
 export const EmptyAsset: IAsset = {
@@ -18,6 +19,7 @@ export const EmptyAsset: IAsset = {
   name: '',
   planId: '',
   settings: [],
+  domain: [],
 }
 
 export function isEmptyAsset(a: IAsset) {
@@ -31,6 +33,7 @@ export interface IAssetPayload {
   lastState: IAssetState
   settings: string[][]
   awareness: IPositionAtTime[]
+  domain: string[]
 }
 
 export function isSameAsset(asset1: IAsset, asset2: IAsset) {

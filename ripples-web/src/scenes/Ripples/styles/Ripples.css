@@ -271,3 +271,36 @@ path.leaflet-polygon {
   padding-right: 20px;
   white-space: nowrap;
 }
+
+.domainDialog {
+  position: absolute;
+  left: 50px;
+  top: 10px;
+  z-index: 9999 !important;
+  color: #004085;
+  background-color: #cce5ff;
+  border: 1px solid;
+  border-radius: .25rem;
+  text-align: center;
+  padding: 0.3em 2em;
+  user-select: none;
+  outline: 0;
+  opacity: 0.9;
+  animation: fadein 500ms;
+  -moz-animation: fadein 500ms;
+  -webkit-animation: fadein 500ms;
+}
+
+.input-domain-asset {
+  display: grid;
+}
+
+.assetOptDomain {
+  margin: 2px;
+}
+
+.domain-label {
+  font-weight: bold;
+  font-size: larger;
+  text-decoration: underline;
+}

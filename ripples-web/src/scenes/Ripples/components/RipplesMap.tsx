@@ -17,7 +17,7 @@ import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
-import IAuthState, { isCasual, IUserLocation } from '../../../model/IAuthState'
+import IAuthState, { isAdministrator, isCasual, IUserLocation } from '../../../model/IAuthState'
 import IGeoLayer from '../../../model/IGeoLayer'
 import ILatLng from '../../../model/ILatLng'
 import IMyMap, { IMapSettings } from '../../../model/IMyMap'
@@ -105,6 +105,7 @@ interface PropsType {
   toggleSliderChange: () => void
   setMapOverlayInfo: (m: string) => void
   setToolClickLocation: (l: ILatLng | null) => void
+  updateAssets: (s: IAsset, d: string[]) => void
 }
 
 interface StateType {
@@ -117,6 +118,7 @@ interface StateType {
   activeLegend: JSX.Element
   newAnnotationContent: string
   clickLocationWeather: IWeather[]
+  assetSelected: IAsset | undefined
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -151,6 +153,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       activeLegend: <></>,
       newAnnotationContent: '',
       clickLocationWeather: [],
+      assetSelected: undefined,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -160,6 +163,8 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.onMapAnnotationClick = this.onMapAnnotationClick.bind(this)
     this.onLocationClick = this.onLocationClick.bind(this)
     this.onEditVehicle = this.onEditVehicle.bind(this)
+    this.setAssetSelected = this.setAssetSelected.bind(this)
+    this.handleAssetChangeDomain = this.handleAssetChangeDomain.bind(this)
 
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
@@ -214,6 +219,10 @@ class RipplesMap extends Component<PropsType, StateType> {
       default:
         this.props.setSidePanelVisibility(false)
         break
+    }
+
+    if (!e.originalEvent.srcElement.className.includes('assetOptDomain')) {
+      this.setAssetSelected(undefined)
     }
   }
 
@@ -293,13 +302,27 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildSpots() {
     return this.props.spots.map((spot) => {
-      return <SimpleAsset key={'spot_' + spot.imcid} data={spot} icon={new SpotIcon()} />
+      return (
+        <SimpleAsset
+          key={'spot_' + spot.imcid}
+          data={spot}
+          icon={new SpotIcon()}
+          setAssetSelected={(v: IAsset | undefined) => this.setAssetSelected(v)}
+        />
+      )
     })
   }
 
   public buildCcus() {
     return this.props.ccus.map((ccu) => {
-      return <SimpleAsset key={'ccu_' + ccu.name} data={ccu} icon={new PCIcon()} />
+      return (
+        <SimpleAsset
+          key={'ccu_' + ccu.name}
+          data={ccu}
+          icon={new PCIcon()}
+          setAssetSelected={(v: IAsset | undefined) => this.setAssetSelected(v)}
+        />
+      )
     })
   }
 
@@ -311,6 +334,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           data={vehicle}
           currentTime={this.state.currentTime}
           isVehiclesLayerActive={this.state.isVehiclesLayerActive}
+          setAssetSelected={(v: IAsset | undefined) => this.setAssetSelected(v)}
         />
       )
     })
@@ -654,6 +678,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           </LayersControl>
           {this.buildNewAnnotationMarker()}
           {this.buildToolpickMarker()}
+          {this.buildDomainDialog()}
         </LeafletMap>
         {this.state.activeLegend}
       </>
@@ -766,6 +791,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   private onMapAddClick(clickLocation: ILatLng) {
     this.props.setSidePanelVisibility(false)
+    this.setAssetSelected(undefined)
     if (this.props.selectedPlan.id.length === 0) {
       return
     }
@@ -774,6 +800,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   private onMapMoveClick(clickLocation: ILatLng) {
     this.props.setSidePanelVisibility(false)
+    this.setAssetSelected(undefined)
     if (this.props.selectedPlan.id.length === 0) {
       return
     }
@@ -896,6 +923,73 @@ class RipplesMap extends Component<PropsType, StateType> {
     } catch (error) {
       NotificationManager.error(error.message)
     }
+  }
+
+  private setAssetSelected(system: IAsset | undefined) {
+    this.setState({ assetSelected: system })
+  }
+
+  private buildDomainDialog() {
+    if (this.props.auth.authenticated && isAdministrator(this.props.auth) && this.state.assetSelected !== undefined) {
+      const assetId = this.state.assetSelected.name
+
+      const domain: string[] = []
+      this.state.assetSelected.domain.forEach((d) => {
+        domain.push(d)
+      })
+
+      return (
+        <div className="domainDialog">
+          <div className="input-domain-asset">
+            <label className="domain-label">Domain</label>
+            <label className={'assetOptDomainLabel'}>
+              <input
+                type="checkbox"
+                className={'assetOptDomain'}
+                value="REP"
+                checked={domain.includes('REP') ? true : false}
+                onChange={this.handleAssetChangeDomain}
+                asset-id={assetId}
+              />
+              REP
+            </label>
+            <label className={'assetOptDomainLabel'}>
+              <input
+                type="checkbox"
+                className={'assetOptDomain'}
+                value="Ramp"
+                checked={domain.includes('Ramp') ? true : false}
+                onChange={this.handleAssetChangeDomain}
+                asset-id={assetId}
+              />
+              Ramp
+            </label>
+          </div>
+        </div>
+      )
+    }
+  }
+
+  public async handleAssetChangeDomain(event: any) {
+    const assetID = event.target.getAttribute('asset-id')
+    let system: IAsset
+    if (assetID.startsWith('spot')) {
+      system = this.props.spots.filter((item) => item.name === assetID)[0]
+    } else if (assetID.startsWith('ccu')) {
+      system = this.props.ccus.filter((item) => item.name === assetID)[0]
+    } else {
+      system = this.props.vehicles.filter((item) => item.name === assetID)[0]
+    }
+
+    const domains: any = document.getElementsByClassName('assetOptDomain')
+    const domainSelected: string[] = []
+    for (const domain of domains) {
+      if (domain.checked) domainSelected.push(domain.value)
+    }
+
+    this.props.updateAssets(system, domainSelected)
+
+    this.setState({ assetSelected: undefined })
   }
 
   private async onMapToolpickClick(clickLocation: ILatLng) {

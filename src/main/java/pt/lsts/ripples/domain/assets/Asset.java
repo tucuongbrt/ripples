@@ -1,8 +1,11 @@
 package pt.lsts.ripples.domain.assets;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -25,6 +28,9 @@ public class Asset implements Serializable {
     private AssetTrack track = new AssetTrack();
     
     private AssetState lastState = new AssetState();
+
+    @ElementCollection
+    private List<String> domain = new ArrayList<String>();
     
     @Lob
     private Plan plan = new Plan();
@@ -39,6 +45,7 @@ public class Asset implements Serializable {
         this.plan.setId("idle");
         this.lastState = new AssetState();
         this.lastState.setDate(new Date(0));
+        this.domain = new ArrayList<String>();
     }
 
     public AssetState getLastState() {
@@ -73,4 +80,12 @@ public class Asset implements Serializable {
     public AssetState stateAt(Date d) {
 	    return track.synthesize(d);
 	}
+
+    public List<String> getDomain() {
+        return domain;
+    }
+
+    public void setDomain(List<String> domain){
+        this.domain = domain;
+    }
 }

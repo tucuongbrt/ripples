@@ -18,6 +18,7 @@ interface PropsType {
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
   setEditVehicle: (v: IAsset | undefined) => void
+  setAssetSelected: (v: IAsset | undefined) => void
 }
 
 /**
@@ -48,6 +49,8 @@ class SimpleAsset extends Component<PropsType, {}> {
     })
     this.props.setSidePanelVisibility(true)
     this.props.setEditVehicle(undefined)
+
+    this.props.setAssetSelected(asset)
   }
 }
 

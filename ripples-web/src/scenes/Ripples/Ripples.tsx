@@ -130,6 +130,7 @@ class Ripples extends Component<PropsType, StateType> {
     this.handleWsUserLocation = this.handleWsUserLocation.bind(this)
     this.handleWsVehicleParams = this.handleWsVehicleParams.bind(this)
     this.onSettingsClick = this.onSettingsClick.bind(this)
+    this.updateAssetsData = this.updateAssetsData.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -329,6 +330,23 @@ class Ripples extends Component<PropsType, StateType> {
     this.props.setAis(shipsData)
   }
 
+  public async updateAssetsData(system: IAsset, domain: string[]) {
+    try {
+      const newSystem: IAsset = this.soiService.updateAssetDomain(system, domain)
+      const response = await this.soiService.updateAssetDB(newSystem)
+
+      this.updateSoiData()
+
+      if (response.status === 'Success') {
+        NotificationManager.success(response.message)
+      } else {
+        NotificationManager.warning('Failed to update asset domain')
+      }
+    } catch (error) {
+      NotificationManager.warning('Failed to update asset domain')
+    }
+  }
+
   public handleEditPlan = (p: IPlan) => {
     this.props.editPlan(p)
     this.stopUpdates()
@@ -425,6 +443,7 @@ class Ripples extends Component<PropsType, StateType> {
             myMaps={this.state.myMaps}
             geoServerAddr={this.state.geoServerAddr}
             onSettingsClick={this.onSettingsClick}
+            updateAssets={this.updateAssetsData}
           />
           <SidePanel onSettingsClick={this.onSettingsClick} />
           <Slider onChange={this.onSliderChange} min={-48} max={48} value={this.props.sliderValue} />

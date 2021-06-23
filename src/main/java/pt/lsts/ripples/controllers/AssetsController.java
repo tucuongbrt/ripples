@@ -1,6 +1,8 @@
 package pt.lsts.ripples.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.assets.Asset;
@@ -11,9 +13,11 @@ import pt.lsts.ripples.repo.main.AssetsParamsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.PositionsRepository;
 import pt.lsts.ripples.services.AssetInfoService;
+import pt.lsts.ripples.util.HTTPResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class AssetsController {
@@ -80,4 +84,22 @@ public class AssetsController {
         return assetsParams;
     }
 
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/asset/changeDomain/")
+    public ResponseEntity<HTTPResponse> updateAssetDomain(@RequestBody Asset payload) {
+
+        Optional<Asset> asset = repo.findById(payload.getName());
+        if(asset.isPresent()) {
+            Asset newAssetInfo = asset.get();
+            newAssetInfo.setDomain(payload.getDomain());
+            repo.save(newAssetInfo);
+
+            return new ResponseEntity<>(new HTTPResponse("Success", "Updated asset domain"), HttpStatus.OK);
+        }
+      
+        // para cada domain do payload
+        // adcionar email à tabela do domain
+
+        return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset domain"), HttpStatus.NOT_FOUND); 
+    }
 }
