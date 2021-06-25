@@ -34,11 +34,7 @@ public class AssetsController {
     @Autowired
     AssetsParamsRepository assetParamsRepo;
 
-    @PostMapping(
-            path = {"/asset/{id}"},
-            consumes = "application/json",
-            produces = "application/json"
-    )
+    @PostMapping(path = { "/asset/{id}" }, consumes = "application/json", produces = "application/json")
     public Asset getAsset(@PathVariable String id, @RequestBody Asset asset) {
         Asset existing = repo.findById(id).orElse(new Asset(id));
 
@@ -62,22 +58,22 @@ public class AssetsController {
         return existing;
     }
 
-    @RequestMapping(path = {"/asset", "/assets", "/assets/", "/asset/"}, method = RequestMethod.GET)
+    @RequestMapping(path = { "/asset", "/assets", "/assets/", "/asset/" }, method = RequestMethod.GET)
     public List<Asset> listAssets() {
         ArrayList<Asset> assets = new ArrayList<>();
         repo.findAll().forEach(assets::add);
         return assets;
     }
-    
-    @RequestMapping(path = {"/assetInfo"}, method = RequestMethod.GET)
+
+    @RequestMapping(path = { "/assetInfo" }, method = RequestMethod.GET)
     public List<AssetInfo> listAssetInfo() {
-    	ArrayList<AssetInfo> assets = new ArrayList<>();
+        ArrayList<AssetInfo> assets = new ArrayList<>();
         assetInfos.getInfos().forEach(assets::add);
         return assets;
     }
 
     @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
-    @RequestMapping(path = {"/assets/params"}, method = RequestMethod.GET)
+    @RequestMapping(path = { "/assets/params" }, method = RequestMethod.GET)
     public List<AssetParams> listAssetParams() {
         ArrayList<AssetParams> assetsParams = new ArrayList<>();
         assetParamsRepo.findAll().forEach(assetsParams::add);
@@ -87,19 +83,14 @@ public class AssetsController {
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/asset/changeDomain/")
     public ResponseEntity<HTTPResponse> updateAssetDomain(@RequestBody Asset payload) {
-
         Optional<Asset> asset = repo.findById(payload.getName());
-        if(asset.isPresent()) {
+        if (asset.isPresent()) {
             Asset newAssetInfo = asset.get();
             newAssetInfo.setDomain(payload.getDomain());
             repo.save(newAssetInfo);
 
             return new ResponseEntity<>(new HTTPResponse("Success", "Updated asset domain"), HttpStatus.OK);
         }
-      
-        // para cada domain do payload
-        // adcionar email à tabela do domain
-
-        return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset domain"), HttpStatus.NOT_FOUND); 
+        return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset domain"), HttpStatus.NOT_FOUND);
     }
 }

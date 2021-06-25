@@ -59,6 +59,7 @@ import Vehicle from './Vehicle'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
 import PlanManager from './PlanManager'
+import { fetchDomainNames } from '../../../services/DomainUtils'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -119,6 +120,7 @@ interface StateType {
   newAnnotationContent: string
   clickLocationWeather: IWeather[]
   assetSelected: IAsset | undefined
+  domains: string[]
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -154,6 +156,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       newAnnotationContent: '',
       clickLocationWeather: [],
       assetSelected: undefined,
+      domains: [],
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -172,6 +175,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public async componentDidMount() {
+    this.getDomains()
     if (!this.oneSecondTimer) {
       this.oneSecondTimer = window.setInterval(() => {
         this.updateCopernicusMaps()
@@ -789,6 +793,11 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.props.setEditVehicle(undefined)
   }
 
+  private async getDomains() {
+    const domains: string[] = await fetchDomainNames()
+    this.setState({ domains })
+  }
+
   private onMapAddClick(clickLocation: ILatLng) {
     this.props.setSidePanelVisibility(false)
     this.setAssetSelected(undefined)
@@ -942,28 +951,21 @@ class RipplesMap extends Component<PropsType, StateType> {
         <div className="domainDialog">
           <div className="input-domain-asset">
             <label className="domain-label">Domain</label>
-            <label className={'assetOptDomainLabel'}>
-              <input
-                type="checkbox"
-                className={'assetOptDomain'}
-                value="REP"
-                checked={domain.includes('REP') ? true : false}
-                onChange={this.handleAssetChangeDomain}
-                asset-id={assetId}
-              />
-              REP
-            </label>
-            <label className={'assetOptDomainLabel'}>
-              <input
-                type="checkbox"
-                className={'assetOptDomain'}
-                value="Ramp"
-                checked={domain.includes('Ramp') ? true : false}
-                onChange={this.handleAssetChangeDomain}
-                asset-id={assetId}
-              />
-              Ramp
-            </label>
+            {this.state.domains.map((d, index) => {
+              return (
+                <label className={'assetOptDomainLabel'} key={index}>
+                  <input
+                    type="checkbox"
+                    className={'assetOptDomain'}
+                    value={d}
+                    checked={domain.includes(d) ? true : false}
+                    onChange={this.handleAssetChangeDomain}
+                    asset-id={assetId}
+                  />
+                  {d}
+                </label>
+              )
+            })}
           </div>
         </div>
       )

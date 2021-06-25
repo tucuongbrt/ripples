@@ -304,3 +304,25 @@ path.leaflet-polygon {
   font-size: larger;
   text-decoration: underline;
 }
+
+.domain-input {
+  display: list-item;
+  width: 50%;
+}
+
+.domainRow { 
+  display: flex;
+}
+
+#domain-new-input {
+  width: 100%;
+  text-align: center;
+}
+
+.btn-domain-modal {
+  display: grid;
+}
+
+.fa-pencil-alt, .fa-check, .fa-trash {
+  padding: 5px;
+}

@@ -1,11 +1,12 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Table } from 'reactstrap'
+import { Button, Modal, ModalBody, ModalHeader, Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
 import IAuthState, { isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
 import { fetchUsers, getCurrentUser, updateUserDomain, updateUserRole } from '../../services/UserUtils'
+import { createDomain, deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -19,6 +20,13 @@ interface StateType {
     verified: boolean
     domain: string[]
   }[]
+  isDomainModalOpen: boolean
+  domains: string[]
+  domainInputElem: any | null
+  domainInputValue: string
+  domainPreviousValue: string
+  domainNewInput: string
+  domainNewInputVisible: boolean
 }
 
 interface PropsType {
@@ -36,11 +44,19 @@ export class Users extends Component<PropsType, StateType> {
       isNavOpen: true,
       loading: true,
       users: [],
+      isDomainModalOpen: false,
+      domains: [],
+      domainInputElem: null,
+      domainInputValue: '',
+      domainPreviousValue: '',
+      domainNewInput: '',
+      domainNewInputVisible: false,
     }
     this.getUsers = this.getUsers.bind(this)
     this.handleChangeRole = this.handleChangeRole.bind(this)
     this.handleChangeDomain = this.handleChangeDomain.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
+    this.toggleDomainModal = this.toggleDomainModal.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -60,6 +76,7 @@ export class Users extends Component<PropsType, StateType> {
     } else {
       this.getUsers()
       this.timerID = window.setInterval(this.getUsers, 60000)
+      this.getDomains()
     }
   }
 
@@ -119,6 +136,100 @@ export class Users extends Component<PropsType, StateType> {
     })
   }
 
+  public toggleDomainModal() {
+    this.setState({
+      isDomainModalOpen: !this.state.isDomainModalOpen,
+    })
+  }
+
+  public enableInputDomain(event: any) {
+    const elem = event.target
+    const domainInputId = elem.parentElement.getAttribute('domain-input')
+    const inputElem: any = document.getElementById(domainInputId)
+
+    if (inputElem != null) {
+      this.setState({
+        domainInputElem: inputElem,
+        domainInputValue: inputElem.value,
+        domainPreviousValue: inputElem.value,
+      })
+    } else {
+      this.setState({
+        domainInputElem: null,
+        domainInputValue: '',
+        domainPreviousValue: '',
+      })
+    }
+  }
+
+  public async createDomain() {
+    const domainName = this.state.domainNewInput
+
+    const response = await createDomain(domainName)
+    if (response.status === 'Success') {
+      this.toggleDomainModal()
+      this.setState({
+        domainNewInput: '',
+        domainNewInputVisible: false,
+      })
+      this.getDomains()
+      NotificationManager.success('Created domain')
+    } else {
+      NotificationManager.warning('Cannot create domain')
+    }
+  }
+
+  public async updateDomainName() {
+    const previousDomainName = this.state.domainPreviousValue
+    const newDomainName = this.state.domainInputValue
+
+    const response = await updateDomain(previousDomainName, newDomainName)
+    if (response.status === 'Success') {
+      this.toggleDomainModal()
+      this.setState({
+        domainInputElem: null,
+        domainInputValue: '',
+        domainPreviousValue: '',
+      })
+
+      const users = [...this.state.users]
+      users.forEach((u) => {
+        const updateDomain: string[] = u.domain
+        const index = updateDomain.indexOf(previousDomainName)
+        if (index !== -1) {
+          updateDomain[index] = newDomainName
+        }
+        u.domain = updateDomain
+      })
+      this.setState({ users })
+
+      this.getDomains()
+
+      NotificationManager.success('Updated domain name')
+    } else {
+      NotificationManager.warning('Cannot update domain name')
+    }
+  }
+
+  public async removeDomain(event: any) {
+    const elem = event.target
+    const domainInputId = elem.parentElement.getAttribute('domain-input')
+    const inputElem: any = document.getElementById(domainInputId)
+
+    const response = await deleteDomain(inputElem.value)
+    if (response.status === 'Success') {
+      this.getDomains()
+      NotificationManager.success('Domain removed')
+    } else {
+      NotificationManager.warning('Cannot remove domain')
+    }
+  }
+
+  public async getDomains() {
+    const domains: string[] = await fetchDomainNames()
+    this.setState({ domains })
+  }
+
   public getUsers() {
     fetchUsers()
       .then((data) => {
@@ -162,26 +273,20 @@ export class Users extends Component<PropsType, StateType> {
         </td>
         <td user-domain={index}>
           <div className="input-domain">
-            <label>
-              <input
-                type="checkbox"
-                className={'optDomain-' + index}
-                value="REP"
-                checked={domain.includes('REP') ? true : false}
-                onChange={this.handleChangeDomain}
-              />
-              REP
-            </label>
-            <label>
-              <input
-                type="checkbox"
-                className={'optDomain-' + index}
-                value="Ramp"
-                checked={domain.includes('Ramp') ? true : false}
-                onChange={this.handleChangeDomain}
-              />
-              Ramp
-            </label>
+            {this.state.domains.map((d, indexOpt) => {
+              return (
+                <label key={indexOpt}>
+                  <input
+                    type="checkbox"
+                    className={'optDomain-' + index}
+                    value={d}
+                    checked={domain.includes(d) ? true : false}
+                    onChange={this.handleChangeDomain}
+                  />
+                  {d}
+                </label>
+              )
+            })}
           </div>
         </td>
       </tr>
@@ -204,11 +309,73 @@ export class Users extends Component<PropsType, StateType> {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
-                  <th>Domain</th>
+                  <th>
+                    Domain <i className="fas fa-cog fa-lg" onClick={this.toggleDomainModal} />{' '}
+                  </th>
                 </tr>
               </thead>
               <tbody>{this.renderUsers()}</tbody>
             </Table>
+
+            <Modal isOpen={this.state.isDomainModalOpen} toggle={this.toggleDomainModal}>
+              <ModalHeader toggle={this.toggleDomainModal}> Edit domain </ModalHeader>
+              <ModalBody>
+                {this.state.domains.map((d, index) => {
+                  return this.state.domainInputElem && this.state.domainInputElem.id === 'domain-' + index ? (
+                    <div key={index} className="domainRow" domain-input={'domain-' + index}>
+                      <input
+                        type="text"
+                        className="domain-input"
+                        id={'domain-' + index}
+                        value={this.state.domainInputValue}
+                        onChange={(event) => this.setState({ domainInputValue: event.target.value })}
+                        disabled={false}
+                      />
+                      <i className="fas fa-check" title="Update domain" onClick={() => this.updateDomainName()} />
+                    </div>
+                  ) : (
+                    <div key={index} className="domainRow" domain-input={'domain-' + index}>
+                      <input type="text" className="domain-input" id={'domain-' + index} value={d} disabled={true} />
+                      <i
+                        className="fas fa-pencil-alt"
+                        title="Edit domain"
+                        onClick={(event) => this.enableInputDomain(event)}
+                      />
+                      <i className="fas fa-trash" title="Remove domain" onClick={(event) => this.removeDomain(event)} />
+                    </div>
+                  )
+                })}
+                {this.state.domainNewInputVisible ? (
+                  <div>
+                    <input
+                      type="text"
+                      className="domain-input"
+                      id={'domain-new-input'}
+                      placeholder="Domain name"
+                      value={this.state.domainNewInput}
+                      onChange={(event) => this.setState({ domainNewInput: event.target.value })}
+                    />
+                    <div className="btn-domain-modal">
+                      <Button color="success" onClick={() => this.createDomain()}>
+                        Add
+                      </Button>
+                      <Button color="secondary" onClick={() => this.setState({ domainNewInputVisible: false })}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="btn-domain-modal">
+                    <Button
+                      color="primary"
+                      onClick={() => this.setState({ domainNewInputVisible: !this.state.domainNewInputVisible })}
+                    >
+                      New domain
+                    </Button>
+                  </div>
+                )}
+              </ModalBody>
+            </Modal>
           </div>
         </>
       )

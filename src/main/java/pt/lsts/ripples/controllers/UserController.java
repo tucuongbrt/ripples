@@ -150,10 +150,6 @@ public class UserController {
             userRepository.save(newUserInfo);
             
             return new ResponseEntity<>(new HTTPResponse("Success", "Updated user domain"), HttpStatus.OK);
-
-            // para cada domain do payload
-            // adcionar email à tabela do domain
-
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update user domain"), HttpStatus.NOT_FOUND);
         
