@@ -1,7 +1,10 @@
 package pt.lsts.ripples.domain.maps;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Lob;
@@ -22,6 +25,9 @@ public class MyMaps {
 
 	@JsonIgnore
 	private Date lastUpdate;
+
+	@ElementCollection
+    private List<String> domain = new ArrayList<String>();
 
 	public MyMaps() {
 
@@ -64,5 +70,13 @@ public class MyMaps {
 	public void setData(String data) {
 		this.data = data;
 	}
+
+	public List<String> getDomain() {
+        return domain;
+    }
+
+    public void setDomain(List<String> domain) {
+        this.domain = domain;
+    }
 
 }

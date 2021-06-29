@@ -38,4 +38,18 @@ export default class KMLService {
       url: `${apiURL}/kml/${mapName}`,
     })
   }
+
+  public async updateMapDomain(mapName: string, domain: string[]) {
+    return request({
+      method: 'POST',
+      body: JSON.stringify(domain),
+      url: `${apiURL}/kml/${mapName}`,
+    })
+  }
+
+  public async fetchMapDomain(mapName: string) {
+    return request({
+      url: `${apiURL}/kml/domain/${mapName}`,
+    })
+  }
 }

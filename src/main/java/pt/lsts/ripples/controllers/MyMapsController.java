@@ -7,7 +7,9 @@ import java.net.URLConnection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.zip.ZipInputStream;
@@ -114,6 +116,34 @@ public class MyMapsController {
             maps.add(map);
         });
         return maps;
+    }
+
+    @GetMapping(path = { "/kml/domain/{mapName}", "/kml/domain/{mapName}/" })
+    public List<String> getMapDmain(@PathVariable String mapName) {
+        List<String> mapDomain= new ArrayList<>();
+        Optional<MyMaps> optMyMap = myMapsRepo.findById(mapName);
+        if (optMyMap.isPresent()) {
+            MyMaps newMap = optMyMap.get();
+            mapDomain = newMap.getDomain();
+        }
+        return mapDomain;
+    }
+
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping(path = { "/kml/{mapName}", "/kml/{mapName}/" })
+    public ResponseEntity<HTTPResponse> addKMLDomain(@PathVariable String mapName, @RequestBody String[] payload) {
+
+        Optional<MyMaps> optMyMap = myMapsRepo.findById(mapName);
+        if (optMyMap.isPresent()) {
+            List<String> mapDomain= new ArrayList<>(Arrays.asList(payload));
+            MyMaps newMap = optMyMap.get();
+            newMap.setDomain(mapDomain);
+            newMap.setLastUpdate(new Date());
+            myMapsRepo.save(newMap);
+            return new ResponseEntity<>(new HTTPResponse("success", "Updated KML map domain"), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(new HTTPResponse("error", "Could not update map domain"), HttpStatus.OK);
+        }
     }
 
     private String fetchMap(String url) {

@@ -249,32 +249,42 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public buildMyMaps() {
     return this.props.myMaps.map((map) => {
-      return (
-        <Overlay key={`Overlay_${map.name}`} checked={false} name={map.name}>
-          <LayerGroup>
-            <GeoJSON
-              data={map.data}
-              style={(feature: any) => {
-                return {
-                  color: feature.properties.stroke,
-                  weight: feature.properties['stroke-width'],
-                }
-              }}
-              onEachFeature={(feature, layer) => {
-                if (feature.properties && feature.properties.name) {
-                  layer.on('click', (evt: any) => {
-                    evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
-                    this.props.setSidePanelTitle(feature.properties.name)
-                    this.props.setSidePanelContent(this.getGeoJSONSidePanelProperties(feature.properties))
-                    this.props.setSidePanelVisibility(true)
-                    this.props.setEditVehicle(undefined)
-                  })
-                }
-              }}
-            />
-          </LayerGroup>
-        </Overlay>
-      )
+      let insertMap = false
+      map.domain.forEach((m) => {
+        if (this.props.auth.currentUser.domain.includes(m)) {
+          insertMap = true
+        }
+      })
+
+      if (insertMap) {
+        return (
+          <Overlay key={`Overlay_${map.name}`} checked={false} name={map.name}>
+            <LayerGroup>
+              <GeoJSON
+                data={map.data}
+                style={(feature: any) => {
+                  return {
+                    color: feature.properties.stroke,
+                    weight: feature.properties['stroke-width'],
+                  }
+                }}
+                onEachFeature={(feature, layer) => {
+                  if (feature.properties && feature.properties.name) {
+                    layer.on('click', (evt: any) => {
+                      evt.originalEvent.view.L.DomEvent.stopPropagation(evt)
+                      this.props.setSidePanelTitle(feature.properties.name)
+                      this.props.setSidePanelContent(this.getGeoJSONSidePanelProperties(feature.properties))
+                      this.props.setSidePanelVisibility(true)
+                      this.props.setEditVehicle(undefined)
+                    })
+                  }
+                }}
+              />
+            </LayerGroup>
+          </Overlay>
+        )
+      }
+      return null
     })
   }
 

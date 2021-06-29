@@ -266,7 +266,7 @@ path.leaflet-polygon {
   width: 25%;
 }
 
-#users-table label {
+#users-table label, .domain-label-kml {
   display: inline-block;
   padding-right: 20px;
   white-space: nowrap;

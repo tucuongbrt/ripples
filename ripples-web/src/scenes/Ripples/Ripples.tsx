@@ -295,7 +295,8 @@ class Ripples extends Component<PropsType, StateType> {
     const maps = Promise.all(
       mapNames.map(async (mapName) => {
         const mapData = await this.kmlService.fetchMapData(mapName)
-        return { name: mapName, data: mapData }
+        const mapDomain = await this.kmlService.fetchMapDomain(mapName)
+        return { name: mapName, data: mapData, domain: mapDomain }
       })
     )
     return await maps

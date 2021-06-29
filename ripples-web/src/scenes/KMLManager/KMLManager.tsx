@@ -2,22 +2,26 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Button, Container, Form, FormGroup, Input, Label, Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
-import IAuthState, { IUser } from '../../model/IAuthState'
+import IAuthState, { getUserDomain, isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import KMLService from '../../services/KMLService'
 import { setUser } from '../../redux/ripples.actions'
 import { getCurrentUser } from '../../services/UserUtils'
+import { fetchDomainNames } from '../../services/DomainUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
   mapName: string
   mapURL: string
   maps: IMap[]
+  domains: string[]
+  userDomain: string[]
 }
 
 interface IMap {
   url: string
   name: string
+  domain: string[]
 }
 
 interface PropsType {
@@ -33,9 +37,12 @@ export class KMLManager extends Component<PropsType, StateType> {
       mapName: '',
       mapURL: '',
       maps: [],
+      domains: [],
+      userDomain: [],
     }
     this.onAddMap = this.onAddMap.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
+    this.handleChangeDomain = this.handleChangeDomain.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -47,9 +54,28 @@ export class KMLManager extends Component<PropsType, StateType> {
     }
   }
 
+  public async getDomains() {
+    const existingDomains: string[] = await fetchDomainNames()
+
+    const userDomainPromise = getUserDomain(this.props.auth)
+    let userDomain: string[] = []
+    if (userDomainPromise !== undefined) {
+      userDomain = userDomainPromise
+    }
+
+    this.setState({
+      domains: existingDomains,
+      userDomain,
+    })
+  }
+
   public async componentWillMount() {
     await this.loadCurrentlyLoggedInUser()
     await this.updateMaps()
+
+    if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
+      this.getDomains()
+    }
   }
 
   public async onAddMap() {
@@ -112,6 +138,7 @@ export class KMLManager extends Component<PropsType, StateType> {
                 <th>Map Name</th>
                 <th>URL</th>
                 <th>Actions</th>
+                {isAdministrator(this.props.auth) ? <th>Domain</th> : <></>}
               </tr>
             </thead>
             <tbody>{this.buildMapsRows()}</tbody>
@@ -135,14 +162,40 @@ export class KMLManager extends Component<PropsType, StateType> {
 
   private buildMapsRows() {
     return this.state.maps.map((m, i) => {
+      const URLpart1 = m.url.substring(0, m.url.length - 5).replace(/./g, '•')
+      const URLpart2 = m.url.substring(m.url.length - 5, m.url.length)
+      const hidedURL = URLpart1 + URLpart2
+
       return (
         <tr key={m.name}>
           <th scope="row">{i}</th>
           <td>{m.name}</td>
-          <td>{m.url}</td>
+          <td>{isAdministrator(this.props.auth) ? m.url : hidedURL} </td>
           <td onClick={() => this.deleteMap(m.name)}>
             <i title={`Delete ${m.name}`} className="fas fa-trash" />
           </td>
+          {isAdministrator(this.props.auth) ? (
+            <td map-domain={i} map-name={m.name}>
+              <div className="input-domain">
+                {this.state.domains.map((d, indexOpt) => {
+                  return (
+                    <label key={indexOpt} className="domain-label-kml">
+                      <input
+                        type="checkbox"
+                        className={'optDomain-' + i}
+                        value={d}
+                        checked={m.domain.includes(d) ? true : false}
+                        onChange={this.handleChangeDomain}
+                      />
+                      {d}
+                    </label>
+                  )
+                })}
+              </div>
+            </td>
+          ) : (
+            <></>
+          )}
         </tr>
       )
     })
@@ -155,6 +208,34 @@ export class KMLManager extends Component<PropsType, StateType> {
       this.updateMaps()
     } catch (error) {
       NotificationManager.warning(error.message)
+    }
+  }
+
+  private async handleChangeDomain(event: any) {
+    const mapDomainId = event.target.closest('td').getAttribute('map-domain')
+    const mapName = event.target.closest('td').getAttribute('map-name')
+
+    const domains: any = document.getElementsByClassName('optDomain-' + mapDomainId)
+    const domainSelected: string[] = []
+    for (const domain of domains) {
+      if (domain.checked) domainSelected.push(domain.value)
+    }
+
+    const response = await this.kmlService.updateMapDomain(mapName, domainSelected)
+    if (response.status === 'success') {
+      const maps = [...this.state.maps]
+      const item = {
+        ...maps[mapDomainId],
+        domain: domainSelected,
+      }
+      maps[mapDomainId] = item
+      this.setState({ maps })
+
+      this.getDomains()
+
+      NotificationManager.success('Updated map domain')
+    } else {
+      NotificationManager.success('Cannot update map domain')
     }
   }
 }
