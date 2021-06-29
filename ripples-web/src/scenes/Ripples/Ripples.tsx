@@ -5,7 +5,14 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
-import UserState, { isAdministrator, isCasual, isScientist, IUser, IUserLocation } from '../../model/IAuthState'
+import UserState, {
+  getUserDomain,
+  isAdministrator,
+  isCasual,
+  isScientist,
+  IUser,
+  IUserLocation,
+} from '../../model/IAuthState'
 import IGeoLayer from '../../model/IGeoLayer'
 import IMyMap from '../../model/IMyMap'
 import IOverlayInfo from '../../model/IOverlayInfo'
@@ -184,21 +191,49 @@ class Ripples extends Component<PropsType, StateType> {
 
   public handleWsAssetUpdate(m: Message) {
     if (m.body) {
+      const userDomain = getUserDomain(this.props.auth)
+
       const newSystem: IAssetPayload = JSON.parse(m.body)
       const system: IAsset = this.soiService.convertAssetPayloadToAsset(newSystem)
-      if (system.name.startsWith('spot')) {
-        this.props.updateSpot(system)
-      } else if (system.name.startsWith('ccu')) {
-        this.props.updateCCU(system)
-      } else if (!this.soiService.isRipplesImc(newSystem)) {
-        this.props.updateVehicle(system)
-      }
 
-      if (newSystem.plan) {
-        if (newSystem.plan.waypoints.length > 0) {
-          const plan: IPlan = this.soiService.convertAssetPayloadToPlan(newSystem)
-          this.props.updatePlan(plan)
+      if (userDomain !== undefined) {
+        // asset without domain
+        if (system.domain.length === 0) {
+          if (system.name.startsWith('spot')) {
+            this.props.updateSpot(system)
+          } else if (system.name.startsWith('ccu')) {
+            this.props.updateCCU(system)
+          } else if (!this.soiService.isRipplesImc(newSystem)) {
+            this.props.updateVehicle(system)
+          }
+
+          if (newSystem.plan) {
+            if (newSystem.plan.waypoints.length > 0) {
+              const plan: IPlan = this.soiService.convertAssetPayloadToPlan(newSystem)
+              this.props.updatePlan(plan)
+            }
+          }
         }
+
+        userDomain.forEach((domain) => {
+          if (system.domain.includes(domain)) {
+            if (system.name.startsWith('spot')) {
+              this.props.updateSpot(system)
+            } else if (system.name.startsWith('ccu')) {
+              this.props.updateCCU(system)
+            } else if (!this.soiService.isRipplesImc(newSystem)) {
+              this.props.updateVehicle(system)
+            }
+
+            if (newSystem.plan) {
+              if (newSystem.plan.waypoints.length > 0) {
+                const plan: IPlan = this.soiService.convertAssetPayloadToPlan(newSystem)
+                this.props.updatePlan(plan)
+              }
+            }
+            return
+          }
+        })
       }
     }
   }
@@ -276,49 +311,52 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async updateSoiData() {
     try {
-      const soiPromise = this.soiService.fetchSoiData()
-      const profilesPromise = this.soiService.fetchProfileData()
-      const awarenessPromise = this.soiService.fetchAwareness()
-      let unassignedPlansPromise
-      if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
-        unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
-      }
-      const soiData = await soiPromise
-
-      const vehicles = soiData.vehicles
-
-      /* Temporarily deactivated
-      await this.soiService.fetchSoiSettings([vehicles, spots, ccus])
-      */
-      await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
-
-      // fetch profiles
-      let profiles = await profilesPromise
-      profiles = profiles.filter((p) => p.samples.length > 0)
-      // make heights symmetric
-      profiles.forEach((p) => {
-        p.samples.forEach((a) => (a[0] = -a[0]))
-      })
-      this.props.setProfiles(profiles)
-
-      // fetch soi awareness
-      const assetsAwareness = await awarenessPromise
-      assetsAwareness.forEach((assetAwareness) => {
-        const vehicle = vehicles.find((v) => v.name === assetAwareness.name)
-        if (vehicle) {
-          vehicle.awareness = assetAwareness.positions
+      const userDomain = getUserDomain(this.props.auth)
+      if (userDomain !== undefined && userDomain.length > 0) {
+        const soiPromise = this.soiService.fetchSoiData(userDomain)
+        const profilesPromise = this.soiService.fetchProfileData()
+        const awarenessPromise = this.soiService.fetchAwareness()
+        let unassignedPlansPromise
+        if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
+          unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
         }
-      })
+        const soiData = await soiPromise
 
-      if (unassignedPlansPromise) {
-        const unassignedPlans: IPlan[] = await unassignedPlansPromise
-        soiData.plans = soiData.plans.concat(unassignedPlans)
+        const vehicles = soiData.vehicles
+
+        /* Temporarily deactivated
+        await this.soiService.fetchSoiSettings([vehicles, spots, ccus])
+        */
+        await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
+
+        // fetch profiles
+        let profiles = await profilesPromise
+        profiles = profiles.filter((p) => p.samples.length > 0)
+        // make heights symmetric
+        profiles.forEach((p) => {
+          p.samples.forEach((a) => (a[0] = -a[0]))
+        })
+        this.props.setProfiles(profiles)
+
+        // fetch soi awareness
+        const assetsAwareness = await awarenessPromise
+        assetsAwareness.forEach((assetAwareness) => {
+          const vehicle = vehicles.find((v) => v.name === assetAwareness.name)
+          if (vehicle) {
+            vehicle.awareness = assetAwareness.positions
+          }
+        })
+
+        if (unassignedPlansPromise) {
+          const unassignedPlans: IPlan[] = await unassignedPlansPromise
+          soiData.plans = soiData.plans.concat(unassignedPlans)
+        }
+        // update redux store
+        this.props.setVehicles(soiData.vehicles)
+        this.props.setSpots(soiData.spots)
+        this.props.setPlans(soiData.plans)
+        this.props.setCcus(soiData.ccus)
       }
-      // update redux store
-      this.props.setVehicles(soiData.vehicles)
-      this.props.setSpots(soiData.spots)
-      this.props.setPlans(soiData.plans)
-      this.props.setCcus(soiData.ccus)
     } catch (error) {
       NotificationManager.warning('Failed to fetch data')
     }
@@ -332,13 +370,12 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async updateAssetsData(system: IAsset, domain: string[]) {
     try {
-      const newSystem: IAsset = this.soiService.updateAssetDomain(system, domain)
+      const newSystem: IAsset = await this.soiService.updateAssetDomain(system, domain)
       const response = await this.soiService.updateAssetDB(newSystem)
-
-      this.updateSoiData()
 
       if (response.status === 'Success') {
         NotificationManager.success(response.message)
+        this.updateSoiData()
       } else {
         NotificationManager.warning('Failed to update asset domain')
       }

@@ -172,10 +172,13 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
     }
+
+    if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
+      this.getDomains()
+    }
   }
 
   public async componentDidMount() {
-    this.getDomains()
     if (!this.oneSecondTimer) {
       this.oneSecondTimer = window.setInterval(() => {
         this.updateCopernicusMaps()

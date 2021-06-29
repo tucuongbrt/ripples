@@ -16,6 +16,8 @@ import pt.lsts.ripples.services.AssetInfoService;
 import pt.lsts.ripples.util.HTTPResponse;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,14 +83,14 @@ public class AssetsController {
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/asset/changeDomain/")
-    public ResponseEntity<HTTPResponse> updateAssetDomain(@RequestBody Asset payload) {
-        Optional<Asset> asset = repo.findById(payload.getName());
+    @PostMapping("/asset/changeDomain/{assetName}")
+    public ResponseEntity<HTTPResponse> updateAssetDomain(@PathVariable String assetName, @RequestBody String[] domain) {
+        List<String> domains = new LinkedList<String>(Arrays.asList(domain));
+        Optional<Asset> asset = repo.findById(assetName);
         if (asset.isPresent()) {
             Asset newAssetInfo = asset.get();
-            newAssetInfo.setDomain(payload.getDomain());
+            newAssetInfo.setDomain(domains);
             repo.save(newAssetInfo);
-
             return new ResponseEntity<>(new HTTPResponse("Success", "Updated asset domain"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset domain"), HttpStatus.NOT_FOUND);

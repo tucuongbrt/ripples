@@ -89,6 +89,26 @@ public class SoiController {
 		return assets;
 	}
 
+	@RequestMapping(path = { "/soi/{userDomain}/", "/soi/{userDomain}" }, method = RequestMethod.GET)
+	public List<Asset> listAssetsByDomain(@PathVariable String[] userDomain) {
+		ArrayList<Asset> assetsByDomain = new ArrayList<>();
+
+		ArrayList<Asset> assets = assetsRepo.findAll();
+		for(Asset a : assets){
+			for(String domain : userDomain){
+				if(a.getDomain().contains(domain) && !assetsByDomain.contains(a)) {
+					assetsByDomain.add(a);
+				}
+			}
+
+			//assets without domain
+			if(a.getDomain().isEmpty() && !assetsByDomain.contains(a) ){
+				assetsByDomain.add(a);
+			}
+		}
+		return assetsByDomain;
+	}
+
 	@RequestMapping(path = { "/soi/all/profiles", "/soi/all/profiles/" }, method = RequestMethod.GET)
 	public List<VerticalProfileData> listAllProfiles() {
 		ArrayList<VerticalProfileData> profs = new ArrayList<>();
@@ -290,7 +310,8 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/assets/{imcId}/settings",
 			"/soi/assets/{imcId}/settings" }, method = RequestMethod.POST)
 	public ResponseEntity<HTTPResponse> updateSoiSettings(@PathVariable int imcId,
-			@RequestBody LinkedHashMap<String,String> settings) throws SendSoiCommandException, AssetNotFoundException {
+			@RequestBody LinkedHashMap<String, String> settings)
+			throws SendSoiCommandException, AssetNotFoundException {
 		Asset asset = assetsRepo.findByImcid(imcId);
 		if (asset != null) {
 			SoiCommand cmd = new SoiCommand();

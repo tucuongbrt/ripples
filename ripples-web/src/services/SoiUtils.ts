@@ -65,9 +65,9 @@ export default class SoiService {
 
   public async updateAssetDB(system: IAsset) {
     return request({
-      body: JSON.stringify(system),
+      body: JSON.stringify(system.domain),
       method: 'POST',
-      url: `${apiURL}/asset/changeDomain/`,
+      url: `${apiURL}/asset/changeDomain/${system.name}`,
     })
   }
 
@@ -83,8 +83,8 @@ export default class SoiService {
     return obj
   }
 
-  public async fetchSoiData() {
-    const response = await fetch(`${apiURL}/soi`)
+  public async fetchSoiData(userDomain: string[]) {
+    const response = await fetch(`${apiURL}/soi/${userDomain}`)
     const data = await response.json()
     const vehicles: IAsset[] = []
     const spots: IAsset[] = []

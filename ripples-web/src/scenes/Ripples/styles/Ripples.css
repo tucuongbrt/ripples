@@ -257,7 +257,7 @@ path.leaflet-polygon {
 }
 
 
-#users-table thead,tbody,tr,td,th{
+#users-table thead, #users-tabletbody, #users-table tr, #users-table td, #users-table th{
   display:flow-root;
 }
 

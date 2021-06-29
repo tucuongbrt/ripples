@@ -27,6 +27,16 @@ export function isCasual(auth: IAuthState) {
   return auth.authenticated && auth.currentUser.role.toLowerCase() === CASUAL
 }
 
+export function userHasDomain(auth: IAuthState, domainName: string) {
+  return auth.authenticated && auth.currentUser.domain.includes(domainName)
+}
+
+export function getUserDomain(auth: IAuthState) {
+  if (auth.authenticated) {
+    return auth.currentUser.domain
+  }
+}
+
 export interface IUser {
   id: number
   name: string

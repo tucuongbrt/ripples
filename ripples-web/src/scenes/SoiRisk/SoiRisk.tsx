@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Table } from 'reactstrap'
 import { AssetErrors } from '../../model/AssetErrors'
 import IAsset from '../../model/IAsset'
-import IAuthState, { isOperator, IUser } from '../../model/IAuthState'
+import IAuthState, { getUserDomain, isOperator, IUser } from '../../model/IAuthState'
 import ILatLng from '../../model/ILatLng'
 import IPlan from '../../model/IPlan'
 import IPositionAtTime from '../../model/IPositionAtTime'
@@ -87,15 +87,18 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public async updateSoiData() {
-    const soiData = await this.soiService.fetchSoiData()
-    const collisions = await this.soiService.fetchCollisions()
-    const errors = await this.soiService.fetchAssetsErrors()
-    this.setState({
-      assetErrors: errors,
-      collisions,
-      plans: soiData.plans,
-      vehicles: soiData.vehicles,
-    })
+    const userDomain = getUserDomain(this.props.auth)
+    if (userDomain !== undefined) {
+      const soiData = await this.soiService.fetchSoiData(userDomain)
+      const collisions = await this.soiService.fetchCollisions()
+      const errors = await this.soiService.fetchAssetsErrors()
+      this.setState({
+        assetErrors: errors,
+        collisions,
+        plans: soiData.plans,
+        vehicles: soiData.vehicles,
+      })
+    }
   }
 
   /**

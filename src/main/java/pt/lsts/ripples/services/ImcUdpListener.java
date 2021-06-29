@@ -13,15 +13,20 @@ import pt.lsts.ripples.controllers.WebSocketsController;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.shared.Plan;
 import pt.lsts.ripples.domain.shared.Waypoint;
+import pt.lsts.ripples.repo.main.AssetsRepository;
 
 import java.net.SocketAddress;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 @Component
 public class ImcUdpListener {
+
+    @Autowired
+    AssetsRepository repo;
 
     @Autowired
     private WebSocketsController webSocket;
@@ -49,6 +54,26 @@ public class ImcUdpListener {
     public void on(Announce msg) {
         Logger.getLogger(getClass().getSimpleName()).info("Received announce from " + msg.sys_name);
 
+        Optional<Asset> existingAsset = repo.findById(msg.sys_name);
+        if (existingAsset.isPresent()) {
+            Asset newAssetInfo = existingAsset.get();
+            newAssetInfo.setImcid(msg.src);
+            newAssetInfo.getLastState().setDate(new Date((long) (1000 * msg.timestamp)));
+            newAssetInfo.getLastState().setLatitude(Math.toDegrees(msg.lat));
+            newAssetInfo.getLastState().setLongitude(Math.toDegrees(msg.lon));
+            repo.save(newAssetInfo);
+        } else {
+            if(!msg.sys_name.equals("RipplesImc") ) {
+                Asset newAsset = new Asset(msg.sys_name);
+                newAsset.setImcid(msg.src);
+                newAsset.getLastState().setDate(new Date((long) (1000 * msg.timestamp)));
+                newAsset.getLastState().setLatitude(Math.toDegrees(msg.lat));
+                newAsset.getLastState().setLongitude(Math.toDegrees(msg.lon));
+                repo.save(newAsset);
+            }
+        }
+
+        // before
         Asset asset = assets.getOrDefault(msg.sys_name, new Asset(msg.sys_name));
         asset.setImcid(msg.src);
         asset.getLastState().setDate(new Date((long) (1000 * msg.timestamp)));
