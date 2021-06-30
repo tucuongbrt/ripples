@@ -118,9 +118,45 @@ public class MyMapsController {
         return maps;
     }
 
+    @GetMapping(path = { "/kml/domain/maps/{userDomain}",
+            "/kml/domain/maps/{userDomain}/" }, produces = "application/json")
+    public ArrayList<MyMaps> getMyMapsByDomain(@PathVariable String[] userDomain) {
+        ArrayList<MyMaps> maps = new ArrayList<>();
+        myMapsRepo.findAll().forEach(map -> {
+            if (map.getDomain().size() == 0 && !maps.contains(map)) {
+                maps.add(map);
+            } else {
+                for (String d : userDomain) {
+                    if (map.getDomain().contains(d) && !maps.contains(map)) {
+                        maps.add(map);
+                    }
+                }
+            }
+        });
+        return maps;
+    }
+
+    @GetMapping(path = { "/kml/domain/names/{userDomain}",
+            "/kml/domain/names/{userDomain}/" }, produces = "application/json")
+    public ArrayList<String> getMyMapsNamesByDomain(@PathVariable String[] userDomain) {
+        ArrayList<String> mapNames = new ArrayList<String>();
+        myMapsRepo.findAll().forEach(map -> {
+            if (map.getDomain().size() == 0 && !mapNames.contains(map.getName())) {
+                mapNames.add(map.getName());
+            } else {
+                for (String d : userDomain) {
+                    if (map.getDomain().contains(d) && !mapNames.contains(map.getName())) {
+                        mapNames.add(map.getName());
+                    }
+                }
+            }
+        });
+        return mapNames;
+    }
+
     @GetMapping(path = { "/kml/domain/{mapName}", "/kml/domain/{mapName}/" })
-    public List<String> getMapDmain(@PathVariable String mapName) {
-        List<String> mapDomain= new ArrayList<>();
+    public List<String> getMapDomain(@PathVariable String mapName) {
+        List<String> mapDomain = new ArrayList<>();
         Optional<MyMaps> optMyMap = myMapsRepo.findById(mapName);
         if (optMyMap.isPresent()) {
             MyMaps newMap = optMyMap.get();
@@ -135,7 +171,7 @@ public class MyMapsController {
 
         Optional<MyMaps> optMyMap = myMapsRepo.findById(mapName);
         if (optMyMap.isPresent()) {
-            List<String> mapDomain= new ArrayList<>(Arrays.asList(payload));
+            List<String> mapDomain = new ArrayList<>(Arrays.asList(payload));
             MyMaps newMap = optMyMap.get();
             newMap.setDomain(mapDomain);
             newMap.setLastUpdate(new Date());

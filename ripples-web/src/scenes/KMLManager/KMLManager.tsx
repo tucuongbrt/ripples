@@ -55,27 +55,29 @@ export class KMLManager extends Component<PropsType, StateType> {
   }
 
   public async getDomains() {
-    const existingDomains: string[] = await fetchDomainNames()
+    if (this.props.auth.authenticated) {
+      const userDomainPromise = getUserDomain(this.props.auth)
+      let userDomain: string[] = []
+      if (userDomainPromise !== undefined) {
+        userDomain = userDomainPromise
+      }
 
-    const userDomainPromise = getUserDomain(this.props.auth)
-    let userDomain: string[] = []
-    if (userDomainPromise !== undefined) {
-      userDomain = userDomainPromise
+      let existingDomains: string[] = []
+      if (isAdministrator(this.props.auth)) {
+        existingDomains = await fetchDomainNames()
+      }
+
+      this.setState({
+        domains: existingDomains,
+        userDomain,
+      })
     }
-
-    this.setState({
-      domains: existingDomains,
-      userDomain,
-    })
   }
 
   public async componentWillMount() {
     await this.loadCurrentlyLoggedInUser()
+    await this.getDomains()
     await this.updateMaps()
-
-    if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
-      this.getDomains()
-    }
   }
 
   public async onAddMap() {
@@ -156,7 +158,15 @@ export class KMLManager extends Component<PropsType, StateType> {
   }
 
   private async updateMaps() {
-    const response = await this.kmlService.fetchMapsNamesAndURLS()
+    let userDomain: string[] = []
+    if (this.state.userDomain.length > 0) {
+      userDomain = this.state.userDomain
+    } else {
+      userDomain.push('null')
+    }
+
+    // const response = await this.kmlService.fetchMapsNamesAndURLS();
+    const response = await this.kmlService.fetchMapsNamesAndURLSByDomain(userDomain)
     this.setState({ maps: response })
   }
 

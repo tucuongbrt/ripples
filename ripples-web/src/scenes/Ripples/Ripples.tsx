@@ -291,12 +291,18 @@ class Ripples extends Component<PropsType, StateType> {
   }
 
   public async loadMyMapsData(): Promise<IMyMap[]> {
-    const mapNames: string[] = await this.kmlService.fetchMapsNames()
+    let userDomain: string[] = []
+    if (this.props.auth.currentUser.email) {
+      userDomain = this.props.auth.currentUser.domain
+    } else {
+      userDomain.push('null')
+    }
+
+    const mapNames: string[] = await this.kmlService.fetchMapsNamesByDomain(userDomain)
     const maps = Promise.all(
       mapNames.map(async (mapName) => {
         const mapData = await this.kmlService.fetchMapData(mapName)
-        const mapDomain = await this.kmlService.fetchMapDomain(mapName)
-        return { name: mapName, data: mapData, domain: mapDomain }
+        return { name: mapName, data: mapData }
       })
     )
     return await maps

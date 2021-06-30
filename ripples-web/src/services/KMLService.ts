@@ -52,4 +52,16 @@ export default class KMLService {
       url: `${apiURL}/kml/domain/${mapName}`,
     })
   }
+
+  public async fetchMapsNamesAndURLSByDomain(userDomain: string[]) {
+    return request({
+      url: `${apiURL}/kml/domain/maps/${userDomain}`,
+    })
+  }
+
+  public async fetchMapsNamesByDomain(userDomain: string[]) {
+    return request({
+      url: `${apiURL}/kml/domain/names/${userDomain}`,
+    })
+  }
 }
