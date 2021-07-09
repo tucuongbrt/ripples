@@ -22,12 +22,11 @@ export default class TopNavLinks extends Component {
         <Link className="navbar-link" to="/kml/manager">
           <i title="KML Manager" className="fas fa-map fa-lg" />
         </Link>
+        {/* 
         <Link className="navbar-link" to="/logbook/manager">
           <i title="Logbook Manager" className="fas fa-book-open fa-lg" />
         </Link>
-        <Link className="navbar-link" to="/user/manager">
-          <i title="Users Manager" className="fas fa-users fa-lg" />
-        </Link>
+        */}
       </Nav>
     )
   }

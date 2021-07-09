@@ -12,10 +12,13 @@ import pt.lsts.imc4j.util.WGS84Utilities;
 import pt.lsts.ripples.controllers.WebSocketsController;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.shared.Plan;
+import pt.lsts.ripples.domain.shared.Settings;
 import pt.lsts.ripples.domain.shared.Waypoint;
 import pt.lsts.ripples.repo.main.AssetsRepository;
+import pt.lsts.ripples.repo.main.SettingsRepository;
 
 import java.net.SocketAddress;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +30,9 @@ public class ImcUdpListener {
 
     @Autowired
     AssetsRepository repo;
+
+    @Autowired
+    SettingsRepository settingsRepo;
 
     @Autowired
     private WebSocketsController webSocket;
@@ -63,12 +69,35 @@ public class ImcUdpListener {
             newAssetInfo.getLastState().setLongitude(Math.toDegrees(msg.lon));
             repo.save(newAssetInfo);
         } else {
-            if(!msg.sys_name.equals("RipplesImc") ) {
+            if (!msg.sys_name.equals("RipplesImc")) {
+                // check system current domain
+                List<String> domain = new ArrayList<>();
+                List<Settings> listSettings = settingsRepo.findByDomainName("Ripples");
+                if (!listSettings.isEmpty()) {
+                    List<String[]> params = listSettings.get(0).getParams();
+                    for (String[] param : params) {
+                        if (param[0].equals("Current domain")) {
+                            if (!param[1].equals("\"\"")) {
+                                if (param[1].contains(",")) {
+                                    String[] parts = param[1].split(",");
+                                    for (String p : parts) {
+                                        domain.add(p);
+                                    }
+                                } else {
+                                    domain.add(param[1]);
+                                }
+
+                            }
+                        }
+                    }
+                }
+
                 Asset newAsset = new Asset(msg.sys_name);
                 newAsset.setImcid(msg.src);
                 newAsset.getLastState().setDate(new Date((long) (1000 * msg.timestamp)));
                 newAsset.getLastState().setLatitude(Math.toDegrees(msg.lat));
                 newAsset.getLastState().setLongitude(Math.toDegrees(msg.lon));
+                newAsset.setDomain(domain);
                 repo.save(newAsset);
             }
         }

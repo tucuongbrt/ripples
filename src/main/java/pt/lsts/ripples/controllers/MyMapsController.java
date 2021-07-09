@@ -56,18 +56,22 @@ public class MyMapsController {
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/kml", "/kml/" }, consumes = "application/json", produces = "application/json")
     public ResponseEntity<HTTPResponse> addKML(@RequestBody MyMaps newMap) {
-        // newMap should have a url and a name
-        System.out.println("Received new map " + newMap.getName() + " " + newMap.getUrl());
-        String mapData = fetchMap(newMap.getUrl());
-        if (mapData != null) {
-            newMap.setData(mapData);
-            newMap.setLastUpdate(new Date());
-            myMapsRepo.save(newMap);
-            return new ResponseEntity<>(new HTTPResponse("success", "Added KML map"), HttpStatus.OK);
+        Optional<MyMaps> optMyMap = myMapsRepo.findById(newMap.getName());
+        if (optMyMap.isPresent()) {
+            return new ResponseEntity<>(new HTTPResponse("error", "KML map already exist"), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(new HTTPResponse("error", "Could not fetch map"), HttpStatus.OK);
+            // newMap should have a url and a name
+            System.out.println("Received new map " + newMap.getName() + " " + newMap.getUrl());
+            String mapData = fetchMap(newMap.getUrl());
+            if (mapData != null) {
+                newMap.setData(mapData);
+                newMap.setLastUpdate(new Date());
+                myMapsRepo.save(newMap);
+                return new ResponseEntity<>(new HTTPResponse("success", "Added KML map"), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new HTTPResponse("error", "Could not fetch map"), HttpStatus.OK);
+            }
         }
-
     }
 
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")

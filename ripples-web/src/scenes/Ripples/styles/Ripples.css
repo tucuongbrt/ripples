@@ -250,12 +250,14 @@ path.leaflet-polygon {
   width: 25%;
 }
 
-#users-table tbody{
-  height:85vh;
-  overflow-y:auto;
+#users-table tbody {
+  top: 122px;
+  bottom: 0;
   width: 100%;
+  position: fixed;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
-
 
 #users-table thead, #users-tabletbody, #users-table tr, #users-table td, #users-table th{
   display:flow-root;
@@ -307,7 +309,7 @@ path.leaflet-polygon {
 
 .domain-input {
   display: list-item;
-  width: 50%;
+  width: 90%;
 }
 
 .domainRow { 
@@ -325,4 +327,79 @@ path.leaflet-polygon {
 
 .fa-pencil-alt, .fa-check, .fa-trash {
   padding: 5px;
+}
+
+.settings-group {
+  margin: 30px;
+  padding: 10px;
+  background: #eff1f3;
+  border-radius: 10px;
+}
+
+.settings-params-group {
+  margin: 20px;
+  padding: 10px;
+  border: 1px solid #e1e3e6;
+  background: #e1e3e6;
+  border-radius: 10px;
+}
+
+.setting-input{
+  width: 94%;
+}
+
+.settings-group-title {
+  display: inline-block;
+  margin-right: 30px;
+}
+
+.setting-group-add {
+  float: right;
+}
+
+.setting-modal-input-group {
+  display: flex;
+}
+
+.setting-modal-input {
+  margin: 5px;
+  padding: 5px;
+}
+
+.setting-btn-domain {
+  margin: 5px;
+}
+
+.setting-modal-input-new {
+  width: 100%;
+}
+
+.settings-content {
+  top: 80px;
+  bottom: 0;
+  width: 100%;
+  position:fixed;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+
+.setting-title-description {
+  font-size: small;
+}
+
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover {
+  color:#2bace4;
+}
+
+.fa-users {
+  padding: 10px;
+}
+
+.zt-dialog {
+  position: fixed !important;
+  top: 3% !important;
+  left: 92% !important;
+  width: 10% !important;
+  height: 12% !important;
+  z-index:99;
 }

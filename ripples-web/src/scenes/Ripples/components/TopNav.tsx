@@ -48,6 +48,7 @@ import {
 } from '../../../redux/ripples.actions'
 import ZerotierService from '../../../services/ZerotierUtils'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import { Link } from 'react-router-dom'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -419,7 +420,9 @@ class TopNav extends Component<PropsType, StateType> {
             title="Enable Gps Tracking"
           />
         </NavItem>
+        {/* 
         {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildZerotierSelector()}
+          */}
       </>
     )
   }
@@ -523,6 +526,17 @@ class TopNav extends Component<PropsType, StateType> {
     this.setState({ nodeId: '' })
   }
 
+  public buildSettingsBtn() {
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
+      return (
+        <Link className="navbar-link" to="/settings/manager">
+          <i title="Settings Manager" className="fas fa-cogs fa-sm" />
+        </Link>
+      )
+    }
+    return <></>
+  }
+
   public render() {
     return (
       <Navbar color="faded" light={true} expand="md">
@@ -533,6 +547,7 @@ class TopNav extends Component<PropsType, StateType> {
             <div id="planEditToolbar">{this.buildPlanEditToolbar()}</div>
             <div id="generalToolbar">{this.buildGeneralToolbar()}</div>
             <Login />
+            <div id="settings-btn">{this.buildSettingsBtn()}</div>
           </Nav>
         </Collapse>
       </Navbar>

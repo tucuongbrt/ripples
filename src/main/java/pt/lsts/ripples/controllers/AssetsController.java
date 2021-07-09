@@ -9,9 +9,11 @@ import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
 import pt.lsts.ripples.domain.shared.AssetPosition;
+import pt.lsts.ripples.domain.shared.Settings;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.PositionsRepository;
+import pt.lsts.ripples.repo.main.SettingsRepository;
 import pt.lsts.ripples.services.AssetInfoService;
 import pt.lsts.ripples.util.HTTPResponse;
 
@@ -36,9 +38,36 @@ public class AssetsController {
     @Autowired
     AssetsParamsRepository assetParamsRepo;
 
+    @Autowired
+    SettingsRepository settingsRepo;
+
     @PostMapping(path = { "/asset/{id}" }, consumes = "application/json", produces = "application/json")
     public Asset getAsset(@PathVariable String id, @RequestBody Asset asset) {
+        Optional<Asset> assetExists = repo.findById(id);
+
         Asset existing = repo.findById(id).orElse(new Asset(id));
+
+        // check system current domain
+        List<String> domain = new ArrayList<>();
+        List<Settings> listSettings = settingsRepo.findByDomainName("Ripples");
+        if (!listSettings.isEmpty()) {
+            List<String[]> params = listSettings.get(0).getParams();
+            for (String[] param : params) {
+                if (param[0].equals("Current domain")) {
+                    if(!param[1].equals("\"\"")) {
+                        if(param[1].contains(",")) {
+                            String[] parts = param[1].split(",");
+                            for(String p : parts) {
+                                domain.add(p);
+                            }
+                        } else {
+                            domain.add(param[1]);
+                        }
+                        
+                    }
+                }
+            }
+        }
 
         if (asset.getPlan() != null && asset.getPlan().getId() != null) {
             existing.setPlan(asset.getPlan());
@@ -54,6 +83,10 @@ public class AssetsController {
             pos.setName(id);
             pos.setImcId(asset.getImcid());
             positions.save(pos);
+        }
+
+        if (!assetExists.isPresent()) {
+            existing.setDomain(domain);
         }
 
         repo.save(existing);
@@ -84,7 +117,8 @@ public class AssetsController {
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/asset/changeDomain/{assetName}")
-    public ResponseEntity<HTTPResponse> updateAssetDomain(@PathVariable String assetName, @RequestBody String[] domain) {
+    public ResponseEntity<HTTPResponse> updateAssetDomain(@PathVariable String assetName,
+            @RequestBody String[] domain) {
         List<String> domains = new LinkedList<String>(Arrays.asList(domain));
         Optional<Asset> asset = repo.findById(assetName);
         if (asset.isPresent()) {

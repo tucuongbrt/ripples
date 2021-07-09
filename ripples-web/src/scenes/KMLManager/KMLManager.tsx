@@ -133,7 +133,7 @@ export class KMLManager extends Component<PropsType, StateType> {
               Add Map
             </Button>
           </Form>
-          <Table hover={true}>
+          <Table id="kml-table" hover={true}>
             <thead>
               <tr>
                 <th>#</th>
