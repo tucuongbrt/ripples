@@ -57,14 +57,20 @@ public class MyMapsController {
     @PostMapping(path = { "/kml", "/kml/" }, consumes = "application/json", produces = "application/json")
     public ResponseEntity<HTTPResponse> addKML(@RequestBody MyMaps newMap) {
         Optional<MyMaps> optMyMap = myMapsRepo.findById(newMap.getName());
+
+        String baseURL = "https://www.google.com/maps/d/u/0/kml?";
+        String mapID = newMap.getUrl().substring(newMap.getUrl().lastIndexOf("?") + 1);
+        String mapURL = baseURL + mapID;
+
         if (optMyMap.isPresent()) {
             return new ResponseEntity<>(new HTTPResponse("error", "KML map already exist"), HttpStatus.OK);
         } else {
             // newMap should have a url and a name
             System.out.println("Received new map " + newMap.getName() + " " + newMap.getUrl());
-            String mapData = fetchMap(newMap.getUrl());
+            String mapData = fetchMap(mapURL);
             if (mapData != null) {
                 newMap.setData(mapData);
+                newMap.setUrl(mapURL);
                 newMap.setLastUpdate(new Date());
                 myMapsRepo.save(newMap);
                 return new ResponseEntity<>(new HTTPResponse("success", "Added KML map"), HttpStatus.OK);
