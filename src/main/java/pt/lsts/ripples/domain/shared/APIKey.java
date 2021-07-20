@@ -12,7 +12,7 @@ import javax.persistence.Id;
 public class APIKey {
 
     @Id
-    private byte[] token;
+    private String token;
 
     private byte[] salt;
     private String email;
@@ -27,7 +27,7 @@ public class APIKey {
     public APIKey() {
     }
 
-    public APIKey(String email, Date date, byte[] token, byte[] salt) {
+    public APIKey(String email, Date date, String token, byte[] salt) {
         this.token = token;
         this.salt = salt;
         this.email = email;
@@ -36,11 +36,11 @@ public class APIKey {
         this.permission = new ArrayList<String>();
     }
 
-    public byte[] getToken() {
+    public String getToken() {
         return token;
     }
 
-    public void setToken(byte[] token) {
+    public void setToken(String token) {
         this.token = token;
     }
 

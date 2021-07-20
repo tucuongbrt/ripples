@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 import pt.lsts.ripples.domain.shared.APIKey;
 
 @Repository
-public interface ApiKeyRepository extends CrudRepository<APIKey, byte[]> {
+public interface ApiKeyRepository extends CrudRepository<APIKey, String> {
 }

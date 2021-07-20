@@ -78,6 +78,7 @@ public class ApiKeyController {
     public ResponseEntity<HTTPResponse> createApiKey(@RequestBody APIKey payload) throws NoSuchAlgorithmException {
         byte[] salt = generateSalt(Integer.parseInt(salt_len));
         byte[] token = generateToken(salt, appSecret);
+        String tokenToString = Base64.getEncoder().encodeToString(token);
         LocalDate date_aux = LocalDate.now().plusDays(90);
         Date expirationDate = Date.from(date_aux.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
 
@@ -86,7 +87,7 @@ public class ApiKeyController {
         apiKey.setDomain(payload.getDomain());
         apiKey.setPermission(payload.getPermission());
         apiKey.setExpirationDate(expirationDate);
-        apiKey.setToken(token);
+        apiKey.setToken(tokenToString);
         apiKey.setSalt(salt);
         repo.save(apiKey);
 
@@ -104,9 +105,8 @@ public class ApiKeyController {
         ArrayList<APIKey> apiKeyList = new ArrayList<>();
         repo.findAll().forEach(apiKeyList::add);
         for (int i = 0; i < apiKeyList.size(); i++) {
-            byte[] token_db = apiKeyList.get(i).getToken();
-            String token_db_aux = Base64.getEncoder().encodeToString(token_db);
-            if (token_db_aux.equals(token)) {
+            String token_db = apiKeyList.get(i).getToken();
+            if (token_db.equals(token)) {
                 logger.info("API key deleted: " + token);
                 repo.delete(apiKeyList.get(i));
                 return new ResponseEntity<>(new HTTPResponse("Success", "API key removed"), HttpStatus.OK);

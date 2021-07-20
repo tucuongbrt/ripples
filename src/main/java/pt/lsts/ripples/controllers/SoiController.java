@@ -174,14 +174,13 @@ public class SoiController {
             repoApiKey.findAll().forEach(apiKeyList::add);
             for (int i = 0; i < apiKeyList.size(); i++) {
                 byte[] salt_db = apiKeyList.get(i).getSalt();
-                byte[] token_db = apiKeyList.get(i).getToken();
-                String token_db_aux = Base64.getEncoder().encodeToString(token_db);
-
+                String token_db = apiKeyList.get(i).getToken();
+            
                 try {
                     byte[] token_aux = generateToken(salt_db, appSecret);
                     String token_aux_string = Base64.getEncoder().encodeToString(token_aux);
 
-                    if (token_aux_string.equals(token) && token_db_aux.equals(token)) {
+                    if (token_aux_string.equals(token) && token_db.equals(token)) {
                         // Valid token, insert assets
                         for (int n = 0; n < assets.size(); n++) {
                             Optional<Asset> optAsset = assetsRepo.findById(assets.get(n).getName());
