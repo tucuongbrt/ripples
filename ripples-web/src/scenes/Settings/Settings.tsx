@@ -14,6 +14,7 @@ import {
   Nav,
   Navbar,
   NavbarToggler,
+  Table,
   UncontrolledDropdown,
 } from 'reactstrap'
 import IAuthState, { isAdministrator, isCasual, IUser } from '../../model/IAuthState'
@@ -27,6 +28,8 @@ import Login from '../../components/Login'
 import { Link } from 'react-router-dom'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import ZerotierService from '../../services/ZerotierUtils'
+import { createApiKey, fetchApiKeys, removeApiKey } from '../../services/ApiKeyUtils'
+import DateService from '../../services/DateUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -48,6 +51,14 @@ interface StateType {
   nodeId: string
   isZtModalOpen: boolean
   ztCmd: string
+  isTokenModalOpen: boolean
+  isNewTokenVisible: boolean
+  isRemoveTokenModalOpen: boolean
+  apiKeys: IApiKeys[]
+  isNewTokenModalOpen: boolean
+  tokenGenerated: string
+  tokenToRemove: string
+  permissions: string[]
 }
 
 interface PropsType {
@@ -59,6 +70,14 @@ interface ISettings {
   id: string
   name: string
   params: string[][]
+}
+
+interface IApiKeys {
+  token: string
+  email: string
+  domain: string[]
+  permission: string[]
+  expirationDate: number
 }
 
 export class Settings extends Component<PropsType, StateType> {
@@ -88,11 +107,24 @@ export class Settings extends Component<PropsType, StateType> {
       nodeId: '',
       isZtModalOpen: false,
       ztCmd: '',
+      isTokenModalOpen: false,
+      isNewTokenVisible: false,
+      apiKeys: [],
+      isNewTokenModalOpen: false,
+      isRemoveTokenModalOpen: false,
+      tokenGenerated: '',
+      tokenToRemove: '',
+      permissions: ['read', 'write'],
     }
     this.fetchSettings = this.fetchSettings.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.toggleSettingModal = this.toggleSettingModal.bind(this)
     this.toggleNewDomainSettingModal = this.toggleNewDomainSettingModal.bind(this)
+    this.fetchApiKeys = this.fetchApiKeys.bind(this)
+    this.toogleTokenModal = this.toogleTokenModal.bind(this)
+    this.toogleNewTokenModal = this.toogleNewTokenModal.bind(this)
+    this.generateToken = this.generateToken.bind(this)
+    this.removeToken = this.removeToken.bind(this)
     this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
   }
 
@@ -121,6 +153,9 @@ export class Settings extends Component<PropsType, StateType> {
       this.getDomains()
       this.fetchSettings()
       this.timerID = window.setInterval(this.fetchSettings, 60000)
+    }
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
+      this.fetchApiKeys()
     }
   }
 
@@ -454,10 +489,15 @@ export class Settings extends Component<PropsType, StateType> {
           <Collapse isOpen={this.state.isNavOpen} navbar={true}>
             <TopNavLinks />
             <Nav className="ml-auto" navbar={true}>
-              <Link className="navbar-link" to="/user/manager">
-                <i title="Users Manager" className="fas fa-users fa-lg" />
-              </Link>
+              {this.props.auth.authenticated && isAdministrator(this.props.auth) ? (
+                <Link className="navbar-link" to="/user/manager">
+                  <i title="Users Manager" className="fas fa-users fa-lg" />
+                </Link>
+              ) : (
+                <></>
+              )}
 
+              {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildTokenSelector()}
               {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildZerotierSelector()}
 
               <Login />
@@ -550,6 +590,265 @@ export class Settings extends Component<PropsType, StateType> {
   public onCmdCopy() {
     NotificationManager.success('Command copied to clipboard!')
     this.toggleZtModal()
+  }
+
+  public async fetchApiKeys() {
+    const apiKeys: any = await fetchApiKeys()
+    this.setState({ apiKeys })
+  }
+
+  public buildTokenSelector() {
+    return (
+      <>
+        <i className={'fas fa-key fa-lg'} title="Generate API key" onClick={this.toogleTokenModal} />
+        {this.buildTokenModal()}
+        {this.buildNewTokenModal()}
+        {this.buildRemoveTokenModal()}
+      </>
+    )
+  }
+
+  public buildTokenModal() {
+    return (
+      <Modal isOpen={this.state.isTokenModalOpen} toggle={this.toogleTokenModal} id={'tokenModal'}>
+        <ModalHeader toggle={this.toogleTokenModal}> API keys </ModalHeader>
+        <ModalBody>
+          <Table id="token-table" responsive={true} striped={true}>
+            <thead>
+              <tr>
+                <th>Expiration date</th>
+                <th>API key</th>
+                <th>Domain</th>
+                <th>Permission</th>
+                <th>User</th>
+                <th />
+              </tr>
+            </thead>
+
+            <tbody>
+              {this.state.apiKeys.map((apiKey, index) => {
+                return (
+                  <tr key={index}>
+                    <td>{DateService.timestampToReadableDateOnly(apiKey.expirationDate)}</td>
+                    <td>
+                      {apiKey.token}
+                      <CopyToClipboard text={apiKey.token} onCopy={() => this.onTokenCopy()}>
+                        <i className="fas fa-copy fa-lg" />
+                      </CopyToClipboard>
+                    </td>
+
+                    <td>
+                      {this.state.domains.map((d, indexDomain) => {
+                        return (
+                          <label key={indexDomain}>
+                            <input
+                              type="checkbox"
+                              className={'optDomain-' + indexDomain}
+                              value={d}
+                              checked={apiKey.domain.includes(d) ? true : false}
+                              disabled={true}
+                            />
+                            {d}
+                          </label>
+                        )
+                      })}
+                    </td>
+
+                    <td>
+                      {this.state.permissions.map((p, indexPermission) => {
+                        return (
+                          <label key={indexPermission}>
+                            <input
+                              type="checkbox"
+                              className={'optPermission-' + indexPermission}
+                              value={p}
+                              checked={apiKey.permission.includes(p) ? true : false}
+                              disabled={true}
+                            />
+                            {p}
+                          </label>
+                        )
+                      })}
+                    </td>
+
+                    <td>{apiKey.email}</td>
+
+                    <td>
+                      {isAdministrator(this.props.auth) ? (
+                        <i
+                          className="fas fa-trash"
+                          title="Remove API Key"
+                          onClick={(event) => this.toogleRemoveModalModal(apiKey.token)}
+                        />
+                      ) : (
+                        <></>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </Table>
+
+          {this.state.isNewTokenVisible ? (
+            <>
+              <hr />
+
+              <h5 className="token-title">API key settings:</h5>
+
+              <div className="token-domain-input">
+                <span>Domain:</span>
+                {this.state.domains.map((d, indexDomain) => {
+                  return (
+                    <label key={indexDomain}>
+                      <input type="checkbox" className={'new-token-domain'} value={d} />
+                      {d}
+                    </label>
+                  )
+                })}
+              </div>
+
+              <div className="token-permission-input">
+                <span>Permissions:</span>
+                {this.state.permissions.map((p, indexPermission) => {
+                  return (
+                    <label key={indexPermission}>
+                      <input type="checkbox" className={'new-token-permission'} value={p} />
+                      {p}
+                    </label>
+                  )
+                })}
+              </div>
+
+              <Button color="success" className="new-token-btn" onClick={() => this.generateToken()}>
+                Generate key
+              </Button>
+              <Button
+                color="secondary"
+                className="new-token-btn"
+                onClick={() => this.setState({ isNewTokenVisible: !this.state.isNewTokenVisible })}
+              >
+                Cancel
+              </Button>
+            </>
+          ) : isAdministrator(this.props.auth) ? (
+            <Button
+              color="secondary"
+              onClick={() => this.setState({ isNewTokenVisible: !this.state.isNewTokenVisible })}
+            >
+              Generate API key
+            </Button>
+          ) : (
+            <></>
+          )}
+        </ModalBody>
+      </Modal>
+    )
+  }
+
+  public buildNewTokenModal() {
+    return (
+      <Modal isOpen={this.state.isNewTokenModalOpen} toggle={this.toogleNewTokenModal}>
+        <ModalHeader toggle={this.toogleNewTokenModal}> Generated API key </ModalHeader>
+        <ModalBody>
+          {this.state.tokenGenerated}
+          <CopyToClipboard text={this.state.tokenGenerated} onCopy={() => this.onNewTokenCopy()}>
+            <i className="fas fa-copy fa-lg" />
+          </CopyToClipboard>
+        </ModalBody>
+      </Modal>
+    )
+  }
+
+  public buildRemoveTokenModal() {
+    return (
+      <Modal isOpen={this.state.isRemoveTokenModalOpen}>
+        <ModalHeader toggle={() => this.toogleRemoveModalModal('')}> Remove API key </ModalHeader>
+        <ModalBody>
+          <div> The API key will be removed. Do you want to continue?</div>
+          <Button color="danger" onClick={() => this.removeToken()}>
+            Remove
+          </Button>
+        </ModalBody>
+      </Modal>
+    )
+  }
+
+  public toogleTokenModal() {
+    this.setState({ isTokenModalOpen: !this.state.isTokenModalOpen })
+  }
+
+  public toogleNewTokenModal() {
+    this.setState({
+      isNewTokenModalOpen: !this.state.isNewTokenModalOpen,
+      tokenGenerated: '',
+    })
+  }
+
+  public toogleRemoveModalModal(token: string) {
+    this.setState({
+      isRemoveTokenModalOpen: !this.state.isRemoveTokenModalOpen,
+      tokenToRemove: token,
+    })
+  }
+
+  public onTokenCopy() {
+    NotificationManager.success('API key copied to clipboard!')
+    this.toogleTokenModal()
+  }
+
+  public onNewTokenCopy() {
+    NotificationManager.success('API key copied to clipboard!')
+    this.toogleNewTokenModal()
+  }
+
+  public async generateToken() {
+    const domains: any = document.getElementsByClassName('new-token-domain')
+    const domainSelected: any = []
+    for (const domain of domains) {
+      if (domain.checked) domainSelected.push(domain.value)
+    }
+
+    const permissions: any = document.getElementsByClassName('new-token-permission')
+    const permissionSelected: any = []
+    for (const permission of permissions) {
+      if (permission.checked) permissionSelected.push(permission.value)
+    }
+
+    if (domainSelected.length === 0 || permissionSelected.length === 0) {
+      NotificationManager.warning('Fields cannot be empty')
+    } else {
+      // GERAR TOKEN
+      const resp = await createApiKey(this.props.auth.currentUser.email, domainSelected, permissionSelected)
+      if (resp.status === 'Success') {
+        const respMessage = resp.message.substring(0, resp.message.indexOf(':'))
+        const respToken = resp.message.substring(resp.message.indexOf(':') + 1)
+
+        this.setState({
+          isNewTokenVisible: !this.state.isNewTokenVisible,
+          tokenGenerated: respToken,
+          isNewTokenModalOpen: !this.state.isNewTokenModalOpen,
+        })
+        NotificationManager.success(respMessage)
+        this.fetchApiKeys()
+      } else {
+        NotificationManager.warning(resp.message)
+      }
+    }
+  }
+
+  public async removeToken() {
+    const resp = await removeApiKey(this.state.tokenToRemove)
+    if (resp.status === 'Success') {
+      this.setState({
+        isRemoveTokenModalOpen: !this.state.isRemoveTokenModalOpen,
+        tokenToRemove: '',
+      })
+      NotificationManager.success(resp.message)
+      this.fetchApiKeys()
+    } else {
+      NotificationManager.warning(resp.message)
+    }
   }
 }
 

@@ -37,6 +37,10 @@ export default class DateService {
     return moment(date).format('h:mm:ss a, MMMM Do YYYY')
   }
 
+  public static formatDateOnly(date: Date) {
+    return moment(date).format('MMMM Do YYYY')
+  }
+
   public static timeOffsetToRealTime(decimalHours: number) {
     let date: Date = new Date()
     if (decimalHours !== 0) {
@@ -60,5 +64,11 @@ export default class DateService {
     const minutes = Math.floor(absSeconds / 60)
     const seconds = absSeconds % 60
     return `${secondsInput < 0 ? '-' : ''}${hours}h ${minutes}m ${seconds}s`
+  }
+
+  public static timestampToReadableDateOnly(timestamp: number) {
+    const date = new Date(timestamp)
+    date.setDate(date.getDate() - 1)
+    return this.formatDateOnly(date)
   }
 }

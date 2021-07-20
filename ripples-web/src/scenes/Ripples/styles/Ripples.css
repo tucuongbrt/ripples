@@ -387,11 +387,21 @@ path.leaflet-polygon {
   font-size: small;
 }
 
-.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover {
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover {
   color:#2bace4;
 }
 
 .fa-users {
+  padding: 9px;
+  margin-right: -15px;
+}
+
+.fa-key {
+  padding: 10px;
+  margin-right: 15px;
+}
+
+.fa-copy {
   padding: 10px;
 }
 
@@ -402,4 +412,18 @@ path.leaflet-polygon {
   width: 10% !important;
   height: 12% !important;
   z-index:99;
+}
+
+#tokenModal {
+  width: 90%;
+  max-width: none;
+}
+
+.new-token-permission, .new-token-domain, .new-token-btn {
+  margin: 10px;
+}
+
+.token-title {
+  font-weight: bold;
+  text-decoration: underline;
 }
