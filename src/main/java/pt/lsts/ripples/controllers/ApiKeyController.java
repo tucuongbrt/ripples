@@ -48,7 +48,7 @@ public class ApiKeyController {
         LocalDate currentDate_aux = LocalDate.now();
         Date currentDate = Date.from(currentDate_aux.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         repo.findAll().forEach(apiKey -> {
-            if(apiKey.getExpirationDate().after(currentDate)) {
+            if(currentDate.after(apiKey.getExpirationDate())) {
                 repo.delete(apiKey);
                 logger.info("API key expired: " + apiKey.getToken());
             }
