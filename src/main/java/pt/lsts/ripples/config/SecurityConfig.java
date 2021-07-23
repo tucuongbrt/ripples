@@ -131,7 +131,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/coral/**",
                         "/domain/**",
                         "/settings/**",
-                        "/apikey/**")
+                        "/apikey/**",
+                        "/pollution/**")
                         .permitAll()
                     .antMatchers("/", "/ripples", "/soirisk", "/messages/text", "/user/manager", "/settings/manager")
                         .permitAll()
