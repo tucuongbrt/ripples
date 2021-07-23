@@ -53,13 +53,14 @@ import '../styles/Ripples.css'
 import AISCanvas from './AISCanvas'
 import AISShip from './AISShip'
 import ClientLocation from './ClientLocation'
-import { BlueCircleIcon, PCIcon, SpotIcon } from './Icons'
+import { BlueCircleIcon, GeoJsonMarker, PCIcon, SpotIcon } from './Icons'
 import SimpleAsset from './SimpleAsset'
 import Vehicle from './Vehicle'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
 import PlanManager from './PlanManager'
 import { fetchDomainNames } from '../../../services/DomainUtils'
+import L from 'leaflet'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -270,6 +271,9 @@ class RipplesMap extends Component<PropsType, StateType> {
                     this.props.setEditVehicle(undefined)
                   })
                 }
+              }}
+              pointToLayer={(feature, latlng) => {
+                return L.marker(latlng, { icon: new GeoJsonMarker() })
               }}
             />
           </LayerGroup>

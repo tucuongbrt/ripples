@@ -104,3 +104,10 @@ export const AwarenessIcon = L.Icon.extend({
     iconUrl: 'https://image.flaticon.com/icons/svg/25/25678.svg',
   },
 })
+
+export const GeoJsonMarker = L.Icon.extend({
+  options: {
+    iconSize: [5, 5],
+    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Eo_circle_yellow_blank.svg',
+  },
+})
