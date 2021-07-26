@@ -48,7 +48,7 @@ public class DomainController {
         return domainList;
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('SCIENTIST')")
     @RequestMapping(path = { "/domain/names", "/domain/names/" }, method = RequestMethod.GET)
     public List<String> listDomainsNames() {
         ArrayList<Domain> domainList = new ArrayList<>();

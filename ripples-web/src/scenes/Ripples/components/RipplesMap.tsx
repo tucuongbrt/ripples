@@ -305,9 +305,6 @@ class RipplesMap extends Component<PropsType, StateType> {
         break
     }
 
-    console.log(e.originalEvent.srcElement.className)
-    console.log(e.originalEvent.srcElement.nodeName)
-
     if (e.originalEvent.srcElement.className && typeof e.originalEvent.srcElement.className.includes !== 'undefined') {
       // popup asset domain
       if (!e.originalEvent.srcElement.className.includes('assetOptDomain')) {
@@ -1335,7 +1332,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             <Overlay checked={true} name="Annotations">
               <LayerGroup>{this.buildAnnotations()}</LayerGroup>
             </Overlay>
-            {this.props.auth.authenticated && this.map && (
+            {this.props.auth.authenticated && this.props.auth.currentUser.domain.includes('Ramp') && this.map && (
               <Overlay checked={this.state.isPollutionLayerActive} name="Pollution Data">
                 <LayerGroup>{this.buildPollutionMarkers()}</LayerGroup>
                 {this.buildPollutionDialog()}
