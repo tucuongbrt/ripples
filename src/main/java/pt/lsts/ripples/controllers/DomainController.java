@@ -19,10 +19,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.maps.MyMaps;
 import pt.lsts.ripples.domain.security.User;
 import pt.lsts.ripples.domain.shared.Domain;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.DomainRepository;
+import pt.lsts.ripples.repo.main.MyMapsRepository;
 import pt.lsts.ripples.repo.main.UserRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
@@ -37,6 +39,9 @@ public class DomainController {
 
     @Autowired
     private AssetsRepository assetsRepository;
+
+    @Autowired
+    MyMapsRepository myMapsRepository;
 
     private final Logger logger = LoggerFactory.getLogger(DomainController.class);
 
@@ -86,7 +91,7 @@ public class DomainController {
             updateDomain.setName(newName);
             repo.save(updateDomain);
 
-            // update users and assets
+            // update users, assets and maps
             ArrayList<User> users = new ArrayList<>();
             userRepository.findAll().forEach(users::add);
             for (User u : users) {
@@ -99,6 +104,13 @@ public class DomainController {
             for (Asset a : assets) {
                 Collections.replaceAll(a.getDomain(), prevName, newName);
                 assetsRepository.save(a);
+            }
+
+            ArrayList<MyMaps> maps = new ArrayList<>();
+            myMapsRepository.findAll().forEach(maps::add);
+            for (MyMaps m : maps) {
+                Collections.replaceAll(m.getDomain(), prevName, newName);
+                myMapsRepository.save(m);
             }
 
             logger.info("Updated domain: " + newName);
