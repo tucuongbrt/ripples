@@ -15,6 +15,7 @@ import pt.lsts.ripples.repo.main.ApiKeyRepository;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.PositionsRepository;
+import pt.lsts.ripples.services.ApiKeyService;
 import pt.lsts.ripples.services.AssetInfoService;
 import pt.lsts.ripples.services.SettingsService;
 import pt.lsts.ripples.util.HTTPResponse;
@@ -51,6 +52,9 @@ public class AssetsController {
 
     @Autowired
     SettingsService settingsService;
+
+    @Autowired
+	ApiKeyService apiKeyService;
 
     @Value("${apikeys.secret}")
     String appSecret;
@@ -166,9 +170,30 @@ public class AssetsController {
     }
 
     @RequestMapping(path = { "/asset", "/assets", "/assets/", "/asset/" }, method = RequestMethod.GET)
-    public List<Asset> listAssets() {
+    public List<Asset> listAssets(@RequestHeader(value = "Authorization", required = false) String token) {
         ArrayList<Asset> assets = new ArrayList<>();
-        repo.findAll().forEach(assets::add);
+        ArrayList<Asset> assets_aux = repo.findAll();
+
+        if (token != null && apiKeyService.isTokenValid(token) && apiKeyService.isTokenReadable(token)) {
+			List<String> domains = apiKeyService.getTokenDomain(token);
+			if (domains != null) {
+				for (Asset a : assets_aux) {
+					for (String domain : domains) {
+						if (a.getDomain().contains(domain) && !assets.contains(a)) {
+							assets.add(a);
+						}
+					}
+				}
+			}
+		} 
+
+        // assets without domain
+		for (Asset a : assets_aux) { 
+			if (a.getDomain().isEmpty() && !assets.contains(a)) {
+				assets.add(a);
+			}
+		}
+
         return assets;
     }
 
