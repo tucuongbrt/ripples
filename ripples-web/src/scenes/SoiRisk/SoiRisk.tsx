@@ -87,18 +87,19 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
 
   public async updateSoiData() {
-    const userDomain = getUserDomain(this.props.auth)
-    if (userDomain !== undefined) {
-      const soiData = await this.soiService.fetchSoiData(userDomain)
-      const collisions = await this.soiService.fetchCollisions()
-      const errors = await this.soiService.fetchAssetsErrors()
-      this.setState({
-        assetErrors: errors,
-        collisions,
-        plans: soiData.plans,
-        vehicles: soiData.vehicles,
-      })
+    let userDomain = getUserDomain(this.props.auth)
+    if (userDomain === undefined) {
+      userDomain = ['undifined']
     }
+    const soiData = await this.soiService.fetchSoiData(userDomain)
+    const collisions = await this.soiService.fetchCollisions()
+    const errors = await this.soiService.fetchAssetsErrors()
+    this.setState({
+      assetErrors: errors,
+      collisions,
+      plans: soiData.plans,
+      vehicles: soiData.vehicles,
+    })
   }
 
   /**

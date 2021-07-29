@@ -354,52 +354,53 @@ class Ripples extends Component<PropsType, StateType> {
 
   public async updateSoiData() {
     try {
-      const userDomain = getUserDomain(this.props.auth)
-      if (userDomain !== undefined && userDomain.length > 0) {
-        const soiPromise = this.soiService.fetchSoiData(userDomain)
-        const profilesPromise = this.soiService.fetchProfileData()
-        const awarenessPromise = this.soiService.fetchAwareness()
-        let unassignedPlansPromise
-        if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
-          unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
-        }
-        const soiData = await soiPromise
-
-        const vehicles = soiData.vehicles
-
-        /* Temporarily deactivated
-        await this.soiService.fetchSoiSettings([vehicles, spots, ccus])
-        */
-        await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
-
-        // fetch profiles
-        let profiles = await profilesPromise
-        profiles = profiles.filter((p) => p.samples.length > 0)
-        // make heights symmetric
-        profiles.forEach((p) => {
-          p.samples.forEach((a) => (a[0] = -a[0]))
-        })
-        this.props.setProfiles(profiles)
-
-        // fetch soi awareness
-        const assetsAwareness = await awarenessPromise
-        assetsAwareness.forEach((assetAwareness) => {
-          const vehicle = vehicles.find((v) => v.name === assetAwareness.name)
-          if (vehicle) {
-            vehicle.awareness = assetAwareness.positions
-          }
-        })
-
-        if (unassignedPlansPromise) {
-          const unassignedPlans: IPlan[] = await unassignedPlansPromise
-          soiData.plans = soiData.plans.concat(unassignedPlans)
-        }
-        // update redux store
-        this.props.setVehicles(soiData.vehicles)
-        this.props.setSpots(soiData.spots)
-        this.props.setPlans(soiData.plans)
-        this.props.setCcus(soiData.ccus)
+      let userDomain = getUserDomain(this.props.auth)
+      if (userDomain === undefined) {
+        userDomain = ['undifined']
       }
+      const soiPromise = this.soiService.fetchSoiData(userDomain)
+      const profilesPromise = this.soiService.fetchProfileData()
+      const awarenessPromise = this.soiService.fetchAwareness()
+      let unassignedPlansPromise
+      if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
+        unassignedPlansPromise = this.soiService.fetchUnassignedPlans()
+      }
+      const soiData = await soiPromise
+
+      const vehicles = soiData.vehicles
+
+      /* Temporarily deactivated
+      await this.soiService.fetchSoiSettings([vehicles, spots, ccus])
+      */
+      await this.soiService.mergeAssetSettings(vehicles, this.props.auth)
+
+      // fetch profiles
+      let profiles = await profilesPromise
+      profiles = profiles.filter((p) => p.samples.length > 0)
+      // make heights symmetric
+      profiles.forEach((p) => {
+        p.samples.forEach((a) => (a[0] = -a[0]))
+      })
+      this.props.setProfiles(profiles)
+
+      // fetch soi awareness
+      const assetsAwareness = await awarenessPromise
+      assetsAwareness.forEach((assetAwareness) => {
+        const vehicle = vehicles.find((v) => v.name === assetAwareness.name)
+        if (vehicle) {
+          vehicle.awareness = assetAwareness.positions
+        }
+      })
+
+      if (unassignedPlansPromise) {
+        const unassignedPlans: IPlan[] = await unassignedPlansPromise
+        soiData.plans = soiData.plans.concat(unassignedPlans)
+      }
+      // update redux store
+      this.props.setVehicles(soiData.vehicles)
+      this.props.setSpots(soiData.spots)
+      this.props.setPlans(soiData.plans)
+      this.props.setCcus(soiData.ccus)
     } catch (error) {
       NotificationManager.warning('Failed to fetch data')
     }
