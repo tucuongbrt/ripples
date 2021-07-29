@@ -38,7 +38,6 @@ import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetErrors;
 import pt.lsts.ripples.domain.shared.APIKey;
 import pt.lsts.ripples.domain.shared.Plan;
-import pt.lsts.ripples.domain.shared.Settings;
 import pt.lsts.ripples.domain.soi.AwarenessData;
 import pt.lsts.ripples.domain.soi.EntityWithId;
 import pt.lsts.ripples.domain.soi.NewPlanBody;
@@ -52,7 +51,6 @@ import pt.lsts.ripples.repo.main.ApiKeyRepository;
 import pt.lsts.ripples.repo.main.AssetsErrorsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.IncomingMessagesRepository;
-import pt.lsts.ripples.repo.main.SettingsRepository;
 import pt.lsts.ripples.repo.main.UnassignedPlansRepository;
 import pt.lsts.ripples.repo.main.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
@@ -89,9 +87,6 @@ public class SoiController {
 
 	@Autowired
 	WebSocketsController wsController;
-
-	@Autowired
-    SettingsRepository settingsRepo;
 
 	@Autowired
     ApiKeyRepository repoApiKey;
@@ -224,26 +219,7 @@ public class SoiController {
 
         } else {
             // check system current domain
-            List<String> domain = new ArrayList<>();
-            List<Settings> listSettings = settingsRepo.findByDomainName("Ripples");
-            if (!listSettings.isEmpty()) {
-                List<String[]> params = listSettings.get(0).getParams();
-                for (String[] param : params) {
-                    if (param[0].equals("Current domain")) {
-                        if (!param[1].equals("\"\"")) {
-                            if (param[1].contains(",")) {
-                                String[] parts = param[1].split(",");
-                                for (String p : parts) {
-                                    domain.add(p);
-                                }
-                            } else {
-                                domain.add(param[1]);
-                            }
-
-                        }
-                    }
-                }
-            }
+			List<String> domain = settingsService.getCurrentDomain();
     
             assets.forEach(asset -> {
                 Optional<Asset> optAsset = assetsRepo.findById(asset.getName());

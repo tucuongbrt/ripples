@@ -11,13 +11,12 @@ import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
 import pt.lsts.ripples.domain.shared.APIKey;
 import pt.lsts.ripples.domain.shared.AssetPosition;
-import pt.lsts.ripples.domain.shared.Settings;
 import pt.lsts.ripples.repo.main.ApiKeyRepository;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.PositionsRepository;
-import pt.lsts.ripples.repo.main.SettingsRepository;
 import pt.lsts.ripples.services.AssetInfoService;
+import pt.lsts.ripples.services.SettingsService;
 import pt.lsts.ripples.util.HTTPResponse;
 
 import java.security.MessageDigest;
@@ -45,13 +44,13 @@ public class AssetsController {
     AssetsParamsRepository assetParamsRepo;
 
     @Autowired
-    SettingsRepository settingsRepo;
-
-    @Autowired
     WebSocketsController wsController;
 
     @Autowired
     ApiKeyRepository repoApiKey;
+
+    @Autowired
+    SettingsService settingsService;
 
     @Value("${apikeys.secret}")
     String appSecret;
@@ -63,26 +62,7 @@ public class AssetsController {
         Asset existing = repo.findById(id).orElse(new Asset(id));
 
         // check system current domain
-        List<String> domain = new ArrayList<>();
-        List<Settings> listSettings = settingsRepo.findByDomainName("Ripples");
-        if (!listSettings.isEmpty()) {
-            List<String[]> params = listSettings.get(0).getParams();
-            for (String[] param : params) {
-                if (param[0].equals("Current domain")) {
-                    if (!param[1].equals("\"\"")) {
-                        if (param[1].contains(",")) {
-                            String[] parts = param[1].split(",");
-                            for (String p : parts) {
-                                domain.add(p);
-                            }
-                        } else {
-                            domain.add(param[1]);
-                        }
-
-                    }
-                }
-            }
-        }
+        List<String> domain = settingsService.getCurrentDomain();
 
         if (asset.getPlan() != null && asset.getPlan().getId() != null) {
             existing.setPlan(asset.getPlan());
@@ -114,13 +94,13 @@ public class AssetsController {
 
         if (token != null) {
             System.out.println("API key to update assets: " + token);
-            
+
             ArrayList<APIKey> apiKeyList = new ArrayList<>();
             repoApiKey.findAll().forEach(apiKeyList::add);
             for (int i = 0; i < apiKeyList.size(); i++) {
                 byte[] salt_db = apiKeyList.get(i).getSalt();
                 String token_db = apiKeyList.get(i).getToken();
-                
+
                 try {
                     byte[] token_aux = generateToken(salt_db, appSecret);
                     String token_aux_string = Base64.getEncoder().encodeToString(token_aux);
@@ -159,27 +139,8 @@ public class AssetsController {
 
         } else {
             // check system current domain
-            List<String> domain = new ArrayList<>();
-            List<Settings> listSettings = settingsRepo.findByDomainName("Ripples");
-            if (!listSettings.isEmpty()) {
-                List<String[]> params = listSettings.get(0).getParams();
-                for (String[] param : params) {
-                    if (param[0].equals("Current domain")) {
-                        if (!param[1].equals("\"\"")) {
-                            if (param[1].contains(",")) {
-                                String[] parts = param[1].split(",");
-                                for (String p : parts) {
-                                    domain.add(p);
-                                }
-                            } else {
-                                domain.add(param[1]);
-                            }
+            List<String> domain = settingsService.getCurrentDomain();
 
-                        }
-                    }
-                }
-            }
-    
             assets.forEach(asset -> {
                 Optional<Asset> optAsset = repo.findById(asset.getName());
                 if (!optAsset.isPresent()) {
