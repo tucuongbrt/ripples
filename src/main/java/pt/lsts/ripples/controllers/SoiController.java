@@ -56,6 +56,7 @@ import pt.lsts.ripples.repo.main.SettingsRepository;
 import pt.lsts.ripples.repo.main.UnassignedPlansRepository;
 import pt.lsts.ripples.repo.main.VertProfilesRepo;
 import pt.lsts.ripples.services.CollisionForecastService;
+import pt.lsts.ripples.services.SettingsService;
 import pt.lsts.ripples.services.SoiAwareness;
 import pt.lsts.ripples.util.HTTPResponse;
 
@@ -94,6 +95,9 @@ public class SoiController {
 
 	@Autowired
     ApiKeyRepository repoApiKey;
+
+	@Autowired
+    SettingsService settingsService;
 
     @Value("${apikeys.secret}")
     String appSecret;
@@ -136,7 +140,13 @@ public class SoiController {
 
 	@RequestMapping(path = { "/soi/profiles", "/soi/profiles/" }, method = RequestMethod.GET)
 	public List<VerticalProfileData> listProfiles() {
-		Instant aDayAgo = Instant.now().minus(Duration.ofHours(24));
+		// read settings
+		String settingsDisplayProfiles = settingsService.getProfilesDisplayTime();
+		long time = 24;
+		if(settingsDisplayProfiles != null && settingsDisplayProfiles.replaceAll("\"", "").length() > 0) {
+			time = Long.parseLong(settingsDisplayProfiles);
+		}
+		Instant aDayAgo = Instant.now().minus(Duration.ofHours(time));
 		Date aDayAgoDate = Date.from(aDayAgo);
 		ArrayList<VerticalProfileData> profs = new ArrayList<>();
 		vertProfiles.findByTimestampAfter(aDayAgoDate).forEach(profs::add);
