@@ -301,7 +301,7 @@ export class Users extends Component<PropsType, StateType> {
     if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
       return (
         <>
-          <SimpleNavbar />
+          <SimpleNavbar auth={this.props} />
           <div>
             <Table id="users-table" responsive={true} striped={true}>
               <thead>
@@ -382,7 +382,7 @@ export class Users extends Component<PropsType, StateType> {
     } else {
       return (
         <>
-          <SimpleNavbar />
+          <SimpleNavbar auth={this.props} />
           <div>
             <Table id="users-table" responsive={true} striped={true}>
               <thead>

@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import 'react-notifications/lib/notifications.css'
 import { connect } from 'react-redux'
+import { Link } from 'react-router-dom'
 import Button from 'reactstrap/lib/Button'
 import Col from 'reactstrap/lib/Col'
 import Collapse from 'reactstrap/lib/Collapse'
@@ -14,7 +15,7 @@ import NavbarToggler from 'reactstrap/lib/NavbarToggler'
 import NavItem from 'reactstrap/lib/NavItem'
 import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
-import IAuthState, { isOperator } from '../../../model/IAuthState'
+import IAuthState, { isCasual, isOperator } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
 import SoiService from '../../../services/SoiUtils'
 const { NotificationManager } = require('react-notifications')
@@ -92,10 +93,22 @@ class TopNav extends Component<PropsType, StateType> {
           <Nav className="ml-auto" navbar={true}>
             {this.buildSmsSubscriber()}
             <Login />
+            <div id="settings-btn">{this.buildSettingsBtn()}</div>
           </Nav>
         </Collapse>
       </Navbar>
     )
+  }
+
+  public buildSettingsBtn() {
+    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
+      return (
+        <Link className="navbar-link" to="/settings/manager">
+          <i title="Settings Manager" className="fas fa-cogs fa-sm" />
+        </Link>
+      )
+    }
+    return <></>
   }
 }
 

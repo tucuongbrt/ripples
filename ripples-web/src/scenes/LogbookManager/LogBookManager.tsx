@@ -102,7 +102,7 @@ export class LogbookManager extends Component<PropsType, StateType> {
   public render() {
     return (
       <>
-        <SimpleNavbar />
+        <SimpleNavbar auth={this.props} />
         <Container>
           <Form id="add-logbook-form" inline={true}>
             <FormGroup className="mb-2 mr-2">

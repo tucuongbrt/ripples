@@ -102,7 +102,7 @@ export class KMLManager extends Component<PropsType, StateType> {
   public render() {
     return (
       <>
-        <SimpleNavbar />
+        <SimpleNavbar auth={this.props} />
         <Container>
           <Form inline={true}>
             <FormGroup className="mb-2 mr-sm-2 mb-sm-0">

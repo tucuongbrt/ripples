@@ -93,7 +93,7 @@ export class TextMessages extends Component<PropsType, StateType> {
   public render() {
     return (
       <>
-        <SimpleNavbar />
+        <SimpleNavbar auth={this.props} />
         <div>
           <Table responsive={true}>
             <thead>
