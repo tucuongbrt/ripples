@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
-import pt.lsts.ripples.domain.shared.APIKey;
 import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.repo.main.ApiKeyRepository;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
@@ -24,7 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -54,7 +52,7 @@ public class AssetsController {
     SettingsService settingsService;
 
     @Autowired
-	ApiKeyService apiKeyService;
+    ApiKeyService apiKeyService;
 
     @Value("${apikeys.secret}")
     String appSecret;
@@ -98,49 +96,31 @@ public class AssetsController {
 
         if (token != null) {
             System.out.println("API key to update assets: " + token);
-
-            ArrayList<APIKey> apiKeyList = new ArrayList<>();
-            repoApiKey.findAll().forEach(apiKeyList::add);
-            for (int i = 0; i < apiKeyList.size(); i++) {
-                byte[] salt_db = apiKeyList.get(i).getSalt();
-                String token_db = apiKeyList.get(i).getToken();
-
-                try {
-                    byte[] token_aux = generateToken(salt_db, appSecret);
-                    String token_aux_string = Base64.getEncoder().encodeToString(token_aux);
-
-                    if (token_aux_string.equals(token) && token_db.equals(token)) {
-                        // Valid token, insert assets
-                        for (int n = 0; n < assets.size(); n++) {
-                            Optional<Asset> optAsset = repo.findById(assets.get(n).getName());
-                            if (!optAsset.isPresent()) {
-                                Asset newAsset = new Asset(assets.get(n).getName());
-                                newAsset = assets.get(n);
-                                newAsset.setDomain(apiKeyList.get(i).getDomain());
-                                repo.save(newAsset);
-                                wsController.sendAssetUpdateFromServerToClients(newAsset);
-                            } else {
-                                Asset oldAsset = optAsset.get();
-                                oldAsset.setLastState(assets.get(n).getLastState());
-                                if (oldAsset.getPlan().getType().equals("dune")) {
-                                    oldAsset.setPlan(assets.get(n).getPlan());
-                                }
-                                repo.save(oldAsset);
-                                wsController.sendAssetUpdateFromServerToClients(oldAsset);
-                            }
-                        }
-
+            if (apiKeyService.isTokenValid(token) && apiKeyService.isTokenWriteable(token)) {
+                for (int n = 0; n < assets.size(); n++) {
+                    List<String> domain = apiKeyService.getTokenDomain(token);
+                    Optional<Asset> optAsset = repo.findById(assets.get(n).getName());
+                    if (!optAsset.isPresent()) {
+                        Asset newAsset = new Asset(assets.get(n).getName());
+                        newAsset = assets.get(n);
+                        newAsset.setDomain(domain);
+                        repo.save(newAsset);
+                        wsController.sendAssetUpdateFromServerToClients(newAsset);
                     } else {
-                        return new ResponseEntity<>(new HTTPResponse("Error", "Invalid token to update assets."),
-                                HttpStatus.OK);
+                        Asset oldAsset = optAsset.get();
+                        oldAsset.setLastState(assets.get(n).getLastState());
+                        if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
+                            oldAsset.setPlan(assets.get(n).getPlan());
+                        }
+                        repo.save(oldAsset);
+                        wsController.sendAssetUpdateFromServerToClients(oldAsset);
                     }
-                } catch (NoSuchAlgorithmException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
                 }
-
+                return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
+                        HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(new HTTPResponse("error", "Invalid token"), HttpStatus.OK);
             }
-
         } else {
             // check system current domain
             List<String> domain = settingsService.getCurrentDomain();
@@ -156,17 +136,17 @@ public class AssetsController {
                 } else {
                     Asset oldAsset = optAsset.get();
                     oldAsset.setLastState(asset.getLastState());
-                    if (oldAsset.getPlan().getType().equals("dune")) {
+                    if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
                         oldAsset.setPlan(asset.getPlan());
                     }
                     repo.save(oldAsset);
                     wsController.sendAssetUpdateFromServerToClients(oldAsset);
                 }
             });
-        }
 
-        return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
-                HttpStatus.OK);
+            return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
+                    HttpStatus.OK);
+        }
     }
 
     @RequestMapping(path = { "/asset", "/assets", "/assets/", "/asset/" }, method = RequestMethod.GET)
@@ -175,24 +155,24 @@ public class AssetsController {
         ArrayList<Asset> assets_aux = repo.findAll();
 
         if (token != null && apiKeyService.isTokenValid(token) && apiKeyService.isTokenReadable(token)) {
-			List<String> domains = apiKeyService.getTokenDomain(token);
-			if (domains != null) {
-				for (Asset a : assets_aux) {
-					for (String domain : domains) {
-						if (a.getDomain().contains(domain) && !assets.contains(a)) {
-							assets.add(a);
-						}
-					}
-				}
-			}
-		} 
+            List<String> domains = apiKeyService.getTokenDomain(token);
+            if (domains != null) {
+                for (Asset a : assets_aux) {
+                    for (String domain : domains) {
+                        if (a.getDomain().contains(domain) && !assets.contains(a)) {
+                            assets.add(a);
+                        }
+                    }
+                }
+            }
+        }
 
         // assets without domain
-		for (Asset a : assets_aux) { 
-			if (a.getDomain().isEmpty() && !assets.contains(a)) {
-				assets.add(a);
-			}
-		}
+        for (Asset a : assets_aux) {
+            if (a.getDomain().isEmpty() && !assets.contains(a)) {
+                assets.add(a);
+            }
+        }
 
         return assets;
     }

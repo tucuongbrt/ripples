@@ -5,7 +5,6 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -36,7 +35,6 @@ import pt.lsts.imc.SoiCommand.COMMAND;
 import pt.lsts.imc.SoiCommand.TYPE;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetErrors;
-import pt.lsts.ripples.domain.shared.APIKey;
 import pt.lsts.ripples.domain.shared.Plan;
 import pt.lsts.ripples.domain.soi.AwarenessData;
 import pt.lsts.ripples.domain.soi.EntityWithId;
@@ -198,78 +196,64 @@ public class SoiController {
 	@PostMapping(path = { "/soi/assets", "/soi/assets/" }, consumes = "application/json", produces = "application/json")
 	public ResponseEntity<HTTPResponse> updateAssets(@RequestBody ArrayList<Asset> assets,
 			@RequestHeader(value = "Authorization", required = false) String token) {
+
 		if (token != null) {
 			logger.info("API key to update assets: " + token);
-
-			ArrayList<APIKey> apiKeyList = new ArrayList<>();
-			repoApiKey.findAll().forEach(apiKeyList::add);
-			for (int i = 0; i < apiKeyList.size(); i++) {
-				byte[] salt_db = apiKeyList.get(i).getSalt();
-				String token_db = apiKeyList.get(i).getToken();
-
-				try {
-					byte[] token_aux = generateToken(salt_db, appSecret);
-					String token_aux_string = Base64.getEncoder().encodeToString(token_aux);
-
-					if (token_aux_string.equals(token) && token_db.equals(token)) {
-						// Valid token, insert assets
-						for (int n = 0; n < assets.size(); n++) {
-							Optional<Asset> optAsset = assetsRepo.findById(assets.get(n).getName());
-							if (!optAsset.isPresent()) {
-								Asset newAsset = new Asset(assets.get(n).getName());
-								newAsset = assets.get(n);
-								newAsset.setDomain(apiKeyList.get(i).getDomain());
-								assetsRepo.save(newAsset);
-								wsController.sendAssetUpdateFromServerToClients(newAsset);
-							} else {
-								Asset oldAsset = optAsset.get();
-								oldAsset.setLastState(assets.get(n).getLastState());
-								if (oldAsset.getPlan().getType().equals("dune")) {
-									oldAsset.setPlan(assets.get(n).getPlan());
-								}
-								assetsRepo.save(oldAsset);
-								wsController.sendAssetUpdateFromServerToClients(oldAsset);
-							}
-						}
-
-					} else {
-						return new ResponseEntity<>(new HTTPResponse("Error", "Invalid token to update assets."),
-								HttpStatus.OK);
-					}
-				} catch (NoSuchAlgorithmException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			if (apiKeyService.isTokenValid(token) && apiKeyService.isTokenWriteable(token)) {
+				for (int n = 0; n < assets.size(); n++) {
+					List<String> domain = apiKeyService.getTokenDomain(token);
+					Optional<Asset> optAsset = assetsRepo.findById(assets.get(n).getName());
+                    if (!optAsset.isPresent()) {
+                        Asset newAsset = new Asset(assets.get(n).getName());
+                        newAsset = assets.get(n);
+                        newAsset.setDomain(domain);
+                        assetsRepo.save(newAsset);
+                        wsController.sendAssetUpdateFromServerToClients(newAsset);
+                    } else {
+                        Asset oldAsset = optAsset.get();
+                        oldAsset.setLastState(assets.get(n).getLastState());
+                        if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
+                            oldAsset.setPlan(assets.get(n).getPlan());
+                        }
+                        assetsRepo.save(oldAsset);
+                        wsController.sendAssetUpdateFromServerToClients(oldAsset);
+                    }
 				}
-
+				return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
+                        HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(new HTTPResponse("error", "Invalid token"), HttpStatus.OK);
 			}
-
 		} else {
 			// check system current domain
 			List<String> domain = settingsService.getCurrentDomain();
-
 			assets.forEach(asset -> {
-				Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
-				if (!optAsset.isPresent()) {
-					Asset newAsset = new Asset(asset.getName());
-					newAsset = asset;
-					newAsset.setDomain(domain);
-					assetsRepo.save(asset);
-					wsController.sendAssetUpdateFromServerToClients(asset);
-				} else {
-					Asset oldAsset = optAsset.get();
-					oldAsset.setLastState(asset.getLastState());
-					if (oldAsset.getPlan().getType().equals("dune")) {
-						oldAsset.setPlan(asset.getPlan());
-					}
-					assetsRepo.save(oldAsset);
-					wsController.sendAssetUpdateFromServerToClients(oldAsset);
-				}
-			});
-		}
+                Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
+                if (!optAsset.isPresent()) {
+                    Asset newAsset = new Asset(asset.getName());
+                    newAsset = asset;
+                    newAsset.setDomain(domain);
+                    assetsRepo.save(asset);
+                    wsController.sendAssetUpdateFromServerToClients(asset);
+                } else {
+                    Asset oldAsset = optAsset.get();
+                    oldAsset.setLastState(asset.getLastState());
+                    if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
+                        oldAsset.setPlan(asset.getPlan());
+                    }
+                    assetsRepo.save(oldAsset);
+                    wsController.sendAssetUpdateFromServerToClients(oldAsset);
+                }
+            });
 
-		return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
-				HttpStatus.OK);
+            return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
+                    HttpStatus.OK);
+		}
 	}
+
+
+
+		
 
 	/**
 	 * Use to assign and send(via rockblock) a new plan to a vehicle
