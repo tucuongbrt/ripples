@@ -1,4 +1,8 @@
 import L from 'leaflet'
+import lauv_orange from '../../../assets/LAUV_orange.png'
+import manta from '../../../assets/manta.png'
+import ais_red from '../../../assets/AIS_red.png'
+import ais_grey from '../../../assets/AIS_grey.png'
 
 export const BlueCircleIcon = L.Icon.extend({
   options: {
@@ -32,6 +36,27 @@ export const AuvIcon = L.Icon.extend({
   options: {
     iconSize: [32, 32],
     iconUrl: 'https://image.flaticon.com/icons/png/128/190/190006.png',
+  },
+})
+
+export const AuvOrangeIcon = L.Icon.extend({
+  options: {
+    iconSize: [32, 32],
+    iconUrl: lauv_orange,
+  },
+})
+
+export const AuvOrangeSmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [22, 22],
+    iconUrl: lauv_orange,
+  },
+})
+
+export const mantaIcon = L.Icon.extend({
+  options: {
+    iconSize: [16, 16],
+    iconUrl: manta,
   },
 })
 
@@ -130,6 +155,34 @@ export const AwarenessIcon = L.Icon.extend({
   options: {
     iconSize: [20, 20],
     iconUrl: 'https://image.flaticon.com/icons/svg/25/25678.svg',
+  },
+})
+
+export const AISGreyIcon = L.Icon.extend({
+  options: {
+    iconSize: [17, 17],
+    iconUrl: ais_grey,
+  },
+})
+
+export const AISGreySmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [12, 12],
+    iconUrl: ais_grey,
+  },
+})
+
+export const AISRedIcon = L.Icon.extend({
+  options: {
+    iconSize: [17, 17],
+    iconUrl: ais_red,
+  },
+})
+
+export const AISRedSmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [12, 12],
+    iconUrl: ais_red,
   },
 })
 

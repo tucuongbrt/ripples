@@ -156,6 +156,7 @@ interface StateType {
     latitude: any
     longitude: any
   }[]
+  currentZoom: number
 }
 
 class RipplesMap extends Component<PropsType, StateType> {
@@ -212,6 +213,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       obstacleEnable: false,
       obstacleDescription: '',
       obstacleLocation: [],
+      currentZoom: MapUtils.initZoom,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
     this.handleZoom = this.handleZoom.bind(this)
@@ -438,6 +440,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           currentTime={this.state.currentTime}
           isVehiclesLayerActive={this.state.isVehiclesLayerActive}
           setAssetSelected={(v: IAsset | undefined) => this.setAssetSelected(v)}
+          currentZoom={this.state.currentZoom}
         />
       )
     })
@@ -1007,22 +1010,29 @@ class RipplesMap extends Component<PropsType, StateType> {
           ship={ship}
           isToDrawAISPolygons={this.state.isToDrawAISPolygons}
           isAISLayerActive={this.state.isAISLayerActive}
+          currentZoom={this.state.currentZoom}
         />
       )
     })
   }
 
   public drawCanvas(info: any) {
-    const ctx = info.canvas.getContext('2d')
-    ctx.clearRect(0, 0, info.canvas.width, info.canvas.height)
-    ctx.fillStyle = 'rgba(255,116,0, 0.2)'
-    this.props.aisShips.forEach((ship) => {
-      const aisCanvas = new AISCanvas({
-        perpLinesSize: this.state.perpLinesSize,
-        ship,
+    if (this.state.currentZoom > 8) {
+      const ctx = info.canvas.getContext('2d')
+      ctx.clearRect(0, 0, info.canvas.width, info.canvas.height)
+      ctx.fillStyle = 'rgba(255,116,0, 0.2)'
+      this.props.aisShips.forEach((ship) => {
+        const aisCanvas = new AISCanvas({
+          perpLinesSize: this.state.perpLinesSize,
+          ship,
+        })
+        aisCanvas.drawInCanvas(info)
       })
-      aisCanvas.drawInCanvas(info)
-    })
+    } else {
+      // clear canvas
+      const ctx = info.canvas.getContext('2d')
+      ctx.clearRect(0, 0, info.canvas.width, info.canvas.height)
+    }
   }
 
   public async handleMove(e: any) {
@@ -1060,6 +1070,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       }
     }
     this.handleMove(e)
+    this.setState({ currentZoom: newZoom })
   }
 
   public toggleDrawAisLocations() {

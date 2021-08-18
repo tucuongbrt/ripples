@@ -12,7 +12,7 @@ import {
 import DateService from '../../../services/DateUtils'
 import PositionService from '../../../services/PositionUtils'
 import AssetAwareness from './AssetAwareness'
-import { AuvIcon } from './Icons'
+import { AuvOrangeIcon, AuvOrangeSmallIcon, mantaIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 
 interface PropsType {
@@ -20,6 +20,7 @@ interface PropsType {
   sliderValue: number
   currentTime: number
   isVehiclesLayerActive: boolean
+  currentZoom: number
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -28,7 +29,9 @@ interface PropsType {
 }
 
 class Vehicle extends Component<PropsType, {}> {
-  public icon = new AuvIcon()
+  public icon = new AuvOrangeIcon()
+  public smallIcon = new AuvOrangeSmallIcon()
+  public mantaIcon = new mantaIcon()
   private positionService: PositionService = new PositionService()
 
   constructor(props: PropsType) {
@@ -48,6 +51,16 @@ class Vehicle extends Component<PropsType, {}> {
     return object
   }
 
+  public getIcon(assetName: string) {
+    if (assetName.startsWith('manta')) {
+      return this.mantaIcon
+    } else if (this.props.currentZoom < 11) {
+      return this.smallIcon
+    } else {
+      return this.icon
+    }
+  }
+
   public buildVehicleAwareness(): JSX.Element {
     const currentVehicle = this.props.data
     const deltaHours = this.props.sliderValue
@@ -59,8 +72,8 @@ class Vehicle extends Component<PropsType, {}> {
       <AssetAwareness
         awareness={vehicleAwareness}
         deltaHours={deltaHours}
-        icon={this.icon}
-        iconAngle={-90}
+        icon={this.getIcon(currentVehicle.name)}
+        iconAngle={0} // is used to compensate for the icon
         currentTime={this.props.currentTime}
       />
     )
@@ -93,8 +106,8 @@ class Vehicle extends Component<PropsType, {}> {
     return (
       <RotatedMarker
         position={systemPosition}
-        icon={this.icon}
-        rotationAngle={vehicle.lastState.heading - 90} // -90 is used to compensate for the icon
+        icon={this.getIcon(vehicle.name)}
+        rotationAngle={vehicle.lastState.heading} // is used to compensate for the icon
         rotationOrigin={'center'}
         onClick={(evt: any) => this.onMarkerClick(vehicle)}
       />

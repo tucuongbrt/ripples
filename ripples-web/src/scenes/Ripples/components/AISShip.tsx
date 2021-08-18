@@ -15,7 +15,7 @@ import {
 import AISService from '../../../services/AISUtils'
 import DateService from '../../../services/DateUtils'
 import AssetAwareness from './AssetAwareness'
-import { AwarenessIcon, RedTriangleIcon } from './Icons'
+import { AISGreyIcon, AISGreySmallIcon, AISRedIcon, AISRedSmallIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 
 interface PropsType {
@@ -24,6 +24,7 @@ interface PropsType {
   sliderValue: number
   currentTime: number
   isAISLayerActive: boolean
+  currentZoom: number
   setSidePanelTitle: (title: string) => void
   setSidePanelContent: (content: any) => void
   setSidePanelVisibility: (v: boolean) => void
@@ -32,8 +33,11 @@ interface PropsType {
 
 class AISShip extends Component<PropsType, {}> {
   public awarenessMinSpeed: number = 0.2
-  public icon = new RedTriangleIcon()
-  public awarenessIcon = new AwarenessIcon()
+  public icon = new AISRedIcon()
+  public smallIcon = new AISRedSmallIcon()
+  public awarenessIcon = new AISGreyIcon()
+  public awawarenessSmallIcon = new AISGreySmallIcon()
+
   private aisService = new AISService()
 
   constructor(props: PropsType) {
@@ -63,7 +67,7 @@ class AISShip extends Component<PropsType, {}> {
       <AssetAwareness
         awareness={awareness}
         deltaHours={deltaHours}
-        icon={this.icon}
+        icon={this.props.currentZoom >= 11 ? this.awarenessIcon : this.awawarenessSmallIcon}
         iconAngle={0}
         currentTime={this.props.currentTime}
       />
@@ -123,7 +127,7 @@ class AISShip extends Component<PropsType, {}> {
         position={{ lat: ship.latitude, lng: ship.longitude }}
         rotationAngle={Math.round(ship.heading !== 511 ? ship.heading : ship.cog)}
         rotationOrigin={'center'}
-        icon={this.icon}
+        icon={this.props.currentZoom >= 11 ? this.icon : this.smallIcon}
         opacity={this.getOpacity(ship.timestamp)}
         onClick={(e: any) => this.onShipClick(e, ship)}
       />
