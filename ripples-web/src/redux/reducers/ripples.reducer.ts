@@ -379,7 +379,7 @@ const ripplesReducer = createReducer(startState, {
   [setMapOverlayInfo.type]: (state, action) => {
     const overlayName: string = action.payload
     const isLayerUpdated = overlayName.endsWith('Waves') || overlayName.endsWith('Wind')
-    const variable = overlayName.substr(overlayName.indexOf(' '))
+    const variable = overlayName /*.substr(overlayName.indexOf(' '))*/
     if (overlayName !== '') {
       const overlayInfo = isLayerUpdated
         ? state.sliderValue > 0

@@ -265,6 +265,26 @@ class RipplesMap extends Component<PropsType, StateType> {
       const pollutionServer = await this.pollutionService.fetchPollutionExternalServer()
       this.setState({ editPollutionConfig: pollutionServer })
     }
+
+    // organize layers
+    const x = document.getElementsByClassName('leaflet-control-layers-selector')
+    for (const item of x) {
+      const parentElem = item.parentElement
+      if (parentElem && parentElem.lastChild) {
+        if (
+          parentElem.lastChild.textContent === ' Profiles Data' ||
+          parentElem.lastChild.textContent === ' Annotations' ||
+          parentElem.lastChild.textContent === ' Plans' ||
+          parentElem.lastChild.textContent === ' Pollution Data'
+        ) {
+          parentElem.style.borderTop = '1px solid #ddd'
+        }
+        if (parentElem.lastChild.textContent === ' Measure track') {
+          parentElem.style.borderBottom = '1px solid #ddd'
+          parentElem.style.paddingBottom = '5px'
+        }
+      }
+    }
   }
 
   public updateCopernicusMaps() {
@@ -1101,7 +1121,16 @@ class RipplesMap extends Component<PropsType, StateType> {
               this.setState({ isAISLayerActive: true })
             } else if (evt.name === 'Vehicles') {
               this.setState({ isVehiclesLayerActive: true })
-            } else if (evt.name.startsWith('Copernicus')) {
+            } else if (
+              evt.name.startsWith('Copernicus') ||
+              evt.name === 'Sea Surface Temperature' ||
+              evt.name === 'Sea Surface Salinity' ||
+              evt.name === 'Sea Surface Velocity' ||
+              evt.name === 'Chl Concentration' ||
+              evt.name === 'Waves' ||
+              evt.name === 'Wind' ||
+              evt.name === 'Sea Level Anomaly'
+            ) {
               this.props.setMapOverlayInfo(evt.name)
               const url = MapUtils.buildLegendURL(evt.layer)
               this.setState({
@@ -1117,7 +1146,16 @@ class RipplesMap extends Component<PropsType, StateType> {
               this.setState({ isAISLayerActive: false })
             } else if (evt.name === 'Vehicles') {
               this.setState({ isVehiclesLayerActive: false })
-            } else if (evt.name.startsWith('Copernicus')) {
+            } else if (
+              evt.name.startsWith('Copernicus') ||
+              evt.name === 'Sea Surface Temperature' ||
+              evt.name === 'Sea Surface Salinity' ||
+              evt.name === 'Sea Surface Velocity' ||
+              evt.name === 'Chl Concentration' ||
+              evt.name === 'Waves' ||
+              evt.name === 'Wind' ||
+              evt.name === 'Sea Level Anomaly'
+            ) {
               this.setState({
                 activeLegend: <></>,
               })
@@ -1168,19 +1206,28 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="GEBCO (multiple sources)"
               />
             </BaseLayer>
-            <Overlay name="EMODNET Bathymetry">
-              <WMSTileLayer
-                url="https://ows.emodnet-bathymetry.eu/wms"
-                layers="mean_multicolour"
-                format="image/png"
-                // styles="boxfill/sst_36"
-                // transparent={true}
-                // colorscalerange="0,36"
-                belowmincolor="extend"
-                belowmaxcolor="extend"
-                opacity={0.5}
-                attribution="EMODNET"
-              />
+            <Overlay checked={true} name="Vehicles">
+              <LayerGroup>{this.buildVehicles()}</LayerGroup>
+              {this.buildEditVehicleModal()}
+            </Overlay>
+            <Overlay checked={true} name="Spots">
+              <LayerGroup>{this.buildSpots()}</LayerGroup>
+            </Overlay>
+            <Overlay checked={true} name="CCUS">
+              <LayerGroup>{this.buildCcus()}</LayerGroup>
+            </Overlay>
+            {this.props.auth.authenticated && (
+              <Overlay checked={true} name="Plans">
+                <LayerGroup>
+                  <PlanManager mapRef={this.map} />
+                </LayerGroup>
+              </Overlay>
+            )}
+            <Overlay checked={this.state.isAISLayerActive} name="AIS Data">
+              <LayerGroup>
+                {this.buildAisShips()}
+                <CanvasLayer drawMethod={this.drawCanvas} />
+              </LayerGroup>
             </Overlay>
             <Overlay name="AIS density">
               <TileLayer
@@ -1191,21 +1238,38 @@ class RipplesMap extends Component<PropsType, StateType> {
                 maxNativeZoom={10}
               />
             </Overlay>
-            <Overlay name="Copernicus SST">
+            <Overlay name="Bathymetry">
               <WMSTileLayer
-                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
+                url="https://ows.emodnet-bathymetry.eu/wms"
+                layers="mean_multicolour"
+                format="image/png"
+                // styles="boxfill/sst_36"
+                transparent={true}
+                // colorscalerange="0,36"
+                belowmincolor="extend"
+                belowmaxcolor="extend"
+                opacity={0.5}
+                attribution="EMODNET"
+              />
+            </Overlay>
+            <Overlay checked={true} name="Profiles Data">
+              <LayerGroup>{this.buildProfiles()}</LayerGroup>
+            </Overlay>
+            <Overlay name="Sea Surface Temperature">
+              <WMSTileLayer
+                url="https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m"
                 layers="thetao"
                 format="image/png"
                 styles="boxfill/sst_36"
                 transparent={true}
-                colorscalerange="0,36"
+                colorscalerange="12,28"
                 belowmincolor="extend"
                 belowmaxcolor="extend"
                 opacity={0.8}
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            <Overlay name="Copernicus SSSC">
+            <Overlay name="Sea Surface Salinity">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
                 layers="so"
@@ -1218,7 +1282,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            <Overlay name="Copernicus SSV">
+            <Overlay name="Sea Surface Velocity">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
                 layers="sea_water_velocity"
@@ -1232,21 +1296,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            <Overlay name="Copernicus ZOS">
-              <WMSTileLayer
-                url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-phy-001-024"
-                layers="zos"
-                format="image/png"
-                styles="boxfill/rainbow"
-                transparent={true}
-                colorscalerange="-1,1"
-                belowmincolor="extend"
-                belowmaxcolor="extend"
-                opacity={0.8}
-                attribution="E.U. Copernicus Marine Service Information"
-              />
-            </Overlay>
-            <Overlay name="Copernicus CHL">
+            <Overlay name="Chl Concentration">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/dataset-oc-glo-chl-multi-l4-oi_4km_daily-rt-v02"
                 layers="CHL"
@@ -1261,7 +1311,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            <Overlay name="Copernicus Waves">
+            <Overlay name="Waves">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/global-analysis-forecast-wav-001-027"
                 time={this.lastWaveMapTime}
@@ -1276,7 +1326,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            <Overlay name="Copernicus Wind">
+            <Overlay name="Wind">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/CERSAT-GLO-BLENDED_WIND_L4-V6-OBS_FULL_TIME_SERIE"
                 time={this.lastWindMapTime}
@@ -1292,7 +1342,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            <Overlay name="Copernicus SLA">
+            <Overlay name="Sea Level Anomaly">
               <WMSTileLayer
                 url="http://nrt.cmems-du.eu/thredds/wms/dataset-duacs-nrt-global-merged-allsat-phy-l4"
                 layers="ugosa"
@@ -1306,33 +1356,8 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="E.U. Copernicus Marine Service Information"
               />
             </Overlay>
-            {this.buildMyMaps()}
-            {this.buildGeoLayers()}
-            <Overlay checked={true} name="Vehicles">
-              <LayerGroup>{this.buildVehicles()}</LayerGroup>
-              {this.buildEditVehicleModal()}
-            </Overlay>
-            {this.props.auth.authenticated && this.map && (
-              <Overlay checked={true} name="Plans">
-                <LayerGroup>
-                  <PlanManager mapRef={this.map} />
-                </LayerGroup>
-              </Overlay>
-            )}
-            <Overlay checked={true} name="Spots">
-              <LayerGroup>{this.buildSpots()}</LayerGroup>
-            </Overlay>
-            <Overlay checked={true} name="CCUS">
-              <LayerGroup>{this.buildCcus()}</LayerGroup>
-            </Overlay>
-            <Overlay checked={this.state.isAISLayerActive} name="AIS Data">
-              <LayerGroup>
-                {this.buildAisShips()}
-                <CanvasLayer drawMethod={this.drawCanvas} />
-              </LayerGroup>
-            </Overlay>
-            <Overlay checked={true} name="Profiles Data">
-              <LayerGroup>{this.buildProfiles()}</LayerGroup>
+            <Overlay checked={true} name="Annotations">
+              <LayerGroup>{this.buildAnnotations()}</LayerGroup>
             </Overlay>
             <Overlay checked={true} name="Current Location">
               <LayerGroup>{this.buildUsersLocations()}</LayerGroup>
@@ -1340,9 +1365,8 @@ class RipplesMap extends Component<PropsType, StateType> {
             <Overlay checked={true} name="Measure track">
               <LayerGroup>{this.buildMeasureTrack()}</LayerGroup>
             </Overlay>
-            <Overlay checked={true} name="Annotations">
-              <LayerGroup>{this.buildAnnotations()}</LayerGroup>
-            </Overlay>
+            {this.buildMyMaps()}
+            {this.buildGeoLayers()}
             {this.props.auth.authenticated && this.props.auth.currentUser.domain.includes('Ramp') && this.map && (
               <Overlay checked={this.state.isPollutionLayerActive} name="Pollution Data">
                 <LayerGroup>{this.buildPollutionMarkers()}</LayerGroup>

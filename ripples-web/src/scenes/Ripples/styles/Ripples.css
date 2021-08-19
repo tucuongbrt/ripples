@@ -274,7 +274,7 @@ path.leaflet-polygon {
   white-space: nowrap;
 }
 
-.domainDialog, .pollutionDialog {
+.domainDialog {
   position: absolute;
   left: 50px;
   top: 10px;
@@ -283,7 +283,25 @@ path.leaflet-polygon {
   background-color: #cce5ff;
   border: 1px solid;
   border-radius: .25rem;
+  padding: 0.3em 2em;
+  user-select: none;
+  outline: 0;
+  opacity: 0.9;
+  animation: fadein 500ms;
+  -moz-animation: fadein 500ms;
+  -webkit-animation: fadein 500ms;
+}
+
+.pollutionDialog {
+  position: absolute;
+  left: 50px;
+  top: 10px;
+  z-index: 9999 !important;
+  color: #004085;
+  background-color: #cce5ff;
+  border: 1px solid;
   text-align: center;
+  border-radius: .25rem;
   padding: 0.3em 2em;
   user-select: none;
   outline: 0;
