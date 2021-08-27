@@ -3,6 +3,9 @@ import lauv_orange from '../../../assets/LAUV_orange.png'
 import manta from '../../../assets/manta.png'
 import ais_red from '../../../assets/AIS_red.png'
 import ais_grey from '../../../assets/AIS_grey.png'
+import wavy_basic from '../../../assets/wavy_basic.png'
+import wavy_littoral from '../../../assets/wavy_littoral.png'
+import wavy_ocean from '../../../assets/wavy_ocean.png'
 
 export const BlueCircleIcon = L.Icon.extend({
   options: {
@@ -190,5 +193,26 @@ export const GeoJsonMarker = L.Icon.extend({
   options: {
     iconSize: [5, 5],
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Eo_circle_yellow_blank.svg',
+  },
+})
+
+export const WavyBasiclIcon = L.Icon.extend({
+  options: {
+    iconSize: [15, 15],
+    iconUrl: wavy_basic,
+  },
+})
+
+export const WavyLittoralIcon = L.Icon.extend({
+  options: {
+    iconSize: [15, 15],
+    iconUrl: wavy_littoral,
+  },
+})
+
+export const WavyOceanlIcon = L.Icon.extend({
+  options: {
+    iconSize: [15, 15],
+    iconUrl: wavy_ocean,
   },
 })

@@ -12,7 +12,7 @@ import {
 import DateService from '../../../services/DateUtils'
 import PositionService from '../../../services/PositionUtils'
 import AssetAwareness from './AssetAwareness'
-import { AuvOrangeIcon, AuvOrangeSmallIcon, mantaIcon } from './Icons'
+import { AuvOrangeIcon, AuvOrangeSmallIcon, mantaIcon, WavyLittoralIcon, WavyBasiclIcon, WavyOceanlIcon } from './Icons'
 import RotatedMarker from './RotatedMarker'
 
 interface PropsType {
@@ -32,6 +32,9 @@ class Vehicle extends Component<PropsType, {}> {
   public icon = new AuvOrangeIcon()
   public smallIcon = new AuvOrangeSmallIcon()
   public mantaIcon = new mantaIcon()
+  public wavyBasicIcon = new WavyBasiclIcon()
+  public wavyLittoralIcon = new WavyLittoralIcon()
+  public wavyOceanIcon = new WavyOceanlIcon()
   private positionService: PositionService = new PositionService()
 
   constructor(props: PropsType) {
@@ -54,6 +57,12 @@ class Vehicle extends Component<PropsType, {}> {
   public getIcon(assetName: string) {
     if (assetName.startsWith('manta')) {
       return this.mantaIcon
+    } else if (assetName.startsWith('WL')) {
+      return this.wavyLittoralIcon
+    } else if (assetName.startsWith('WB')) {
+      return this.wavyBasicIcon
+    } else if (assetName.startsWith('WO')) {
+      return this.wavyOceanIcon
     } else if (this.props.currentZoom < 11) {
       return this.smallIcon
     } else {
