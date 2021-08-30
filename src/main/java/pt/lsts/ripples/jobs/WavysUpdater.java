@@ -99,7 +99,7 @@ public class WavysUpdater {
     }
 
     private void getWavys(String userID) {
-        Instant queryTimestamp = Instant.now().minus(Duration.ofMinutes(6));
+        Instant queryTimestamp = Instant.now().minus(Duration.ofMinutes(10));
 
         try {
             String params = "{\"where\":{\"and\":[{\"timestamp\":{\"gt\":\"" + queryTimestamp
