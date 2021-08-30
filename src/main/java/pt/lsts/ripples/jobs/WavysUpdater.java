@@ -133,7 +133,7 @@ public class WavysUpdater {
                         wavyInserted.add(jsonobject.getString("serialNumber"));
                     }
                 }
-                logger.info("Read " + jsonarray.length() + " wavys (updated: " + wavyInserted.size() + ")");
+                logger.info("Read " + jsonarray.length() + " wavys. Updated: " + wavyInserted.toString() + "");
 
                 br.close();
                 conn.disconnect();
