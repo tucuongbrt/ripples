@@ -267,6 +267,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
 
     // organize layers
+    await sleep(10)
     const x = document.getElementsByClassName('leaflet-control-layers-selector')
     for (const item of x) {
       const parentElem = item.parentElement
@@ -274,16 +275,19 @@ class RipplesMap extends Component<PropsType, StateType> {
         if (
           parentElem.lastChild.textContent === ' Profiles Data' ||
           parentElem.lastChild.textContent === ' Annotations' ||
-          parentElem.lastChild.textContent === ' Plans' ||
           parentElem.lastChild.textContent === ' Pollution Data'
         ) {
           parentElem.style.borderTop = '1px solid #ddd'
         }
-        if (parentElem.lastChild.textContent === ' Measure track') {
+        if (parentElem.lastChild.textContent === ' Measure track' || parentElem.lastChild.textContent === ' CCUS') {
           parentElem.style.borderBottom = '1px solid #ddd'
           parentElem.style.paddingBottom = '5px'
         }
       }
+    }
+
+    function sleep(ms: number) {
+      return new Promise((resolve) => setTimeout(resolve, ms))
     }
   }
 
