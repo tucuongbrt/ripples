@@ -10,6 +10,7 @@ import java.net.URL;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -30,13 +31,18 @@ import org.springframework.stereotype.Component;
 import pt.lsts.ripples.controllers.WebSocketsController;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetState;
+import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.repo.main.AssetsRepository;
+import pt.lsts.ripples.repo.main.VertProfilesRepo;
 
 @Component
 public class WavysUpdater {
 
     @Autowired
     AssetsRepository assetsRepo;
+
+    @Autowired
+    VertProfilesRepo vertProfilesRepo;
 
     @Autowired
     WebSocketsController wsController;
@@ -99,11 +105,11 @@ public class WavysUpdater {
     }
 
     private void getWavys(String userID) {
-        Instant queryTimestamp = Instant.now().minus(Duration.ofMinutes(10));
+        Instant queryTimestamp = Instant.now().minus(Duration.ofMinutes(60));
 
         try {
             String params = "{\"where\":{\"and\":[{\"timestamp\":{\"gt\":\"" + queryTimestamp
-                    + "\"}},{\"position\":{\"neq\":\"null\"}},{\"serialNumber\":{}}]},\"fields\":[\"timestamp\",\"serialNumber\",\"position\",\"content\"],\"order\":[\"timestamp DESC\"]}";
+                    + "\"}},{\"position\":{\"neq\":\"null\"}},{\"serialNumber\":{}}]},\"fields\":[\"timestamp\",\"serialNumber\",\"position\",\"content\"],\"order\":[\"timestamp ASC\"]}";
 
             URIBuilder b = new URIBuilder("https://meloa.inesctec.pt/api/realtime_observations");
             b.addParameter("filter", params);
@@ -128,12 +134,24 @@ public class WavysUpdater {
                 List<String> wavyInserted = new ArrayList<String>();
                 for (int i = 0; i < jsonarray.length(); i++) {
                     JSONObject jsonobject = jsonarray.getJSONObject(i);
-                    if (!wavyInserted.contains(jsonobject.getString("serialNumber"))) {
+
+                    // avoid timestamp bugs
+                    Instant serverDate = Instant.now();
+                    Instant wavyDate = Instant.parse(jsonobject.getString("timestamp"));
+
+                    int value = serverDate.compareTo(wavyDate);
+                    if (value > 0) { // serverTime greater
                         addWavy(jsonobject);
-                        wavyInserted.add(jsonobject.getString("serialNumber"));
+                        if (!wavyInserted.contains(jsonobject.getString("serialNumber"))) {
+                            wavyInserted.add(jsonobject.getString("serialNumber"));
+                        }
+                        if (jsonobject.getString("serialNumber").startsWith("WO")) {
+                            addWavyProfile(jsonobject);
+                        }
                     }
                 }
-                logger.info("Read " + jsonarray.length() + " wavys. Updated: " + wavyInserted.toString() + "");
+                logger.info("Readed " + jsonarray.length() + " wavys since " + queryTimestamp + ". Updated: "
+                        + wavyInserted.toString() + "");
 
                 br.close();
                 conn.disconnect();
@@ -167,6 +185,8 @@ public class WavysUpdater {
 
             newAsset.setLastState(state);
 
+            List<String> domain = Arrays.asList("Meloa");
+            newAsset.setDomain(domain);
             assetsRepo.save(newAsset);
             wsController.sendAssetUpdateFromServerToClients(newAsset);
         } else {
@@ -174,10 +194,54 @@ public class WavysUpdater {
             oldAsset.getLastState().setDate(currentDate);
             oldAsset.getLastState().setLatitude(posObject.getDouble("lat"));
             oldAsset.getLastState().setLongitude(posObject.getDouble("lng"));
-
             assetsRepo.save(oldAsset);
             // wsController.sendAssetUpdateFromServerToClients(oldAsset);
         }
+    }
 
+    private void addWavyProfile(JSONObject jsonobject) {
+        DateTime wavyDate = DateTime.parse(jsonobject.getString("timestamp"));
+        DateTime lisbonCurrentDate = wavyDate.toDateTime(DateTimeZone.forID("Europe/Lisbon"));
+        Date currentDate = lisbonCurrentDate.toDate();
+
+        JSONObject posObject = (JSONObject) jsonobject.get("position");
+        String[] contentParts = jsonobject.getString("content").split("\\|");
+
+        if (!profileAlreadyExists(currentDate, posObject.getDouble("lat"), posObject.getDouble("lng"))) {
+            VerticalProfileData data = new VerticalProfileData();
+            data.setSystem(jsonobject.getString("serialNumber"));
+            data.setTimestamp(currentDate);
+            data.setLatitude(posObject.getDouble("lat"));
+            data.setLongitude(posObject.getDouble("lng"));
+
+            List<Double[]> sampleList = new ArrayList<Double[]>();
+            if (contentParts.length > 14) {
+                if (contentParts[13] != null && contentParts[13].length() > 0) {
+                    double temp1 = Double.parseDouble(contentParts[13]);
+                    if (temp1 > -90 && temp1 < 90) {
+                        sampleList.add(new Double[] { 0.0, temp1 });
+                    }
+                }
+                if (contentParts[14] != null && contentParts[14].length() > 0) {
+                    double temp2 = Double.parseDouble(contentParts[14]);
+                    if (temp2 > -90 && temp2 < 90) {
+                        sampleList.add(new Double[] { 1.0, temp2 });
+                    }
+                }
+            }
+            data.setSamples(sampleList);
+            vertProfilesRepo.save(data);
+        }
+    }
+
+    private Boolean profileAlreadyExists(Date timestamp, Double lat, Double lng) {
+        ArrayList<VerticalProfileData> profiles = new ArrayList<>();
+        vertProfilesRepo.findAll().forEach(profiles::add);
+        for (VerticalProfileData profile : profiles) {
+            if (profile.latitude == lat && profile.longitude == lng && profile.timestamp == timestamp) {
+                return true;
+            }
+        }
+        return false;
     }
 }

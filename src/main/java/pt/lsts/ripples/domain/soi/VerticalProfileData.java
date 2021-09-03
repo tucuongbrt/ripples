@@ -75,4 +75,24 @@ public class VerticalProfileData {
 
 		return json.toString();
 	}
+
+	public void setSystem(String system) {
+		this.system = system;
+	}
+
+	public void setTimestamp(Date timestamp) {
+		this.timestamp = timestamp;
+	}
+
+	public void setLatitude(double lat) {
+		this.latitude = lat;
+	}
+
+	public void setLongitude(double lng) {
+		this.longitude = lng;
+	}
+
+	public void setSamples(List<Double[]> samples) {
+		this.samples = samples;
+	}
 }
