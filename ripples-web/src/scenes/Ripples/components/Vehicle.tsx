@@ -12,7 +12,18 @@ import {
 import DateService from '../../../services/DateUtils'
 import PositionService from '../../../services/PositionUtils'
 import AssetAwareness from './AssetAwareness'
-import { AuvOrangeIcon, AuvOrangeSmallIcon, mantaIcon, WavyLittoralIcon, WavyBasiclIcon, WavyOceanlIcon } from './Icons'
+import {
+  AuvOrangeIcon,
+  AuvOrangeSmallIcon,
+  mantaIcon,
+  WavyLittoralIcon,
+  WavyBasiclIcon,
+  WavyOceanlIcon,
+  AvGenericSmallIcon,
+  AvGenericIcon,
+  AuvYellowIcon,
+  AuvYellowSmallIcon,
+} from './Icons'
 import RotatedMarker from './RotatedMarker'
 
 interface PropsType {
@@ -29,8 +40,12 @@ interface PropsType {
 }
 
 class Vehicle extends Component<PropsType, {}> {
-  public icon = new AuvOrangeIcon()
-  public smallIcon = new AuvOrangeSmallIcon()
+  public auvOrangeIcon = new AuvOrangeIcon()
+  public auvOrangeSmallIcon = new AuvOrangeSmallIcon()
+  public auvYellowIcon = new AuvYellowIcon()
+  public auvYellowSmallIcon = new AuvYellowSmallIcon()
+  public avGenericIcon = new AvGenericIcon()
+  public avGenericSmallIcon = new AvGenericSmallIcon()
   public mantaIcon = new mantaIcon()
   public wavyBasicIcon = new WavyBasiclIcon()
   public wavyLittoralIcon = new WavyLittoralIcon()
@@ -63,10 +78,18 @@ class Vehicle extends Component<PropsType, {}> {
       return this.wavyBasicIcon
     } else if (assetName.startsWith('WO')) {
       return this.wavyOceanIcon
+    } else if (assetName.startsWith('lauv-xplore') && this.props.currentZoom < 11) {
+      return this.auvYellowSmallIcon
+    } else if (assetName.startsWith('lauv-xplore')) {
+      return this.auvYellowIcon
+    } else if (assetName.startsWith('lauv-noptilus') && this.props.currentZoom < 11) {
+      return this.auvOrangeSmallIcon
+    } else if (assetName.startsWith('lauv-noptilus')) {
+      return this.auvOrangeIcon
     } else if (this.props.currentZoom < 11) {
-      return this.smallIcon
+      return this.avGenericSmallIcon
     } else {
-      return this.icon
+      return this.avGenericIcon
     }
   }
 

@@ -1,7 +1,10 @@
 import L from 'leaflet'
 import lauv_orange from '../../../assets/LAUV_orange.png'
+import lauv_yellow from '../../../assets/LAUV_yellow.png'
+import av_generic from '../../../assets/AV_generic.png'
 import manta from '../../../assets/manta.png'
 import ais_red from '../../../assets/AIS_red.png'
+import ais_purple from '../../../assets/AIS_purple.png'
 import ais_grey from '../../../assets/AIS_grey.png'
 import wavy_basic from '../../../assets/wavy_basic.png'
 import wavy_littoral from '../../../assets/wavy_littoral.png'
@@ -56,9 +59,37 @@ export const AuvOrangeSmallIcon = L.Icon.extend({
   },
 })
 
+export const AuvYellowIcon = L.Icon.extend({
+  options: {
+    iconSize: [32, 32],
+    iconUrl: lauv_yellow,
+  },
+})
+
+export const AuvYellowSmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [22, 22],
+    iconUrl: lauv_yellow,
+  },
+})
+
+export const AvGenericIcon = L.Icon.extend({
+  options: {
+    iconSize: [22, 22],
+    iconUrl: av_generic,
+  },
+})
+
+export const AvGenericSmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [17, 17],
+    iconUrl: av_generic,
+  },
+})
+
 export const mantaIcon = L.Icon.extend({
   options: {
-    iconSize: [16, 16],
+    iconSize: [20, 20],
     iconUrl: manta,
   },
 })
@@ -186,6 +217,20 @@ export const AISRedSmallIcon = L.Icon.extend({
   options: {
     iconSize: [12, 12],
     iconUrl: ais_red,
+  },
+})
+
+export const AISPurpleIcon = L.Icon.extend({
+  options: {
+    iconSize: [17, 17],
+    iconUrl: ais_purple,
+  },
+})
+
+export const AISPurpleSmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [12, 12],
+    iconUrl: ais_purple,
   },
 })
 
