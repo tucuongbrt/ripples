@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,30 +49,31 @@ public class ApiKeyController {
         LocalDate currentDate_aux = LocalDate.now();
         Date currentDate = Date.from(currentDate_aux.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant());
         repo.findAll().forEach(apiKey -> {
-            if(currentDate.after(apiKey.getExpirationDate())) {
+            if (currentDate.after(apiKey.getExpirationDate())) {
                 repo.delete(apiKey);
                 logger.info("API key expired: " + apiKey.getToken());
             }
-        });        
+        });
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('OPERATOR') or hasRole('SCIENTIST')")
-    @RequestMapping(path = { "/apikey", "/apikey/" }, method = RequestMethod.GET)
-    public List<HashMap<String, Object>> listApiKeys() {
+    @RequestMapping(path = { "/apikey/{userEmail}", "/apikey/{userEmail}/" }, method = RequestMethod.GET)
+    public List<HashMap<String, Object>> listApiKeys(@PathVariable String userEmail) {
         List<HashMap<String, Object>> listApiKeys = new ArrayList<HashMap<String, Object>>();
         repo.findAll().forEach(apiKey -> {
-            HashMap<String, Object> apiKeyMap = new HashMap<>();
-            apiKeyMap.put("token", apiKey.getToken());
-            apiKeyMap.put("email", apiKey.getEmail());
-            apiKeyMap.put("domain", apiKey.getDomain());
-            apiKeyMap.put("permission", apiKey.getPermission());
-            apiKeyMap.put("expirationDate", apiKey.getExpirationDate());
-            listApiKeys.add(apiKeyMap);
+            if (userEmail.equals("all") || userEmail.equals(apiKey.getEmail())) {
+                HashMap<String, Object> apiKeyMap = new HashMap<>();
+                apiKeyMap.put("token", apiKey.getToken());
+                apiKeyMap.put("email", apiKey.getEmail());
+                apiKeyMap.put("domain", apiKey.getDomain());
+                apiKeyMap.put("permission", apiKey.getPermission());
+                apiKeyMap.put("expirationDate", apiKey.getExpirationDate());
+                listApiKeys.add(apiKeyMap);
+            }
         });
 
         return listApiKeys;
     }
-
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/apikey" })

@@ -2,10 +2,10 @@ import { request } from './RequestUtils'
 
 const apiURL = process.env.REACT_APP_API_BASE_URL
 
-export async function fetchApiKeys() {
+export async function fetchApiKeys(email: string) {
   return request({
     method: 'GET',
-    url: `${apiURL}/apikey`,
+    url: `${apiURL}/apikey/${email}`,
   })
 }
 

@@ -155,6 +155,7 @@ export class Settings extends Component<PropsType, StateType> {
       this.timerID = window.setInterval(this.fetchSettings, 60000)
     }
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
+      this.getDomains()
       this.fetchApiKeys()
     }
   }
@@ -593,7 +594,12 @@ export class Settings extends Component<PropsType, StateType> {
   }
 
   public async fetchApiKeys() {
-    const apiKeys: any = await fetchApiKeys()
+    let email = this.props.auth.currentUser.email
+    if (isAdministrator(this.props.auth)) {
+      email = 'all'
+    }
+    const apiKeys: any = await fetchApiKeys(email)
+    // const apiKeys: any = await fetchApiKeys()
     this.setState({ apiKeys })
   }
 
@@ -695,6 +701,11 @@ export class Settings extends Component<PropsType, StateType> {
               <hr />
 
               <h5 className="token-title">API key settings:</h5>
+
+              <div className="token-email-input">
+                <span>Email:</span>
+                <input type="text" id={'new-token-email'} />
+              </div>
 
               <div className="token-domain-input">
                 <span>Domain:</span>
@@ -815,11 +826,14 @@ export class Settings extends Component<PropsType, StateType> {
       if (permission.checked) permissionSelected.push(permission.value)
     }
 
-    if (domainSelected.length === 0 || permissionSelected.length === 0) {
+    const emailField: any = document.getElementById('new-token-email')
+    const emailSelected: string = emailField.value.trim()
+
+    if (domainSelected.length === 0 || permissionSelected.length === 0 || emailSelected.length === 0) {
       NotificationManager.warning('Fields cannot be empty')
     } else {
       // GERAR TOKEN
-      const resp = await createApiKey(this.props.auth.currentUser.email, domainSelected, permissionSelected)
+      const resp = await createApiKey(emailSelected, domainSelected, permissionSelected)
       if (resp.status === 'Success') {
         const respMessage = resp.message.substring(0, resp.message.indexOf(':'))
         const respToken = resp.message.substring(resp.message.indexOf(':') + 1)
