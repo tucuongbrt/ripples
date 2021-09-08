@@ -138,12 +138,21 @@ export default class SoiService {
     const data = await response.json()
     return data
   }
-
+  /*
   public async deleteUnassignedPlan(planId: string) {
     return request({
       body: JSON.stringify({ id: planId }),
       method: 'DELETE',
       url: `${apiURL}/soi/unassigned/plans`,
+    })
+  }
+  */
+
+  public async deleteUnassignedPlan(planId: string) {
+    return request({
+      body: JSON.stringify({ id: planId }),
+      method: 'POST',
+      url: `${apiURL}/soi/unassigned/plans/delete`,
     })
   }
 

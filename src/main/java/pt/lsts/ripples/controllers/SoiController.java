@@ -117,15 +117,15 @@ public class SoiController {
 					}
 				}
 			}
-		} 
+		}
 
 		// assets without domain
-		for (Asset a : assets_aux) { 
+		for (Asset a : assets_aux) {
 			if (a.getDomain().isEmpty() && !assets.contains(a)) {
 				assets.add(a);
 			}
 		}
-		
+
 		return assets;
 	}
 
@@ -203,24 +203,24 @@ public class SoiController {
 				for (int n = 0; n < assets.size(); n++) {
 					List<String> domain = apiKeyService.getTokenDomain(token);
 					Optional<Asset> optAsset = assetsRepo.findById(assets.get(n).getName());
-                    if (!optAsset.isPresent()) {
-                        Asset newAsset = new Asset(assets.get(n).getName());
-                        newAsset = assets.get(n);
-                        newAsset.setDomain(domain);
-                        assetsRepo.save(newAsset);
-                        wsController.sendAssetUpdateFromServerToClients(newAsset);
-                    } else {
-                        Asset oldAsset = optAsset.get();
-                        oldAsset.setLastState(assets.get(n).getLastState());
-                        if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
-                            oldAsset.setPlan(assets.get(n).getPlan());
-                        }
-                        assetsRepo.save(oldAsset);
-                        wsController.sendAssetUpdateFromServerToClients(oldAsset);
-                    }
+					if (!optAsset.isPresent()) {
+						Asset newAsset = new Asset(assets.get(n).getName());
+						newAsset = assets.get(n);
+						newAsset.setDomain(domain);
+						assetsRepo.save(newAsset);
+						wsController.sendAssetUpdateFromServerToClients(newAsset);
+					} else {
+						Asset oldAsset = optAsset.get();
+						oldAsset.setLastState(assets.get(n).getLastState());
+						if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
+							oldAsset.setPlan(assets.get(n).getPlan());
+						}
+						assetsRepo.save(oldAsset);
+						wsController.sendAssetUpdateFromServerToClients(oldAsset);
+					}
 				}
 				return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
-                        HttpStatus.OK);
+						HttpStatus.OK);
 			} else {
 				return new ResponseEntity<>(new HTTPResponse("error", "Invalid token"), HttpStatus.OK);
 			}
@@ -228,32 +228,28 @@ public class SoiController {
 			// check system current domain
 			List<String> domain = settingsService.getCurrentDomain();
 			assets.forEach(asset -> {
-                Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
-                if (!optAsset.isPresent()) {
-                    Asset newAsset = new Asset(asset.getName());
-                    newAsset = asset;
-                    newAsset.setDomain(domain);
-                    assetsRepo.save(asset);
-                    wsController.sendAssetUpdateFromServerToClients(asset);
-                } else {
-                    Asset oldAsset = optAsset.get();
-                    oldAsset.setLastState(asset.getLastState());
-                    if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
-                        oldAsset.setPlan(asset.getPlan());
-                    }
-                    assetsRepo.save(oldAsset);
-                    wsController.sendAssetUpdateFromServerToClients(oldAsset);
-                }
-            });
+				Optional<Asset> optAsset = assetsRepo.findById(asset.getName());
+				if (!optAsset.isPresent()) {
+					Asset newAsset = new Asset(asset.getName());
+					newAsset = asset;
+					newAsset.setDomain(domain);
+					assetsRepo.save(asset);
+					wsController.sendAssetUpdateFromServerToClients(asset);
+				} else {
+					Asset oldAsset = optAsset.get();
+					oldAsset.setLastState(asset.getLastState());
+					if (oldAsset.getPlan().getType() != null && oldAsset.getPlan().getType().equals("dune")) {
+						oldAsset.setPlan(asset.getPlan());
+					}
+					assetsRepo.save(oldAsset);
+					wsController.sendAssetUpdateFromServerToClients(oldAsset);
+				}
+			});
 
-            return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
-                    HttpStatus.OK);
+			return new ResponseEntity<>(new HTTPResponse("success", assets.size() + " assets were updated."),
+					HttpStatus.OK);
 		}
 	}
-
-
-
-		
 
 	/**
 	 * Use to assign and send(via rockblock) a new plan to a vehicle
@@ -325,6 +321,22 @@ public class SoiController {
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteUnassignedPlan(@RequestBody EntityWithId body) {
+
+		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
+		if (planOptional.isPresent()) {
+			logger.info("Deleting Plan with id: " + body.getId());
+			unassignedPlansRepo.deleteById(body.getId());
+			return new ResponseEntity<>(new HTTPResponse("success", "Plan deleted"), HttpStatus.OK);
+		} else {
+			logger.info("Plan with id: " + body.getId() + " not found");
+			return new ResponseEntity<>(new HTTPResponse("not found", "Plan not found"), HttpStatus.NOT_FOUND);
+		}
+	}
+
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
+	@RequestMapping(path = { "/soi/unassigned/plans/delete",
+			"/soi/unassigned/plans/delete/" }, method = RequestMethod.POST)
+	public ResponseEntity<HTTPResponse> deleteUnassignedPlan2(@RequestBody EntityWithId body) {
 
 		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
 		if (planOptional.isPresent()) {
