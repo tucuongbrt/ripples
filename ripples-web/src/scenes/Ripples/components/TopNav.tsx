@@ -365,7 +365,7 @@ class TopNav extends Component<PropsType, StateType> {
   }
 
   public buildPlanEditToolbar() {
-    if (isScientist(this.props.auth) || isAdministrator(this.props.auth)) {
+    if (isScientist(this.props.auth) || isAdministrator(this.props.auth) || isOperator(this.props.auth)) {
       return (
         <>
           <Dropdown
@@ -377,7 +377,7 @@ class TopNav extends Component<PropsType, StateType> {
             <DropdownToggle nav={true} caret={true}>
               {this.state.plansDropdownText}
             </DropdownToggle>
-            <DropdownMenu right={true}>{isOperator(this.props.auth) && this.buildPlanList()}</DropdownMenu>
+            <DropdownMenu right={true}>{this.buildPlanList()}</DropdownMenu>
           </Dropdown>
           {this.buildVehicleSelector()}
         </>
