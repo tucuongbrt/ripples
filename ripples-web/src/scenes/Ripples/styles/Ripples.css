@@ -490,3 +490,14 @@ path.leaflet-polygon {
   width: -webkit-fill-available;
   margin-bottom: 2px;
 }
+
+.dropdown-menu {
+  max-height: 80vh;
+  width: fit-content;
+  overflow-y: scroll;
+  overflow-x: hidden;
+}
+
+.plan-dropdown-item {
+  padding-right: 10px;
+}
