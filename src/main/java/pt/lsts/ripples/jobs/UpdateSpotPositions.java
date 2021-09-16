@@ -60,6 +60,7 @@ public class UpdateSpotPositions {
                     "https://api.findmespot.com/spot-main-web/consumer/rest-api/2.0/public/feed/0qQz420UTPODTjoHylgIOPa3RqqvOhkMK/message.xml");
             URLConnection conn = url.openConnection();
             conn.setUseCaches(false);
+            conn.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:221.0) Gecko/20100101 Firefox/31.0");
             conn.connect();
             Document doc = db.parse(conn.getInputStream());
             
