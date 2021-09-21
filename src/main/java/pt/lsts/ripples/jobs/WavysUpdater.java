@@ -55,6 +55,19 @@ public class WavysUpdater {
 
     private Logger logger = LoggerFactory.getLogger(WavysUpdater.class);
 
+    @Scheduled(cron = "0 0 * ? * *") // every hour
+    public void deleteMapleOldAssets() {
+        assetsRepo.findAll().forEach(asset -> {
+            if(asset.getName().startsWith("MS-")){
+                long last24hours = Instant.now().minus(Duration.ofDays(1)).getEpochSecond();
+                if(asset.getLastState().getTimestamp() < last24hours) {
+                    assetsRepo.delete(asset);
+                    logger.info("Deleted old maple asset - " + asset.getName());
+                }
+            }
+        });
+    }
+
     @Scheduled(fixedRate = 360_000) // each 6 minutes
     public void updateWavys() throws ClientProtocolException, IOException {
         String userID = getUserID();
