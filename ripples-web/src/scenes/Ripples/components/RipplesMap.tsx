@@ -1256,7 +1256,7 @@ class RipplesMap extends Component<PropsType, StateType> {
                 attribution="EMODNET"
               />
             </Overlay>
-            <Overlay checked={true} name="Profiles Data">
+            <Overlay checked={false} name="Profiles Data">
               <LayerGroup>{this.buildProfiles()}</LayerGroup>
             </Overlay>
             <Overlay name="Sea Surface Temperature">
