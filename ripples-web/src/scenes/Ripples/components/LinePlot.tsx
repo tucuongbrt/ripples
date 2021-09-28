@@ -63,7 +63,7 @@ export default class LinePlot extends Component<PropsType, StateType> {
           curve="monotoneX"
           margin={{
             bottom: 50,
-            left: 20,
+            left: 50,
             right: 10,
             top: 30,
           }}
