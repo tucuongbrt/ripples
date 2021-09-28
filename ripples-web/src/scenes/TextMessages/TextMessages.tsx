@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
-import IAuthState, { IUser } from '../../model/IAuthState'
+import IAuthState, { isCasual, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import ITextMessage from '../../model/ITextMessage'
 import DateService from '../../services/DateUtils'
@@ -50,8 +50,12 @@ export class TextMessages extends Component<PropsType, StateType> {
 
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
-    this.updateMessages()
-    this.timerID = window.setInterval(this.updateMessages, 60000)
+    if (!this.props.auth.authenticated || (this.props.auth.authenticated && isCasual(this.props.auth))) {
+      NotificationManager.error('Permission required')
+    } else {
+      this.updateMessages()
+      this.timerID = window.setInterval(this.updateMessages, 60000)
+    }
   }
 
   public componentWillUnmount() {

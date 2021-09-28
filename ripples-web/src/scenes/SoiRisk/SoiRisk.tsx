@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Table } from 'reactstrap'
 import { AssetErrors } from '../../model/AssetErrors'
 import IAsset from '../../model/IAsset'
-import IAuthState, { getUserDomain, isOperator, IUser } from '../../model/IAuthState'
+import IAuthState, { getUserDomain, isCasual, isOperator, IUser } from '../../model/IAuthState'
 import ILatLng from '../../model/ILatLng'
 import IPlan from '../../model/IPlan'
 import IPositionAtTime from '../../model/IPositionAtTime'
@@ -68,9 +68,13 @@ class SoiRisk extends Component<PropsType & GeolocatedProps, StateType> {
   }
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
-    this.setState({ loading: false })
-    this.updateSoiData()
-    this.timerID = window.setInterval(this.updateSoiData, 60000) // get Soi data every minute
+    if (!this.props.auth.authenticated || (this.props.auth.authenticated && isCasual(this.props.auth))) {
+      NotificationManager.error('Permission required')
+    } else {
+      this.setState({ loading: false })
+      this.updateSoiData()
+      this.timerID = window.setInterval(this.updateSoiData, 60000) // get Soi data every minute
+    }
   }
 
   public componentWillUnmount() {
