@@ -1,5 +1,7 @@
 package pt.lsts.ripples.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -57,6 +59,8 @@ public class AssetsController {
     @Value("${apikeys.secret}")
     String appSecret;
 
+    private final Logger logger = LoggerFactory.getLogger(AssetsController.class);
+
     @PostMapping(path = { "/asset/{id}" }, consumes = "application/json", produces = "application/json")
     public Asset getAsset(@PathVariable String id, @RequestBody Asset asset) {
         Optional<Asset> assetExists = repo.findById(id);
@@ -95,10 +99,10 @@ public class AssetsController {
             @RequestHeader(value = "Authorization", required = false) String token) {
 
         if (token != null) {
-            System.out.println("API key to update assets: " + token);
             if (apiKeyService.isTokenValid(token) && apiKeyService.isTokenWriteable(token)) {
-                for (int n = 0; n < assets.size(); n++) {
-                    List<String> domain = apiKeyService.getTokenDomain(token);
+                List<String> domain = apiKeyService.getTokenDomain(token);
+                logger.info("Updated assets with API key: " + domain.toString());
+                for (int n = 0; n < assets.size(); n++) {  
                     Optional<Asset> optAsset = repo.findById(assets.get(n).getName());
                     if (!optAsset.isPresent()) {
                         Asset newAsset = new Asset(assets.get(n).getName());
