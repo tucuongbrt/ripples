@@ -85,8 +85,8 @@ export class TextMessages extends Component<PropsType, StateType> {
   public renderMessage(textMsg: ITextMessage) {
     return (
       <tr key={textMsg.updated_at}>
-        <td>{textMsg.date}</td>
-        <td>{textMsg.msg}</td>
+        <td className="date-field">{textMsg.date}</td>
+        <td className="content-field">{textMsg.msg}</td>
       </tr>
     )
   }
@@ -99,11 +99,11 @@ export class TextMessages extends Component<PropsType, StateType> {
       <>
         <SimpleNavbar auth={this.props} />
         <div>
-          <Table responsive={true}>
+          <Table id="messages-table" responsive={true}>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Content</th>
+                <th className="date-field">Date</th>
+                <th className="content-field">Content</th>
               </tr>
             </thead>
             <tbody>{this.renderMessages()}</tbody>

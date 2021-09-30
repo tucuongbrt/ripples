@@ -250,7 +250,7 @@ path.leaflet-polygon {
   width: 25%;
 }
 
-#users-table tbody {
+#users-table tbody, #messages-table tbody {
   top: 122px;
   bottom: 0;
   width: 100%;
@@ -259,11 +259,34 @@ path.leaflet-polygon {
   overflow-x: hidden;
 }
 
-#users-table thead, #users-tabletbody, #users-table tr, #users-table td, #users-table th{
+#messages-table thead, #messages-table tbody, #messages-table tr, #messages-table td, #messages-table th { 
+  display: block;
+}
+
+#messages-table tr:after {
+  content: ' ';
+  display: block;
+  visibility: hidden;
+  clear: both;
+}
+
+#messages-table tbody td, #messages-table thead th {
+  float: left;
+}
+
+.date-field {
+  width: 25%; 
+}
+
+.content-field {
+  width: 75%;
+}
+
+#users-table thead, #users-table tbody, #users-table tr, #users-table td, #users-table th {
   display:flow-root;
 }
 
-#users-table tbody td{
+#users-table tbody td {
   float:left;
   width: 25%;
 }
