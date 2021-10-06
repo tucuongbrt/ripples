@@ -10,6 +10,7 @@ import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
 import pt.lsts.ripples.iridium.RockBlockIridiumSender;
 import pt.lsts.ripples.repo.main.Rock7Repository;
+import pt.lsts.ripples.repo.main.SubscriptionsRepo;
 import pt.lsts.ripples.services.MessageProcessor;
 
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
@@ -29,7 +30,6 @@ public class RockBlockController {
 
 	static {
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-
 	}
 
 	@Autowired
@@ -40,6 +40,9 @@ public class RockBlockController {
 
 	@Autowired
 	private RockBlockIridiumSender rockBlockService;
+
+    @Autowired
+    SubscriptionsRepo subscriptionsRepo;
 
 	@GetMapping(path = "/api/v1/iridium")
 	public List<Rock7Message> pollMessages(@RequestParam(defaultValue="-3600") long since) {
@@ -92,16 +95,10 @@ public class RockBlockController {
 		repo.save(m);
 
 		msgProcessor.process(msg);
-		try {
-			rockBlockService.sendMessage(msg); // redirect message to rockBlock
-		} catch(Exception e){
-			logger.warn(e.getLocalizedMessage());
-			return new ResponseEntity<>(e.getClass().getSimpleName() + ": redirect Iridium message error",
-					HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+		msgProcessor.route(msg, null);
+		
 		return new ResponseEntity<>("Message posted to Ripples", HttpStatus.OK);
 	} 	
-
 
 	@PostMapping(path = "/rock7")
 	public ResponseEntity<String> postMessage(@RequestParam String imei,
@@ -110,7 +107,6 @@ public class RockBlockController {
 		if (data.isEmpty()){
 			return new ResponseEntity<>("Received empty message", HttpStatus.OK);
 		}
-
 		Date timestamp = new Date();
 
 		try {
@@ -145,10 +141,9 @@ public class RockBlockController {
 
 		repo.save(m);
 		// process incoming message
-		if (msg != null)
-			msgProcessor.process(msg);
-
-
+		msgProcessor.process(msg);
+		msgProcessor.route(msg, imei);
+	
 		return new ResponseEntity<String>("Message received successfully.", HttpStatus.OK);
 	}
 	

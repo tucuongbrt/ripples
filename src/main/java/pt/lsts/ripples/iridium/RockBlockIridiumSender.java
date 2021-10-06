@@ -113,6 +113,9 @@ public class RockBlockIridiumSender {
         }
 
     }
+    public void sendMessage(IridiumMessage msg, String destinationImei) throws Exception {
+    
+    }
 
     public void sendMessage(IridiumMessage msg) throws Exception {
 

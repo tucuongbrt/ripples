@@ -1,23 +1,50 @@
 package pt.lsts.ripples.services;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Optional;
+
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.lsts.imc.*;
+
+import pt.lsts.imc.Announce;
+import pt.lsts.imc.IMCMessage;
+import pt.lsts.imc.SoiCommand;
+import pt.lsts.imc.SoiPlan;
+import pt.lsts.imc.StateReport;
+import pt.lsts.imc.VerticalProfile;
 import pt.lsts.ripples.controllers.WebSocketsController;
-import pt.lsts.ripples.domain.assets.*;
+import pt.lsts.ripples.domain.assets.Asset;
+import pt.lsts.ripples.domain.assets.AssetErrors;
+import pt.lsts.ripples.domain.assets.AssetParams;
+import pt.lsts.ripples.domain.assets.AssetState;
+import pt.lsts.ripples.domain.assets.SystemAddress;
+import pt.lsts.ripples.domain.iridium.IridiumSubscription;
 import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.domain.shared.Plan;
 import pt.lsts.ripples.domain.shared.Waypoint;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
-import pt.lsts.ripples.iridium.*;
-import pt.lsts.ripples.repo.main.*;
+import pt.lsts.ripples.iridium.ActivateSubscription;
+import pt.lsts.ripples.iridium.DeactivateSubscription;
+import pt.lsts.ripples.iridium.DeviceUpdate;
+import pt.lsts.ripples.iridium.ExtendedDeviceUpdate;
+import pt.lsts.ripples.iridium.ImcIridiumMessage;
+import pt.lsts.ripples.iridium.IridiumCommand;
+import pt.lsts.ripples.iridium.IridiumMessage;
+import pt.lsts.ripples.iridium.PlainTextReport;
+import pt.lsts.ripples.iridium.Position;
+import pt.lsts.ripples.iridium.RockBlockIridiumSender;
+import pt.lsts.ripples.repo.main.AddressesRepository;
+import pt.lsts.ripples.repo.main.AssetsErrorsRepository;
+import pt.lsts.ripples.repo.main.AssetsParamsRepository;
+import pt.lsts.ripples.repo.main.AssetsRepository;
+import pt.lsts.ripples.repo.main.PositionsRepository;
+import pt.lsts.ripples.repo.main.SubscriptionsRepo;
+import pt.lsts.ripples.repo.main.VertProfilesRepo;
 import pt.lsts.ripples.util.RipplesUtils;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Optional;
 
 @Service
 public class MessageProcessor {
@@ -33,6 +60,9 @@ public class MessageProcessor {
 
     @Autowired
     AssetsParamsRepository assetParamsRepo;
+
+    @Autowired
+    SubscriptionsRepo subscriptionsRepo;
 
     @Autowired
     PositionsRepository positions;
@@ -55,10 +85,32 @@ public class MessageProcessor {
     @Autowired
     WebSocketsController wsController;
 
+    @Autowired
+	private RockBlockIridiumSender rockBlockService;
+
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
 
     public MessageProcessor() {
 
+    }
+
+    public void route(IridiumMessage msg, String sourceImei) {
+        HashSet<Integer> destinations = new HashSet<>();
+        subscriptionsRepo.findAllByDeadlineAfter(new Date()).forEach(sub -> destinations.add(sub.getImcId())); // add all subscribers
+        if (msg.destination != 0xFFFF)
+            destinations.add(msg.destination);    
+        destinations.remove(msg.source); // no loopback
+
+        logger.info("Routing msg "+msg.getMessageType()+" to "+destinations.size()+" destinations: "+destinations);
+        
+        destinations.forEach(destination -> {
+            msg.destination = destination;
+            try {
+                rockBlockService.sendMessage(msg); // redirect message to rockBlock
+            } catch(Exception e){
+                logger.warn(e.getLocalizedMessage());
+            }
+        });
     }
 
     public void process(IridiumMessage msg) {
@@ -77,6 +129,13 @@ public class MessageProcessor {
                 break;
             case IridiumMessage.TYPE_IRIDIUM_COMMAND:
                 onIridiumCommand((IridiumCommand) msg);
+                break;
+            case IridiumMessage.TYPE_ACTIVATE_SUBSCRIPTION:
+                onActivateSubscription((ActivateSubscription) msg);
+                break;
+            case IridiumMessage.TYPE_DEACTIVATE_SUBSCRIPTION:
+                onDeactivateSubscription((DeactivateSubscription) msg);
+                break;
             default:
                 break;
         }
@@ -132,6 +191,48 @@ public class MessageProcessor {
             if (msg.getCommand().startsWith("ERROR")) {
                 addError(vehicle.getName(), msg.getCommand());
             }
+        }
+    }
+
+    /**
+     * Activate Iridium subscriptions for this source
+     * @param msg The subscription message
+     */
+    public void onActivateSubscription(ActivateSubscription msg) {
+        try {
+            IridiumSubscription sub = new IridiumSubscription();
+            String imei = addresses.findByImcId(msg.source).getImei();
+            sub.setImei(imei);
+            sub.setImcId(msg.source);
+            IridiumSubscription existing = subscriptionsRepo.findByImei(imei);
+            if (existing != null)
+                sub = existing;
+            
+            // update deadline to be 12 hours from now
+            sub.setDeadline(new Date(System.currentTimeMillis() + 3600 * 12 * 1000));
+            subscriptionsRepo.save(sub);
+            logger.info("Added subscription for "+sub.getImei()+" until "+sub.getDeadline());
+        }
+        catch (Exception e) {
+            logger.error("Error activating subscription", e);
+        }
+    }
+
+    /**
+     * Deactivate Iridium subscriptions for this source
+     */
+    public void onDeactivateSubscription(DeactivateSubscription msg) {
+        try {
+            String imei = addresses.findByImcId(msg.source).getImei();
+        
+            IridiumSubscription existing = subscriptionsRepo.findByImei(imei);
+            if (existing != null) {
+                subscriptionsRepo.delete(existing);
+                logger.info("Removed subscription for "+imei+".");
+            }
+        }
+        catch (Exception e) {
+            logger.error("Error deactivating subscription", e);
         }
     }
 
