@@ -201,7 +201,12 @@ public class MessageProcessor {
     public void onActivateSubscription(ActivateSubscription msg) {
         try {
             IridiumSubscription sub = new IridiumSubscription();
-            String imei = addresses.findByImcId(msg.source).getImei();
+            SystemAddress addr = addresses.findByImcId(msg.source);
+            if (addr == null) {
+                logger.warn("Received subscription request from invalid source: "+msg.source);
+                return;
+            }
+            String imei = addr.getImei();
             sub.setImei(imei);
             sub.setImcId(msg.source);
             IridiumSubscription existing = subscriptionsRepo.findByImei(imei);
@@ -223,7 +228,13 @@ public class MessageProcessor {
      */
     public void onDeactivateSubscription(DeactivateSubscription msg) {
         try {
-            String imei = addresses.findByImcId(msg.source).getImei();
+            SystemAddress addr = addresses.findByImcId(msg.source);
+            if (addr == null) {
+                logger.warn("Received subscription deactivation request from invalid source: "+msg.source);
+                return;
+            }
+
+            String imei = addr.getImei();
         
             IridiumSubscription existing = subscriptionsRepo.findByImei(imei);
             if (existing != null) {
