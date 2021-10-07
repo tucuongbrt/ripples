@@ -94,7 +94,7 @@ public class RockBlockController {
 
 		repo.save(m);
 
-		msgProcessor.process(msg);
+		msgProcessor.process(msg, null);
 		msgProcessor.route(msg, null);
 		
 		return new ResponseEntity<>("Message posted to Ripples", HttpStatus.OK);
@@ -141,7 +141,7 @@ public class RockBlockController {
 
 		repo.save(m);
 		// process incoming message
-		msgProcessor.process(msg);
+		msgProcessor.process(msg, imei);
 		msgProcessor.route(msg, imei);
 	
 		return new ResponseEntity<String>("Message received successfully.", HttpStatus.OK);

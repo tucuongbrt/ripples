@@ -113,7 +113,7 @@ public class MessageProcessor {
         });
     }
 
-    public void process(IridiumMessage msg) {
+    public void process(IridiumMessage msg, String imei) {
         switch (msg.message_type) {
             case IridiumMessage.TYPE_DEVICE_UPDATE:
                 onDeviceUpdate((DeviceUpdate) msg);
@@ -131,10 +131,10 @@ public class MessageProcessor {
                 onIridiumCommand((IridiumCommand) msg);
                 break;
             case IridiumMessage.TYPE_ACTIVATE_SUBSCRIPTION:
-                onActivateSubscription((ActivateSubscription) msg);
+                onActivateSubscription((ActivateSubscription) msg, imei);
                 break;
             case IridiumMessage.TYPE_DEACTIVATE_SUBSCRIPTION:
-                onDeactivateSubscription((DeactivateSubscription) msg);
+                onDeactivateSubscription((DeactivateSubscription) msg, imei);
                 break;
             default:
                 break;
@@ -198,15 +198,19 @@ public class MessageProcessor {
      * Activate Iridium subscriptions for this source
      * @param msg The subscription message
      */
-    public void onActivateSubscription(ActivateSubscription msg) {
+    public void onActivateSubscription(ActivateSubscription msg, String imei) {
+        if (imei == null) {
+            logger.warn("Someone tried to subscribe to Iridium from an internet-connected computer... funny guy.");
+            return;
+        }
+
         try {
             IridiumSubscription sub = new IridiumSubscription();
-            SystemAddress addr = addresses.findByImcId(msg.source);
+            SystemAddress addr = addresses.findByImei(imei);
             if (addr == null) {
                 logger.warn("Received subscription request from invalid source: "+msg.source);
                 return;
             }
-            String imei = addr.getImei();
             sub.setImei(imei);
             sub.setImcId(msg.source);
             IridiumSubscription existing = subscriptionsRepo.findByImei(imei);
@@ -226,16 +230,19 @@ public class MessageProcessor {
     /**
      * Deactivate Iridium subscriptions for this source
      */
-    public void onDeactivateSubscription(DeactivateSubscription msg) {
+    public void onDeactivateSubscription(DeactivateSubscription msg, String imei) {
+        if (imei == null) {
+            logger.warn("Someone tried to unsubscribe to Iridium from an internet-connected computer... funny guy.");
+            return;
+        }
+
         try {
-            SystemAddress addr = addresses.findByImcId(msg.source);
+            SystemAddress addr = addresses.findByImei(imei);
             if (addr == null) {
                 logger.warn("Received subscription deactivation request from invalid source: "+msg.source);
                 return;
             }
-
-            String imei = addr.getImei();
-        
+            
             IridiumSubscription existing = subscriptionsRepo.findByImei(imei);
             if (existing != null) {
                 subscriptionsRepo.delete(existing);
