@@ -51,6 +51,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
+import org.hibernate.validator.internal.util.logging.LoggerFactory;
+
 import pt.lsts.ripples.domain.shared.Plan;
 import pt.lsts.ripples.domain.shared.Waypoint;
 import pt.lsts.ripples.util.LocationType;
@@ -74,6 +76,8 @@ public class AssetTrack implements Serializable{
 	
 	@ElementCollection
     private Map<Date, AssetState> plan = new TreeMap<>();
+
+    private static org.slf4j.Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
 
     /**
      * Set the asset's plan (future states)
@@ -138,7 +142,7 @@ public class AssetTrack implements Serializable{
         Entry<Date, AssetState> previousOne = track.floorEntry(d);
 
         if (nextOne == null && previousOne == null) {
-            System.err.println("Could not synthesize state for " + d);
+            logger.debug("Could not synthesize state for " + d);
             return null;
         }
 
