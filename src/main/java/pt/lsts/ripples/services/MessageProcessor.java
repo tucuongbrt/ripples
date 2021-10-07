@@ -231,11 +231,12 @@ public class MessageProcessor {
      * Deactivate Iridium subscriptions for this source
      */
     public void onDeactivateSubscription(DeactivateSubscription msg, String imei) {
+        
         if (imei == null) {
             logger.warn("Someone tried to unsubscribe to Iridium from an internet-connected computer... funny guy.");
             return;
         }
-
+        
         try {
             SystemAddress addr = addresses.findByImei(imei);
             if (addr == null) {
