@@ -247,7 +247,39 @@ path.leaflet-polygon {
 
 #users-table thead tr th {
   float:left;
-  width: 25%;
+  width: 24%;
+}
+
+#users-table .user-action{
+  float:left;
+  width: 4%;
+}
+
+#users-table .user-action-header {
+  padding-top: 36px;
+  float:left;
+  width: 4%;
+}
+
+#users-table .user-name, #users-table .user-email, #users-table .user-role{
+  float:left;
+  width: 20%;
+}
+
+#users-table .user-domain {
+  float:left;
+  width: 36%;
+}
+
+#users-table .user-name-nologin, #users-table-nologin .user-email-nologin, #users-table .user-role-nologin{
+  float:left;
+  width: 26%;
+}
+
+@media only screen and (max-width: 885px) {
+  #users-table tbody, #messages-table tbody {
+    top: 162px !important;
+  }
 }
 
 #users-table tbody, #messages-table tbody {
@@ -288,7 +320,7 @@ path.leaflet-polygon {
 
 #users-table tbody td {
   float:left;
-  width: 25%;
+  width: 24%;
 }
 
 #users-table label, .domain-label-kml {

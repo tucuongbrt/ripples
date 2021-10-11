@@ -44,3 +44,10 @@ export async function updateUserDomain(email: string, domain: string[]) {
     url: `${apiURL}/user/changeUserDomain/${email}`,
   })
 }
+
+export async function removeUser(email: string) {
+  return request({
+    method: 'POST',
+    url: `${apiURL}/user/removeUser/${email}`,
+  })
+}

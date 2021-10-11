@@ -1,11 +1,11 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
-import { Button, Modal, ModalBody, ModalHeader, Table } from 'reactstrap'
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader, Table } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
 import IAuthState, { isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
-import { fetchUsers, getCurrentUser, updateUserDomain, updateUserRole } from '../../services/UserUtils'
+import { fetchUsers, getCurrentUser, removeUser, updateUserDomain, updateUserRole } from '../../services/UserUtils'
 import { createDomain, deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
 const { NotificationManager } = require('react-notifications')
 
@@ -21,12 +21,14 @@ interface StateType {
     domain: string[]
   }[]
   isDomainModalOpen: boolean
+  isUserModalOpen: boolean
   domains: string[]
   domainInputElem: any | null
   domainInputValue: string
   domainPreviousValue: string
   domainNewInput: string
   domainNewInputVisible: boolean
+  userToRemove: string
 }
 
 interface PropsType {
@@ -45,18 +47,22 @@ export class Users extends Component<PropsType, StateType> {
       loading: true,
       users: [],
       isDomainModalOpen: false,
+      isUserModalOpen: false,
       domains: [],
       domainInputElem: null,
       domainInputValue: '',
       domainPreviousValue: '',
       domainNewInput: '',
       domainNewInputVisible: false,
+      userToRemove: '',
     }
     this.getUsers = this.getUsers.bind(this)
     this.handleChangeRole = this.handleChangeRole.bind(this)
     this.handleChangeDomain = this.handleChangeDomain.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.toggleDomainModal = this.toggleDomainModal.bind(this)
+    this.toggleUserModal = this.toggleUserModal.bind(this)
+    this.handleRemoverUser = this.handleRemoverUser.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -136,9 +142,27 @@ export class Users extends Component<PropsType, StateType> {
     })
   }
 
+  private async handleRemoverUser() {
+    const resp = await removeUser(this.state.userToRemove)
+    if (resp.status === 'Success') {
+      NotificationManager.success(resp.message)
+    } else {
+      NotificationManager.error(resp.message)
+    }
+    this.toggleUserModal('')
+    this.getUsers()
+  }
+
   public toggleDomainModal() {
     this.setState({
       isDomainModalOpen: !this.state.isDomainModalOpen,
+    })
+  }
+
+  private toggleUserModal(userEmail: string) {
+    this.setState({
+      isUserModalOpen: !this.state.isUserModalOpen,
+      userToRemove: userEmail,
     })
   }
 
@@ -261,9 +285,12 @@ export class Users extends Component<PropsType, StateType> {
 
     return (
       <tr key={index}>
-        <td>{user.name}</td>
-        <td>{user.email}</td>
-        <td user-data={index}>
+        <td className="user-action">
+          <i className="fas fa-trash" title="Remove user" onClick={() => this.toggleUserModal(user.email)} />
+        </td>
+        <td className="user-name">{user.name}</td>
+        <td className="user-email">{user.email}</td>
+        <td className="user-role" user-data={index}>
           <select className="input-roles" value={user.role} onChange={this.handleChangeRole}>
             <option value="ADMINISTRATOR">Administrator</option>
             <option value="SCIENTIST">Scientist</option>
@@ -271,7 +298,7 @@ export class Users extends Component<PropsType, StateType> {
             <option value="CASUAL">Casual</option>
           </select>
         </td>
-        <td user-domain={index}>
+        <td className="user-domain" user-domain={index}>
           <div className="input-domain">
             {this.state.domains.map((d, indexOpt) => {
               return (
@@ -306,10 +333,11 @@ export class Users extends Component<PropsType, StateType> {
             <Table id="users-table" responsive={true} striped={true}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>
+                  <th className="user-action-header" />
+                  <th className="user-name">Name</th>
+                  <th className="user-email">Email</th>
+                  <th className="user-role">Role</th>
+                  <th className="user-domain">
                     Domain <i className="fas fa-cog fa-lg" onClick={this.toggleDomainModal} />{' '}
                   </th>
                 </tr>
@@ -376,6 +404,18 @@ export class Users extends Component<PropsType, StateType> {
                 )}
               </ModalBody>
             </Modal>
+
+            <Modal isOpen={this.state.isUserModalOpen} toggle={() => this.toggleUserModal('')}>
+              <ModalHeader toggle={() => this.toggleUserModal('')}>Remove user</ModalHeader>
+              <ModalBody>
+                The user "{this.state.userToRemove}" will be removed permanently. Do you want to continue?
+              </ModalBody>
+              <ModalFooter>
+                <Button color="success" onClick={() => this.handleRemoverUser()}>
+                  Yes
+                </Button>
+              </ModalFooter>
+            </Modal>
           </div>
         </>
       )
@@ -387,10 +427,10 @@ export class Users extends Component<PropsType, StateType> {
             <Table id="users-table" responsive={true} striped={true}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Domain</th>
+                  <th className="user-name-nologin">Name</th>
+                  <th className="user-email-nologin">Email</th>
+                  <th className="user-role-nologin">Role</th>
+                  <th className="user-domain-nologin">Domain</th>
                 </tr>
               </thead>
             </Table>

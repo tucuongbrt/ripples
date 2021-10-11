@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +44,8 @@ public class UserController {
 
     @Autowired
     private WebSocketsController wsController;
+
+    private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @GetMapping("/user/me")
     @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR') or hasRole('CASUAL')")
@@ -144,14 +148,25 @@ public class UserController {
     public ResponseEntity<HTTPResponse> updateUserDomain(@PathVariable String email, @RequestBody String[] payload) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
-            List<String> domain= new ArrayList<>(Arrays.asList(payload)); 
+            List<String> domain = new ArrayList<>(Arrays.asList(payload));
             User newUserInfo = user.get();
             newUserInfo.setDomain(domain);
             userRepository.save(newUserInfo);
-            
             return new ResponseEntity<>(new HTTPResponse("Success", "Updated user domain"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update user domain"), HttpStatus.NOT_FOUND);
-        
+    }
+
+    @PostMapping("/user/removeUser/{email}")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    public ResponseEntity<HTTPResponse> removeUser(@PathVariable String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            User userToRemove = user.get();
+            userRepository.delete(userToRemove);
+            logger.info("Removed user: " + email);
+            return new ResponseEntity<>(new HTTPResponse("Success", "User removed"), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new HTTPResponse("Error", "User cannot be removed"), HttpStatus.OK);
     }
 }
