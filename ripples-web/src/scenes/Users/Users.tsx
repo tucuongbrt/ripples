@@ -63,6 +63,7 @@ export class Users extends Component<PropsType, StateType> {
     this.toggleDomainModal = this.toggleDomainModal.bind(this)
     this.toggleUserModal = this.toggleUserModal.bind(this)
     this.handleRemoverUser = this.handleRemoverUser.bind(this)
+    this.openUserProfile = this.openUserProfile.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -77,12 +78,18 @@ export class Users extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     this.setState({ loading: false })
-    if (!(this.props.auth.authenticated && isAdministrator(this.props.auth))) {
-      NotificationManager.error('Only available for administrators')
+
+    if (this.props.auth.authenticated) {
+      if (isAdministrator(this.props.auth)) {
+        this.getUsers()
+        this.timerID = window.setInterval(this.getUsers, 60000)
+        this.getDomains()
+      } else {
+        localStorage.setItem('user-profile', this.props.auth.currentUser.email)
+        window.location.href = '/user/profile'
+      }
     } else {
-      this.getUsers()
-      this.timerID = window.setInterval(this.getUsers, 60000)
-      this.getDomains()
+      NotificationManager.error('Please login')
     }
   }
 
@@ -159,7 +166,10 @@ export class Users extends Component<PropsType, StateType> {
     })
   }
 
-  private toggleUserModal(userEmail: string) {
+  private toggleUserModal(userEmail: string, event?: React.MouseEvent<HTMLElement, MouseEvent>) {
+    if (event) {
+      event.stopPropagation()
+    }
     this.setState({
       isUserModalOpen: !this.state.isUserModalOpen,
       userToRemove: userEmail,
@@ -254,6 +264,11 @@ export class Users extends Component<PropsType, StateType> {
     this.setState({ domains })
   }
 
+  public openUserProfile(email: string) {
+    localStorage.setItem('user-profile', email)
+    window.location.href = '/user/profile'
+  }
+
   public getUsers() {
     fetchUsers()
       .then((data) => {
@@ -284,31 +299,49 @@ export class Users extends Component<PropsType, StateType> {
     })
 
     return (
-      <tr key={index}>
+      <tr key={index} onClick={() => this.openUserProfile(user.email)}>
         <td className="user-action">
-          <i className="fas fa-trash" title="Remove user" onClick={() => this.toggleUserModal(user.email)} />
+          <i
+            className="fas fa-trash"
+            title="Remove user"
+            onClick={(event) => this.toggleUserModal(user.email, event)}
+          />
         </td>
         <td className="user-name">{user.name}</td>
         <td className="user-email">{user.email}</td>
         <td className="user-role" user-data={index}>
-          <select className="input-roles" value={user.role} onChange={this.handleChangeRole}>
-            <option value="ADMINISTRATOR">Administrator</option>
-            <option value="SCIENTIST">Scientist</option>
-            <option value="OPERATOR">Operator</option>
-            <option value="CASUAL">Casual</option>
+          <select
+            className="input-roles"
+            value={user.role}
+            onChange={this.handleChangeRole}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <option value="ADMINISTRATOR" onClick={(event) => event.stopPropagation()}>
+              Administrator
+            </option>
+            <option value="SCIENTIST" onClick={(event) => event.stopPropagation()}>
+              Scientist
+            </option>
+            <option value="OPERATOR" onClick={(event) => event.stopPropagation()}>
+              Operator
+            </option>
+            <option value="CASUAL" onClick={(event) => event.stopPropagation()}>
+              Casual
+            </option>
           </select>
         </td>
         <td className="user-domain" user-domain={index}>
           <div className="input-domain">
             {this.state.domains.map((d, indexOpt) => {
               return (
-                <label key={indexOpt}>
+                <label key={indexOpt} onClick={(event) => event.stopPropagation()}>
                   <input
                     type="checkbox"
                     className={'optDomain-' + index}
                     value={d}
                     checked={domain.includes(d) ? true : false}
                     onChange={this.handleChangeDomain}
+                    onClick={(event) => event.stopPropagation()}
                   />
                   {d}
                 </label>

@@ -130,6 +130,17 @@ public class UserController {
         return userRepository.findAll();
     }
 
+    @GetMapping("/user/getUser/{email}")
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('OPERATOR') or hasRole('SCIENTIST')")
+    public User userInfo(@PathVariable String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if(user.isPresent()) {
+            User userInfo = user.get();
+            return userInfo;
+        }
+        return null;
+    }
+
     @PostMapping("/user/changeUserRole")
     @PreAuthorize("hasRole('ADMINISTRATOR')")
     public ResponseEntity<HTTPResponse> updateUserRole(@RequestBody Map<String, String> payload) {

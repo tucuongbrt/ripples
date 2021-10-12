@@ -134,7 +134,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/apikey/**",
                         "/pollution/**")
                         .permitAll()
-                    .antMatchers("/", "/ripples", "/soirisk", "/messages/text", "/user/manager", "/settings/manager")
+                    .antMatchers("/", "/ripples", "/soirisk", "/messages/text", "/user/manager", "/settings/manager", "/user/profile")
                         .permitAll()
                     .antMatchers("/ripples-docs/**", "/ripples-docs**")
                         .permitAll()

@@ -29,6 +29,10 @@ export async function fetchUsers() {
   return request({ url: `${apiURL}/user/getUsers` })
 }
 
+export async function fetchUser(email: string) {
+  return request({ url: `${apiURL}/user/getUser/${email}` })
+}
+
 export async function updateUserRole(email: string, role: string) {
   return request({
     body: JSON.stringify({ email, role }),

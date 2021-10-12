@@ -490,7 +490,7 @@ export class Settings extends Component<PropsType, StateType> {
           <Collapse isOpen={this.state.isNavOpen} navbar={true}>
             <TopNavLinks />
             <Nav className="ml-auto" navbar={true}>
-              {this.props.auth.authenticated && isAdministrator(this.props.auth) ? (
+              {this.props.auth.authenticated ? (
                 <Link className="navbar-link" to="/user/manager">
                   <i title="Users Manager" className="fas fa-users fa-lg" />
                 </Link>

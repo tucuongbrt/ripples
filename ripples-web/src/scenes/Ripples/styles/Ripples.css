@@ -460,7 +460,7 @@ path.leaflet-polygon {
   font-size: small;
 }
 
-.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover {
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover {
   color:#2bace4;
 }
 
@@ -555,4 +555,87 @@ path.leaflet-polygon {
 
 .plan-dropdown-item {
   padding-right: 10px;
+}
+
+.user-profile { 
+  margin: 50px;
+  overflow-y: auto;
+  height: 70vh;
+}
+
+.user-profile div {
+   min-height: 300px;
+   padding: 5px;
+   border: none;
+}
+
+#user-profile-left {
+  float: left; 
+  margin-right: 20px;
+  width: 35%;
+  overflow: hidden;
+}
+
+#user-profile-right { 
+  overflow: hidden;
+  margin: 10px;
+  border: 2px dashed #ccc;
+  min-height: 300px;
+}
+
+@media screen and (max-width: 760px) {
+   #user-profile-left { 
+    float: none;
+    margin-right: 0;
+    width: auto;
+    border: 0; 
+  }
+}
+
+.user-profile-field {
+  font-weight: bolder;
+  padding: 10px; 
+  display: inline-block; 
+}
+
+.user-profile-value, .user-profile-value-domain {
+  margin: 0px;
+  display: inline-block;
+  font-weight: lighter;
+}
+
+.user-profile-img-wrap img {
+  border-radius: 30%;
+  width: 80%;
+  display: block;
+  margin: auto;
+  max-width: 100%;
+  height: auto;
+}
+
+.user-profile-img-wrap i {
+  position: absolute;
+  top: 20px;
+  right: 50px;
+  border-radius: 50%;
+  height: 30px;
+  width: 30px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 8px 3px #babcbe;
+}
+
+.user-profile-img-wrap {
+  border-style: solid;
+  position: relative;
+  width: auto;
+  height: auto;
+}
+
+#imgSelected {
+  width: 80%;
+  display: block;
+  margin: auto;
+  height: auto;
 }
