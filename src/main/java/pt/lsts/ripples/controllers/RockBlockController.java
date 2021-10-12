@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.iridium.Rock7Message;
 import pt.lsts.ripples.iridium.IridiumMessage;
+import pt.lsts.ripples.iridium.PlainTextReport;
 import pt.lsts.ripples.iridium.RockBlockIridiumSender;
 import pt.lsts.ripples.repo.main.Rock7Repository;
 import pt.lsts.ripples.repo.main.SubscriptionsRepo;
@@ -140,6 +141,14 @@ public class RockBlockController {
 		}
 
 		repo.save(m);
+		if (msg.getMessageType() == -1) {
+			try {
+				msg = new PlainTextReport(new String(hexAdapter.unmarshal(data), "UTF-8"));
+			}
+			catch (Exception e) {
+				logger.error("Error parsinf plain text report", e);
+			}
+		}
 		// process incoming message
 		msgProcessor.process(msg, imei);
 		msgProcessor.route(msg, imei);

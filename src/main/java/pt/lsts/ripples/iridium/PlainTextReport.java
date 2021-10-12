@@ -20,20 +20,23 @@ public class PlainTextReport extends IridiumMessage {
         super(-1);
     }
 
+    public PlainTextReport(String text) {
+        super(-1);
+        this.report = text;
+    }
+
     @Override
     public int serializeFields(IMCOutputStream out) throws Exception {
         out.writePlaintext(report);
         out.close();
-        return report.getBytes("ISO-8859-1").length + 2;
+        return report.getBytes("UTF-8").length + 2;
     }
 
     @Override
     public int deserializeFields(IMCInputStream in) throws Exception {
-        byte[] data = new byte[200];
-        int len = in.read(data);
-        report = new String(data, "ISO-8859-1");
+        report = in.readPlaintext();
         parse();
-        return len + 2;
+        return report.length() + 2;
     }
 
     @Override
