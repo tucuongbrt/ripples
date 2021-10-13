@@ -109,16 +109,35 @@ export class UserProfile extends Component<PropsType, StateType> {
     })
   }
 
-  public handleUploadImage() {
-    alert('Feature not available')
-    this.toggleImageModal()
-    /* 
-    TODO
-    const apiURL = process.env.REACT_APP_API_BASE_URL
-    if(this.state.userImageSelected) {
-        const userImageUrl = apiURL + "/user/image/" + Date.now() + "." + this.state.userImageSelected.name.split('.').pop()
+  public async handleUploadImage() {
+    if (this.state.userImageSelected && process.env.REACT_APP_API_BASE_URL) {
+      const formData = new FormData()
+      formData.append('image', this.state.userImageSelected)
+      formData.append('baseUrl', process.env.REACT_APP_API_BASE_URL)
+      formData.append('email', this.props.auth.currentUser.email)
+
+      // workaround to upload images
+      fetch(process.env.REACT_APP_API_BASE_URL + '/user/image/upload', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          type: 'formData',
+        },
+        body: formData,
+      }).then(
+        (res) => {
+          if (res.ok) {
+            window.location.href = '/user/profile'
+          } else if (res.status === 401) {
+            NotificationManager.error('Cannot upload image')
+          }
+        },
+        (e) => {
+          NotificationManager.error('Cannot upload image')
+        }
+      )
     }
-    */
+    this.toggleImageModal()
   }
 
   public render() {

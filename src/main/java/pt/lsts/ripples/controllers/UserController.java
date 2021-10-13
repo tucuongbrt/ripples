@@ -1,11 +1,19 @@
 package pt.lsts.ripples.controllers;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +24,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.domain.shared.UserLocation;
@@ -134,7 +144,7 @@ public class UserController {
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('OPERATOR') or hasRole('SCIENTIST')")
     public User userInfo(@PathVariable String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if(user.isPresent()) {
+        if (user.isPresent()) {
             User userInfo = user.get();
             return userInfo;
         }
@@ -179,5 +189,67 @@ public class UserController {
             return new ResponseEntity<>(new HTTPResponse("Success", "User removed"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "User cannot be removed"), HttpStatus.OK);
+    }
+
+    @PostMapping("/user/image/upload")
+    public ResponseEntity<HTTPResponse> updateUserImage(@RequestParam("image") MultipartFile file,
+            @RequestParam String baseUrl, @RequestParam String email) throws IOException {
+
+        String currentPath = System.getProperty("user.dir");
+        String directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1).concat("userImages");
+        String fileName = System.currentTimeMillis() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+        String filePath = directoryPath + "/" + fileName;
+        String imageUrl = baseUrl + "/user/image/" + fileName;
+
+        File directory = new File(directoryPath);
+        if (!directory.exists()) {
+            directory.mkdir();
+            logger.info("Created user images directory: " + directoryPath);
+        }
+
+        File imageFile = new File(filePath);
+        if (!imageFile.exists()) {
+            Optional<User> user = userRepository.findByEmail(email);
+            if (user.isPresent()) {
+                imageFile.createNewFile();
+                FileOutputStream fout = new FileOutputStream(imageFile);
+                fout.write(file.getBytes());
+                fout.close();
+
+                User newUserInfo = user.get();
+                newUserInfo.setImageUrl(imageUrl);
+                userRepository.save(newUserInfo);
+
+                logger.info("Added user image");
+                return new ResponseEntity<>(new HTTPResponse("Success", "User image uploaded"), HttpStatus.OK);
+            }
+        }
+        return new ResponseEntity<>(new HTTPResponse("Error", "Cannot upload user image"), HttpStatus.OK);
+    }
+
+    @GetMapping("/user/image/{fileName}")
+    public void userImage(@PathVariable String fileName, HttpServletResponse response) {
+        String currentPath = System.getProperty("user.dir");
+        String imagePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1).concat("userImages/")
+                .concat(fileName);
+
+        response.setContentType("image/" + FilenameUtils.getExtension(fileName));
+        response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
+        response.setHeader("Content-Transfer-Encoding", "binary");
+
+        try {
+            BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream());
+            FileInputStream fis = new FileInputStream(imagePath);
+            int len;
+            byte[] buf = new byte[1024];
+            while ((len = fis.read(buf)) > 0) {
+                bos.write(buf, 0, len);
+            }
+            fis.close();
+            bos.close();
+            response.flushBuffer();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
