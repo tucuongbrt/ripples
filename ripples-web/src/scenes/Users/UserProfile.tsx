@@ -6,6 +6,7 @@ import IAuthState, { isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import ITextMessage from '../../model/ITextMessage'
 import { setUser } from '../../redux/ripples.actions'
+import DateService from '../../services/DateUtils'
 import { fetchUser, getCurrentUser } from '../../services/UserUtils'
 const { NotificationManager } = require('react-notifications')
 
@@ -17,6 +18,7 @@ type IUserProfile = {
   emailVerified: boolean
   domain: string[]
   imageUrl: string | null
+  registrationDate: Date | null
 }
 
 interface StateType {
@@ -178,6 +180,16 @@ export class UserProfile extends Component<PropsType, StateType> {
                   <span className="user-profile-field">Email: </span>
                   <span className="user-profile-value"> {this.state.userProfile.email} </span>
                 </p>
+                {this.state.userProfile.registrationDate !== null ? (
+                  <p>
+                    <span className="user-profile-field">Registration date: </span>
+                    <span className="user-profile-value">
+                      {DateService.formatDate(this.state.userProfile.registrationDate)}
+                    </span>
+                  </p>
+                ) : (
+                  <></>
+                )}
                 <p>
                   <span className="user-profile-field">Role: </span>
                   <span className="user-profile-value"> {this.state.userProfile.role} </span>

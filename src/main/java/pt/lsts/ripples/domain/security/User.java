@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import pt.lsts.ripples.domain.maps.MapSettings;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.*;
@@ -26,6 +27,8 @@ public class User {
     private String email;
 
     private String imageUrl;
+
+    private Date registrationDate;
 
     @Column(nullable = false)
     private String role;
@@ -80,6 +83,14 @@ public class User {
         this.imageUrl = imageUrl;
     }
 
+    public Date getRegistrationDate() {
+        return this.registrationDate;
+    }
+
+    public void setRegistrationDate(Date registrationDate) {
+        this.registrationDate = registrationDate;
+    }
+
     public Boolean getEmailVerified() {
         return emailVerified;
     }
@@ -124,7 +135,7 @@ public class User {
         return domain;
     }
 
-    public void setDomain(List<String> domain){
+    public void setDomain(List<String> domain) {
         this.domain = domain;
     }
 

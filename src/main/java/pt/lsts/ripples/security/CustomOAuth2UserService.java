@@ -20,6 +20,7 @@ import pt.lsts.ripples.repo.main.UserRepository;
 import pt.lsts.ripples.security.oauth2.user.OAuth2UserInfo;
 import pt.lsts.ripples.security.oauth2.user.OAuth2UserInfoFactory;
 
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -76,7 +77,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setRole("CASUAL");
         user.setEmailVerified(false);
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
-        user.setProviderId(oAuth2UserInfo.getId());  
+        user.setProviderId(oAuth2UserInfo.getId());
+        user.setRegistrationDate(new Date());  
         logger.info("Added user: " + user.getEmail());
         return userRepository.save(user);
     }
