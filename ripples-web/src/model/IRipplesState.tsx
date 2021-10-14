@@ -11,6 +11,7 @@ import { WeatherParam } from './WeatherParam'
 import IGeoLayer from './IGeoLayer'
 import IPollution from './IPollution'
 import IObstacle from './IObstacles'
+import IAssetState from './IAssetState'
 
 export interface IAssetsGroup {
   vehicles: IAsset[]
@@ -35,6 +36,7 @@ export default interface IRipplesState {
   toolSelected: ToolSelected
   isGpsActive: boolean
   vehicleSelected: string
+  vehicleSelectedLastState: IAssetState | null
   sidePanelTitle: string
   sidePanelContent: any
   isSidePanelVisible: boolean

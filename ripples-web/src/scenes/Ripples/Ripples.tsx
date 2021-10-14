@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import IAisShip from '../../model/IAisShip'
 import IAnnotation from '../../model/IAnnotations'
 import IAsset, { IAssetPayload } from '../../model/IAsset'
+import IAssetState from '../../model/IAssetState'
 import UserState, {
   getUserDomain,
   isAdministrator,
@@ -82,6 +83,7 @@ interface PropsType {
   auth: UserState
   vehicles: IAsset[]
   vehicleSelected: string
+  vehicleSelectedLastState: IAssetState | null
   mapOverlayInfo: IOverlayInfo
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
@@ -558,6 +560,7 @@ function mapStateToProps(state: IRipplesState) {
     sliderValue: state.sliderValue,
     vehicles: state.assets.vehicles,
     vehicleSelected: state.vehicleSelected,
+    vehicleSelectedLastState: state.vehicleSelectedLastState,
     mapOverlayInfo: state.mapOverlayInfo,
   }
 }

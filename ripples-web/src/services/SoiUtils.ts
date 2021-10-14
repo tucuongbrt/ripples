@@ -71,6 +71,12 @@ export default class SoiService {
     })
   }
 
+  public async vehicleLastState(assetName: string) {
+    return request({
+      url: `${apiURL}/asset/laststate/${assetName}`,
+    })
+  }
+
   /**
    * Method used to convert a string-keyed map to a JSON obj
    * @param strMap String-keyed map

@@ -31,6 +31,7 @@ import {
   addMeasurePoint,
   addWpToPlan,
   clearMeasure,
+  selectVehicleLastState,
   setEditVehicle,
   setMapOverlayInfo,
   setSelectedWaypointIdx,
@@ -65,6 +66,7 @@ import IPollution from '../../../model/IPollution'
 import PollutionService from '../../../services/PollutionUtils'
 import Pollution from './Pollution'
 import IObstacle from '../../../model/IObstacles'
+import IAssetState from '../../../model/IAssetState'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -98,9 +100,11 @@ interface PropsType {
   toolClickLocation: ILatLng | null
   pollution: IPollution[]
   obstacle: IObstacle[]
+  vehicleSelectedLastState: IAssetState | null
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
+  selectVehicleLastState: (_: IAssetState | null) => void
   setSidePanelVisibility: (_: boolean) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
@@ -300,6 +304,17 @@ class RipplesMap extends Component<PropsType, StateType> {
         this.lastWindMapTime = MapUtils.resetMapTime(6)
       }
       this.props.toggleSliderChange()
+    }
+  }
+
+  public async componentDidUpdate() {
+    if (this.props.vehicleSelectedLastState !== null) {
+      const newSettings: IMapSettings = {
+        lat: this.props.vehicleSelectedLastState.latitude,
+        lng: this.props.vehicleSelectedLastState.longitude,
+        zoom: 18,
+      }
+      this.map.leafletElement.setView([newSettings.lat, newSettings.lng], newSettings.zoom)
     }
   }
 
@@ -1073,6 +1088,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       await MapUtils.updateMapSettings(newSettings)
     }
+    this.props.selectVehicleLastState(null)
   }
 
   public handleZoom(e: any) {
@@ -1751,11 +1767,13 @@ function mapStateToProps(state: IRipplesState) {
     geoLayers: state.geoLayers,
     pollution: state.pollution,
     obstacle: state.obstacle,
+    vehicleSelectedLastState: state.vehicleSelectedLastState,
   }
 }
 
 const actionCreators = {
   addWpToPlan,
+  selectVehicleLastState,
   setSelectedWaypointIdx,
   setSidePanelContent,
   setSidePanelTitle,

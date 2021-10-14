@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
+import pt.lsts.ripples.domain.assets.AssetState;
 import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.repo.main.ApiKeyRepository;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
@@ -102,7 +103,7 @@ public class AssetsController {
             if (apiKeyService.isTokenValid(token) && apiKeyService.isTokenWriteable(token)) {
                 List<String> domain = apiKeyService.getTokenDomain(token);
                 logger.info("Updated assets with API key: " + domain.toString());
-                for (int n = 0; n < assets.size(); n++) {  
+                for (int n = 0; n < assets.size(); n++) {
                     Optional<Asset> optAsset = repo.findById(assets.get(n).getName());
                     if (!optAsset.isPresent()) {
                         Asset newAsset = new Asset(assets.get(n).getName());
@@ -211,7 +212,7 @@ public class AssetsController {
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset domain"), HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("asset/delete/{assetName}")
+    @PostMapping("/asset/delete/{assetName}")
     public ResponseEntity<HTTPResponse> deleteAsset(@PathVariable String assetName) {
         Optional<Asset> asset = repo.findById(assetName);
         if (asset.isPresent()) {
@@ -220,6 +221,17 @@ public class AssetsController {
             return new ResponseEntity<>(new HTTPResponse("Success", "Deleted asset"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot delete asset"), HttpStatus.NOT_FOUND);
+    }
+
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
+    @RequestMapping(path = { "/asset/laststate/{assetName}" }, method = RequestMethod.GET)
+    public AssetState assetLastState(@PathVariable String assetName) {
+        Optional<Asset> optAsset = repo.findById(assetName);
+        if (optAsset.isPresent()) {
+            Asset asset = optAsset.get();
+            return asset.getLastState();
+        }
+        return null;
     }
 
     public static byte[] generateToken(byte[] salt, String secret) throws NoSuchAlgorithmException {

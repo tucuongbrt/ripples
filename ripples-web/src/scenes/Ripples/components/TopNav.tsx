@@ -31,6 +31,7 @@ import { WeatherParam } from '../../../model/WeatherParam'
 import {
   clearMeasure,
   selectVehicle,
+  selectVehicleLastState,
   setEditVehicle,
   setEditingPlan,
   setPlanDescription,
@@ -49,6 +50,8 @@ import {
 import ZerotierService from '../../../services/ZerotierUtils'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import { Link } from 'react-router-dom'
+import SoiService from '../../../services/SoiUtils'
+import IAssetState from '../../../model/IAssetState'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -70,6 +73,7 @@ interface PropsType {
   handleUpdatePlanId: (prevId: string, newId: string) => void
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
+  selectVehicleLastState: (_: IAssetState) => void
   setPlanDescription: (_: string) => void
   togglePlanVisibility: (_: IPlan) => void
   updatePlanId: (_: string) => void
@@ -105,6 +109,7 @@ class TopNav extends Component<PropsType, StateType> {
   private plansDropdownDefaultText = 'Plan Editor'
   private vehiclesDropdownDefaultText = 'Select Vehicle'
   private ztService: ZerotierService = new ZerotierService()
+  private soiService: SoiService = new SoiService()
 
   constructor(props: PropsType) {
     super(props)
@@ -296,11 +301,23 @@ class TopNav extends Component<PropsType, StateType> {
     })
   }
 
-  public onVehicleSelected(name: string) {
+  public async onVehicleSelected(name: string) {
     // update dropdown text
     this.setState({ vehiclesDropdownText: name })
     // set vehicle selected on redux state
     this.props.selectVehicle(name)
+
+    try {
+      const resp: IAssetState = await this.soiService.vehicleLastState(name)
+      if (resp.latitude !== undefined && resp.longitude !== undefined) {
+        // set vehicle selected last state on redux state
+        this.props.selectVehicleLastState(resp)
+      } else {
+        NotificationManager.warning('Failed to fetch asset laststate')
+      }
+    } catch (error) {
+      NotificationManager.warning('Failed to fetch asset laststate')
+    }
   }
 
   public buildVehicleSelector() {
@@ -612,6 +629,7 @@ function mapStateToProps(state: IRipplesState) {
 
 const actionCreators = {
   selectVehicle,
+  selectVehicleLastState,
   setPlanDescription,
   setToolSelected,
   togglePlanVisibility,
