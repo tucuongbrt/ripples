@@ -99,7 +99,7 @@ public class ApiKeyController {
         return new ResponseEntity<>(new HTTPResponse("Success", "Created API key:" + apiKeyToSend), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('OPERATOR') or hasRole('SCIENTIST')")
     @PostMapping(path = { "/apikey/remove" })
     public ResponseEntity<HTTPResponse> removeApiKey(@RequestBody String token) {
         token = token.substring(1, token.length() - 1);

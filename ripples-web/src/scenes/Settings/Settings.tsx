@@ -680,7 +680,7 @@ export class Settings extends Component<PropsType, StateType> {
                     <td>{apiKey.email}</td>
 
                     <td>
-                      {isAdministrator(this.props.auth) ? (
+                      {this.props.auth.authenticated ? (
                         <i
                           className="fas fa-trash"
                           title="Remove API Key"
@@ -777,10 +777,12 @@ export class Settings extends Component<PropsType, StateType> {
         <ModalHeader toggle={() => this.toogleRemoveModalModal('')}> Remove API key </ModalHeader>
         <ModalBody>
           <div> The API key will be removed. Do you want to continue?</div>
-          <Button color="danger" onClick={() => this.removeToken()}>
-            Remove
-          </Button>
         </ModalBody>
+        <ModalFooter>
+          <Button color="danger" onClick={() => this.removeToken()}>
+            Yes
+          </Button>
+        </ModalFooter>
       </Modal>
     )
   }

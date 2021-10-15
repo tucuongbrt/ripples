@@ -444,7 +444,7 @@ export class Users extends Component<PropsType, StateType> {
                 The user "{this.state.userToRemove}" will be removed permanently. Do you want to continue?
               </ModalBody>
               <ModalFooter>
-                <Button color="success" onClick={() => this.handleRemoverUser()}>
+                <Button color="danger" onClick={() => this.handleRemoverUser()}>
                   Yes
                 </Button>
               </ModalFooter>
