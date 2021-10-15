@@ -233,7 +233,11 @@ export class UserProfile extends Component<PropsType, StateType> {
                 this.handleImageSelected(event)
               }}
             />
-            <img id="imgSelected" src="#" alt="User file" />
+            <img
+              id="imgSelected"
+              src="https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png"
+              alt="User file"
+            />
           </ModalBody>
           <ModalFooter>
             <Button color="success" onClick={() => this.handleUploadImage()}>
