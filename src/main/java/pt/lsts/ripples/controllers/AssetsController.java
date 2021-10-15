@@ -13,10 +13,13 @@ import pt.lsts.ripples.domain.assets.AssetInfo;
 import pt.lsts.ripples.domain.assets.AssetParams;
 import pt.lsts.ripples.domain.assets.AssetState;
 import pt.lsts.ripples.domain.shared.AssetPosition;
+import pt.lsts.ripples.domain.shared.Plan;
+import pt.lsts.ripples.domain.shared.Waypoint;
 import pt.lsts.ripples.repo.main.ApiKeyRepository;
 import pt.lsts.ripples.repo.main.AssetsParamsRepository;
 import pt.lsts.ripples.repo.main.AssetsRepository;
 import pt.lsts.ripples.repo.main.PositionsRepository;
+import pt.lsts.ripples.repo.main.UnassignedPlansRepository;
 import pt.lsts.ripples.services.ApiKeyService;
 import pt.lsts.ripples.services.AssetInfoService;
 import pt.lsts.ripples.services.SettingsService;
@@ -56,6 +59,9 @@ public class AssetsController {
 
     @Autowired
     ApiKeyService apiKeyService;
+
+    @Autowired
+    UnassignedPlansRepository unassignedPlansRepo;
 
     @Value("${apikeys.secret}")
     String appSecret;
@@ -230,6 +236,29 @@ public class AssetsController {
         if (optAsset.isPresent()) {
             Asset asset = optAsset.get();
             return asset.getLastState();
+        }
+        return null;
+    }
+
+    @PreAuthorize("hasRole('OPERATOR') or hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
+    @RequestMapping(path = { "/asset/plan/{planId}" }, method = RequestMethod.GET)
+    public Waypoint assetPlanPosition(@PathVariable String planId) {
+        // position from unassigned plans
+        Optional<Plan> optPlan = unassignedPlansRepo.findById(planId);
+        if (optPlan.isPresent()) {
+            Plan plan = optPlan.get();
+            if(plan.getWaypoints().size() > 0) {
+                return plan.getWaypoints().get(0); 
+            }
+        }
+        // position from assets plans
+        ArrayList<Asset> assets = repo.findAll();
+        for (int i = 0; i < assets.size(); i++) {
+            if(assets.get(i).getPlan().getId() == planId) {
+                if(assets.get(i).getPlan().getWaypoints().size() > 0) {
+                    return assets.get(i).getPlan().getWaypoints().get(0); 
+                }
+            }
         }
         return null;
     }

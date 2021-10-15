@@ -26,6 +26,7 @@ import {
   deleteSelectedPlan,
   selectVehicle,
   selectVehicleLastState,
+  selectPlanPosition,
   setAis,
   setAnnotations,
   setCcus,
@@ -90,6 +91,7 @@ const startState: IRipplesState = {
   isGpsActive: false,
   vehicleSelected: '',
   vehicleSelectedLastState: null,
+  planSelectedPosition: null,
   measurePath: [],
   annotations: [],
   usersLocations: [],
@@ -253,6 +255,9 @@ const ripplesReducer = createReducer(startState, {
   },
   [selectVehicleLastState.type]: (state, action) => {
     state.vehicleSelectedLastState = action.payload
+  },
+  [selectPlanPosition.type]: (state, action) => {
+    state.planSelectedPosition = action.payload
   },
   [setPlanDescription.type]: (state, action) => {
     state.selectedPlan.description = action.payload

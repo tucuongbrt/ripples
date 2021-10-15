@@ -15,6 +15,7 @@ import UserState, {
   IUserLocation,
 } from '../../model/IAuthState'
 import IGeoLayer from '../../model/IGeoLayer'
+import ILatLng from '../../model/ILatLng'
 import IMyMap from '../../model/IMyMap'
 import IObstacle from '../../model/IObstacles'
 import IOverlayInfo from '../../model/IOverlayInfo'
@@ -84,6 +85,7 @@ interface PropsType {
   vehicles: IAsset[]
   vehicleSelected: string
   vehicleSelectedLastState: IAssetState | null
+  planSelectedPosition: ILatLng | null
   mapOverlayInfo: IOverlayInfo
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
@@ -561,6 +563,7 @@ function mapStateToProps(state: IRipplesState) {
     vehicles: state.assets.vehicles,
     vehicleSelected: state.vehicleSelected,
     vehicleSelectedLastState: state.vehicleSelectedLastState,
+    planSelectedPosition: state.planSelectedPosition,
     mapOverlayInfo: state.mapOverlayInfo,
   }
 }

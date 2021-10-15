@@ -77,6 +77,12 @@ export default class SoiService {
     })
   }
 
+  public async planPosition(planName: string) {
+    return request({
+      url: `${apiURL}/asset/plan/${planName}`,
+    })
+  }
+
   /**
    * Method used to convert a string-keyed map to a JSON obj
    * @param strMap String-keyed map

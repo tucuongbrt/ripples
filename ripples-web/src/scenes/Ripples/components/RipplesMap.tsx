@@ -32,6 +32,7 @@ import {
   addWpToPlan,
   clearMeasure,
   selectVehicleLastState,
+  selectPlanPosition,
   setEditVehicle,
   setMapOverlayInfo,
   setSelectedWaypointIdx,
@@ -101,10 +102,12 @@ interface PropsType {
   pollution: IPollution[]
   obstacle: IObstacle[]
   vehicleSelectedLastState: IAssetState | null
+  planSelectedPosition: ILatLng | null
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
   addWpToPlan: (_: IPositionAtTime) => void
   selectVehicleLastState: (_: IAssetState | null) => void
+  selectPlanPosition: (_: ILatLng | null) => void
   setSidePanelVisibility: (_: boolean) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
@@ -312,6 +315,15 @@ class RipplesMap extends Component<PropsType, StateType> {
       const newSettings: IMapSettings = {
         lat: this.props.vehicleSelectedLastState.latitude,
         lng: this.props.vehicleSelectedLastState.longitude,
+        zoom: 18,
+      }
+      this.map.leafletElement.setView([newSettings.lat, newSettings.lng], newSettings.zoom)
+    }
+
+    if (this.props.planSelectedPosition !== null) {
+      const newSettings: IMapSettings = {
+        lat: this.props.planSelectedPosition.latitude,
+        lng: this.props.planSelectedPosition.longitude,
         zoom: 18,
       }
       this.map.leafletElement.setView([newSettings.lat, newSettings.lng], newSettings.zoom)
@@ -1089,6 +1101,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       await MapUtils.updateMapSettings(newSettings)
     }
     this.props.selectVehicleLastState(null)
+    this.props.selectPlanPosition(null)
   }
 
   public handleZoom(e: any) {
@@ -1768,12 +1781,14 @@ function mapStateToProps(state: IRipplesState) {
     pollution: state.pollution,
     obstacle: state.obstacle,
     vehicleSelectedLastState: state.vehicleSelectedLastState,
+    planSelectedPosition: state.planSelectedPosition,
   }
 }
 
 const actionCreators = {
   addWpToPlan,
   selectVehicleLastState,
+  selectPlanPosition,
   setSelectedWaypointIdx,
   setSidePanelContent,
   setSidePanelTitle,

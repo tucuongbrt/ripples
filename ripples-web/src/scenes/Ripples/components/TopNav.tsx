@@ -32,6 +32,7 @@ import {
   clearMeasure,
   selectVehicle,
   selectVehicleLastState,
+  selectPlanPosition,
   setEditVehicle,
   setEditingPlan,
   setPlanDescription,
@@ -74,6 +75,7 @@ interface PropsType {
   setToolSelected: (_: ToolSelected) => void
   selectVehicle: (_: string) => void
   selectVehicleLastState: (_: IAssetState) => void
+  selectPlanPosition: (_: ILatLng) => void
   setPlanDescription: (_: string) => void
   togglePlanVisibility: (_: IPlan) => void
   updatePlanId: (_: string) => void
@@ -151,13 +153,25 @@ class TopNav extends Component<PropsType, StateType> {
     this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
   }
 
-  componentDidUpdate(prevProps: PropsType) {
+  async componentDidUpdate(prevProps: PropsType) {
     const { selectedPlan, setEditingPlan } = this.props
     if (prevProps.selectedPlan !== selectedPlan && selectedPlan !== EmptyPlan) {
       this.setState({
         plansDropdownText: `Editing ${selectedPlan.assignedTo} - ${selectedPlan.id}`,
       })
       setEditingPlan(true)
+
+      try {
+        const resp: ILatLng = await this.soiService.planPosition(selectedPlan.id)
+        if (resp.latitude !== undefined && resp.longitude !== undefined) {
+          // set plan selected position on redux state
+          this.props.selectPlanPosition(resp)
+        } else {
+          NotificationManager.warning('Failed to fetch asset laststate')
+        }
+      } catch (error) {
+        NotificationManager.warning('Failed to fetch asset laststate')
+      }
     }
   }
 
@@ -630,6 +644,7 @@ function mapStateToProps(state: IRipplesState) {
 const actionCreators = {
   selectVehicle,
   selectVehicleLastState,
+  selectPlanPosition,
   setPlanDescription,
   setToolSelected,
   togglePlanVisibility,

@@ -37,6 +37,7 @@ export default interface IRipplesState {
   isGpsActive: boolean
   vehicleSelected: string
   vehicleSelectedLastState: IAssetState | null
+  planSelectedPosition: ILatLng | null
   sidePanelTitle: string
   sidePanelContent: any
   isSidePanelVisible: boolean
