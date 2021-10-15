@@ -639,3 +639,7 @@ path.leaflet-polygon {
   margin: auto;
   height: auto;
 }
+
+.notification-container {
+  top: 12%;
+}
