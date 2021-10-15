@@ -268,9 +268,11 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
     this.map = this.refs.map as LeafletMap
 
+    const pollutionServer = await this.pollutionService.fetchPollutionExternalServer()
     if (this.props.auth.authenticated && (isAdministrator(this.props.auth) || isScientist(this.props.auth))) {
-      const pollutionServer = await this.pollutionService.fetchPollutionExternalServer()
       this.setState({ editPollutionConfig: pollutionServer })
+    } else {
+      this.setState({ editPollutionConfig: '' })
     }
 
     // organize layers
@@ -529,7 +531,7 @@ class RipplesMap extends Component<PropsType, StateType> {
       return (
         <div className="pollutionDialog">
           <form className="pollutionForm">
-            {isScientist(this.props.auth) ? (
+            {isAdministrator(this.props.auth) || isScientist(this.props.auth) ? (
               <div>
                 {!this.state.pollutionEnable ? (
                   <Button className="m-1" color="info" size="sm" onClick={() => this.enablePollutionMarker()}>
@@ -660,7 +662,8 @@ class RipplesMap extends Component<PropsType, StateType> {
                   />
                 </div>
 
-                {isScientist(this.props.auth) && this.state.editPollutionMarker.status === 'Created' ? (
+                {(isAdministrator(this.props.auth) || isScientist(this.props.auth)) &&
+                this.state.editPollutionMarker.status === 'Created' ? (
                   <div className="pollutionBtn">
                     <Button
                       className="m-1"
@@ -681,12 +684,15 @@ class RipplesMap extends Component<PropsType, StateType> {
 
             {isAdministrator(this.props.auth) && !this.state.pollutionConfig ? (
               <div>
+                <hr />
                 <Button className="m-1" color="success" size="sm" onClick={() => this.handlePollutionConfig()}>
                   Config External Server
                 </Button>
               </div>
             ) : isAdministrator(this.props.auth) && this.state.pollutionConfig ? (
               <div>
+                <hr />
+                <label htmlFor="pollutionConfigUpdate">External server</label>
                 <input
                   type="text"
                   id="pollutionConfigUpdate"
@@ -736,7 +742,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             <ModalHeader toggle={this.togglePollutionModal}>Remove Focus of Pollution</ModalHeader>
             <ModalBody>The focus of pollution will be removed permanently. Do you want to continue?</ModalBody>
             <ModalFooter>
-              <Button color="success" onClick={() => this.handleDeletePollution()}>
+              <Button color="danger" onClick={() => this.handleDeletePollution()}>
                 Yes
               </Button>
             </ModalFooter>
@@ -746,7 +752,7 @@ class RipplesMap extends Component<PropsType, StateType> {
             <ModalHeader toggle={this.toggleObstacleModal}>Remove Obstacle</ModalHeader>
             <ModalBody>The obstacle will be removed permanently. Do you want to continue?</ModalBody>
             <ModalFooter>
-              <Button color="success" onClick={() => this.handleDeleteObstacle()}>
+              <Button color="danger" onClick={() => this.handleDeleteObstacle()}>
                 Yes
               </Button>
             </ModalFooter>

@@ -57,7 +57,7 @@ public class PollutionController {
         return pollutionList;
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/pollution/{id}" }, consumes = "application/json")
     public ResponseEntity<HTTPResponse> createPollution(@RequestBody PollutionLocation asset, @PathVariable String id) {
 
@@ -97,7 +97,7 @@ public class PollutionController {
         return new ResponseEntity<>(new HTTPResponse("success", "Pollution status updated"), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/pollution/sync/" })
     public ResponseEntity<HTTPResponse> syncAllPollutionMarkers(@RequestBody String server) {
 
@@ -156,7 +156,7 @@ public class PollutionController {
         return new ResponseEntity<>(new HTTPResponse("Success", "Pollution marker was deleted"), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @RequestMapping(path = { "/pollution/serverAll", "/pollution/serverAll/" }, method = RequestMethod.GET)
     public List<ExternalServer> pollutionServerAll() {
         ArrayList<ExternalServer> serverList = new ArrayList<>();
@@ -164,7 +164,6 @@ public class PollutionController {
         return serverList;
     }
 
-    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @GetMapping(path = { "/pollution/server", "/pollution/server/" })
     public @ResponseBody String pollutionServer() {
         Optional<ExternalServer> opt = repoServer.findByName("ramp_pollution");
@@ -200,7 +199,7 @@ public class PollutionController {
         return obstaclesList;
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @PostMapping(path = { "/pollution/obstacle" }, consumes = "application/json")
     public ResponseEntity<HTTPResponse> createObstacle(@RequestBody ObstaclePosition asset) {
 
@@ -223,7 +222,7 @@ public class PollutionController {
         return new ResponseEntity<>(new HTTPResponse("Success", "Obstacle was deleted"), HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('SCIENTIST')")
+    @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
     @RequestMapping(path = { "/pollution/alert", "/pollution/alert/" }, method = RequestMethod.GET)
     public ResponseEntity<String> listAlert() {
 
