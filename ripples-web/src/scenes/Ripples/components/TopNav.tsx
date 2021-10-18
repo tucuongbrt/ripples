@@ -162,6 +162,8 @@ class TopNav extends Component<PropsType, StateType> {
       setEditingPlan(true)
 
       try {
+        const delay = (ms: any) => new Promise((res) => setTimeout(res, ms))
+        await delay(100)
         const resp: ILatLng = await this.soiService.planPosition(selectedPlan.id)
         if (resp.latitude !== undefined && resp.longitude !== undefined) {
           // set plan selected position on redux state

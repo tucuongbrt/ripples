@@ -1150,7 +1150,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           fullscreenControl={true}
           center={{ lat: this.state.settings.lat, lng: this.state.settings.lng }}
           zoom={this.state.settings.zoom}
-          maxZoom={20}
+          maxZoom={19}
           onClick={this.handleMapClick}
           onMoveend={this.handleMove}
           onZoomend={this.handleZoom}
