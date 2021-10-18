@@ -57,6 +57,11 @@ public class ImcUdpListener {
     public void on(Announce msg) {
         Logger.getLogger(getClass().getSimpleName()).info("Received announce from " + msg.sys_name);
 
+        if (Double.compare(Math.toDegrees(msg.lat), 0.0) == 0 && Double.compare(Math.toDegrees(msg.lon), 0.0) == 0) {
+            // ignore lat:0.0, long:0.0
+            return;
+        }
+
         Optional<Asset> existingAsset = repo.findById(msg.sys_name);
         if (existingAsset.isPresent()) {
             Asset newAssetInfo = existingAsset.get();
