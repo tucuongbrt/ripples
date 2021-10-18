@@ -23,13 +23,17 @@ export default class AssetAwareness extends Component<PropsType, {}> {
 
   public render() {
     const estimatedPos = this.estimatedPositionAtTime()
-    return (
-      <EstimatedPosition
-        vehicle={this.props.awareness.name}
-        position={estimatedPos}
-        icon={this.props.icon}
-        rotationAngle={estimatedPos.heading + this.props.iconAngle}
-      />
-    )
+    if (estimatedPos.latitude !== 0 && estimatedPos.longitude !== 0) {
+      return (
+        <EstimatedPosition
+          vehicle={this.props.awareness.name}
+          position={estimatedPos}
+          icon={this.props.icon}
+          rotationAngle={estimatedPos.heading + this.props.iconAngle}
+        />
+      )
+    } else {
+      return <></>
+    }
   }
 }
