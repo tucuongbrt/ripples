@@ -218,13 +218,14 @@ public class AssetsController {
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset domain"), HttpStatus.NOT_FOUND);
     }
 
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/asset/delete/{assetName}")
     public ResponseEntity<HTTPResponse> deleteAsset(@PathVariable String assetName) {
         Optional<Asset> asset = repo.findById(assetName);
         if (asset.isPresent()) {
             Asset assetToDelete = asset.get();
             repo.delete(assetToDelete);
-            return new ResponseEntity<>(new HTTPResponse("Success", "Deleted asset"), HttpStatus.OK);
+            return new ResponseEntity<>(new HTTPResponse("Success", "Asset deleted"), HttpStatus.OK);      
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot delete asset"), HttpStatus.NOT_FOUND);
     }

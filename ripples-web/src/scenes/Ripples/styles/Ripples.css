@@ -378,6 +378,7 @@ path.leaflet-polygon {
   font-weight: bold;
   font-size: larger;
   text-decoration: underline;
+  text-align: center;
 }
 
 .domain-input {
@@ -396,6 +397,10 @@ path.leaflet-polygon {
 
 .btn-domain-modal {
   display: grid;
+}
+
+.domainDialog-separator {
+  margin-bottom: 0px;
 }
 
 .fa-pencil-alt, .fa-check, .fa-trash {

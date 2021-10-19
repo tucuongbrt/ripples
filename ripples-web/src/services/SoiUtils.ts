@@ -236,6 +236,13 @@ export default class SoiService {
     await request({ url: `${apiURL}/soi/errors/${assetName}`, method: 'DELETE' })
   }
 
+  public async deleteAsset(assetName: string) {
+    return request({
+      method: 'POST',
+      url: `${apiURL}/asset/delete/${assetName}`,
+    })
+  }
+
   // Converts waypoints read from the server to our type of waypoints
   private convertWaypoint(wp: any) {
     return Object.assign(
