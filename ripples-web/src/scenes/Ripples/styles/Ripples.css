@@ -426,6 +426,15 @@ path.leaflet-polygon {
   width: 94%;
 }
 
+.setting-input-date{
+  width: 100%;
+}
+
+.react-datepicker-wrapper {
+  float: left;
+  width: 94%;
+}
+
 .settings-group-title {
   display: inline-block;
   margin-right: 30px;

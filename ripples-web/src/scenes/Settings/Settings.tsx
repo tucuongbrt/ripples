@@ -30,6 +30,8 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import ZerotierService from '../../services/ZerotierUtils'
 import { createApiKey, fetchApiKeys, removeApiKey } from '../../services/ApiKeyUtils'
 import DateService from '../../services/DateUtils'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -268,8 +270,13 @@ export class Settings extends Component<PropsType, StateType> {
     }
   }
 
-  public async updateSetting(settingId: any, settingParamName: string) {
-    const newSettingValue = this.state.settingInputValue
+  public async updateSetting(settingId: any, settingParamName: string, index: number) {
+    let newSettingValue = this.state.settingInputValue
+
+    if (settingParamName === 'Display assets') {
+      const inputElem: any = document.getElementById('setting-' + settingId + '-' + index)
+      newSettingValue = inputElem.value
+    }
 
     const response = await this.settingsService.updateSettings(settingId, settingParamName, newSettingValue)
     if (response.status === 'Success') {
@@ -313,6 +320,12 @@ export class Settings extends Component<PropsType, StateType> {
     this.setState({ settingId: '' })
   }
 
+  private setSelectedDate(date: Date) {
+    const auxDate = new Date(date.setMonth(date.getMonth() + 1))
+    const newDate = auxDate.getDate() + '/' + auxDate.getMonth() + '/' + auxDate.getFullYear()
+    this.setState({ settingInputValue: newDate })
+  }
+
   public renderSetting(setting: ISettings) {
     return (
       <div key={setting.id} className="settings-group">
@@ -340,6 +353,7 @@ export class Settings extends Component<PropsType, StateType> {
 
         <div className="settings-params-group">
           {setting.params.map((set, index) => {
+            const dateValue = set[1].split('/')
             return this.state.settingInputElem &&
               this.state.settingInputElem.id === 'setting-' + setting.id + '-' + index ? (
               <div key={index} className="setting-row" setting-input={'setting-' + setting.id + '-' + index}>
@@ -353,18 +367,36 @@ export class Settings extends Component<PropsType, StateType> {
                 ) : (
                   <></>
                 )}
-                <input
-                  type="text"
-                  className="setting-input"
-                  id={'setting-' + setting.id + '-' + index}
-                  value={this.state.settingInputValue}
-                  onChange={(event) => this.setState({ settingInputValue: event.target.value })}
-                  disabled={false}
-                />
+                {setting.name === 'Ripples' && set[0] === 'Display assets' ? (
+                  <DatePicker
+                    id={'setting-' + setting.id + '-' + index}
+                    className="setting-input-date"
+                    selected={
+                      new Date(
+                        parseInt(this.state.settingInputValue.split('/')[2], 10),
+                        parseInt(this.state.settingInputValue.split('/')[1], 10) - 1,
+                        parseInt(this.state.settingInputValue.split('/')[0], 10)
+                      )
+                    }
+                    onChange={(newDate: Date) => this.setSelectedDate(newDate)}
+                    dateFormat="dd/MM/yyyy"
+                    timeCaption="time"
+                    disabled={false}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    className="setting-input"
+                    id={'setting-' + setting.id + '-' + index}
+                    value={this.state.settingInputValue}
+                    onChange={(event) => this.setState({ settingInputValue: event.target.value })}
+                    disabled={false}
+                  />
+                )}
                 <i
                   className="fas fa-check"
                   title="Update params"
-                  onClick={() => this.updateSetting(setting.id, set[0])}
+                  onClick={() => this.updateSetting(setting.id, set[0], index)}
                 />
               </div>
             ) : (
@@ -381,13 +413,28 @@ export class Settings extends Component<PropsType, StateType> {
                   <></>
                 )}
 
-                <input
-                  id={'setting-' + setting.id + '-' + index}
-                  className="setting-input"
-                  type="text"
-                  disabled={true}
-                  value={set[1] === '""' ? '' : set[1]}
-                />
+                {setting.name === 'Ripples' && set[0] === 'Display assets' ? (
+                  <DatePicker
+                    id={'setting-' + setting.id + '-' + index}
+                    className="setting-input-date"
+                    selected={
+                      new Date(parseInt(dateValue[2], 10), parseInt(dateValue[1], 10) - 1, parseInt(dateValue[0], 10))
+                    }
+                    onChange={() => undefined}
+                    dateFormat="dd/MM/yyyy"
+                    timeCaption="time"
+                    disabled={true}
+                  />
+                ) : (
+                  <input
+                    id={'setting-' + setting.id + '-' + index}
+                    className="setting-input"
+                    type="text"
+                    disabled={true}
+                    value={set[1] === '""' ? '' : set[1]}
+                  />
+                )}
+
                 <i
                   className="fas fa-pencil-alt"
                   title="Edit param"
