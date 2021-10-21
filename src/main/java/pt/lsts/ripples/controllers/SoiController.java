@@ -2,6 +2,8 @@ package pt.lsts.ripples.controllers;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -133,16 +135,31 @@ public class SoiController {
 	public List<Asset> listAssetsByDomain(@PathVariable String[] userDomain) {
 		ArrayList<Asset> assetsByDomain = new ArrayList<>();
 
+		// read settings
+		String settingsDisplayAssets = settingsService.getAssetsDisplayTime();
+		Instant previousThreeMonths = Instant.now().minus(Duration.ofDays(90));
+		Date defaultDate = Date.from(previousThreeMonths);
+		if (settingsDisplayAssets != null && settingsDisplayAssets.replaceAll("\"", "").length() > 0) {
+			try {
+				defaultDate = new SimpleDateFormat("dd/MM/yyyy").parse(settingsDisplayAssets);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
 		ArrayList<Asset> assets = assetsRepo.findAll();
 		for (Asset a : assets) {
 			for (String domain : userDomain) {
-				if (a.getDomain().contains(domain) && !assetsByDomain.contains(a)) {
+				if (a.getDomain().contains(domain) && !assetsByDomain.contains(a)
+						&& a.getLastState().getDate().after(defaultDate)) {
 					assetsByDomain.add(a);
 				}
 			}
 
 			// assets without domain
-			if (a.getDomain().isEmpty() && !assetsByDomain.contains(a)) {
+			if (a.getDomain().isEmpty() && !assetsByDomain.contains(a)
+					&& a.getLastState().getDate().after(defaultDate)) {
 				assetsByDomain.add(a);
 			}
 		}

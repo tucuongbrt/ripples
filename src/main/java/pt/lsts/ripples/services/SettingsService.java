@@ -52,4 +52,17 @@ public class SettingsService {
         return domain;
     }
 
+    public String getAssetsDisplayTime() {
+        List<Settings> listSettings = settingsRepo.findByDomainName("Ripples");
+        if (!listSettings.isEmpty()) {
+            List<String[]> params = listSettings.get(0).getParams();
+            for (String[] param : params) {
+                if (param[0].contains("Display assets")) {
+                    return param[1];
+                }
+            }
+        }
+        return null;
+    }
+
 }
