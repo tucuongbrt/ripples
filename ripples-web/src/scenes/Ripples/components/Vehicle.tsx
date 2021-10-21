@@ -23,6 +23,8 @@ import {
   AvGenericIcon,
   AuvYellowIcon,
   AuvYellowSmallIcon,
+  AuvRedIcon,
+  AuvRedSmallIcon,
 } from './Icons'
 import RotatedMarker from './RotatedMarker'
 
@@ -44,6 +46,8 @@ class Vehicle extends Component<PropsType, {}> {
   public auvOrangeSmallIcon = new AuvOrangeSmallIcon()
   public auvYellowIcon = new AuvYellowIcon()
   public auvYellowSmallIcon = new AuvYellowSmallIcon()
+  public auvRedIcon = new AuvRedIcon()
+  public auvRedSmallIcon = new AuvRedSmallIcon()
   public avGenericIcon = new AvGenericIcon()
   public avGenericSmallIcon = new AvGenericSmallIcon()
   public mantaIcon = new mantaIcon()
@@ -78,14 +82,21 @@ class Vehicle extends Component<PropsType, {}> {
       return this.wavyBasicIcon
     } else if (assetName.startsWith('WO')) {
       return this.wavyOceanIcon
-    } else if (assetName.startsWith('lauv-xplore') && this.props.currentZoom < 11) {
+    } else if (
+      (assetName.startsWith('lauv-xplore') || assetName.startsWith('lauv-xtreme')) &&
+      this.props.currentZoom < 11
+    ) {
       return this.auvYellowSmallIcon
-    } else if (assetName.startsWith('lauv-xplore')) {
+    } else if (assetName.startsWith('lauv-xplore') || assetName.startsWith('lauv-xtreme')) {
       return this.auvYellowIcon
     } else if (assetName.startsWith('lauv-noptilus') && this.props.currentZoom < 11) {
       return this.auvOrangeSmallIcon
     } else if (assetName.startsWith('lauv-noptilus')) {
       return this.auvOrangeIcon
+    } else if (assetName.startsWith('lauv-nemo') && this.props.currentZoom < 11) {
+      return this.auvRedSmallIcon
+    } else if (assetName.startsWith('lauv-nemo')) {
+      return this.auvRedIcon
     } else if (this.props.currentZoom < 11) {
       return this.avGenericSmallIcon
     } else {

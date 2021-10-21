@@ -1,6 +1,7 @@
 import L from 'leaflet'
 import lauv_orange from '../../../assets/LAUV_orange.png'
 import lauv_yellow from '../../../assets/LAUV_yellow.png'
+import lauv_red from '../../../assets/LAUV_red.png'
 import av_generic from '../../../assets/AV_generic.png'
 import manta from '../../../assets/manta.png'
 import ais_red from '../../../assets/AIS_red.png'
@@ -70,6 +71,20 @@ export const AuvYellowSmallIcon = L.Icon.extend({
   options: {
     iconSize: [22, 22],
     iconUrl: lauv_yellow,
+  },
+})
+
+export const AuvRedIcon = L.Icon.extend({
+  options: {
+    iconSize: [32, 32],
+    iconUrl: lauv_red,
+  },
+})
+
+export const AuvRedSmallIcon = L.Icon.extend({
+  options: {
+    iconSize: [22, 22],
+    iconUrl: lauv_red,
   },
 })
 
