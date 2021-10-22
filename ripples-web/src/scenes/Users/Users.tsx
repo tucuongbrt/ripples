@@ -7,6 +7,7 @@ import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
 import { fetchUsers, getCurrentUser, removeUser, updateUserDomain, updateUserRole } from '../../services/UserUtils'
 import { createDomain, deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
+import { Link } from 'react-router-dom'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -86,7 +87,11 @@ export class Users extends Component<PropsType, StateType> {
         this.getDomains()
       } else {
         localStorage.setItem('user-profile', this.props.auth.currentUser.email)
-        window.location.href = '/user/profile'
+        // window.location.href = '/user/profile'
+        const userLink = document.getElementById('user-link')
+        if (userLink !== null) {
+          userLink.click()
+        }
       }
     } else {
       NotificationManager.error('Please login')
@@ -266,7 +271,11 @@ export class Users extends Component<PropsType, StateType> {
 
   public openUserProfile(email: string) {
     localStorage.setItem('user-profile', email)
-    window.location.href = '/user/profile'
+    // window.location.href = '/user/profile'
+    const userLink = document.getElementById('user-link')
+    if (userLink !== null) {
+      userLink.click()
+    }
   }
 
   public getUsers() {
@@ -449,6 +458,8 @@ export class Users extends Component<PropsType, StateType> {
                 </Button>
               </ModalFooter>
             </Modal>
+
+            <Link id="user-link" to="/user/profile" />
           </div>
         </>
       )

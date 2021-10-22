@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { Link } from 'react-router-dom'
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
 import SimpleNavbar from '../../components/SimpleNavbar'
 import IAuthState, { isAdministrator, IUser } from '../../model/IAuthState'
@@ -129,7 +130,11 @@ export class UserProfile extends Component<PropsType, StateType> {
       }).then(
         (res) => {
           if (res.ok) {
-            window.location.href = '/user/profile'
+            // window.location.href = '/user/profile'
+            const userLink = document.getElementById('user-link')
+            if (userLink !== null) {
+              userLink.click()
+            }
           } else if (res.status === 401) {
             NotificationManager.error('Cannot upload image')
           }
@@ -245,6 +250,8 @@ export class UserProfile extends Component<PropsType, StateType> {
             </Button>
           </ModalFooter>
         </Modal>
+
+        <Link id="user-link" to="/user/profile" />
       </>
     )
   }
