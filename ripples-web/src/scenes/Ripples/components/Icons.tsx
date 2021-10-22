@@ -10,6 +10,7 @@ import ais_grey from '../../../assets/AIS_grey.png'
 import wavy_basic from '../../../assets/wavy_basic.png'
 import wavy_littoral from '../../../assets/wavy_littoral.png'
 import wavy_ocean from '../../../assets/wavy_ocean.png'
+import wavy_dummy from '../../../assets/wavy_dummy.png'
 
 export const BlueCircleIcon = L.Icon.extend({
   options: {
@@ -256,7 +257,7 @@ export const GeoJsonMarker = L.Icon.extend({
   },
 })
 
-export const WavyBasiclIcon = L.Icon.extend({
+export const WavyBasicIcon = L.Icon.extend({
   options: {
     iconSize: [15, 15],
     iconUrl: wavy_basic,
@@ -270,9 +271,16 @@ export const WavyLittoralIcon = L.Icon.extend({
   },
 })
 
-export const WavyOceanlIcon = L.Icon.extend({
+export const WavyOceanIcon = L.Icon.extend({
   options: {
     iconSize: [15, 15],
     iconUrl: wavy_ocean,
+  },
+})
+
+export const WavyDummyIcon = L.Icon.extend({
+  options: {
+    iconSize: [15, 15],
+    iconUrl: wavy_dummy,
   },
 })

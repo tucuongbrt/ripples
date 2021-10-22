@@ -17,8 +17,9 @@ import {
   AuvOrangeSmallIcon,
   mantaIcon,
   WavyLittoralIcon,
-  WavyBasiclIcon,
-  WavyOceanlIcon,
+  WavyBasicIcon,
+  WavyOceanIcon,
+  WavyDummyIcon,
   AvGenericSmallIcon,
   AvGenericIcon,
   AuvYellowIcon,
@@ -51,9 +52,10 @@ class Vehicle extends Component<PropsType, {}> {
   public avGenericIcon = new AvGenericIcon()
   public avGenericSmallIcon = new AvGenericSmallIcon()
   public mantaIcon = new mantaIcon()
-  public wavyBasicIcon = new WavyBasiclIcon()
+  public wavyBasicIcon = new WavyBasicIcon()
   public wavyLittoralIcon = new WavyLittoralIcon()
-  public wavyOceanIcon = new WavyOceanlIcon()
+  public wavyOceanIcon = new WavyOceanIcon()
+  public wavyDummyIcon = new WavyDummyIcon()
   private positionService: PositionService = new PositionService()
 
   constructor(props: PropsType) {
@@ -82,6 +84,8 @@ class Vehicle extends Component<PropsType, {}> {
       return this.wavyBasicIcon
     } else if (assetName.startsWith('WO')) {
       return this.wavyOceanIcon
+    } else if (assetName.startsWith('WD')) {
+      return this.wavyDummyIcon
     } else if (
       (assetName.startsWith('lauv-xplore') || assetName.startsWith('lauv-xtreme')) &&
       this.props.currentZoom < 11
