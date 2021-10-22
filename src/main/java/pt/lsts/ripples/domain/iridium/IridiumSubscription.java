@@ -14,6 +14,7 @@ public class IridiumSubscription {
     Long id;
 
     private String imei;
+    private Integer imcId;
     private Date deadline = new Date(System.currentTimeMillis() + 1000 * 3600 * 24);
 
     public String getImei() {
@@ -24,6 +25,7 @@ public class IridiumSubscription {
         this.imei = imei;
     }
 
+    
     public Date getDeadline() {
         return deadline;
     }
@@ -32,4 +34,11 @@ public class IridiumSubscription {
         this.deadline = deadline;
     }
 
+    public Integer getImcId() {
+        return imcId;
+    }
+
+    public void setImcId(Integer imcId) {
+        this.imcId = imcId;
+    }
 }

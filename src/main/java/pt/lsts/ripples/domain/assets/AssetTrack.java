@@ -75,6 +75,8 @@ public class AssetTrack implements Serializable{
 	@ElementCollection
     private Map<Date, AssetState> plan = new TreeMap<>();
 
+    private static org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AssetTrack.class);
+
     /**
      * Set the asset's plan (future states)
      * @param plan The plan to attribute to this track
@@ -138,7 +140,7 @@ public class AssetTrack implements Serializable{
         Entry<Date, AssetState> previousOne = track.floorEntry(d);
 
         if (nextOne == null && previousOne == null) {
-            System.err.println("Could not synthesize state for " + d);
+            logger.debug("Could not synthesize state for " + d);
             return null;
         }
 

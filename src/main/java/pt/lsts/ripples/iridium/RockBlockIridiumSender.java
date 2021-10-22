@@ -113,11 +113,17 @@ public class RockBlockIridiumSender {
         }
 
     }
+    public void sendMessage(IridiumMessage msg, String destinationImei) throws Exception {
+    
+    }
 
     public void sendMessage(IridiumMessage msg) throws Exception {
 
         SystemAddress system = addressesRepo.findByImcId(msg.getDestination());
-        if (system == null || system.getImei() == null || system.getRock7Email() == null) return;
+        if (system == null || system.getImei() == null || system.getRock7Email() == null) {
+            logger.warn("Cannot send message to destination: "+msg.getDestination()+", "+system);
+            return;
+        } 
         Rock7Account rock7Account = rock7AccountsRepo.findById(system.getRock7Email()).get();
         saveMessage(msg, system.getName());
         logger.info("Trying to send rockblock message using account: " + rock7Account.getEmail());
@@ -167,8 +173,6 @@ public class RockBlockIridiumSender {
         urlParameters.add(new BasicNameValuePair("password", rock7Account.getPassword()));
         urlParameters.add(new BasicNameValuePair("data", ByteUtil.encodeToHex(data)));
         
-        
-
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
         post.setHeader("Content-Type", "application/x-www-form-urlencoded");
         HttpResponse response = client.execute(post);
