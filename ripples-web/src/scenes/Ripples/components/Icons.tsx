@@ -14,7 +14,7 @@ import wavy_dummy from '../../../assets/wavy_dummy.png'
 
 export const BlueCircleIcon = L.Icon.extend({
   options: {
-    iconSize: [16, 16],
+    iconSize: [10, 10],
     iconUrl: 'https://i.imgur.com/iiHo3vX.png',
   },
 })
@@ -133,49 +133,49 @@ export const RedTriangleIcon = L.Icon.extend({
 
 export const StartWaypointIcon = L.Icon.extend({
   options: {
-    iconSize: [16, 16],
+    iconSize: [10, 10],
     iconUrl: 'http://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Green-icon.png',
   },
 })
 
 export const WaypointIcon = L.Icon.extend({
   options: {
-    iconSize: [18, 18],
+    iconSize: [10, 10],
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Blue_sphere.svg',
   },
 })
 
 export const RedCircleIcon = L.Icon.extend({
   options: {
-    iconSize: [18, 18],
+    iconSize: [10, 10],
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Nuvola_apps_krec.svg',
   },
 })
 
 export const GreenCircleIcon = L.Icon.extend({
   options: {
-    iconSize: [18, 18],
+    iconSize: [10, 10],
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/Green_sphere.svg',
   },
 })
 
 export const YellowCircleIcon = L.Icon.extend({
   options: {
-    iconSize: [18, 18],
+    iconSize: [10, 10],
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Nuvola_apps_kbouncey.svg',
   },
 })
 
 export const OrangeCircleIcon = L.Icon.extend({
   options: {
-    iconSize: [18, 18],
+    iconSize: [10, 10],
     iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Orange_sphere.png',
   },
 })
 
 export const FinishWaypointIcon = L.Icon.extend({
   options: {
-    iconSize: [16, 16],
+    iconSize: [10, 10],
     iconUrl: 'https://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Red-icon.png',
   },
 })
