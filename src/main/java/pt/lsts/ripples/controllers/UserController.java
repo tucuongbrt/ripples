@@ -201,6 +201,9 @@ public class UserController {
         String filePath = directoryPath + "/" + fileName;
         String imageUrl = baseUrl + "/user/image/" + fileName;
 
+        System.out.println("FilePath: " + filePath);
+        System.out.println("ImageUrl: " + imageUrl);
+
         File directory = new File(directoryPath);
         if (!directory.exists()) {
             directory.mkdir();
