@@ -339,17 +339,6 @@ public class SoiController {
 	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteUnassignedPlan(@RequestBody EntityWithId body) {
-
-		ArrayList<Asset> assets = assetsRepo.findAll();
-		for (Asset a : assets) {
-			if( a.getPlan().getId().equals(body.getId()) && !body.getId().equals("idle") ) {
-				Plan p = new Plan();
-        		p.setId("idle");
-				a.setPlan(p);
-				assetsRepo.save(a);
-			}
-		}
-
 		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
 		if (planOptional.isPresent()) {
 			logger.info("Deleting Plan with id: " + body.getId());
@@ -375,6 +364,29 @@ public class SoiController {
 			logger.info("Plan with id: " + body.getPreviousId() + " not found");
 			return new ResponseEntity<>(new HTTPResponse("not found", "Plan not found"), HttpStatus.NOT_FOUND);
 		}
+	}
+
+	// @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
+	@RequestMapping(path = { "/soi/plan/{planName}" }, method = RequestMethod.DELETE)
+	public ResponseEntity<HTTPResponse> deletePlan(@PathVariable String planName) {
+		// set idle all the assigned plans
+		ArrayList<Asset> assets = assetsRepo.findAll();
+		for (Asset a : assets) {
+			if(a.getPlan().getId().equals(planName) && !a.getPlan().getId().equals("idle")) {
+				Plan p = new Plan();
+				p.setId("idle");
+				a.setPlan(p);
+				assetsRepo.save(a);
+			}
+		}
+
+		ArrayList<Plan> plans = (ArrayList<Plan>) unassignedPlansRepo.findAll();
+		plans.forEach(p -> {
+			if (p.getId().equals(planName) && !p.getId().equals("idle")) {
+				unassignedPlansRepo.delete(p);
+			}
+		});
+		return new ResponseEntity<>(new HTTPResponse("success", "Plan deleted"), HttpStatus.OK);
 	}
 
 	@RequestMapping(path = { "/soi/incoming/{name}" }, method = RequestMethod.GET, produces = "text/plain")
