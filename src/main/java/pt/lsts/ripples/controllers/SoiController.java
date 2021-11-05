@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pt.lsts.imc.SoiCommand;
 import pt.lsts.imc.SoiCommand.COMMAND;
 import pt.lsts.imc.SoiCommand.TYPE;
+import pt.lsts.imc4j.util.PlanUtilities.Waypoint;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetErrors;
 import pt.lsts.ripples.domain.shared.Plan;
@@ -339,21 +340,15 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deleteUnassignedPlan(@RequestBody EntityWithId body) {
 
-		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
-		if (planOptional.isPresent()) {
-			logger.info("Deleting Plan with id: " + body.getId());
-			unassignedPlansRepo.deleteById(body.getId());
-			return new ResponseEntity<>(new HTTPResponse("success", "Plan deleted"), HttpStatus.OK);
-		} else {
-			logger.info("Plan with id: " + body.getId() + " not found");
-			return new ResponseEntity<>(new HTTPResponse("not found", "Plan not found"), HttpStatus.NOT_FOUND);
+		ArrayList<Asset> assets = assetsRepo.findAll();
+		for (Asset a : assets) {
+			if( a.getPlan().getId().equals(body.getId()) && !body.getId().equals("idle") ) {
+				Plan p = new Plan();
+        		p.setId("idle");
+				a.setPlan(p);
+				assetsRepo.save(a);
+			}
 		}
-	}
-
-	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
-	@RequestMapping(path = { "/soi/unassigned/plans/delete",
-			"/soi/unassigned/plans/delete/" }, method = RequestMethod.POST)
-	public ResponseEntity<HTTPResponse> deleteUnassignedPlan2(@RequestBody EntityWithId body) {
 
 		Optional<Plan> planOptional = unassignedPlansRepo.findById(body.getId());
 		if (planOptional.isPresent()) {
