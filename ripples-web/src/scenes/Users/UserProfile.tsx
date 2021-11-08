@@ -114,13 +114,20 @@ export class UserProfile extends Component<PropsType, StateType> {
 
   public async handleUploadImage() {
     if (this.state.userImageSelected && process.env.REACT_APP_API_BASE_URL) {
+      let baseUrl
+      if (process.env.REACT_APP_API_BASE_URL.length > 1) {
+        baseUrl = process.env.REACT_APP_API_BASE_URL
+      } else {
+        baseUrl = 'https://ripples.lsts.pt'
+      }
+
       const formData = new FormData()
       formData.append('image', this.state.userImageSelected)
       formData.append('baseUrl', process.env.REACT_APP_API_BASE_URL)
       formData.append('email', this.props.auth.currentUser.email)
 
       // workaround to upload images
-      fetch(process.env.REACT_APP_API_BASE_URL + '/user/image/upload', {
+      fetch(baseUrl + '/user/image/upload', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -130,9 +137,9 @@ export class UserProfile extends Component<PropsType, StateType> {
       }).then(
         (res) => {
           if (res.ok) {
-            // window.location.href = '/user/profile'
             const userLink = document.getElementById('user-link')
             if (userLink !== null) {
+              NotificationManager.success('Updated user image')
               userLink.click()
             }
           } else if (res.status === 401) {
@@ -251,7 +258,7 @@ export class UserProfile extends Component<PropsType, StateType> {
           </ModalFooter>
         </Modal>
 
-        <Link id="user-link" to="/user/profile" />
+        <Link id="user-link" to="/user/manager" />
       </>
     )
   }

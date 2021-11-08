@@ -1,10 +1,11 @@
 package pt.lsts.ripples.controllers;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -54,6 +55,8 @@ public class UserController {
 
     @Autowired
     private WebSocketsController wsController;
+
+    public static String uploadBaseDirectory = System.getProperty("user.dir");
 
     private static Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -193,49 +196,37 @@ public class UserController {
 
     @PostMapping("/user/image/upload")
     public ResponseEntity<HTTPResponse> updateUserImage(@RequestParam("image") MultipartFile file,
-            @RequestParam String baseUrl, @RequestParam String email) throws IOException {
+            @RequestParam String baseUrl, @RequestParam String email) {
 
-        String currentPath = System.getProperty("user.dir");
-        String directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1).concat("userImages");
-        String fileName = System.currentTimeMillis() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
-        String filePath = directoryPath + "/" + fileName;
-        String imageUrl = baseUrl + "/user/image/" + fileName;
+        String uploadDirectory = uploadBaseDirectory.substring(0, uploadBaseDirectory.lastIndexOf('/') + 1)
+                + "userImages";
+        String uniqueFileName = System.currentTimeMillis() + "."
+                + FilenameUtils.getExtension(file.getOriginalFilename());
+        Path fileNamePath = Paths.get(uploadDirectory, uniqueFileName);
+        String imageUrl = baseUrl + "/user/image/" + uniqueFileName;
 
-        System.out.println("FilePath: " + filePath);
-        System.out.println("ImageUrl: " + imageUrl);
-
-        File directory = new File(directoryPath);
-        if (!directory.exists()) {
-            directory.mkdir();
-            logger.info("Created user images directory: " + directoryPath);
-        }
-
-        File imageFile = new File(filePath);
-        if (!imageFile.exists()) {
+        try {
+            Files.write(fileNamePath, file.getBytes());
+            System.out.println("imageUrl   --> " + imageUrl);
             Optional<User> user = userRepository.findByEmail(email);
             if (user.isPresent()) {
-                imageFile.createNewFile();
-                FileOutputStream fout = new FileOutputStream(imageFile);
-                fout.write(file.getBytes());
-                fout.close();
-
                 User newUserInfo = user.get();
                 newUserInfo.setImageUrl(imageUrl);
                 userRepository.save(newUserInfo);
 
-                logger.info("Added user image");
+                logger.info("Added user image: " + fileNamePath);
                 return new ResponseEntity<>(new HTTPResponse("Success", "User image uploaded"), HttpStatus.OK);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot upload user image"), HttpStatus.OK);
     }
 
     @GetMapping("/user/image/{fileName}")
     public void userImage(@PathVariable String fileName, HttpServletResponse response) {
-        String currentPath = System.getProperty("user.dir");
-        String imagePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1).concat("userImages/")
-                .concat(fileName);
-
+        String imagePath = uploadBaseDirectory.substring(0, uploadBaseDirectory.lastIndexOf('/') + 1) + "userImages/"
+                + fileName;
         response.setContentType("image/" + FilenameUtils.getExtension(fileName));
         response.setHeader("Content-Disposition", "attachment; filename=" + fileName);
         response.setHeader("Content-Transfer-Encoding", "binary");
