@@ -113,21 +113,18 @@ export class UserProfile extends Component<PropsType, StateType> {
   }
 
   public async handleUploadImage() {
-    if (this.state.userImageSelected && process.env.REACT_APP_API_BASE_URL) {
-      let baseUrl
-      if (process.env.REACT_APP_API_BASE_URL.length > 1) {
-        baseUrl = process.env.REACT_APP_API_BASE_URL
-      } else {
-        baseUrl = 'https://ripples.lsts.pt'
-      }
-
+    const apiURL = process.env.REACT_APP_API_BASE_URL
+    if (this.state.userImageSelected && apiURL) {
       const formData = new FormData()
       formData.append('image', this.state.userImageSelected)
-      formData.append('baseUrl', process.env.REACT_APP_API_BASE_URL)
+      formData.append('baseUrl', apiURL)
       formData.append('email', this.props.auth.currentUser.email)
 
+      console.log('baseUrl -> ' + apiURL)
+      console.log('email -> ' + this.props.auth.currentUser.email)
+
       // workaround to upload images
-      fetch(baseUrl + '/user/image', {
+      fetch(process.env.REACT_APP_API_BASE_URL + '/user/image', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
