@@ -202,12 +202,14 @@ public class UserController {
                 + "userImages";
         String uniqueFileName = System.currentTimeMillis() + "."
                 + FilenameUtils.getExtension(file.getOriginalFilename());
-        Path fileNamePath = Paths.get(uploadDirectory, uniqueFileName);
+        //Path fileNamePath = Paths.get(uploadDirectory, uniqueFileName);
         String imageUrl = baseUrl + "/user/image/" + uniqueFileName;
 
-        System.out.println("fileNamePath   --> " + fileNamePath);
+        System.out.println("uploadDirectory   --> " + uploadDirectory);
+
+        System.out.println("uniqueFileName   --> " + uniqueFileName);
         System.out.println("imageUrl   --> " + imageUrl);
-        
+
 /*
         try {
             Files.write(fileNamePath, file.getBytes());
