@@ -194,26 +194,23 @@ public class UserController {
         return new ResponseEntity<>(new HTTPResponse("Error", "User cannot be removed"), HttpStatus.OK);
     }
 
-    @PostMapping("/user/image/upload")
+    @PostMapping("/user/image")
     public ResponseEntity<HTTPResponse> updateUserImage(@RequestParam("image") MultipartFile file,
             @RequestParam String baseUrl, @RequestParam String email) {
 
-        String uploadDirectory = uploadBaseDirectory.substring(0, uploadBaseDirectory.lastIndexOf('/') + 1)
-                + "userImages";
         String uniqueFileName = System.currentTimeMillis() + "."
                 + FilenameUtils.getExtension(file.getOriginalFilename());
-        //Path fileNamePath = Paths.get(uploadDirectory, uniqueFileName);
+
+        String uploadDirectory = uploadBaseDirectory.substring(0, uploadBaseDirectory.lastIndexOf('/') + 1) + "userImages/" + uniqueFileName;
+        Path fileNamePath = Paths.get(uploadDirectory);
         String imageUrl = baseUrl + "/user/image/" + uniqueFileName;
 
         System.out.println("uploadDirectory   --> " + uploadDirectory);
-
-        System.out.println("uniqueFileName   --> " + uniqueFileName);
         System.out.println("imageUrl   --> " + imageUrl);
 
-/*
+
         try {
             Files.write(fileNamePath, file.getBytes());
-            System.out.println("imageUrl   --> " + imageUrl);
             Optional<User> user = userRepository.findByEmail(email);
             if (user.isPresent()) {
                 User newUserInfo = user.get();
@@ -226,7 +223,7 @@ public class UserController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        */
+        
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot upload user image"), HttpStatus.OK);
     }
 

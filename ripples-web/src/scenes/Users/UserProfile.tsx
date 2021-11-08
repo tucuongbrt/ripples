@@ -127,7 +127,7 @@ export class UserProfile extends Component<PropsType, StateType> {
       formData.append('email', this.props.auth.currentUser.email)
 
       // workaround to upload images
-      fetch(baseUrl + '/user/image/upload', {
+      fetch(baseUrl + '/user/image', {
         method: 'POST',
         headers: {
           Accept: 'application/json',
