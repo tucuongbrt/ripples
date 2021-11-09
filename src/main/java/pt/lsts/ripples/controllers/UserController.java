@@ -201,13 +201,10 @@ public class UserController {
         String uniqueFileName = System.currentTimeMillis() + "."
                 + FilenameUtils.getExtension(file.getOriginalFilename());
 
-        String uploadDirectory = uploadBaseDirectory.substring(0, uploadBaseDirectory.lastIndexOf('/') + 1) + "userImages/" + uniqueFileName;
+        String uploadDirectory = uploadBaseDirectory.substring(0, uploadBaseDirectory.lastIndexOf('/') + 1)
+                + "userImages/" + uniqueFileName;
         Path fileNamePath = Paths.get(uploadDirectory);
         String imageUrl = baseUrl + "/user/image/" + uniqueFileName;
-
-        System.out.println("uploadDirectory   --> " + uploadDirectory);
-        System.out.println("imageUrl   --> " + imageUrl);
-
 
         try {
             Files.write(fileNamePath, file.getBytes());
@@ -223,7 +220,7 @@ public class UserController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot upload user image"), HttpStatus.OK);
     }
 

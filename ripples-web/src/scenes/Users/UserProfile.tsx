@@ -122,9 +122,6 @@ export class UserProfile extends Component<PropsType, StateType> {
       formData.append('baseUrl', apiURL)
       formData.append('email', this.props.auth.currentUser.email)
 
-      console.log('baseUrl -> ' + apiURL)
-      console.log('email -> ' + this.props.auth.currentUser.email)
-
       // workaround to upload images
       fetch(apiURL + '/user/image', {
         method: 'POST',
