@@ -478,6 +478,8 @@ export class Users extends Component<PropsType, StateType> {
                 </tr>
               </thead>
             </Table>
+
+            <Link id="user-link" to="/user/profile" />
           </div>
         </>
       )
