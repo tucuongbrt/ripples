@@ -1086,7 +1086,8 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public drawCanvas(info: any) {
-    if (this.state.currentZoom > 8) {
+    console.log('--> ' + this.state.currentZoom)
+    if (this.state.currentZoom > 10 || this.state.currentZoom === undefined) {
       const ctx = info.canvas.getContext('2d')
       ctx.clearRect(0, 0, info.canvas.width, info.canvas.height)
       ctx.fillStyle = 'rgba(255,116,0, 0.2)'
@@ -1095,7 +1096,11 @@ class RipplesMap extends Component<PropsType, StateType> {
           perpLinesSize: this.state.perpLinesSize,
           ship,
         })
-        aisCanvas.drawInCanvas(info)
+        let drawMeasure = false
+        if (this.state.currentZoom > 15) {
+          drawMeasure = true
+        }
+        aisCanvas.drawInCanvas(info, drawMeasure)
       })
     } else {
       // clear canvas
