@@ -128,6 +128,7 @@ export class Settings extends Component<PropsType, StateType> {
     this.generateToken = this.generateToken.bind(this)
     this.removeToken = this.removeToken.bind(this)
     this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
+    this.redirectToUserProfilePage = this.redirectToUserProfilePage.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -537,14 +538,8 @@ export class Settings extends Component<PropsType, StateType> {
           <Collapse isOpen={this.state.isNavOpen} navbar={true}>
             <TopNavLinks />
             <Nav className="ml-auto" navbar={true}>
-              {this.props.auth.authenticated ? (
-                <Link className="navbar-link" to="/user/manager">
-                  <i title="Users Manager" className="fas fa-users fa-lg" />
-                </Link>
-              ) : (
-                <></>
-              )}
-
+              {this.props.auth.authenticated && isAdministrator(this.props.auth) && this.redirectToUsersManagerPage()}
+              {this.props.auth.authenticated && this.buildUserProfilePage()}
               {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildTokenSelector()}
               {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildZerotierSelector()}
 
@@ -911,6 +906,32 @@ export class Settings extends Component<PropsType, StateType> {
       this.fetchApiKeys()
     } else {
       NotificationManager.warning(resp.message)
+    }
+  }
+
+  private redirectToUsersManagerPage() {
+    return (
+      <Link className="navbar-link" to="/user/manager">
+        <i title="Users Manager" className="fas fa-users fa-lg" />
+      </Link>
+    )
+  }
+
+  private buildUserProfilePage() {
+    return (
+      <>
+        <i title="User Profile" className="fas fa-user fa-lg" onClick={this.redirectToUserProfilePage} />
+        <Link id="user-link" to="/user/profile" />
+      </>
+    )
+  }
+
+  private redirectToUserProfilePage() {
+    console.log('-> ' + this.props.auth.currentUser.email)
+    localStorage.setItem('user-profile', this.props.auth.currentUser.email)
+    const userLink = document.getElementById('user-link')
+    if (userLink !== null) {
+      userLink.click()
     }
   }
 }

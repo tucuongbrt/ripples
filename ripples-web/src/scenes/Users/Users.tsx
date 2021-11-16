@@ -86,12 +86,7 @@ export class Users extends Component<PropsType, StateType> {
         this.timerID = window.setInterval(this.getUsers, 60000)
         this.getDomains()
       } else {
-        localStorage.setItem('user-profile', this.props.auth.currentUser.email)
-        // window.location.href = '/user/profile'
-        const userLink = document.getElementById('user-link')
-        if (userLink !== null) {
-          userLink.click()
-        }
+        NotificationManager.error('Only available for administrators')
       }
     } else {
       NotificationManager.error('Please login')
@@ -271,7 +266,6 @@ export class Users extends Component<PropsType, StateType> {
 
   public openUserProfile(email: string) {
     localStorage.setItem('user-profile', email)
-    // window.location.href = '/user/profile'
     const userLink = document.getElementById('user-link')
     if (userLink !== null) {
       userLink.click()
