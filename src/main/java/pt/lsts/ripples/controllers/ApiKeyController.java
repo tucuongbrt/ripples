@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -100,7 +101,7 @@ public class ApiKeyController {
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR') or hasRole('OPERATOR') or hasRole('SCIENTIST')")
-    @PostMapping(path = { "/apikey/remove" })
+    @DeleteMapping(path = { "/apikey" })
     public ResponseEntity<HTTPResponse> removeApiKey(@RequestBody String token) {
         token = token.substring(1, token.length() - 1);
 

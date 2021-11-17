@@ -19,8 +19,8 @@ export async function createApiKey(email: string, domain: string[], permission: 
 
 export async function removeApiKey(token: string) {
   return request({
-    method: 'POST',
+    method: 'DELETE',
     body: JSON.stringify(token),
-    url: `${apiURL}/apikey/remove`,
+    url: `${apiURL}/apikey`,
   })
 }
