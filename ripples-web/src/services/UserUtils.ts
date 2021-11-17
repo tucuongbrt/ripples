@@ -51,7 +51,7 @@ export async function updateUserDomain(email: string, domain: string[]) {
 
 export async function removeUser(email: string) {
   return request({
-    method: 'POST',
-    url: `${apiURL}/user/removeUser/${email}`,
+    method: 'DELETE',
+    url: `${apiURL}/user/${email}`,
   })
 }
