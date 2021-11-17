@@ -1,5 +1,6 @@
 package pt.lsts.ripples.controllers;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -121,7 +122,7 @@ public class DomainController {
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping(path = { "/domain/remove/{name}" })
+    @DeleteMapping(path = { "/domain/{name}" })
     public ResponseEntity<HTTPResponse> deleteDomain(@PathVariable String name) {
         List<Domain> domains = repo.findByName(name);
         if (!domains.isEmpty()) {

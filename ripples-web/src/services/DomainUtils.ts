@@ -25,7 +25,7 @@ export async function updateDomain(prevName: string, newName: string) {
 
 export async function deleteDomain(name: string) {
   return request({
-    method: 'POST',
-    url: `${apiURL}/domain/remove/${name}`,
+    method: 'DELETE',
+    url: `${apiURL}/domain/${name}`,
   })
 }
