@@ -25,6 +25,7 @@ import pt.lsts.ripples.repo.main.PollutionDataRepository;
 import pt.lsts.ripples.repo.main.ObstacleDataRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -149,7 +150,7 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
-    @PostMapping(path = { "/pollution/remove/{id}", "/pollution/remove/{id}/" })
+    @DeleteMapping(path = { "/pollution/{id}", "/pollution/{id}/" })
     public ResponseEntity<HTTPResponse> deletePollution(@PathVariable String id) {
         repo.deleteById(Long.valueOf(id));
         logger.info("Pollution markers removed: " + id);
@@ -215,7 +216,7 @@ public class PollutionController {
     }
 
     @PreAuthorize("hasRole('SCIENTIST') or hasRole('ADMINISTRATOR')")
-    @PostMapping(path = { "/pollution/remove/obstacle/{id}", "/pollution/remove/obstacle/{id}/" })
+    @DeleteMapping(path = { "/pollution/obstacle/{id}", "/pollution/obstacle/{id}/" })
     public ResponseEntity<HTTPResponse> deleteObstacle(@PathVariable String id) {
         repoObstacles.deleteById(Long.valueOf(id));
         logger.info("Obstacle removed: " + id);

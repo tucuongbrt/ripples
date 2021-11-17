@@ -36,8 +36,8 @@ export default class PollutionService {
 
   public async deletePollution(id: number) {
     return request({
-      method: 'POST',
-      url: `${apiURL}/pollution/remove/${id}`,
+      method: 'DELETE',
+      url: `${apiURL}/pollution/${id}`,
     })
   }
 
@@ -80,8 +80,8 @@ export default class PollutionService {
 
   public async deleteObstacle(id: number) {
     return request({
-      method: 'POST',
-      url: `${apiURL}/pollution/remove/obstacle/${id}`,
+      method: 'DELETE',
+      url: `${apiURL}/pollution/obstacle/${id}`,
     })
   }
 }
