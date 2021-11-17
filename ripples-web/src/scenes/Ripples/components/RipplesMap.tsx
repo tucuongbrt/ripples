@@ -1086,7 +1086,6 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   public drawCanvas(info: any) {
-    console.log('--> ' + this.state.currentZoom)
     if (this.state.currentZoom > 10 || this.state.currentZoom === undefined) {
       const ctx = info.canvas.getContext('2d')
       ctx.clearRect(0, 0, info.canvas.width, info.canvas.height)
