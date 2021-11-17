@@ -239,8 +239,8 @@ export default class SoiService {
 
   public async deleteAsset(assetName: string) {
     return request({
-      method: 'POST',
-      url: `${apiURL}/asset/delete/${assetName}`,
+      method: 'DELETE',
+      url: `${apiURL}/asset/${assetName}`,
     })
   }
 

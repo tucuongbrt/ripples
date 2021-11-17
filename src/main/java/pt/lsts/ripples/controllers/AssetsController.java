@@ -219,7 +219,7 @@ public class AssetsController {
     }
 
     @PreAuthorize("hasRole('ADMINISTRATOR')")
-    @PostMapping("/asset/delete/{assetName}")
+    @DeleteMapping("/asset/{assetName}")
     public ResponseEntity<HTTPResponse> deleteAsset(@PathVariable String assetName) {
         Optional<Asset> asset = repo.findById(assetName);
         if (asset.isPresent()) {
