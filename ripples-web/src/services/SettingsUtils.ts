@@ -27,15 +27,15 @@ export default class SettingsService {
 
   public async removeParam(id: string, paramKey: string) {
     return request({
-      method: 'POST',
-      url: `${apiURL}/settings/remove/${id}/${paramKey}`,
+      method: 'DELETE',
+      url: `${apiURL}/settings/${id}/${paramKey}`,
     })
   }
 
   public async removeSettingDomain(id: string) {
     return request({
-      method: 'POST',
-      url: `${apiURL}/settings/removeDomain/${id}`,
+      method: 'DELETE',
+      url: `${apiURL}/settings/${id}`,
     })
   }
 }
