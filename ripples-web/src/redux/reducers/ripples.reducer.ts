@@ -298,6 +298,7 @@ const ripplesReducer = createReducer(startState, {
       oldAsset.planId = newAsset.planId
       oldAsset.settings = newAsset.settings
       oldAsset.domain = newAsset.domain
+      oldAsset.type = newAsset.type
     } else {
       state.assets.vehicles.push(newAsset)
     }

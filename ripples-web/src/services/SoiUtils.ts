@@ -40,6 +40,7 @@ export default class SoiService {
     asset.lastState.timestamp = system.lastState.timestamp * 1000
     asset.planId = system.plan.id
     asset.domain = system.domain
+    asset.type = system.type
     return Object.assign({}, asset)
   }
 

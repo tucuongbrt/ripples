@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -262,6 +263,20 @@ public class AssetsController {
             }
         }
         return null;
+    }
+
+    //@PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PostMapping("/asset/changeType")
+    public ResponseEntity<HTTPResponse> updateAssetType(@RequestBody Map<String, String> payload) {
+        Optional<Asset> asset = repo.findById(payload.get("assetName"));
+        if(asset.isPresent()){
+            Asset newAssetInfo = asset.get();
+            newAssetInfo.setType(payload.get("type"));
+            repo.save(newAssetInfo);
+            logger.info("Updated asset type: " + payload.get("assetName") + " - " + payload.get("type"));
+            return new ResponseEntity<>(new HTTPResponse("Success", "Updated asset type"), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(new HTTPResponse("Error", "Cannot update asset type"), HttpStatus.NOT_FOUND);
     }
 
     public static byte[] generateToken(byte[] salt, String secret) throws NoSuchAlgorithmException {

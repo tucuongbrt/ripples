@@ -127,12 +127,18 @@ class Vehicle extends Component<PropsType, {}> {
   }
 
   public getDisplayableProperties(vehicle: IAsset) {
+    let assetType = ''
+    if (vehicle.type !== null) {
+      assetType = vehicle.type
+    }
+
     const mainProps = {
       heading: vehicle.lastState.heading.toFixed(2),
       'last update': DateService.timeFromNow(vehicle.lastState.timestamp),
       latitude: vehicle.lastState.latitude.toFixed(5),
       longitude: vehicle.lastState.longitude.toFixed(5),
       plan: vehicle.planId,
+      type: assetType,
     }
     const settingsProps = this.buildSettings(vehicle.settings)
     return Object.assign({}, mainProps, settingsProps)

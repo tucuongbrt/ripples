@@ -35,6 +35,8 @@ public class Asset implements Serializable {
     @Lob
     private Plan plan = new Plan();
 
+    private String type = "AUV";
+
     @SuppressWarnings("unused")
 	private Asset() {
     }
@@ -87,5 +89,13 @@ public class Asset implements Serializable {
 
     public void setDomain(List<String> domain){
         this.domain = domain;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }
