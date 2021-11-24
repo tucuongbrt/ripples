@@ -127,7 +127,7 @@ class Vehicle extends Component<PropsType, {}> {
   }
 
   public getDisplayableProperties(vehicle: IAsset) {
-    let assetType = ''
+    let assetType = 'undefined'
     if (vehicle.type !== null) {
       assetType = vehicle.type
     }
