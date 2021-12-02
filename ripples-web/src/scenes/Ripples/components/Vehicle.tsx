@@ -91,11 +91,17 @@ class Vehicle extends Component<PropsType, {}> {
     } else if (assetName.startsWith('lauv-xplore')) {
       return this.auvYellowIcon
     } else if (
-      (assetName.startsWith('lauv-noptilus') || assetName.startsWith('lauv-xtreme')) &&
+      (assetName.startsWith('lauv-noptilus') ||
+        assetName.startsWith('lauv-xtreme') ||
+        assetName.startsWith('lauv-seacon')) &&
       this.props.currentZoom < 11
     ) {
       return this.auvOrangeSmallIcon
-    } else if (assetName.startsWith('lauv-noptilus') || assetName.startsWith('lauv-xtreme')) {
+    } else if (
+      assetName.startsWith('lauv-noptilus') ||
+      assetName.startsWith('lauv-xtreme') ||
+      assetName.startsWith('lauv-seacon')
+    ) {
       return this.auvOrangeIcon
     } else if (assetName.startsWith('lauv-nemo') && this.props.currentZoom < 11) {
       return this.auvRedSmallIcon
