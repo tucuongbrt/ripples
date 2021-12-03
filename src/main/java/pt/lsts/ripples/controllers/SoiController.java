@@ -332,7 +332,11 @@ public class SoiController {
 	@RequestMapping(path = { "/soi/unassigned/plans", "/soi/unassigned/plans/" }, method = RequestMethod.GET)
 	public List<Plan> getUnassignedPlans() {
 		ArrayList<Plan> plans = new ArrayList<>();
-		unassignedPlansRepo.findAll().forEach(plans::add);
+		unassignedPlansRepo.findAll().forEach(plan -> {
+			if(!plan.getId().equals("idle")) {
+				plans.add(plan);
+			}
+		});
 		return plans;
 	}
 
