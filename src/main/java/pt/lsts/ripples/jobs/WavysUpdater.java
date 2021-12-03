@@ -257,10 +257,11 @@ public class WavysUpdater {
         ArrayList<VerticalProfileData> profiles = new ArrayList<>();
         vertProfilesRepo.findAll().forEach(profiles::add);
         for (VerticalProfileData profile : profiles) {
-            if (profile.latitude == lat && profile.longitude == lng && profile.timestamp == timestamp) {
+            if (Double.compare(profile.latitude, lat) == 0 && Double.compare(profile.longitude, lng) == 0 && profile.timestamp.equals(timestamp)) {
                 return true;
             }
         }
         return false;
+        
     }
 }
