@@ -58,9 +58,9 @@ public class WavysUpdater {
     @Scheduled(cron = "0 0 * ? * *") // every hour
     public void deleteMapleOldAssets() {
         assetsRepo.findAll().forEach(asset -> {
-            if(asset.getName().startsWith("MS-")){
+            if (asset.getName().startsWith("MS-")) {
                 long last24hours = Instant.now().minus(Duration.ofDays(1)).getEpochSecond();
-                if(asset.getLastState().getTimestamp() < last24hours) {
+                if (asset.getLastState().getTimestamp() < last24hours) {
                     assetsRepo.delete(asset);
                     logger.info("Deleted old maple asset - " + asset.getName());
                 }
@@ -242,8 +242,14 @@ public class WavysUpdater {
                     }
                 }
             }
-            data.setSamples(sampleList);
-            vertProfilesRepo.save(data);
+
+            // avoid bugs in samples
+            if (!sampleList.isEmpty()) {
+                data.setSamples(sampleList);
+                vertProfilesRepo.save(data);
+            } else {
+                logger.info("Invalid samples - " + jsonobject.getString("serialNumber"));
+            }
         }
     }
 
