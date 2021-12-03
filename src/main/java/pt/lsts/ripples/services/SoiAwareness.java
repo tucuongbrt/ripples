@@ -31,10 +31,12 @@ public class SoiAwareness {
         List<AwarenessData> positions = new ArrayList<>();
         List<String> vehicleNames = posRepo.assetNames();
         vehicleNames.forEach(vehicle -> {
-            AwarenessData data = new AwarenessData(vehicle);
-            getPastPositionsOfVehicle(rangeHours, data);
-            getFuturePositionsOfVehicle(rangeHours, data);
-            positions.add(data);
+            if(!vehicle.startsWith("spot-")) {
+                AwarenessData data = new AwarenessData(vehicle);
+                getPastPositionsOfVehicle(rangeHours, data);
+                getFuturePositionsOfVehicle(rangeHours, data);
+                positions.add(data);
+            }
         });
         return positions;
     }
