@@ -297,7 +297,7 @@ class TopNav extends Component<PropsType, StateType> {
       )
     }
     return this.props.plans.map((p) => {
-      if (p.id !== 'idle' && p.type !== null) {
+      if (p.id !== 'idle') {
         return (
           <div className="plan-dropdown-item" key={getPlanKey(p)}>
             <i
