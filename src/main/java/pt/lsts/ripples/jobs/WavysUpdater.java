@@ -246,9 +246,10 @@ public class WavysUpdater {
             // avoid bugs in samples
             if (!sampleList.isEmpty()) {
                 data.setSamples(sampleList);
+                logger.info("Added temperature profile: " + data.toString());
                 vertProfilesRepo.save(data);
             } else {
-                logger.info("Invalid samples - " + jsonobject.getString("serialNumber"));
+                logger.info("Invalid samples: " + jsonobject.getString("serialNumber"));
             }
         }
     }
@@ -257,11 +258,11 @@ public class WavysUpdater {
         ArrayList<VerticalProfileData> profiles = new ArrayList<>();
         vertProfilesRepo.findAll().forEach(profiles::add);
         for (VerticalProfileData profile : profiles) {
-            if (Double.compare(profile.latitude, lat) == 0 && Double.compare(profile.longitude, lng) == 0 && profile.timestamp.equals(timestamp)) {
+            if (Double.compare(profile.latitude, lat) == 0 && Double.compare(profile.longitude, lng) == 0
+                    && profile.timestamp.getTime() == timestamp.getTime()) {
                 return true;
             }
         }
         return false;
-        
     }
 }
