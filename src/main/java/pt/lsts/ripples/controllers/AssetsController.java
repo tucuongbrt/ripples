@@ -117,6 +117,15 @@ public class AssetsController {
                         newAsset = assets.get(n);
                         newAsset.setDomain(domain);
                         repo.save(newAsset);
+
+                        AssetPosition pos = new AssetPosition();
+                        pos.setLat(newAsset.getLastState().getLatitude());
+                        pos.setLon(newAsset.getLastState().getLongitude());
+                        pos.setTimestamp(newAsset.getLastState().getDate());
+                        pos.setName(assets.get(n).getName());
+                        pos.setImcId(newAsset.getImcid());
+                        positions.save(pos);
+
                         wsController.sendAssetUpdateFromServerToClients(newAsset);
                     } else {
                         Asset oldAsset = optAsset.get();
@@ -125,6 +134,15 @@ public class AssetsController {
                             oldAsset.setPlan(assets.get(n).getPlan());
                         }
                         repo.save(oldAsset);
+
+                        AssetPosition pos = new AssetPosition();
+                        pos.setLat(oldAsset.getLastState().getLatitude());
+                        pos.setLon(oldAsset.getLastState().getLongitude());
+                        pos.setTimestamp(oldAsset.getLastState().getDate());
+                        pos.setName(oldAsset.getName());
+                        pos.setImcId(oldAsset.getImcid());
+                        positions.save(pos);
+
                         wsController.sendAssetUpdateFromServerToClients(oldAsset);
                     }
                 }
@@ -144,6 +162,15 @@ public class AssetsController {
                     newAsset = asset;
                     newAsset.setDomain(domain);
                     repo.save(asset);
+
+                    AssetPosition pos = new AssetPosition();
+                    pos.setLat(newAsset.getLastState().getLatitude());
+                    pos.setLon(newAsset.getLastState().getLongitude());
+                    pos.setTimestamp(newAsset.getLastState().getDate());
+                    pos.setName(asset.getName());
+                    pos.setImcId(newAsset.getImcid());
+                    positions.save(pos);
+
                     wsController.sendAssetUpdateFromServerToClients(asset);
                 } else {
                     Asset oldAsset = optAsset.get();
@@ -152,6 +179,15 @@ public class AssetsController {
                         oldAsset.setPlan(asset.getPlan());
                     }
                     repo.save(oldAsset);
+
+                    AssetPosition pos = new AssetPosition();
+                    pos.setLat(oldAsset.getLastState().getLatitude());
+                    pos.setLon(oldAsset.getLastState().getLongitude());
+                    pos.setTimestamp(oldAsset.getLastState().getDate());
+                    pos.setName(oldAsset.getName());
+                    pos.setImcId(oldAsset.getImcid());
+                    positions.save(pos);
+
                     wsController.sendAssetUpdateFromServerToClients(oldAsset);
                 }
             });
@@ -226,7 +262,7 @@ public class AssetsController {
         if (asset.isPresent()) {
             Asset assetToDelete = asset.get();
             repo.delete(assetToDelete);
-            return new ResponseEntity<>(new HTTPResponse("Success", "Asset deleted"), HttpStatus.OK);      
+            return new ResponseEntity<>(new HTTPResponse("Success", "Asset deleted"), HttpStatus.OK);
         }
         return new ResponseEntity<>(new HTTPResponse("Error", "Cannot delete asset"), HttpStatus.NOT_FOUND);
     }
@@ -249,27 +285,27 @@ public class AssetsController {
         Optional<Plan> optPlan = unassignedPlansRepo.findById(planId);
         if (optPlan.isPresent()) {
             Plan plan = optPlan.get();
-            if(plan.getWaypoints().size() > 0) {
-                return plan.getWaypoints().get(0); 
+            if (plan.getWaypoints().size() > 0) {
+                return plan.getWaypoints().get(0);
             }
         }
         // position from assets plans
         ArrayList<Asset> assets = repo.findAll();
         for (int i = 0; i < assets.size(); i++) {
-            if(assets.get(i).getPlan().getId() == planId) {
-                if(assets.get(i).getPlan().getWaypoints().size() > 0) {
-                    return assets.get(i).getPlan().getWaypoints().get(0); 
+            if (assets.get(i).getPlan().getId() == planId) {
+                if (assets.get(i).getPlan().getWaypoints().size() > 0) {
+                    return assets.get(i).getPlan().getWaypoints().get(0);
                 }
             }
         }
         return null;
     }
 
-    //@PreAuthorize("hasRole('ADMINISTRATOR')")
+    // @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/asset/changeType")
     public ResponseEntity<HTTPResponse> updateAssetType(@RequestBody Map<String, String> payload) {
         Optional<Asset> asset = repo.findById(payload.get("assetName"));
-        if(asset.isPresent()){
+        if (asset.isPresent()) {
             Asset newAssetInfo = asset.get();
             newAssetInfo.setType(payload.get("type"));
             repo.save(newAssetInfo);
