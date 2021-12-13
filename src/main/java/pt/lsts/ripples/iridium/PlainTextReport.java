@@ -27,16 +27,20 @@ public class PlainTextReport extends IridiumMessage {
 
     @Override
     public int serializeFields(IMCOutputStream out) throws Exception {
-        out.writePlaintext(report);
+        out.write(report.getBytes("ISO-8859-1"));
         out.close();
-        return report.getBytes("UTF-8").length + 2;
+        return report.getBytes("ISO-8859-1").length;
     }
 
     @Override
     public int deserializeFields(IMCInputStream in) throws Exception {
-        report = in.readPlaintext();
+        int bav = in.available();
+        bav = bav < 0 ? 0 : bav;
+        byte[] data = new byte[bav];
+        int len = in.read(data);
+        report = new String(data, "ISO-8859-1");
         parse();
-        return report.length() + 2;
+        return len;
     }
 
     @Override
