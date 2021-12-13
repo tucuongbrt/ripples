@@ -42,4 +42,20 @@ public class PlainTextMessage extends IridiumMessage {
     public String toString() {
         return "Text: " + text + "\n";
     }
+
+    static IridiumMessage createTextMessageFrom(IMCInputStream in) throws Exception {
+        try {
+            PlainTextReport plainTextReport = new PlainTextReport();
+            plainTextReport.deserializeFields(in);
+            return plainTextReport;
+        } catch (Exception e) {
+            // "Unable to parse message data"
+        }
+
+        PlainTextMessage plainTextMessage = new PlainTextMessage();
+        plainTextMessage.deserializeFields(in);
+        return plainTextMessage;
+    }
 }
+
+

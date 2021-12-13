@@ -74,6 +74,7 @@ public abstract class IridiumMessage implements Comparable<IridiumMessage> {
 
     public int source, destination, message_type;
     public long timestampMillis = System.currentTimeMillis();
+
     public IridiumMessage(int msgType) {
         this.message_type = msgType;
     }
@@ -89,14 +90,15 @@ public abstract class IridiumMessage implements Comparable<IridiumMessage> {
             m = iridiumTypes.get(mgid).newInstance();
         } else {
             mgid = -1;
-            m = new PlainTextReport();
+            m = PlainTextMessage.createTextMessageFrom(iis);
         }
 
         if (m != null) {
             m.setSource(source);
             m.setDestination(dest);
             m.setMessageType(mgid);
-            m.deserializeFields(iis);
+            if (mgid > -1)
+                m.deserializeFields(iis);
         }
         iis.close();
 
