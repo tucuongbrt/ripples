@@ -82,20 +82,22 @@ public abstract class IridiumMessage implements Comparable<IridiumMessage> {
     public static IridiumMessage deserialize(byte[] data) throws Exception {
         IMCInputStream iis = new IMCInputStream(new ByteArrayInputStream(data), IMCDefinition.getInstance());
         iis.setBigEndian(false);
+        iis.mark(10);
         int source = iis.readUnsignedShort();
         int dest = iis.readUnsignedShort();
         int mgid = iis.readUnsignedShort();
         IridiumMessage m;
         if (iridiumTypes.containsKey(mgid)) {
-            m = iridiumTypes.get(mgid).newInstance();
+            m = iridiumTypes.get(mgid).getDeclaredConstructor().newInstance();
         } else {
             mgid = -1;
+            iis.reset();
             m = PlainTextMessage.createTextMessageFrom(iis);
         }
 
         if (m != null) {
-            m.setSource(source);
-            m.setDestination(dest);
+            m.setSource(mgid > -1 ? source : 0xFFFF);
+            m.setDestination(mgid > -1 ? dest : 0xFFFF);
             m.setMessageType(mgid);
             if (mgid > -1)
                 m.deserializeFields(iis);
