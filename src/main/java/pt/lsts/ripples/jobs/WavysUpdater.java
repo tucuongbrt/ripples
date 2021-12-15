@@ -31,8 +31,10 @@ import org.springframework.stereotype.Component;
 import pt.lsts.ripples.controllers.WebSocketsController;
 import pt.lsts.ripples.domain.assets.Asset;
 import pt.lsts.ripples.domain.assets.AssetState;
+import pt.lsts.ripples.domain.shared.AssetPosition;
 import pt.lsts.ripples.domain.soi.VerticalProfileData;
 import pt.lsts.ripples.repo.main.AssetsRepository;
+import pt.lsts.ripples.repo.main.PositionsRepository;
 import pt.lsts.ripples.repo.main.VertProfilesRepo;
 
 @Component
@@ -46,6 +48,9 @@ public class WavysUpdater {
 
     @Autowired
     WebSocketsController wsController;
+
+    @Autowired
+    PositionsRepository positionsRepo;
 
     @Value("${wavy.username}")
     String username;
@@ -183,6 +188,23 @@ public class WavysUpdater {
         // Instant wavyTimestamp = Instant.parse(jsonobject.getString("timestamp"));
         // Date currentDate = Date.from(wavyTimestamp);
 
+        // imcid
+        String[] part = jsonobject.getString("serialNumber").split("(?<=\\D)(?=\\d)");
+        String wavyType = part[0];
+        String wavyIdFormated = String.format("%04d", Integer.parseInt(part[1]));
+
+        String imcIdText = "";
+        if (wavyType.equals("WD")) {
+            imcIdText = "B3" + wavyIdFormated;
+        } else if (wavyType.equals("WB")) {
+            imcIdText = "B2" + wavyIdFormated;
+        } else if (wavyType.equals("WL")) {
+            imcIdText = "B1" + wavyIdFormated;
+        } else {
+            imcIdText = "B0" + wavyIdFormated;
+        }
+        int imcIdHex = Integer.parseInt(imcIdText, 16);
+
         JSONObject posObject = (JSONObject) jsonobject.get("position");
 
         Optional<Asset> optAsset = assetsRepo.findById(jsonobject.getString("serialNumber"));
@@ -201,6 +223,15 @@ public class WavysUpdater {
             List<String> domain = Arrays.asList("Meloa");
             newAsset.setDomain(domain);
             assetsRepo.save(newAsset);
+
+            AssetPosition pos = new AssetPosition();
+            pos.setLat(newAsset.getLastState().getLatitude());
+            pos.setLon(newAsset.getLastState().getLongitude());
+            pos.setTimestamp(newAsset.getLastState().getDate());
+            pos.setName(newAsset.getName());
+            pos.setImcId(imcIdHex);
+            positionsRepo.save(pos);
+
             wsController.sendAssetUpdateFromServerToClients(newAsset);
         } else {
             Asset oldAsset = optAsset.get();
@@ -208,6 +239,15 @@ public class WavysUpdater {
             oldAsset.getLastState().setLatitude(posObject.getDouble("lat"));
             oldAsset.getLastState().setLongitude(posObject.getDouble("lng"));
             assetsRepo.save(oldAsset);
+
+            AssetPosition pos = new AssetPosition();
+            pos.setLat(oldAsset.getLastState().getLatitude());
+            pos.setLon(oldAsset.getLastState().getLongitude());
+            pos.setTimestamp(oldAsset.getLastState().getDate());
+            pos.setName(oldAsset.getName());
+            pos.setImcId(imcIdHex);
+            positionsRepo.save(pos);
+
             // wsController.sendAssetUpdateFromServerToClients(oldAsset);
         }
     }
