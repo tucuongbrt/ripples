@@ -223,15 +223,6 @@ public class WavysUpdater {
             List<String> domain = Arrays.asList("Meloa");
             newAsset.setDomain(domain);
             assetsRepo.save(newAsset);
-
-            AssetPosition pos = new AssetPosition();
-            pos.setLat(newAsset.getLastState().getLatitude());
-            pos.setLon(newAsset.getLastState().getLongitude());
-            pos.setTimestamp(newAsset.getLastState().getDate());
-            pos.setName(newAsset.getName());
-            pos.setImcId(imcIdHex);
-            positionsRepo.save(pos);
-
             wsController.sendAssetUpdateFromServerToClients(newAsset);
         } else {
             Asset oldAsset = optAsset.get();
@@ -239,17 +230,16 @@ public class WavysUpdater {
             oldAsset.getLastState().setLatitude(posObject.getDouble("lat"));
             oldAsset.getLastState().setLongitude(posObject.getDouble("lng"));
             assetsRepo.save(oldAsset);
-
-            AssetPosition pos = new AssetPosition();
-            pos.setLat(oldAsset.getLastState().getLatitude());
-            pos.setLon(oldAsset.getLastState().getLongitude());
-            pos.setTimestamp(oldAsset.getLastState().getDate());
-            pos.setName(oldAsset.getName());
-            pos.setImcId(imcIdHex);
-            positionsRepo.save(pos);
-
             // wsController.sendAssetUpdateFromServerToClients(oldAsset);
         }
+
+        AssetPosition pos = new AssetPosition();
+        pos.setLat(posObject.getDouble("lat"));
+        pos.setLon(posObject.getDouble("lng"));
+        pos.setTimestamp(currentDate);
+        pos.setName(jsonobject.getString("serialNumber"));
+        pos.setImcId(imcIdHex);
+        positionsRepo.save(pos);
     }
 
     private void addWavyProfile(JSONObject jsonobject) {
