@@ -474,7 +474,7 @@ path.leaflet-polygon {
   font-size: small;
 }
 
-.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover {
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover {
   color:#2bace4;
 }
 

@@ -46,6 +46,13 @@
   visibility: hidden;
 }
 
+#sliderToggle {
+  position: absolute;
+  left: 10px;
+  bottom: -20px;
+  padding: 5px;
+}
+
 input[type='range'] {
   -webkit-appearance: none; /* Hides the slider so that custom slider can be made */
   width: 100%; /* Specific width is required for Firefox. */
