@@ -28,7 +28,11 @@ class Slider extends Component<PropsType, {}> {
               {this.props.mapOverlayInfo.info}
             </Alert>
           )}
-          <Button className="right" color="primary" onClick={() => this.props.onChange(0)}>
+          <Button
+            className={this.props.value === 0 ? 'right hide-slider-reset' : 'right'}
+            color="primary"
+            onClick={() => this.props.onChange(0)}
+          >
             Reset
           </Button>
         </Row>
