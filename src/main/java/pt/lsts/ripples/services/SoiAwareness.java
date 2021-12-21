@@ -31,7 +31,8 @@ public class SoiAwareness {
         List<AwarenessData> positions = new ArrayList<>();
         List<String> vehicleNames = posRepo.assetNames();
         vehicleNames.forEach(vehicle -> {
-            if(!vehicle.startsWith("spot-")) {
+            if (!vehicle.startsWith("spot-") && !vehicle.startsWith("WO") && !vehicle.startsWith("WL")
+                    && !vehicle.startsWith("WD") && !vehicle.startsWith("WB")) {
                 AwarenessData data = new AwarenessData(vehicle);
                 getPastPositionsOfVehicle(rangeHours, data);
                 getFuturePositionsOfVehicle(rangeHours, data);
@@ -61,12 +62,11 @@ public class SoiAwareness {
             Plan assetPlan = asset.getPlan();
             if (assetPlan != null) {
                 List<PositionAtTime> positions = assetPlan.getWaypoints()
-                    .stream()
-                    .filter(wp ->
-                        wp.getArrivalDate().after(now) && wp.getArrivalDate().before(maxDate))
-                    .map(wp ->
-                        new PositionAtTime(wp.getLatitude(), wp.getLongitude(), wp.getArrivalDate().getTime()))
-                    .collect(Collectors.toList());
+                        .stream()
+                        .filter(wp -> wp.getArrivalDate().after(now) && wp.getArrivalDate().before(maxDate))
+                        .map(wp -> new PositionAtTime(wp.getLatitude(), wp.getLongitude(),
+                                wp.getArrivalDate().getTime()))
+                        .collect(Collectors.toList());
 
                 data.addPositions(positions);
             }
