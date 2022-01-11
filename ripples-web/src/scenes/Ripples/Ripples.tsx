@@ -44,6 +44,7 @@ import {
   setUser,
   setVehicles,
   toggleSliderChange,
+  toggleSlider,
   toggleVehicleModal,
   updateAIS,
   updateCCU,
@@ -87,6 +88,7 @@ interface PropsType {
   vehicleSelectedLastState: IAssetState | null
   planSelectedPosition: ILatLng | null
   mapOverlayInfo: IOverlayInfo
+  isSliderVisible: boolean
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
   setCcus: (_: IAsset[]) => void
@@ -110,6 +112,7 @@ interface PropsType {
   updateUserLocation: (u: IUserLocation) => void
   toggleVehicleModal: () => void
   toggleSliderChange: () => void
+  toggleSlider: () => void
   setMapOverlayInfo: (m: string) => void
   setGeoLayers: (layers: IGeoLayer[]) => void
   setPollution: (_: IPollution[]) => void
@@ -545,7 +548,21 @@ class Ripples extends Component<PropsType, StateType> {
             setObstacles={this.updateObstacleData}
           />
           <SidePanel onSettingsClick={this.onSettingsClick} />
-          <Slider onChange={this.onSliderChange} min={-48} max={48} value={this.props.sliderValue} />
+
+          {this.props.isSliderVisible && (
+            <Slider onChange={this.onSliderChange} min={-48} max={48} value={this.props.sliderValue} />
+          )}
+
+          {!this.props.isSliderVisible && (
+            <div className="slider">
+              <i
+                id="sliderToggle"
+                title={`Toggle slider`}
+                className="fas fa-angle-double-up fa-lg"
+                onClick={this.props.toggleSlider}
+              />
+            </div>
+          )}
         </div>
       )
     }
@@ -565,6 +582,7 @@ function mapStateToProps(state: IRipplesState) {
     vehicleSelectedLastState: state.vehicleSelectedLastState,
     planSelectedPosition: state.planSelectedPosition,
     mapOverlayInfo: state.mapOverlayInfo,
+    isSliderVisible: state.isSliderVisible,
   }
 }
 
@@ -598,6 +616,7 @@ const actionCreators = {
   updatePollution,
   setObstacle,
   updateObstacle,
+  toggleSlider,
 }
 
 export default connect(mapStateToProps, actionCreators)(Ripples)

@@ -68,6 +68,7 @@ import {
   updatePollution,
   setObstacle,
   updateObstacle,
+  toggleSlider,
 } from '../ripples.actions'
 
 const positionService: PositionService = new PositionService()
@@ -97,6 +98,7 @@ const startState: IRipplesState = {
   usersLocations: [],
   isVehicleModalOpen: false,
   hasSliderChanged: false,
+  isSliderVisible: true,
   mapOverlayInfo: DefaultOverlayInfo,
   weatherParam: null,
   toolClickLocation: null,
@@ -289,6 +291,9 @@ const ripplesReducer = createReducer(startState, {
       plan.visible = !plan.visible
       state.toggledPlan = plan
     }
+  },
+  [toggleSlider.type]: (state, _) => {
+    state.isSliderVisible = !state.isSliderVisible
   },
   [updateVehicle.type]: (state, action) => {
     const newAsset: IAsset = action.payload

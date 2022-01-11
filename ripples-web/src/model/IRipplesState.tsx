@@ -47,6 +47,7 @@ export default interface IRipplesState {
   isVehicleModalOpen: boolean
   editVehicle?: IAsset
   hasSliderChanged: boolean
+  isSliderVisible: boolean
   mapOverlayInfo: IOverlayInfo
   weatherParam: WeatherParam | null
   toolClickLocation: ILatLng | null
