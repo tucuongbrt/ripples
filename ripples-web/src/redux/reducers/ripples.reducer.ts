@@ -13,6 +13,7 @@ import PositionService from '../../services/PositionUtils'
 import {
   addAnnotation,
   addMeasurePoint,
+  removeMeasurePoint,
   addNewPlan,
   addWpToPlan,
   cancelEditPlan,
@@ -358,6 +359,10 @@ const ripplesReducer = createReducer(startState, {
   [addMeasurePoint.type]: (state, action) => {
     const newPoint: ILatLng = action.payload
     state.measurePath.push(newPoint)
+  },
+  [removeMeasurePoint.type]: (state, action) => {
+    const measureIndex: number = action.payload
+    state.measurePath.splice(measureIndex, 1)
   },
   [clearMeasure.type]: (state, _) => {
     state.measurePath = []

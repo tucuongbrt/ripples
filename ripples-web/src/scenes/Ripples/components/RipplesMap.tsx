@@ -29,6 +29,7 @@ import { ToolSelected } from '../../../model/ToolSelected'
 import { WeatherParam } from '../../../model/WeatherParam'
 import {
   addMeasurePoint,
+  removeMeasurePoint,
   addWpToPlan,
   clearMeasure,
   selectVehicleLastState,
@@ -118,6 +119,7 @@ interface PropsType {
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
   addMeasurePoint: (_: ILatLng) => void
+  removeMeasurePoint: (_: number) => void
   clearMeasure: () => void
   toggleVehicleModal: () => void
   setEditVehicle: (v: IAsset | undefined) => void
@@ -353,7 +355,14 @@ class RipplesMap extends Component<PropsType, StateType> {
     const clickLocation = { latitude: e.latlng.lat, longitude: e.latlng.lng }
     switch (this.props.toolSelected) {
       case ToolSelected.MEASURE: {
-        this.onMapMeasureClick(clickLocation)
+        if (e.originalEvent.ctrlKey) {
+          if (e.originalEvent.srcElement.getAttribute('alt') !== null) {
+            const measureMarkerIndex = e.originalEvent.srcElement.getAttribute('alt').split('_').pop()
+            this.onMapMeasureClickRemove(measureMarkerIndex)
+          }
+        } else {
+          this.onMapMeasureClick(clickLocation)
+        }
         break
       }
       case ToolSelected.ANNOTATION: {
@@ -1512,7 +1521,13 @@ class RipplesMap extends Component<PropsType, StateType> {
       return { lat: p.latitude, lng: p.longitude }
     })
     const markers = positions.map((location, i) => (
-      <Marker key={'marker_' + i} icon={this.blueCircleIcon} position={location} />
+      <Marker
+        key={'marker_' + i}
+        alt={'measure_' + i}
+        title={'Press CTRL and click to delete point'}
+        icon={this.blueCircleIcon}
+        position={location}
+      />
     ))
     return (
       <>
@@ -1524,6 +1539,26 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   private onMapMeasureClick(clickLocation: ILatLng) {
     this.props.addMeasurePoint(clickLocation)
+    const distance = this.positionService.measureTotalDistance(this.props.measurePath)
+    if (this.props.measurePath.length > 1) {
+      const angle = this.positionService.getHeadingFromTwoPoints(
+        this.props.measurePath[this.props.measurePath.length - 2],
+        this.props.measurePath[this.props.measurePath.length - 1]
+      )
+      this.props.setSidePanelContent({
+        length: `${distance} m`,
+        angle: `${angle.toFixed(2)} º`,
+      })
+    } else {
+      this.props.setSidePanelContent({
+        length: `${distance} m`,
+      })
+    }
+    this.props.setEditVehicle(undefined)
+  }
+
+  private onMapMeasureClickRemove(index: number) {
+    this.props.removeMeasurePoint(index)
     const distance = this.positionService.measureTotalDistance(this.props.measurePath)
     if (this.props.measurePath.length > 1) {
       const angle = this.positionService.getHeadingFromTwoPoints(
@@ -1883,6 +1918,7 @@ const actionCreators = {
   setSidePanelVisibility,
   updateWpLocation,
   addMeasurePoint,
+  removeMeasurePoint,
   clearMeasure,
   toggleVehicleModal,
   setEditVehicle,
