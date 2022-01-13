@@ -11,25 +11,37 @@ import wavy_basic from '../../../assets/wavy_basic.png'
 import wavy_littoral from '../../../assets/wavy_littoral.png'
 import wavy_ocean from '../../../assets/wavy_ocean.png'
 import wavy_dummy from '../../../assets/wavy_dummy.png'
+import circle_blue from '../../../assets/circle_blue.png'
+import circle_green from '../../../assets/circle_green.png'
+import circle_red from '../../../assets/circle_red.png'
+import circle_orange from '../../../assets/circle_orange.png'
+import circle_yellow from '../../../assets/circle_yellow.png'
+import desktop from '../../../assets/desktop.png'
+import mobile from '../../../assets/mobile.png'
+import wp from '../../../assets/wp.png'
+import wp_start from '../../../assets/wp_start.png'
+import wp_finish from '../../../assets/wp_finish.png'
+import pin_empty from '../../../assets/pin_empty.png'
+import temperature from '../../../assets/temperature.png'
 
 export const BlueCircleIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://i.imgur.com/iiHo3vX.png',
+    iconUrl: circle_blue,
   },
 })
 
 export const PCIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
-    iconUrl: 'https://www.freeiconspng.com/uploads/pc-icon-26.png',
+    iconUrl: desktop,
   },
 })
 
 export const MobileIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
-    iconUrl: 'https://www.freeiconspng.com/uploads/image--mobile-icon--risk-of-rain-wiki--wikia-3.png',
+    iconUrl: mobile,
   },
 })
 
@@ -134,70 +146,70 @@ export const RedTriangleIcon = L.Icon.extend({
 export const StartWaypointIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'http://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Green-icon.png',
+    iconUrl: wp_start,
   },
 })
 
 export const WaypointIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Blue_sphere.svg',
+    iconUrl: wp,
   },
 })
 
 export const RedCircleIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/60/Nuvola_apps_krec.svg',
+    iconUrl: circle_red,
   },
 })
 
 export const GreenCircleIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/Green_sphere.svg',
+    iconUrl: circle_green,
   },
 })
 
 export const YellowCircleIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Nuvola_apps_kbouncey.svg',
+    iconUrl: circle_yellow,
   },
 })
 
 export const OrangeCircleIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/d/d5/Orange_sphere.png',
+    iconUrl: circle_orange,
   },
 })
 
 export const FinishWaypointIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],
-    iconUrl: 'https://icons.iconarchive.com/icons/hopstarter/scrap/256/Aqua-Ball-Red-icon.png',
+    iconUrl: wp_finish,
   },
 })
 
 export const SpotIcon = L.Icon.extend({
   options: {
-    iconSize: [32, 32],
-    iconUrl: 'https://cdn4.iconfinder.com/data/icons/holiday-and-have-fun/32/place_spot_target_location-128.png',
+    iconSize: [25, 25],
+    iconUrl: pin_empty,
   },
 })
 
 export const CCUIcon = L.Icon.extend({
   options: {
-    iconSize: [32, 32],
-    iconUrl: 'https://cdn4.iconfinder.com/data/icons/holiday-and-have-fun/32/place_spot_target_location-128.png',
+    iconSize: [25, 25],
+    iconUrl: pin_empty,
   },
 })
 
 export const SensorIcon = L.Icon.extend({
   options: {
     iconSize: [16, 16],
-    iconUrl: 'https://image.flaticon.com/icons/svg/134/134125.svg',
+    iconUrl: temperature,
   },
 })
 
@@ -253,7 +265,7 @@ export const AISPurpleSmallIcon = L.Icon.extend({
 export const GeoJsonMarker = L.Icon.extend({
   options: {
     iconSize: [5, 5],
-    iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/89/Eo_circle_yellow_blank.svg',
+    iconUrl: circle_yellow,
   },
 })
 
