@@ -2,9 +2,9 @@ import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import {
   Button,
+  Col,
   Collapse,
-  DropdownMenu,
-  DropdownToggle,
+  Container,
   Input,
   InputGroup,
   Modal,
@@ -14,15 +14,15 @@ import {
   Nav,
   Navbar,
   NavbarToggler,
+  Row,
   Table,
-  UncontrolledDropdown,
 } from 'reactstrap'
 import IAuthState, { isAdministrator, isCasual, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
 import { getCurrentUser } from '../../services/UserUtils'
 import SettingsService from '../../services/SettingsUtils'
-import { fetchDomainNames } from '../../services/DomainUtils'
+import { createDomain, deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
 import TopNavLinks from '../../components/TopNavLinks'
 import Login from '../../components/Login'
 import { Link } from 'react-router-dom'
@@ -30,13 +30,11 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import ZerotierService from '../../services/ZerotierUtils'
 import { createApiKey, fetchApiKeys, removeApiKey } from '../../services/ApiKeyUtils'
 import DateService from '../../services/DateUtils'
-import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
   isNavOpen: boolean
-  systemSettings: ISettings[]
   settingInputElem: any | null
   settingInputValue: string
   isSettingModalOpen: boolean
@@ -52,8 +50,10 @@ interface StateType {
   domains: string[]
   nodeId: string
   isZtModalOpen: boolean
+  isZtSelectorOpen: boolean
   ztCmd: string
   isTokenModalOpen: boolean
+  isDomainModalOpen: boolean
   isNewTokenVisible: boolean
   isRemoveTokenModalOpen: boolean
   apiKeys: IApiKeys[]
@@ -61,17 +61,16 @@ interface StateType {
   tokenGenerated: string
   tokenToRemove: string
   permissions: string[]
+  domainInputElem: any | null
+  domainInputValue: string
+  domainPreviousValue: string
+  domainNewInput: string
+  domainNewInputVisible: boolean
 }
 
 interface PropsType {
   setUser: (user: IUser) => any
   auth: IAuthState
-}
-
-interface ISettings {
-  id: string
-  name: string
-  params: string[][]
 }
 
 interface IApiKeys {
@@ -82,7 +81,7 @@ interface IApiKeys {
   expirationDate: number
 }
 
-export class Settings extends Component<PropsType, StateType> {
+export class SettingsPanel extends Component<PropsType, StateType> {
   public notificationSystem: any = null
   public timerID: number = 0
   private settingsService: SettingsService = new SettingsService()
@@ -92,7 +91,6 @@ export class Settings extends Component<PropsType, StateType> {
     super(props)
     this.state = {
       isNavOpen: true,
-      systemSettings: [],
       settingInputElem: null,
       settingInputValue: '',
       isSettingModalOpen: false,
@@ -108,8 +106,10 @@ export class Settings extends Component<PropsType, StateType> {
       domains: [],
       nodeId: '',
       isZtModalOpen: false,
+      isZtSelectorOpen: false,
       ztCmd: '',
       isTokenModalOpen: false,
+      isDomainModalOpen: false,
       isNewTokenVisible: false,
       apiKeys: [],
       isNewTokenModalOpen: false,
@@ -117,18 +117,23 @@ export class Settings extends Component<PropsType, StateType> {
       tokenGenerated: '',
       tokenToRemove: '',
       permissions: ['read', 'write'],
+      domainInputElem: null,
+      domainInputValue: '',
+      domainPreviousValue: '',
+      domainNewInput: '',
+      domainNewInputVisible: false,
     }
-    this.fetchSettings = this.fetchSettings.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
-    this.toggleSettingModal = this.toggleSettingModal.bind(this)
-    this.toggleNewDomainSettingModal = this.toggleNewDomainSettingModal.bind(this)
     this.fetchApiKeys = this.fetchApiKeys.bind(this)
     this.toogleTokenModal = this.toogleTokenModal.bind(this)
     this.toogleNewTokenModal = this.toogleNewTokenModal.bind(this)
     this.generateToken = this.generateToken.bind(this)
     this.removeToken = this.removeToken.bind(this)
+    this.toggleZtModal = this.toggleZtModal.bind(this)
+    this.toggleZtSelector = this.toggleZtSelector.bind(this)
     this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
     this.redirectToUserProfilePage = this.redirectToUserProfilePage.bind(this)
+    this.toggleDomainModal = this.toggleDomainModal.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -151,11 +156,9 @@ export class Settings extends Component<PropsType, StateType> {
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     if (!(this.props.auth.authenticated && isAdministrator(this.props.auth))) {
-      NotificationManager.error('Only available for administrators')
+      // NotificationManager.error('Only available for administrators')
     } else {
       this.getDomains()
-      this.fetchSettings()
-      this.timerID = window.setInterval(this.fetchSettings, 60000)
     }
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.getDomains()
@@ -171,365 +174,6 @@ export class Settings extends Component<PropsType, StateType> {
     this.setState({ isNavOpen: !this.state.isNavOpen })
   }
 
-  public async createSetting() {
-    if (this.state.settingNewInputTitle.length > 0 && this.state.settingNewInputValue.length > 0) {
-      const response = await this.settingsService.updateSettings(
-        this.state.settingId,
-        this.state.settingNewInputTitle,
-        this.state.settingNewInputValue
-      )
-      if (response.status === 'Success') {
-        this.setState({
-          settingId: '',
-          settingNewInputTitle: '',
-          settingNewInputValue: '',
-        })
-
-        this.toggleSettingModal('', '')
-        this.fetchSettings()
-
-        NotificationManager.success('Setting created')
-      } else {
-        NotificationManager.warning('Cannot add new setting')
-      }
-    } else {
-      NotificationManager.warning('Please complete all the information')
-    }
-  }
-
-  public async createDomainSetting() {
-    if (this.state.settingNewInputDomain.length > 0) {
-      const response = await this.settingsService.createSettingDomain(this.state.settingNewInputDomain)
-      if (response.status === 'Success') {
-        this.setState({ settingNewInputDomain: '' })
-        this.toggleNewDomainSettingModal()
-        this.fetchSettings()
-
-        NotificationManager.success('Setting domain created')
-      } else {
-        NotificationManager.warning('Cannot create setting domain')
-      }
-    } else {
-      NotificationManager.warning('Please complete all the information')
-    }
-  }
-
-  public async fetchSettings() {
-    const response: ISettings[] = await this.settingsService.fetchSettings()
-    this.setState({ systemSettings: response })
-  }
-
-  public toggleSettingModal(id: string, domainName: string) {
-    this.setState({
-      isSettingModalOpen: !this.state.isSettingModalOpen,
-      settingId: id,
-      settingDomainName: domainName,
-    })
-
-    if (id.length === 0) {
-      this.setState({
-        settingNewInputTitle: '',
-        settingNewInputValue: '',
-      })
-    }
-  }
-
-  public toggleNewDomainSettingModal() {
-    this.setState({
-      isNewSettingModalOpen: !this.state.isNewSettingModalOpen,
-    })
-  }
-
-  public toggleConfirmModal(id: string) {
-    this.setState({
-      settingId: id,
-      isConfirmModalOpen: !this.state.isConfirmModalOpen,
-    })
-  }
-
-  public toggleParamConfirmModal(id: string, paramName: string) {
-    this.setState({
-      settingId: id,
-      settingParamName: paramName,
-      isParamConfirmModalOpen: !this.state.isParamConfirmModalOpen,
-    })
-  }
-
-  public enableInputSetting(event: any, settingId: string, index: number) {
-    const inputElem: any = document.getElementById('setting-' + settingId + '-' + index)
-
-    if (inputElem != null) {
-      this.setState({
-        settingInputElem: inputElem,
-        settingInputValue: inputElem.value,
-      })
-    } else {
-      this.setState({
-        settingInputElem: null,
-        settingInputValue: '',
-      })
-    }
-  }
-
-  public async updateSetting(settingId: any, settingParamName: string, index: number) {
-    let newSettingValue = this.state.settingInputValue
-
-    if (settingParamName === 'Display assets') {
-      const inputElem: any = document.getElementById('setting-' + settingId + '-' + index)
-      newSettingValue = inputElem.value
-    }
-
-    const response = await this.settingsService.updateSettings(settingId, settingParamName, newSettingValue)
-    if (response.status === 'Success') {
-      this.setState({
-        settingInputElem: null,
-        settingInputValue: '',
-      })
-      this.fetchSettings()
-
-      NotificationManager.success('Settings updated')
-    } else {
-      NotificationManager.warning('Cannot update settings')
-    }
-  }
-
-  public async removeSetting() {
-    const response = await this.settingsService.removeParam(this.state.settingId, this.state.settingParamName)
-    if (response.status === 'Success') {
-      this.fetchSettings()
-      NotificationManager.success('Setting param removed')
-    } else {
-      NotificationManager.warning('Cannot remove setting param')
-    }
-
-    this.setState({
-      settingId: '',
-      settingParamName: '',
-      isParamConfirmModalOpen: !this.state.isParamConfirmModalOpen,
-    })
-  }
-
-  public async removeSettingDomain() {
-    const response = await this.settingsService.removeSettingDomain(this.state.settingId)
-    if (response.status === 'Success') {
-      this.fetchSettings()
-      NotificationManager.success('Setting domain removed')
-    } else {
-      NotificationManager.warning('Cannot remove setting domain')
-    }
-    this.toggleConfirmModal('')
-    this.setState({ settingId: '' })
-  }
-
-  private setSelectedDate(date: Date) {
-    const auxDate = new Date(date.setMonth(date.getMonth() + 1))
-    const newDate = auxDate.getDate() + '/' + auxDate.getMonth() + '/' + auxDate.getFullYear()
-    this.setState({ settingInputValue: newDate })
-  }
-
-  public renderSetting(setting: ISettings) {
-    return (
-      <div key={setting.id} className="settings-group">
-        <div>
-          <h3 className="settings-group-title">{setting.name}</h3>
-
-          {setting.name !== 'Ripples' ? (
-            <i
-              className="fas fa-trash"
-              title="Remove domain"
-              onClick={(event) => this.toggleConfirmModal(setting.id)}
-            />
-          ) : (
-            <></>
-          )}
-
-          <Button
-            className="setting-group-add"
-            color="info"
-            onClick={() => this.toggleSettingModal(setting.id, setting.name)}
-          >
-            Add param
-          </Button>
-        </div>
-
-        <div className="settings-params-group">
-          {setting.params.map((set, index) => {
-            const dateValue = set[1].split('/')
-            return this.state.settingInputElem &&
-              this.state.settingInputElem.id === 'setting-' + setting.id + '-' + index ? (
-              <div key={index} className="setting-row" setting-input={'setting-' + setting.id + '-' + index}>
-                <span className="setting-title">{set[0]}</span>
-                {setting.name === 'Ripples' && set[0] === 'Current domain' ? (
-                  <>
-                    <span className="setting-title-description">
-                      {'Available domains: ' + this.state.domains + " (separate the domains by ',')"}
-                    </span>
-                  </>
-                ) : (
-                  <></>
-                )}
-                {setting.name === 'Ripples' && set[0] === 'Display assets' ? (
-                  <DatePicker
-                    id={'setting-' + setting.id + '-' + index}
-                    className="setting-input-date"
-                    selected={
-                      new Date(
-                        parseInt(this.state.settingInputValue.split('/')[2], 10),
-                        parseInt(this.state.settingInputValue.split('/')[1], 10) - 1,
-                        parseInt(this.state.settingInputValue.split('/')[0], 10)
-                      )
-                    }
-                    onChange={(newDate: Date) => this.setSelectedDate(newDate)}
-                    dateFormat="dd/MM/yyyy"
-                    timeCaption="time"
-                    disabled={false}
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    className="setting-input"
-                    id={'setting-' + setting.id + '-' + index}
-                    value={this.state.settingInputValue}
-                    onChange={(event) => this.setState({ settingInputValue: event.target.value })}
-                    disabled={false}
-                  />
-                )}
-                <i
-                  className="fas fa-check"
-                  title="Update params"
-                  onClick={() => this.updateSetting(setting.id, set[0], index)}
-                />
-              </div>
-            ) : (
-              <div key={index} className="setting-row" setting-input={'setting-' + setting.id + '-' + index}>
-                <span className="setting-title">{set[0]}</span>
-
-                {setting.name === 'Ripples' && set[0] === 'Current domain' ? (
-                  <>
-                    <span className="setting-title-description">
-                      {'Available domains: ' + this.state.domains + " (separate the domains by ',')"}
-                    </span>
-                  </>
-                ) : (
-                  <></>
-                )}
-
-                {setting.name === 'Ripples' && set[0] === 'Display assets' ? (
-                  <DatePicker
-                    id={'setting-' + setting.id + '-' + index}
-                    className="setting-input-date"
-                    selected={
-                      new Date(parseInt(dateValue[2], 10), parseInt(dateValue[1], 10) - 1, parseInt(dateValue[0], 10))
-                    }
-                    onChange={() => undefined}
-                    dateFormat="dd/MM/yyyy"
-                    timeCaption="time"
-                    disabled={true}
-                  />
-                ) : (
-                  <input
-                    id={'setting-' + setting.id + '-' + index}
-                    className="setting-input"
-                    type="text"
-                    disabled={true}
-                    value={set[1] === '""' ? '' : set[1]}
-                  />
-                )}
-
-                <i
-                  className="fas fa-pencil-alt"
-                  title="Edit param"
-                  onClick={(event) => this.enableInputSetting(event, setting.id, index)}
-                />
-                {setting.name === 'Ripples' && set[0] === 'Current domain' ? (
-                  <></>
-                ) : (
-                  <i
-                    className="fas fa-trash"
-                    title="Remove param"
-                    onClick={
-                      (event) =>
-                        this.toggleParamConfirmModal(setting.id, set[0]) /*this.removeSetting(setting.id, set[0])*/
-                    }
-                  />
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        <Modal isOpen={this.state.isNewSettingModalOpen}>
-          <ModalHeader toggle={this.toggleNewDomainSettingModal}> New domain group </ModalHeader>
-          <ModalBody>
-            <input
-              type="text"
-              className="setting-modal-input-new"
-              placeholder="Domain name"
-              value={this.state.settingNewInputDomain}
-              onChange={(event) => this.setState({ settingNewInputDomain: event.target.value })}
-            />
-            <Button color="success" onClick={() => this.createDomainSetting()}>
-              Create
-            </Button>
-          </ModalBody>
-        </Modal>
-
-        <Modal isOpen={this.state.isSettingModalOpen}>
-          <ModalHeader toggle={() => this.toggleSettingModal('', '')}>
-            {' '}
-            {this.state.settingDomainName} : Create new param{' '}
-          </ModalHeader>
-          <ModalBody>
-            <div className="setting-modal-input-group">
-              <input
-                type="text"
-                className="setting-modal-input"
-                placeholder="Param title"
-                value={this.state.settingNewInputTitle}
-                onChange={(event) => this.setState({ settingNewInputTitle: event.target.value })}
-              />
-              <label className="setting-modal-input"> : </label>
-              <input
-                type="text"
-                className="setting-modal-input"
-                placeholder="Param value"
-                value={this.state.settingNewInputValue}
-                onChange={(event) => this.setState({ settingNewInputValue: event.target.value })}
-              />
-            </div>
-            <Button color="success" onClick={() => this.createSetting()}>
-              Create
-            </Button>
-          </ModalBody>
-        </Modal>
-
-        <Modal isOpen={this.state.isConfirmModalOpen}>
-          <ModalHeader toggle={() => this.toggleConfirmModal('')}> Remove domain group </ModalHeader>
-          <ModalBody>
-            <div> All the settings from domain selected will be removed. Do you want to continue?</div>
-            <Button color="danger" onClick={() => this.removeSettingDomain()}>
-              Remove
-            </Button>
-          </ModalBody>
-        </Modal>
-
-        <Modal isOpen={this.state.isParamConfirmModalOpen}>
-          <ModalHeader toggle={() => this.toggleParamConfirmModal('', '')}> Remove param </ModalHeader>
-          <ModalBody>
-            <div> The param selected will be removed. Do you want to continue?</div>
-            <Button color="danger" onClick={() => this.removeSetting()}>
-              Remove
-            </Button>
-          </ModalBody>
-        </Modal>
-      </div>
-    )
-  }
-
-  public renderSettings() {
-    return this.state.systemSettings.map((set) => this.renderSetting(set))
-  }
-
   public render() {
     return (
       <>
@@ -538,63 +182,112 @@ export class Settings extends Component<PropsType, StateType> {
           <Collapse isOpen={this.state.isNavOpen} navbar={true}>
             <TopNavLinks />
             <Nav className="ml-auto" navbar={true}>
+              {this.props.auth.authenticated && this.buildUserProfilePage()}
+              {/*this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildTokenSelector()*/}
+              {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildZerotierSelector()}
+
               <Login />
-              <div id="settings-btn">{this.buildSettingsPanelBtn()}</div>
             </Nav>
           </Collapse>
         </Navbar>
 
-        <div className="settings-content">
-          {this.renderSettings()}
+        <div className="settings-panel-content">
+          <Container fluid={true}>
+            {this.props.auth.authenticated && !isCasual(this.props.auth) && (
+              <>
+                <Row className="justify-content-center">
+                  <Col className="setting-col">{this.redirectToSoiRiskAnalysisPage()}</Col>
+                  <Col className="setting-col">{this.redirectToTextMessagesPage()}</Col>
+                  <Col className="setting-col">{this.redirectToKmlManagerPage()}</Col>
+                </Row>
 
-          {this.props.auth.authenticated && isAdministrator(this.props.auth) ? (
-            <Button className="setting-btn-domain" color="info" onClick={this.toggleNewDomainSettingModal}>
-              Add new setting domain
-            </Button>
-          ) : (
-            <></>
-          )}
+                <Row className="justify-content-center">
+                  <Col className="setting-col">{this.buildTokenSelector()}</Col>
+                  <Col className="setting-col">{this.buildZerotier()}</Col>
+                </Row>
+              </>
+            )}
+
+            {this.props.auth.authenticated && isAdministrator(this.props.auth) && (
+              <Row className="justify-content-center">
+                <Col className="setting-col">{this.redirectToUsersManagerPage()}</Col>
+                <Col className="setting-col">{this.buildDomainEditor()}</Col>
+                <Col className="setting-col">{this.redirectToSettingsPage()}</Col>
+              </Row>
+            )}
+          </Container>
         </div>
       </>
     )
   }
 
-  public buildSettingsPanelBtn() {
-    if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
-      return (
-        <Link className="navbar-link" to="/settings/panel">
-          <i title="Settings Panel" className="fas fa-cogs fa-sm" />
-        </Link>
-      )
-    }
-    return <></>
-  }
-
-  public buildZerotierSelector() {
+  public buildZerotier() {
     return (
       <>
-        <UncontrolledDropdown id="tooltip-zt" nav={true} className="mr-4 active">
-          <DropdownToggle nav={true} caret={false}>
-            <i className={'fas fa-network-wired fa-lg'} title="Join Ripples Zerotier Network" />
-          </DropdownToggle>
-          <DropdownMenu right={true} className={'zt-dialog'}>
-            <InputGroup>
-              <Input
-                name="node_address"
-                placeholder="Node address"
-                onChange={(evt) => this.setState({ nodeId: evt.target.value })}
-                value={this.state.nodeId}
-                type="text"
-                required={true}
-              />
-            </InputGroup>
-            <Button onClick={this.onNodeIdSubmission}>Add node</Button>
-          </DropdownMenu>
-        </UncontrolledDropdown>
+        <i
+          className={'fas fa-network-wired fa-4x '}
+          title="Join Ripples Zerotier Network"
+          onClick={this.toggleZtSelector}
+        />
+        <p className="settings-panel-info-domain">Zerotier Network</p>
+        {this.buildZerotierSelector()}
         {this.buildZerotierModal()}
       </>
     )
   }
+
+  public buildZerotierSelector() {
+    return (
+      <Modal isOpen={this.state.isZtSelectorOpen} toggle={this.toggleZtSelector}>
+        <ModalHeader toggle={this.toggleZtSelector}> Zerotier Network </ModalHeader>
+        <ModalBody>
+          <InputGroup>
+            <Input
+              name="node_address"
+              placeholder="Node address"
+              onChange={(evt) => this.setState({ nodeId: evt.target.value })}
+              value={this.state.nodeId}
+              type="text"
+              required={true}
+            />
+          </InputGroup>
+          <div className="btn-zt-modal">
+            <Button color="primary" onClick={this.onNodeIdSubmission}>
+              Add node
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
+    )
+  }
+
+  /*
+    public buildZerotierSelector() {
+        return (
+            <>
+                <UncontrolledDropdown id="tooltip-zt" nav={true} className="mr-4 active">
+                    <DropdownToggle nav={true} caret={false}>
+                        <i className={'fas fa-network-wired fa-lg'} title="Join Ripples Zerotier Network" />
+                    </DropdownToggle>
+                    <DropdownMenu right={true} className={'zt-dialog'}>
+                        <InputGroup>
+                            <Input
+                                name="node_address"
+                                placeholder="Node address"
+                                onChange={(evt) => this.setState({ nodeId: evt.target.value })}
+                                value={this.state.nodeId}
+                                type="text"
+                                required={true}
+                            />
+                        </InputGroup>
+                        <Button onClick={this.onNodeIdSubmission}>Add node</Button>
+                    </DropdownMenu>
+                </UncontrolledDropdown>
+                {this.buildZerotierModal()}
+            </>
+        )
+    }
+    */
 
   public buildZerotierModal() {
     const { ztCmd } = this.state
@@ -625,7 +318,7 @@ export class Settings extends Component<PropsType, StateType> {
     const { status, message } = await this.ztService.joinNetwork(nodeId)
     if (status === 'Success') {
       NotificationManager.success('Node added successfully to the Ripples Zerotier network!')
-      this.setState({ isZtModalOpen: true, ztCmd: message })
+      this.setState({ isZtModalOpen: true, ztCmd: message, isZtSelectorOpen: !this.state.isZtSelectorOpen })
     } else {
       NotificationManager.error(message)
       this.setState({ isZtModalOpen: false })
@@ -635,6 +328,10 @@ export class Settings extends Component<PropsType, StateType> {
 
   public toggleZtModal() {
     this.setState({ isZtModalOpen: !this.state.isZtModalOpen })
+  }
+
+  public toggleZtSelector() {
+    this.setState({ isZtSelectorOpen: !this.state.isZtSelectorOpen })
   }
 
   public onCmdCopy() {
@@ -655,12 +352,170 @@ export class Settings extends Component<PropsType, StateType> {
   public buildTokenSelector() {
     return (
       <>
-        <i className={'fas fa-key fa-lg'} title="Generate API key" onClick={this.toogleTokenModal} />
+        <i className={'fas fa-key fa-4x'} title="Generate API key" onClick={this.toogleTokenModal} />
+        <p className="settings-panel-info-key">Generate API key</p>
         {this.buildTokenModal()}
         {this.buildNewTokenModal()}
         {this.buildRemoveTokenModal()}
       </>
     )
+  }
+
+  public buildDomainEditor() {
+    return (
+      <>
+        <i className={'fas fa-user-cog fa-4x '} title="Edit Domains" onClick={this.toggleDomainModal} />
+        <p className="settings-panel-info-domain">Edit Domains</p>
+        {this.buildDomainModal()}
+      </>
+    )
+  }
+
+  public buildDomainModal() {
+    return (
+      <Modal isOpen={this.state.isDomainModalOpen} toggle={this.toggleDomainModal}>
+        <ModalHeader toggle={this.toggleDomainModal}> Edit domain </ModalHeader>
+        <ModalBody>
+          {this.state.domains.map((d, index) => {
+            return this.state.domainInputElem && this.state.domainInputElem.id === 'domain-' + index ? (
+              <div key={index} className="domainRow" domain-input={'domain-' + index}>
+                <input
+                  type="text"
+                  className="domain-input"
+                  id={'domain-' + index}
+                  value={this.state.domainInputValue}
+                  onChange={(event) => this.setState({ domainInputValue: event.target.value })}
+                  disabled={false}
+                />
+                <i className="fas fa-check" title="Update domain" onClick={() => this.updateDomainName()} />
+              </div>
+            ) : (
+              <div key={index} className="domainRow" domain-input={'domain-' + index}>
+                <input type="text" className="domain-input" id={'domain-' + index} value={d} disabled={true} />
+                <i
+                  className="fas fa-pencil-alt"
+                  title="Edit domain"
+                  onClick={(event) => this.enableInputDomain(event)}
+                />
+                <i className="fas fa-trash" title="Remove domain" onClick={(event) => this.removeDomain(event)} />
+              </div>
+            )
+          })}
+          {this.state.domainNewInputVisible ? (
+            <div>
+              <input
+                type="text"
+                className="domain-input"
+                id={'domain-new-input'}
+                placeholder="Domain name"
+                value={this.state.domainNewInput}
+                onChange={(event) => this.setState({ domainNewInput: event.target.value })}
+              />
+              <div className="btn-domain-modal">
+                <Button color="success" onClick={() => this.createDomain()}>
+                  Add
+                </Button>
+                <Button color="secondary" onClick={() => this.setState({ domainNewInputVisible: false })}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="btn-domain-modal">
+              <Button
+                color="primary"
+                onClick={() => this.setState({ domainNewInputVisible: !this.state.domainNewInputVisible })}
+              >
+                New domain
+              </Button>
+            </div>
+          )}
+        </ModalBody>
+      </Modal>
+    )
+  }
+
+  public async createDomain() {
+    const domainName = this.state.domainNewInput
+
+    const response = await createDomain(domainName)
+    if (response.status === 'Success') {
+      this.toggleDomainModal()
+      this.setState({
+        domainNewInput: '',
+        domainNewInputVisible: false,
+      })
+      this.getDomains()
+      NotificationManager.success('Created domain')
+    } else {
+      NotificationManager.warning('Cannot create domain')
+    }
+  }
+
+  public async removeDomain(event: any) {
+    const elem = event.target
+    const domainInputId = elem.parentElement.getAttribute('domain-input')
+    const inputElem: any = document.getElementById(domainInputId)
+
+    const response = await deleteDomain(inputElem.value)
+    if (response.status === 'Success') {
+      this.getDomains()
+      NotificationManager.success('Domain removed')
+    } else {
+      NotificationManager.warning('Cannot remove domain')
+    }
+  }
+
+  public async updateDomainName() {
+    const previousDomainName = this.state.domainPreviousValue
+    const newDomainName = this.state.domainInputValue
+
+    const response = await updateDomain(previousDomainName, newDomainName)
+    if (response.status === 'Success') {
+      this.toggleDomainModal()
+      this.setState({
+        domainInputElem: null,
+        domainInputValue: '',
+        domainPreviousValue: '',
+      })
+      /*
+                  const users = [...this.state.users]
+                  users.forEach((u) => {
+                    const updateDomain: string[] = u.domain
+                    const index = updateDomain.indexOf(previousDomainName)
+                    if (index !== -1) {
+                      updateDomain[index] = newDomainName
+                    }
+                    u.domain = updateDomain
+                  })
+                  this.setState({ users })
+            */
+      this.getDomains()
+
+      NotificationManager.success('Updated domain name')
+    } else {
+      NotificationManager.warning('Cannot update domain name')
+    }
+  }
+
+  public enableInputDomain(event: any) {
+    const elem = event.target
+    const domainInputId = elem.parentElement.getAttribute('domain-input')
+    const inputElem: any = document.getElementById(domainInputId)
+
+    if (inputElem != null) {
+      this.setState({
+        domainInputElem: inputElem,
+        domainInputValue: inputElem.value,
+        domainPreviousValue: inputElem.value,
+      })
+    } else {
+      this.setState({
+        domainInputElem: null,
+        domainInputValue: '',
+        domainPreviousValue: '',
+      })
+    }
   }
 
   public buildTokenModal() {
@@ -840,6 +695,10 @@ export class Settings extends Component<PropsType, StateType> {
     this.setState({ isTokenModalOpen: !this.state.isTokenModalOpen })
   }
 
+  public toggleDomainModal() {
+    this.setState({ isDomainModalOpen: !this.state.isDomainModalOpen })
+  }
+
   public toogleNewTokenModal() {
     this.setState({
       isNewTokenModalOpen: !this.state.isNewTokenModalOpen,
@@ -918,9 +777,56 @@ export class Settings extends Component<PropsType, StateType> {
 
   private redirectToUsersManagerPage() {
     return (
-      <Link className="navbar-link" to="/user/manager">
-        <i title="Users Manager" className="fas fa-users fa-lg" />
-      </Link>
+      <>
+        <Link className="navbar-link-panel" to="/user/manager">
+          <i title="Users Manager" className="fas fa-users fa-4x" />
+        </Link>
+        <p className="settings-panel-info">Users Manager</p>
+      </>
+    )
+  }
+
+  private redirectToSoiRiskAnalysisPage() {
+    return (
+      <>
+        <Link className="navbar-link-panel" to="/soirisk">
+          <i title="Soi Risk Analysis" className="fas fa-exclamation-triangle fa-4x" />
+        </Link>
+        <p className="settings-panel-info">Soi Risk Analysis</p>
+      </>
+    )
+  }
+
+  private redirectToTextMessagesPage() {
+    return (
+      <>
+        <Link className="navbar-link-panel" to="/messages/text">
+          <i title="Text Messages" className="fas fa-envelope-open-text fa-4x" />
+        </Link>
+        <p className="settings-panel-info">Text Messages</p>
+      </>
+    )
+  }
+
+  private redirectToKmlManagerPage() {
+    return (
+      <>
+        <Link className="navbar-link-panel" to="/kml/manager">
+          <i title="KML Manager" className="fas fa-map fa-4x" />
+        </Link>
+        <p className="settings-panel-info">KML Manager</p>
+      </>
+    )
+  }
+
+  private redirectToSettingsPage() {
+    return (
+      <>
+        <Link className="navbar-link-panel" to="/settings/manager">
+          <i title="Settings Manager" className="fas fa-cogs fa-4x" />
+        </Link>
+        <p className="settings-panel-info">Settings Manager</p>
+      </>
     )
   }
 
@@ -953,4 +859,4 @@ const actionCreators = {
   setUser,
 }
 
-export default connect(mapStateToProps, actionCreators)(Settings)
+export default connect(mapStateToProps, actionCreators)(SettingsPanel)

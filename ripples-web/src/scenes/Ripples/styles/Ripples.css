@@ -395,7 +395,7 @@ path.leaflet-polygon {
   text-align: center;
 }
 
-.btn-domain-modal {
+.btn-domain-modal, .btn-zt-modal {
   display: grid;
 }
 
@@ -474,8 +474,30 @@ path.leaflet-polygon {
   font-size: small;
 }
 
-.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover {
+.setting-col {
+  padding: 10px;
+  text-align: center;
+}
+
+.settings-panel-info {
+  text-align: center;
+  padding-top: 5px;
+}
+.settings-panel-info-key {
+  text-align: center;
+  padding-top: 12px;
+}
+.settings-panel-info-domain {
+  text-align: center;
+  padding-top: 25px;
+}
+
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-user-cog:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover {
   color:#2bace4;
+}
+
+.fa-user-cog, .fa-key, .fa-network-wired  {
+  color: #444444;
 }
 
 .fa-users {

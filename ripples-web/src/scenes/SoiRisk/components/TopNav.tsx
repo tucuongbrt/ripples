@@ -93,18 +93,18 @@ class TopNav extends Component<PropsType, StateType> {
           <Nav className="ml-auto" navbar={true}>
             {this.buildSmsSubscriber()}
             <Login />
-            <div id="settings-btn">{this.buildSettingsBtn()}</div>
+            <div id="settings-btn">{this.buildSettingsPanelBtn()}</div>
           </Nav>
         </Collapse>
       </Navbar>
     )
   }
 
-  public buildSettingsBtn() {
+  public buildSettingsPanelBtn() {
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       return (
-        <Link className="navbar-link" to="/settings/manager">
-          <i title="Settings Manager" className="fas fa-cogs fa-sm" />
+        <Link className="navbar-link" to="/settings/panel">
+          <i title="Settings Panel" className="fas fa-cogs fa-sm" />
         </Link>
       )
     }

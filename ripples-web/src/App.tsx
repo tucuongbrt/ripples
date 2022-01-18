@@ -11,6 +11,7 @@ import Users from './scenes/Users/Users'
 import UserProfile from './scenes/Users/UserProfile'
 import Settings from './scenes/Settings/Settings'
 import './styles/main.css'
+import SettingsPanel from './scenes/Settings/SettingsPanel'
 
 const { NotificationContainer } = require('react-notifications')
 
@@ -27,6 +28,7 @@ class App extends Component {
             <Route path="/logbook/manager" exact={true} component={LogbookManager} />
             <Route path="/user/manager" exact={true} component={Users} />
             <Route path="/settings/manager" exact={true} component={Settings} />
+            <Route path="/settings/panel" exact={true} component={SettingsPanel} />
             <Route path="/user/profile" exact={true} component={UserProfile} />
             <Route path="/no-login-permission" exact={true} component={NoLoginPermission} />
             <Route path="/oauth2/redirect" component={OAuth2RedirectHandler} />

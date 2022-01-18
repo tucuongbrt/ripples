@@ -566,8 +566,8 @@ class TopNav extends Component<PropsType, StateType> {
   public buildSettingsBtn() {
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       return (
-        <Link className="navbar-link" to="/settings/manager">
-          <i title="Settings Manager" className="fas fa-cogs fa-sm" />
+        <Link className="navbar-link" to="/settings/panel">
+          <i title="Settings Panel" className="fas fa-cogs fa-sm" />
         </Link>
       )
     }

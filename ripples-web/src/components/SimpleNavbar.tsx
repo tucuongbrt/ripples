@@ -18,8 +18,8 @@ export default function SimpleNavbar(props: any) {
           <Login />
           {props.auth.auth.authenticated && !isCasual(props.auth.auth) ? (
             <div id="settings-btn">
-              <Link className="navbar-link" to="/settings/manager">
-                <i title="Settings Manager" className="fas fa-cogs fa-sm" />
+              <Link className="navbar-link" to="/settings/panel">
+                <i title="Settings Panel" className="fas fa-cogs fa-sm" />
               </Link>
             </div>
           ) : (
