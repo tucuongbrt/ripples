@@ -54,6 +54,8 @@ interface StateType {
   ztCmd: string
   isTokenModalOpen: boolean
   isDomainModalOpen: boolean
+  isRemoveDomainModalOpen: boolean
+  domainToRemove: any | null
   isNewTokenVisible: boolean
   isRemoveTokenModalOpen: boolean
   apiKeys: IApiKeys[]
@@ -110,6 +112,8 @@ export class SettingsPanel extends Component<PropsType, StateType> {
       ztCmd: '',
       isTokenModalOpen: false,
       isDomainModalOpen: false,
+      isRemoveDomainModalOpen: false,
+      domainToRemove: null,
       isNewTokenVisible: false,
       apiKeys: [],
       isNewTokenModalOpen: false,
@@ -367,6 +371,7 @@ export class SettingsPanel extends Component<PropsType, StateType> {
         <i className={'fas fa-user-cog fa-4x '} title="Edit Domains" onClick={this.toggleDomainModal} />
         <p className="settings-panel-info-domain">Edit Domains</p>
         {this.buildDomainModal()}
+        {this.buildRemoveDomainModal()}
       </>
     )
   }
@@ -397,7 +402,11 @@ export class SettingsPanel extends Component<PropsType, StateType> {
                   title="Edit domain"
                   onClick={(event) => this.enableInputDomain(event)}
                 />
-                <i className="fas fa-trash" title="Remove domain" onClick={(event) => this.removeDomain(event)} />
+                <i
+                  className="fas fa-trash"
+                  title="Remove domain"
+                  onClick={(event) => this.toogleRemoveDomainModal(event)}
+                />
               </div>
             )
           })}
@@ -435,6 +444,20 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     )
   }
 
+  public buildRemoveDomainModal() {
+    return (
+      <Modal isOpen={this.state.isRemoveDomainModalOpen}>
+        <ModalHeader toggle={() => this.toogleRemoveDomainModal(null)}> Remove domain </ModalHeader>
+        <ModalBody>
+          <div> The domain will be removed. Do you want to continue?</div>
+          <Button color="danger" onClick={() => this.removeDomain()}>
+            Yes
+          </Button>
+        </ModalBody>
+      </Modal>
+    )
+  }
+
   public async createDomain() {
     const domainName = this.state.domainNewInput
 
@@ -452,15 +475,12 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     }
   }
 
-  public async removeDomain(event: any) {
-    const elem = event.target
-    const domainInputId = elem.parentElement.getAttribute('domain-input')
-    const inputElem: any = document.getElementById(domainInputId)
-
-    const response = await deleteDomain(inputElem.value)
+  public async removeDomain() {
+    const response = await deleteDomain(this.state.domainToRemove.value)
     if (response.status === 'Success') {
       this.getDomains()
       NotificationManager.success('Domain removed')
+      this.setState({ isRemoveDomainModalOpen: !this.state.isRemoveDomainModalOpen, domainToRemove: null })
     } else {
       NotificationManager.warning('Cannot remove domain')
     }
@@ -697,6 +717,17 @@ export class SettingsPanel extends Component<PropsType, StateType> {
 
   public toggleDomainModal() {
     this.setState({ isDomainModalOpen: !this.state.isDomainModalOpen })
+  }
+
+  public toogleRemoveDomainModal(event: any | null) {
+    if (event != null) {
+      const elem = event.target
+      const domainInputId = elem.parentElement.getAttribute('domain-input')
+      const inputElem: any = document.getElementById(domainInputId)
+      this.setState({ isRemoveDomainModalOpen: !this.state.isRemoveDomainModalOpen, domainToRemove: inputElem })
+    } else {
+      this.setState({ isRemoveDomainModalOpen: !this.state.isRemoveDomainModalOpen, domainToRemove: null })
+    }
   }
 
   public toogleNewTokenModal() {

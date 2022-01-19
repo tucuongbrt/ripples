@@ -6,7 +6,7 @@ import IAuthState, { isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
 import { fetchUsers, getCurrentUser, removeUser, updateUserDomain, updateUserRole } from '../../services/UserUtils'
-import { createDomain, deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
+import { deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
 import { Link } from 'react-router-dom'
 const { NotificationManager } = require('react-notifications')
 
@@ -61,7 +61,6 @@ export class Users extends Component<PropsType, StateType> {
     this.handleChangeRole = this.handleChangeRole.bind(this)
     this.handleChangeDomain = this.handleChangeDomain.bind(this)
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
-    this.toggleDomainModal = this.toggleDomainModal.bind(this)
     this.toggleUserModal = this.toggleUserModal.bind(this)
     this.handleRemoverUser = this.handleRemoverUser.bind(this)
     this.openUserProfile = this.openUserProfile.bind(this)
@@ -160,12 +159,6 @@ export class Users extends Component<PropsType, StateType> {
     this.getUsers()
   }
 
-  public toggleDomainModal() {
-    this.setState({
-      isDomainModalOpen: !this.state.isDomainModalOpen,
-    })
-  }
-
   private toggleUserModal(userEmail: string, event?: React.MouseEvent<HTMLElement, MouseEvent>) {
     if (event) {
       event.stopPropagation()
@@ -196,30 +189,12 @@ export class Users extends Component<PropsType, StateType> {
     }
   }
 
-  public async createDomain() {
-    const domainName = this.state.domainNewInput
-
-    const response = await createDomain(domainName)
-    if (response.status === 'Success') {
-      this.toggleDomainModal()
-      this.setState({
-        domainNewInput: '',
-        domainNewInputVisible: false,
-      })
-      this.getDomains()
-      NotificationManager.success('Created domain')
-    } else {
-      NotificationManager.warning('Cannot create domain')
-    }
-  }
-
   public async updateDomainName() {
     const previousDomainName = this.state.domainPreviousValue
     const newDomainName = this.state.domainInputValue
 
     const response = await updateDomain(previousDomainName, newDomainName)
     if (response.status === 'Success') {
-      this.toggleDomainModal()
       this.setState({
         domainInputElem: null,
         domainInputValue: '',
@@ -373,73 +348,11 @@ export class Users extends Component<PropsType, StateType> {
                   <th className="user-name">Name</th>
                   <th className="user-email">Email</th>
                   <th className="user-role">Role</th>
-                  <th className="user-domain">
-                    Domain <i className="fas fa-cog fa-lg" onClick={this.toggleDomainModal} />{' '}
-                  </th>
+                  <th className="user-domain">Domain</th>
                 </tr>
               </thead>
               <tbody>{this.renderUsers()}</tbody>
             </Table>
-
-            <Modal isOpen={this.state.isDomainModalOpen} toggle={this.toggleDomainModal}>
-              <ModalHeader toggle={this.toggleDomainModal}> Edit domain </ModalHeader>
-              <ModalBody>
-                {this.state.domains.map((d, index) => {
-                  return this.state.domainInputElem && this.state.domainInputElem.id === 'domain-' + index ? (
-                    <div key={index} className="domainRow" domain-input={'domain-' + index}>
-                      <input
-                        type="text"
-                        className="domain-input"
-                        id={'domain-' + index}
-                        value={this.state.domainInputValue}
-                        onChange={(event) => this.setState({ domainInputValue: event.target.value })}
-                        disabled={false}
-                      />
-                      <i className="fas fa-check" title="Update domain" onClick={() => this.updateDomainName()} />
-                    </div>
-                  ) : (
-                    <div key={index} className="domainRow" domain-input={'domain-' + index}>
-                      <input type="text" className="domain-input" id={'domain-' + index} value={d} disabled={true} />
-                      <i
-                        className="fas fa-pencil-alt"
-                        title="Edit domain"
-                        onClick={(event) => this.enableInputDomain(event)}
-                      />
-                      <i className="fas fa-trash" title="Remove domain" onClick={(event) => this.removeDomain(event)} />
-                    </div>
-                  )
-                })}
-                {this.state.domainNewInputVisible ? (
-                  <div>
-                    <input
-                      type="text"
-                      className="domain-input"
-                      id={'domain-new-input'}
-                      placeholder="Domain name"
-                      value={this.state.domainNewInput}
-                      onChange={(event) => this.setState({ domainNewInput: event.target.value })}
-                    />
-                    <div className="btn-domain-modal">
-                      <Button color="success" onClick={() => this.createDomain()}>
-                        Add
-                      </Button>
-                      <Button color="secondary" onClick={() => this.setState({ domainNewInputVisible: false })}>
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="btn-domain-modal">
-                    <Button
-                      color="primary"
-                      onClick={() => this.setState({ domainNewInputVisible: !this.state.domainNewInputVisible })}
-                    >
-                      New domain
-                    </Button>
-                  </div>
-                )}
-              </ModalBody>
-            </Modal>
 
             <Modal isOpen={this.state.isUserModalOpen} toggle={() => this.toggleUserModal('')}>
               <ModalHeader toggle={() => this.toggleUserModal('')}>Remove user</ModalHeader>
