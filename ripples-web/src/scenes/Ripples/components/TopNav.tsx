@@ -438,19 +438,21 @@ class TopNav extends Component<PropsType, StateType> {
             title="Measure Tool"
           />
         </NavItem>
-        <NavItem
-          className="mt-auto mb-auto mr-4"
-          active={this.props.toolSelected === ToolSelected.ANNOTATION}
-          onClick={this.onAnnotationToggle}
-        >
-          <i
-            className={
-              'far fa-sticky-note fa-lg ' + (this.props.toolSelected === ToolSelected.ANNOTATION ? 'selected' : '')
-            }
-            title="Annotation Tool"
-          />
-        </NavItem>
-        {this.buildWeatherSelector()}
+        {this.props.auth.authenticated && !isCasual(this.props.auth) && (
+          <NavItem
+            className="mt-auto mb-auto mr-4"
+            active={this.props.toolSelected === ToolSelected.ANNOTATION}
+            onClick={this.onAnnotationToggle}
+          >
+            <i
+              className={
+                'far fa-sticky-note fa-lg ' + (this.props.toolSelected === ToolSelected.ANNOTATION ? 'selected' : '')
+              }
+              title="Annotation Tool"
+            />
+          </NavItem>
+        )}
+        {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildWeatherSelector()}
         <NavItem className="mt-auto mb-auto mr-4" active={this.props.isGpsActive} onClick={this.onGpsClick}>
           <i
             className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
