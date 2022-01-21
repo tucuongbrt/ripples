@@ -91,3 +91,21 @@ i:hover {
     font-size: medium;
     font-weight: normal;
 }    
+
+@media (max-width:880px){
+    .leaflet-container {
+        height: calc(100vh - 132px);
+    }
+}
+
+@media (max-width:766px){
+    .leaflet-container {
+        height: calc(100vh - 66px);
+    }
+}
+
+@media (max-width:600px){
+    #sliderToggle {
+        bottom: -32px;
+    }
+}
