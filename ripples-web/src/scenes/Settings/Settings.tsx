@@ -91,7 +91,7 @@ export class Settings extends Component<PropsType, StateType> {
   constructor(props: any) {
     super(props)
     this.state = {
-      isNavOpen: true,
+      isNavOpen: false,
       systemSettings: [],
       settingInputElem: null,
       settingInputValue: '',

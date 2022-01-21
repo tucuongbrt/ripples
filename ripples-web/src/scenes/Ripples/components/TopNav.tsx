@@ -120,7 +120,7 @@ class TopNav extends Component<PropsType, StateType> {
       isEditPlanIdModalOpen: false,
       isZtModalOpen: false,
       isExecPlanDisabled: true,
-      isNavOpen: true,
+      isNavOpen: false,
       isPlansDropdownOpen: false,
       isVehiclesDropdownOpen: false,
       plansDropdownText: this.plansDropdownDefaultText,

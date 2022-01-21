@@ -8,7 +8,7 @@ import TopNavLinks from './TopNavLinks'
 export default function SimpleNavbar(props: any) {
   // Declare a new state variable, which we'll call "isNavOpen"
   // Here we are using React Hooks
-  const [isNavOpen, setIsNavOpen] = useState(true)
+  const [isNavOpen, setIsNavOpen] = useState(false)
   return (
     <Navbar color="faded" light={true} expand="md">
       <NavbarToggler className="mr-2" onClick={() => setIsNavOpen(!isNavOpen)} />

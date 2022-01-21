@@ -92,7 +92,7 @@ export class SettingsPanel extends Component<PropsType, StateType> {
   constructor(props: any) {
     super(props)
     this.state = {
-      isNavOpen: true,
+      isNavOpen: false,
       settingInputElem: null,
       settingInputValue: '',
       isSettingModalOpen: false,

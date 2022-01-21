@@ -33,7 +33,7 @@ class TopNav extends Component<PropsType, StateType> {
   constructor(props: PropsType) {
     super(props)
     this.state = {
-      isNavOpen: true,
+      isNavOpen: false,
       phoneNumber: '+351',
     }
     this.onPhoneSubmit = this.onPhoneSubmit.bind(this)

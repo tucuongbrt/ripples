@@ -42,7 +42,7 @@ export class UserProfile extends Component<PropsType, StateType> {
   constructor(props: any) {
     super(props)
     this.state = {
-      isNavOpen: true,
+      isNavOpen: false,
       messages: [],
       userProfile: null,
       isImageModalOpen: false,
