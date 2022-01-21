@@ -222,6 +222,7 @@ public class WavysUpdater {
 
             List<String> domain = Arrays.asList("Meloa");
             newAsset.setDomain(domain);
+            newAsset.setType("WAVY_DRIFTERS");
             assetsRepo.save(newAsset);
             wsController.sendAssetUpdateFromServerToClients(newAsset);
         } else {
