@@ -584,7 +584,7 @@ class TopNav extends Component<PropsType, StateType> {
           <TopNavLinks />
           <Nav navbar={true}>
             <div id="planEditToolbar">{this.buildPlanEditToolbar()}</div>
-            <div id="generalToolbar">{this.buildGeneralToolbar()}</div>
+            {/*<div id="generalToolbar">{this.buildGeneralToolbar()}</div>*/}
             <Login />
             <div id="settings-btn">{this.buildSettingsBtn()}</div>
           </Nav>

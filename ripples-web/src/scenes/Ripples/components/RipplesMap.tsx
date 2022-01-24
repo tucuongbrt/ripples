@@ -13,7 +13,19 @@ import {
 } from 'react-leaflet'
 import 'react-leaflet-fullscreen-control'
 import { connect } from 'react-redux'
-import { Button, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
+import {
+  Button,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  Input,
+  Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  UncontrolledDropdown,
+} from 'reactstrap'
 import IAisShip, { IShipLocation } from '../../../model/IAisShip'
 import IAnnotation, { NewAnnotation } from '../../../model/IAnnotations'
 import IAsset, { isSameAsset } from '../../../model/IAsset'
@@ -44,10 +56,13 @@ import {
   setSidePanelTitle,
   setSidePanelVisibility,
   setToolClickLocation,
+  setToolSelected,
   toggleSliderChange,
   toggleVehicleModal,
   updateVehicle,
   updateWpLocation,
+  toggleGps,
+  setWeatherParam,
 } from '../../../redux/ripples.actions'
 import DateService from '../../../services/DateUtils'
 import LogbookService from '../../../services/LogbookUtils'
@@ -131,6 +146,9 @@ interface PropsType {
   updateAssets: (s: IAsset, d: string[]) => void
   setPollutionMarkers: () => void
   setObstacles: () => void
+  setToolSelected: (_: ToolSelected) => void
+  toggleGps: () => void
+  setWeatherParam: (p: WeatherParam | null) => void
 }
 
 interface StateType {
@@ -260,6 +278,11 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.togglePollutionModal = this.togglePollutionModal.bind(this)
     this.toggleObstacleModal = this.toggleObstacleModal.bind(this)
     this.toggleRemoveAssetModal = this.toggleRemoveAssetModal.bind(this)
+    this.onMeasureToggle = this.onMeasureToggle.bind(this)
+    this.onGpsClick = this.onGpsClick.bind(this)
+    this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
+    this.onToolpickToogle = this.onToolpickToogle.bind(this)
+    this.buildWeatherSelector = this.buildWeatherSelector.bind(this)
 
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
@@ -1167,6 +1190,74 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.map = map
   }
 
+  private onMeasureToggle() {
+    if (this.props.toolSelected === ToolSelected.MEASURE) {
+      this.props.setToolSelected(ToolSelected.NONE)
+      this.props.setSidePanelVisibility(false)
+      this.props.clearMeasure()
+    } else {
+      this.props.setToolSelected(ToolSelected.MEASURE)
+      this.props.setSidePanelVisibility(true)
+      this.props.setSidePanelTitle('Measure distance')
+      this.props.setSidePanelContent({})
+      this.props.setEditVehicle(undefined)
+    }
+  }
+
+  private onToolpickToogle(weatherParam: WeatherParam | null) {
+    if (weatherParam !== null) {
+      this.props.setToolSelected(ToolSelected.TOOLPICK)
+    } else if (this.props.toolSelected === ToolSelected.TOOLPICK) {
+      this.props.setToolSelected(ToolSelected.NONE)
+    }
+    this.props.setWeatherParam(weatherParam)
+    this.props.setToolClickLocation(null)
+  }
+
+  private onGpsClick() {
+    this.props.toggleGps()
+  }
+
+  private onAnnotationToggle() {
+    if (this.props.toolSelected === ToolSelected.ANNOTATION) {
+      this.props.setToolSelected(ToolSelected.NONE)
+    } else {
+      this.props.setToolSelected(ToolSelected.ANNOTATION)
+    }
+    this.props.setSidePanelVisibility(false)
+  }
+
+  public buildWeatherSelector() {
+    return (
+      <UncontrolledDropdown nav={true}>
+        <DropdownToggle nav={true} caret={false}>
+          <i
+            className={'fas fa-map-pin fa-lg ' + (this.props.toolSelected === ToolSelected.TOOLPICK ? 'selected' : '')}
+            title="Enable Weather Toolpick"
+          />
+        </DropdownToggle>
+        <DropdownMenu right={false} className="weather-menu">
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.AIR_TEMPERATURE)}>
+            Air Temperature
+          </DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_DIRECTION)}>
+            Current Direction
+          </DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>Current Speed</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.GUST)}>Wind gust</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
+            Water Temperature
+          </DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_DIRECTION)}>Wave Direction</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_HEIGHT)}>Wave Height</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_DIRECTION)}>Wind Direction</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>Wind Speed</DropdownItem>
+          <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
+        </DropdownMenu>
+      </UncontrolledDropdown>
+    )
+  }
+
   public render() {
     return (
       <>
@@ -1441,6 +1532,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           {this.buildNewAnnotationMarker()}
           {this.buildToolpickMarker()}
           {this.buildDomainDialog()}
+          {this.buildRipplesTools()}
         </LeafletMap>
         {this.state.activeLegend}
       </>
@@ -1794,6 +1886,46 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.setState({ assetSelected: undefined })
   }
 
+  private buildRipplesTools() {
+    return (
+      <div className={this.props.auth.authenticated ? 'ripples-tools' : 'ripples-tools-nologin'}>
+        <div className="tool-ruler">
+          <i
+            onClick={this.onMeasureToggle}
+            className={
+              'fas fa-ruler-horizontal fa-lg ' + (this.props.toolSelected === ToolSelected.MEASURE ? 'selected' : '')
+            }
+            title="Measure Tool"
+          />
+        </div>
+
+        {this.props.auth.authenticated && !isCasual(this.props.auth) && (
+          <div className="tool-annotation">
+            <i
+              onClick={this.onAnnotationToggle}
+              className={
+                'far fa-sticky-note fa-lg ' + (this.props.toolSelected === ToolSelected.ANNOTATION ? 'selected' : '')
+              }
+              title="Annotation Tool"
+            />
+          </div>
+        )}
+
+        {this.props.auth.authenticated && !isCasual(this.props.auth) && (
+          <div className="tool-weather">{this.buildWeatherSelector()}</div>
+        )}
+
+        <div className="tool-gps">
+          <i
+            onClick={this.onGpsClick}
+            className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
+            title="Enable Gps Tracking"
+          />
+        </div>
+      </div>
+    )
+  }
+
   public async handleDeleteAsset() {
     if (this.state.assetSelected !== undefined) {
       try {
@@ -1916,6 +2048,7 @@ const actionCreators = {
   setSidePanelContent,
   setSidePanelTitle,
   setSidePanelVisibility,
+  setToolSelected,
   updateWpLocation,
   addMeasurePoint,
   removeMeasurePoint,
@@ -1926,6 +2059,8 @@ const actionCreators = {
   setToolClickLocation,
   updateVehicle,
   toggleSliderChange,
+  toggleGps,
+  setWeatherParam,
 }
 
 export default connect(mapStateToProps, actionCreators)(RipplesMap)

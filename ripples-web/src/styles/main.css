@@ -70,10 +70,6 @@ i:hover {
     color: #0000CD;
 }
 
-.fa-map-pin{
-    padding-top: 10px;
-}
-
 #login-btns {
     text-align: center;
     margin: -5px;
@@ -108,4 +104,51 @@ i:hover {
     #sliderToggle {
         bottom: -32px;
     }
+
+    .ripples-tools {
+        bottom: 150px !important; 
+    }
+}
+
+@media (max-height:580px){
+    .ripples-tools {
+        display: none;
+    }
+}
+
+@media (max-height:380px){
+    .ripples-tools-nologin {
+        display: none;
+    }
+}
+
+.ripples-tools, .ripples-tools-nologin {
+    z-index: 999;
+    position: absolute;
+    bottom: 110px;
+    margin-left: 10px;
+    box-shadow: 0 1px 5px rgb(0 0 0 / 65%);
+    border-radius: 4px;
+    background-color: #fff;
+}
+
+.tool-ruler, .tool-gps, .tool-annotation, .tool-weather {
+    color: #464646;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+    text-align: center;
+}
+
+.tool-weather > li {
+    display: block;
+}
+
+.tool-weather > li > a {
+    display: block;
+    padding: 0px;
+    color: #464646;
+}
+
+.weather-menu {
+    left: 26px !important;
 }
