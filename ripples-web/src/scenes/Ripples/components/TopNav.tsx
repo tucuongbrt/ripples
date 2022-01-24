@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import {
-  Button,
   Collapse,
   Dropdown,
   DropdownItem,
@@ -11,13 +10,9 @@ import {
   Modal,
   ModalBody,
   ModalHeader,
-  ModalFooter,
   Nav,
   Navbar,
   NavbarToggler,
-  NavItem,
-  UncontrolledDropdown,
-  InputGroup,
 } from 'reactstrap'
 import Login from '../../../components/Login'
 import TopNavLinks from '../../../components/TopNavLinks'
@@ -41,15 +36,11 @@ import {
   setSidePanelVisibility,
   setToolClickLocation,
   setToolSelected,
-  setWeatherParam,
-  toggleGps,
   togglePlanVisibility,
   unschedulePlan,
   updatePlanId,
   setUpdatingPlanId,
 } from '../../../redux/ripples.actions'
-import ZerotierService from '../../../services/ZerotierUtils'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import { Link } from 'react-router-dom'
 import SoiService from '../../../services/SoiUtils'
 import IAssetState from '../../../model/IAssetState'
@@ -85,9 +76,7 @@ interface PropsType {
   setSidePanelVisibility: (_: boolean) => void
   setSidePanelTitle: (_: string) => void
   setSidePanelContent: (_: any) => void
-  toggleGps: () => void
   setEditVehicle: (v: IAsset | undefined) => void
-  setWeatherParam: (p: WeatherParam | null) => void
   setToolClickLocation: (l: ILatLng | null) => void
   setUpdatingPlanId: (_: boolean) => void
 }
@@ -98,19 +87,15 @@ interface StateType {
   isExecPlanDisabled: boolean
   isDescriptionModalOpen: boolean
   isEditPlanIdModalOpen: boolean
-  isZtModalOpen: boolean
   plansDropdownText: string
   isVehiclesDropdownOpen: boolean
   vehiclesDropdownText: string
   previousPlanId: string
-  nodeId: string
-  ztCmd: string
 }
 
 class TopNav extends Component<PropsType, StateType> {
   private plansDropdownDefaultText = 'Plan Editor'
   private vehiclesDropdownDefaultText = 'Select Vehicle'
-  private ztService: ZerotierService = new ZerotierService()
   private soiService: SoiService = new SoiService()
 
   constructor(props: PropsType) {
@@ -118,7 +103,6 @@ class TopNav extends Component<PropsType, StateType> {
     this.state = {
       isDescriptionModalOpen: false,
       isEditPlanIdModalOpen: false,
-      isZtModalOpen: false,
       isExecPlanDisabled: true,
       isNavOpen: false,
       isPlansDropdownOpen: false,
@@ -126,8 +110,6 @@ class TopNav extends Component<PropsType, StateType> {
       plansDropdownText: this.plansDropdownDefaultText,
       previousPlanId: '',
       vehiclesDropdownText: this.vehiclesDropdownDefaultText,
-      nodeId: '',
-      ztCmd: '',
     }
 
     this.onNavToggle = this.onNavToggle.bind(this)
@@ -142,15 +124,8 @@ class TopNav extends Component<PropsType, StateType> {
     this.toggleDescriptionModal = this.toggleDescriptionModal.bind(this)
     this.toggleEditPlanIdModal = this.toggleEditPlanIdModal.bind(this)
     this.buildEditDescriptionModal = this.buildEditDescriptionModal.bind(this)
-    this.buildZerotierModal = this.buildZerotierModal.bind(this)
-    this.toggleZtModal = this.toggleZtModal.bind(this)
     this.updatePlanDescription = this.updatePlanDescription.bind(this)
     this.onDeletePlan = this.onDeletePlan.bind(this)
-    this.onMeasureToggle = this.onMeasureToggle.bind(this)
-    this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
-    this.onGpsClick = this.onGpsClick.bind(this)
-    this.onToolpickToogle = this.onToolpickToogle.bind(this)
-    this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
   }
 
   async componentDidUpdate(prevProps: PropsType) {
@@ -202,10 +177,6 @@ class TopNav extends Component<PropsType, StateType> {
     }
     this.props.setUpdatingPlanId(isOpen)
     this.setState({ isEditPlanIdModalOpen: isOpen })
-  }
-
-  public toggleZtModal() {
-    this.setState({ isZtModalOpen: !this.state.isZtModalOpen })
   }
 
   public togglePlansDropdown() {
@@ -423,148 +394,6 @@ class TopNav extends Component<PropsType, StateType> {
     return <></>
   }
 
-  public buildGeneralToolbar() {
-    return (
-      <>
-        <NavItem
-          className="mt-auto mb-auto mr-4"
-          active={this.props.toolSelected === ToolSelected.MEASURE}
-          onClick={this.onMeasureToggle}
-        >
-          <i
-            className={
-              'fas fa-ruler-horizontal fa-lg ' + (this.props.toolSelected === ToolSelected.MEASURE ? 'selected' : '')
-            }
-            title="Measure Tool"
-          />
-        </NavItem>
-        {this.props.auth.authenticated && !isCasual(this.props.auth) && (
-          <NavItem
-            className="mt-auto mb-auto mr-4"
-            active={this.props.toolSelected === ToolSelected.ANNOTATION}
-            onClick={this.onAnnotationToggle}
-          >
-            <i
-              className={
-                'far fa-sticky-note fa-lg ' + (this.props.toolSelected === ToolSelected.ANNOTATION ? 'selected' : '')
-              }
-              title="Annotation Tool"
-            />
-          </NavItem>
-        )}
-        {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildWeatherSelector()}
-        <NavItem className="mt-auto mb-auto mr-4" active={this.props.isGpsActive} onClick={this.onGpsClick}>
-          <i
-            className={'fas fa-map-marker-alt fa-lg ' + (this.props.isGpsActive ? 'selected' : '')}
-            title="Enable Gps Tracking"
-          />
-        </NavItem>
-        {/* 
-        {this.props.auth.authenticated && !isCasual(this.props.auth) && this.buildZerotierSelector()}
-          */}
-      </>
-    )
-  }
-
-  public buildWeatherSelector() {
-    return (
-      <UncontrolledDropdown nav={true} className="mr-4 active">
-        <DropdownToggle nav={true} caret={false}>
-          <i
-            className={'fas fa-map-pin fa-lg ' + (this.props.toolSelected === ToolSelected.TOOLPICK ? 'selected' : '')}
-            title="Enable Weather Toolpick"
-          />
-        </DropdownToggle>
-        <DropdownMenu right={true}>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.AIR_TEMPERATURE)}>
-            Air Temperature
-          </DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_DIRECTION)}>
-            Current Direction
-          </DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.CURRENT_SPEED)}>Current Speed</DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.GUST)}>Wind gust</DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WATER_TEMPERATURE)}>
-            Water Temperature
-          </DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_DIRECTION)}>Wave Direction</DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WAVE_HEIGHT)}>Wave Height</DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_DIRECTION)}>Wind Direction</DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(WeatherParam.WIND_SPEED)}>Wind Speed</DropdownItem>
-          <DropdownItem onClick={() => this.onToolpickToogle(null)}>None</DropdownItem>
-        </DropdownMenu>
-      </UncontrolledDropdown>
-    )
-  }
-
-  public buildZerotierSelector() {
-    return (
-      <>
-        <UncontrolledDropdown id="tooltip-zt" nav={true} className="mr-4 active">
-          <DropdownToggle nav={true} caret={false}>
-            <i className={'fas fa-network-wired fa-lg'} title="Join Ripples Zerotier Network" />
-          </DropdownToggle>
-          <DropdownMenu right={true}>
-            <InputGroup>
-              <Input
-                name="node_address"
-                placeholder="Node address"
-                onChange={(evt) => this.setState({ nodeId: evt.target.value })}
-                value={this.state.nodeId}
-                type="text"
-                required={true}
-              />
-            </InputGroup>
-            <Button onClick={this.onNodeIdSubmission}>Add node</Button>
-          </DropdownMenu>
-        </UncontrolledDropdown>
-        {this.buildZerotierModal()}
-      </>
-    )
-  }
-
-  public onCmdCopy() {
-    NotificationManager.success('Command copied to clipboard!')
-    this.toggleZtModal()
-  }
-
-  public buildZerotierModal() {
-    const { ztCmd } = this.state
-    return (
-      <Modal key={'zt_modal'} isOpen={this.state.isZtModalOpen} toggle={this.toggleZtModal}>
-        <ModalHeader toggle={this.toggleZtModal}>Connect to the Ripples ZeroTier network</ModalHeader>
-        <ModalBody>
-          <code>$ {ztCmd}</code>
-        </ModalBody>
-        <ModalFooter>
-          <CopyToClipboard text={ztCmd} onCopy={() => this.onCmdCopy()}>
-            <Button color="primary">Copy command</Button>
-          </CopyToClipboard>
-          <Button color="secondary" onClick={this.toggleZtModal}>
-            Close
-          </Button>
-        </ModalFooter>
-      </Modal>
-    )
-  }
-
-  public async onNodeIdSubmission() {
-    const { nodeId } = this.state
-    if (nodeId === '' || nodeId.length !== 10) {
-      NotificationManager.error('Please insert a valid 10-digit ZeroTier node ID!')
-      return
-    }
-    const { status, message } = await this.ztService.joinNetwork(nodeId)
-    if (status === 'Success') {
-      NotificationManager.success('Node added successfully to the Ripples Zerotier network!')
-      this.setState({ isZtModalOpen: true, ztCmd: message })
-    } else {
-      NotificationManager.error(message)
-      this.setState({ isZtModalOpen: false })
-    }
-    this.setState({ nodeId: '' })
-  }
-
   public buildSettingsBtn() {
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       return (
@@ -584,50 +413,12 @@ class TopNav extends Component<PropsType, StateType> {
           <TopNavLinks />
           <Nav navbar={true}>
             <div id="planEditToolbar">{this.buildPlanEditToolbar()}</div>
-            {/*<div id="generalToolbar">{this.buildGeneralToolbar()}</div>*/}
             <Login />
             <div id="settings-btn">{this.buildSettingsBtn()}</div>
           </Nav>
         </Collapse>
       </Navbar>
     )
-  }
-
-  private onMeasureToggle() {
-    if (this.props.toolSelected === ToolSelected.MEASURE) {
-      this.props.setToolSelected(ToolSelected.NONE)
-      this.props.setSidePanelVisibility(false)
-      this.props.clearMeasure()
-    } else {
-      this.props.setToolSelected(ToolSelected.MEASURE)
-      this.props.setSidePanelVisibility(true)
-      this.props.setSidePanelTitle('Measure distance')
-      this.props.setSidePanelContent({})
-      this.props.setEditVehicle(undefined)
-    }
-  }
-
-  private onAnnotationToggle() {
-    if (this.props.toolSelected === ToolSelected.ANNOTATION) {
-      this.props.setToolSelected(ToolSelected.NONE)
-    } else {
-      this.props.setToolSelected(ToolSelected.ANNOTATION)
-    }
-    this.props.setSidePanelVisibility(false)
-  }
-
-  private onGpsClick() {
-    this.props.toggleGps()
-  }
-
-  private onToolpickToogle(weatherParam: WeatherParam | null) {
-    if (weatherParam !== null) {
-      this.props.setToolSelected(ToolSelected.TOOLPICK)
-    } else if (this.props.toolSelected === ToolSelected.TOOLPICK) {
-      this.props.setToolSelected(ToolSelected.NONE)
-    }
-    this.props.setWeatherParam(weatherParam)
-    this.props.setToolClickLocation(null)
   }
 }
 
@@ -660,10 +451,8 @@ const actionCreators = {
   setSidePanelContent,
   setEditingPlan,
   setEditVehicle,
-  setWeatherParam,
   setToolClickLocation,
   setUpdatingPlanId,
-  toggleGps,
 }
 
 export default connect(mapStateToProps, actionCreators)(TopNav)
