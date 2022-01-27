@@ -12,7 +12,7 @@ public class SPAController {
 
     private static Logger logger = LoggerFactory.getLogger(RockBlockController.class);
 
-    @RequestMapping(path = {"/", "/ripples", "/soirisk", "/messages/text", "/user/manager", "/settings/manager", "/settings/panel", "/user/profile"})
+    @RequestMapping(path = {"/", "/ripples", "/soirisk", "/messages/text", "/user/manager", "/settings/manager", "/settings/panel", "/user/profile", "/asset/profile"})
     public String index() {
         logger.info("On index()");
         return "forward:index.html";

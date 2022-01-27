@@ -12,6 +12,7 @@ import UserProfile from './scenes/Users/UserProfile'
 import Settings from './scenes/Settings/Settings'
 import './styles/main.css'
 import SettingsPanel from './scenes/Settings/SettingsPanel'
+import AssetProfile from './scenes/Assets/AssetProfile'
 
 const { NotificationContainer } = require('react-notifications')
 
@@ -30,6 +31,7 @@ class App extends Component {
             <Route path="/settings/manager" exact={true} component={Settings} />
             <Route path="/settings/panel" exact={true} component={SettingsPanel} />
             <Route path="/user/profile" exact={true} component={UserProfile} />
+            <Route path="/asset/profile" exact={true} component={AssetProfile} />
             <Route path="/no-login-permission" exact={true} component={NoLoginPermission} />
             <Route path="/oauth2/redirect" component={OAuth2RedirectHandler} />
           </Switch>

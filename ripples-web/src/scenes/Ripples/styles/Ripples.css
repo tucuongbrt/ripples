@@ -374,7 +374,7 @@ path.leaflet-polygon {
   margin: 2px;
 }
 
-.domain-label {
+.domain-label, .type-label {
   font-weight: bold;
   font-size: larger;
   text-decoration: underline;
@@ -492,12 +492,16 @@ path.leaflet-polygon {
   padding-top: 25px;
 }
 
-.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-user-cog:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover {
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-user-cog:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover, .fa-info-circle:hover {
   color:#2bace4;
 }
 
-.fa-user-cog, .fa-key, .fa-network-wired  {
+.fa-user-cog, .fa-key, .fa-network-wired, .fa-info-circle  {
   color: #444444;
+}
+
+.fa-info-circle {
+  margin-left: 10px ;
 }
 
 .fa-users {
@@ -599,20 +603,29 @@ path.leaflet-polygon {
   height: 70vh;
 }
 
-.user-profile div {
+.asset-profile { 
+  margin: 50px;
+  height: 70vh;
+}
+
+.user-profile div, .asset-profile-left, .asset-profile-left {
    min-height: 300px;
    padding: 5px;
    border: none;
 }
 
-#user-profile-left {
+.asset-profile-bottom {
+  min-height: 300px;
+}
+
+#user-profile-left, #asset-profile-left {
   float: left; 
   margin-right: 20px;
   width: 35%;
   overflow: hidden;
 }
 
-#user-profile-right { 
+#user-profile-right, #asset-profile-right { 
   overflow: hidden;
   margin: 10px;
   border: 2px dashed #ccc;
@@ -620,7 +633,7 @@ path.leaflet-polygon {
 }
 
 @media screen and (max-width: 760px) {
-   #user-profile-left { 
+   #user-profile-left, .asset-profile-left { 
     float: none;
     margin-right: 0;
     width: auto;
@@ -628,10 +641,22 @@ path.leaflet-polygon {
   }
 }
 
-.user-profile-field {
+@media screen and (max-width: 760px) {
+  .asset-profile { 
+    overflow-y: auto
+ }
+}
+
+.user-profile-field, .asset-profile-field {
   font-weight: bolder;
   padding: 10px; 
   display: inline-block; 
+}
+
+.asset-profile-field {
+  font-weight: bolder;
+  padding: 4px; 
+  display: inline-block;
 }
 
 .user-profile-value, .user-profile-value-domain {
@@ -640,7 +665,7 @@ path.leaflet-polygon {
   font-weight: lighter;
 }
 
-.user-profile-img-wrap img {
+.user-profile-img-wrap img, .asset-profile-img-wrap img {
   border-radius: 30%;
   width: 80%;
   display: block;
@@ -649,7 +674,7 @@ path.leaflet-polygon {
   height: auto;
 }
 
-.user-profile-img-wrap i {
+.user-profile-img-wrap i, .asset-profile-img-wrap i {
   position: absolute;
   top: 20px;
   right: 50px;
@@ -667,6 +692,12 @@ path.leaflet-polygon {
   position: relative;
   width: auto;
   height: auto;
+}
+
+.asset-profile-img-wrap {
+  position: relative;
+  width: 500px;
+  height: 600px;
 }
 
 #imgSelected {

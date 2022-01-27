@@ -1,14 +1,17 @@
 import Parser from 'html-react-parser'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
+import { Link } from 'react-router-dom'
 import Card from 'reactstrap/lib/Card'
 import CardBody from 'reactstrap/lib/CardBody'
 import CardTitle from 'reactstrap/lib/CardTitle'
 import IAsset from '../../../model/IAsset'
+import IAuthState, { isCasual } from '../../../model/IAuthState'
 import IRipplesState from '../../../model/IRipplesState'
 import { toggleVehicleModal } from '../../../redux/ripples.actions'
 
 interface PropsType {
+  auth: IAuthState
   title: string
   content: Map<string, string>
   visibility: boolean
@@ -42,6 +45,11 @@ class SidePanel extends Component<PropsType, {}> {
                 {this.props.authenticated && this.props.selectedVehicle && (
                   <i className="fas fa-cog fa-lg" onClick={this.props.onSettingsClick} />
                 )}
+                {this.props.authenticated && !isCasual(this.props.auth) && (
+                  <Link className="asset-link" to="/asset/profile">
+                    <i title="Asset info" className="fas fa-info-circle fa-lg" />
+                  </Link>
+                )}
               </CardTitle>
               <div>{content}</div>
             </CardBody>
@@ -61,6 +69,7 @@ function mapStateToProps(state: IRipplesState) {
     visibility: isSidePanelVisible,
     authenticated: auth.authenticated,
     selectedVehicle: editVehicle,
+    auth: state.auth,
   }
 }
 
