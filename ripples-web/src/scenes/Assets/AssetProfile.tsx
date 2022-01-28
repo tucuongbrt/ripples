@@ -14,6 +14,8 @@ const { NotificationManager } = require('react-notifications')
 interface StateType {
   isNavOpen: boolean
   domains: string[]
+  types: string[]
+  typeCheckedState: boolean[]
   assetSelected: IAsset | undefined
 }
 
@@ -44,13 +46,17 @@ export class AssetProfile extends Component<PropsType, StateType> {
     this.state = {
       isNavOpen: false,
       domains: [],
+      types: ['AUV', 'ASV', 'WAVY_DRIFTER', 'undefined'],
+      typeCheckedState: new Array(4).fill(false),
       assetSelected: undefined,
     }
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.updateAssets = this.updateAssets.bind(this)
     this.getAssetInfo = this.getAssetInfo.bind(this)
     this.handleAssetChangeDomain = this.handleAssetChangeDomain.bind(this)
+    this.handleAssetChangeType = this.handleAssetChangeType.bind(this)
     this.updateAssetData = this.updateAssetData.bind(this)
+    this.getAsset = this.getAsset.bind(this)
 
     if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
       this.getDomains()
@@ -154,7 +160,22 @@ export class AssetProfile extends Component<PropsType, StateType> {
       }
     }
 
-    this.setState({ assetSelected: asset })
+    let assetType: string = 'undefined'
+    if (asset !== undefined) {
+      if (asset.type !== null) {
+        assetType = asset.type
+      }
+    }
+
+    let updatedCheckedState: boolean[] = this.state.typeCheckedState
+    this.state.types.forEach((type, i) => {
+      if (type === assetType) {
+        const updatedCheckedStateAux = this.state.typeCheckedState.map((item, index) => (index === i ? true : false))
+        updatedCheckedState = updatedCheckedStateAux
+      }
+    })
+
+    this.setState({ assetSelected: asset, typeCheckedState: updatedCheckedState })
   }
 
   public async componentDidMount() {
@@ -199,7 +220,12 @@ export class AssetProfile extends Component<PropsType, StateType> {
               {this.state.assetSelected && this.buildAssetContent()}
             </div>
 
-            <div className="asset-profile-bottom">{this.buildDomainDialog()}</div>
+            {this.props.title !== undefined && this.props.title !== 'Click on something to get info' && (
+              <div className="asset-profile-bottom">
+                {this.buildDomainDialog()}
+                {this.buildTypeDialog()}
+              </div>
+            )}
           </div>
         </div>
       </>
@@ -208,14 +234,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
 
   private buildDomainDialog() {
     if (this.props.auth.authenticated && isAdministrator(this.props.auth) && this.props.title !== undefined) {
-      let asset: IAsset | undefined
-      if (this.props.title.includes('ccu')) {
-        asset = this.props.ccus.find((item) => item.name === this.props.title)
-      } else if (this.props.title.includes('spot')) {
-        asset = this.props.spots.find((item) => item.name === this.props.title)
-      } else {
-        asset = this.props.vehicles.find((item) => item.name === this.props.title)
-      }
+      const asset: IAsset | undefined = this.getAsset()
 
       const domain: string[] = []
       if (asset !== undefined) {
@@ -247,6 +266,31 @@ export class AssetProfile extends Component<PropsType, StateType> {
     }
   }
 
+  private buildTypeDialog() {
+    if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
+      return (
+        <div className="asset-type">
+          <label className="type-label">Type: </label>
+          {this.state.types.map((t, index) => {
+            return (
+              <label className={'assetOptTypeLabel'} key={index}>
+                <input
+                  type="checkbox"
+                  className={'assetOptType'}
+                  value={t}
+                  checked={this.state.typeCheckedState[index]}
+                  onChange={(e) => this.handleAssetChangeType(e, index)}
+                  asset-id={this.props.title}
+                />
+                {t}
+              </label>
+            )
+          })}
+        </div>
+      )
+    }
+  }
+
   public async handleAssetChangeDomain(event: any) {
     const assetID = event.target.getAttribute('asset-id')
 
@@ -268,6 +312,15 @@ export class AssetProfile extends Component<PropsType, StateType> {
     this.updateAssetData(system, domainSelected)
   }
 
+  public async handleAssetChangeType(event: any, changedIndex: any) {
+    const updatedCheckedState = this.state.typeCheckedState.map((item, index) =>
+      index === changedIndex ? !item : false
+    )
+    const assetID = event.target.getAttribute('asset-id')
+    const asset: IAsset | undefined = this.getAssetWithId(assetID)
+    this.setState({ typeCheckedState: updatedCheckedState }, () => this.updateAssetTypeData(asset))
+  }
+
   public async updateAssetData(system: IAsset, domain: string[]) {
     try {
       const newSystem: IAsset = await this.soiService.updateAssetDomain(system, domain)
@@ -275,13 +328,57 @@ export class AssetProfile extends Component<PropsType, StateType> {
 
       if (response.status === 'Success') {
         NotificationManager.success(response.message)
-        this.updateAssets()
+        await this.updateAssets()
+        await this.getAssetInfo()
       } else {
         NotificationManager.warning('Failed to update asset domain')
       }
     } catch (error) {
       NotificationManager.warning('Failed to update asset domain')
     }
+  }
+
+  public async updateAssetTypeData(system: IAsset) {
+    const typeSelected: string = this.state.types[this.state.typeCheckedState.indexOf(true)]
+    try {
+      const newSystem: IAsset = await this.soiService.updateAssetType(system, typeSelected)
+      const response = await this.soiService.updateAssetTypeDB(newSystem, typeSelected)
+
+      if (response.status === 'Success') {
+        NotificationManager.success(response.message)
+        await this.updateAssets()
+        await this.getAssetInfo()
+      } else {
+        NotificationManager.warning('Failed to update asset domain')
+      }
+    } catch (error) {
+      NotificationManager.warning('Failed to update asset domain')
+    }
+  }
+
+  private getAsset() {
+    let asset: IAsset | undefined
+    if (this.props.title.includes('ccu')) {
+      asset = this.props.ccus.find((item) => item.name === this.props.title)
+    } else if (this.props.title.includes('spot')) {
+      asset = this.props.spots.find((item) => item.name === this.props.title)
+    } else {
+      asset = this.props.vehicles.find((item) => item.name === this.props.title)
+    }
+
+    return asset
+  }
+
+  private getAssetWithId(assetID: any) {
+    let system: IAsset | undefined
+    if (assetID.startsWith('spot')) {
+      system = this.props.spots.filter((item) => item.name === assetID)[0]
+    } else if (assetID.startsWith('ccu')) {
+      system = this.props.ccus.filter((item) => item.name === assetID)[0]
+    } else {
+      system = this.props.vehicles.filter((item) => item.name === assetID)[0]
+    }
+    return system
   }
 }
 

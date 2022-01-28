@@ -301,7 +301,7 @@ public class AssetsController {
         return null;
     }
 
-    // @PreAuthorize("hasRole('ADMINISTRATOR')")
+    @PreAuthorize("hasRole('ADMINISTRATOR')")
     @PostMapping("/asset/changeType")
     public ResponseEntity<HTTPResponse> updateAssetType(@RequestBody Map<String, String> payload) {
         Optional<Asset> asset = repo.findById(payload.get("assetName"));

@@ -60,8 +60,30 @@ export default class SoiService {
     asset.settings = system.settings
     asset.lastState = system.lastState
     asset.planId = system.planId
+    asset.type = system.type
     asset.domain = domain
     return Object.assign({}, asset)
+  }
+
+  public updateAssetType(system: IAsset, type: string): IAsset {
+    const asset: IAsset = EmptyAsset
+    asset.awareness = system.awareness
+    asset.imcid = system.imcid
+    asset.name = system.name
+    asset.settings = system.settings
+    asset.lastState = system.lastState
+    asset.planId = system.planId
+    asset.domain = system.domain
+    asset.type = type
+    return Object.assign({}, asset)
+  }
+
+  public async updateAssetTypeDB(system: IAsset, type: string) {
+    return request({
+      body: JSON.stringify({ assetName: system.name, type }),
+      method: 'POST',
+      url: `${apiURL}/asset/changeType`,
+    })
   }
 
   public async updateAssetDB(system: IAsset) {
