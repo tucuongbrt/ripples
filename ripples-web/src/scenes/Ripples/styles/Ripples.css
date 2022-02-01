@@ -608,6 +608,12 @@ path.leaflet-polygon {
   height: 70vh;
 }
 
+.asset-remove {
+  float: right;
+  padding: 5px;
+  margin: 10px;
+}
+
 .user-profile div, .asset-profile-left, .asset-profile-left {
    min-height: 300px;
    padding: 5px;

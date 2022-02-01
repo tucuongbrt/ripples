@@ -4,11 +4,20 @@ import SimpleNavbar from '../../components/SimpleNavbar'
 import IAuthState, { getUserDomain, isAdministrator, IUser } from '../../model/IAuthState'
 import IRipplesState, { IAssetsGroup } from '../../model/IRipplesState'
 import DateService from '../../services/DateUtils'
-import { setUser, setVehicles, setSpots, setCcus } from '../../redux/ripples.actions'
+import {
+  setUser,
+  setVehicles,
+  setSpots,
+  setCcus,
+  setSidePanelContent,
+  setSidePanelVisibility,
+} from '../../redux/ripples.actions'
 import { getCurrentUser } from '../../services/UserUtils'
 import { fetchDomainNames } from '../../services/DomainUtils'
 import IAsset from '../../model/IAsset'
 import SoiService from '../../services/SoiUtils'
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap'
+import { Link } from 'react-router-dom'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -17,6 +26,7 @@ interface StateType {
   types: string[]
   typeCheckedState: boolean[]
   assetSelected: IAsset | undefined
+  isRemoveAssetModalOpen: boolean
 }
 
 interface PropsType {
@@ -24,6 +34,8 @@ interface PropsType {
   setVehicles: (_: IAsset[]) => void
   setSpots: (_: IAsset[]) => void
   setCcus: (_: IAsset[]) => void
+  setSidePanelVisibility: (_: boolean) => void
+  setSidePanelContent: (_: any) => void
   auth: IAuthState
   content: Map<string, string>
   title: string
@@ -49,6 +61,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
       types: ['AUV', 'ASV', 'WAVY_DRIFTER', 'undefined'],
       typeCheckedState: new Array(4).fill(false),
       assetSelected: undefined,
+      isRemoveAssetModalOpen: false,
     }
     this.loadCurrentlyLoggedInUser = this.loadCurrentlyLoggedInUser.bind(this)
     this.updateAssets = this.updateAssets.bind(this)
@@ -57,6 +70,8 @@ export class AssetProfile extends Component<PropsType, StateType> {
     this.handleAssetChangeType = this.handleAssetChangeType.bind(this)
     this.updateAssetData = this.updateAssetData.bind(this)
     this.getAsset = this.getAsset.bind(this)
+    this.toggleRemoveAssetModal = this.toggleRemoveAssetModal.bind(this)
+    this.redirect_homepage = this.redirect_homepage.bind(this)
 
     if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
       this.getDomains()
@@ -200,6 +215,12 @@ export class AssetProfile extends Component<PropsType, StateType> {
     this.setState({ isNavOpen: !this.state.isNavOpen })
   }
 
+  public toggleRemoveAssetModal() {
+    this.setState((prevState) => ({
+      isRemoveAssetModalOpen: !prevState.isRemoveAssetModalOpen,
+    }))
+  }
+
   public render() {
     return (
       <>
@@ -215,6 +236,19 @@ export class AssetProfile extends Component<PropsType, StateType> {
             <div id="asset-profile-right">
               <p>
                 <span className="asset-profile-field">{this.props.title}</span>
+                {this.props.title !== undefined && this.props.title !== 'Click on something to get info' && (
+                  <>
+                    <Button
+                      className="asset-remove"
+                      color="danger"
+                      size="sm"
+                      onClick={() => this.toggleRemoveAssetModal()}
+                    >
+                      Remove
+                    </Button>
+                    <Link id="homepage-link" to="/" />
+                  </>
+                )}
               </p>
 
               {this.state.assetSelected && this.buildAssetContent()}
@@ -228,6 +262,16 @@ export class AssetProfile extends Component<PropsType, StateType> {
             )}
           </div>
         </div>
+
+        <Modal isOpen={this.state.isRemoveAssetModalOpen} toggle={this.toggleRemoveAssetModal}>
+          <ModalHeader toggle={this.toggleRemoveAssetModal}>Remove asset</ModalHeader>
+          <ModalBody>The asset will be removed permanently. Do you want to continue?</ModalBody>
+          <ModalFooter>
+            <Button color="danger" onClick={() => this.handleDeleteAsset()}>
+              Yes
+            </Button>
+          </ModalFooter>
+        </Modal>
       </>
     )
   }
@@ -291,7 +335,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
     }
   }
 
-  public async handleAssetChangeDomain(event: any) {
+  private async handleAssetChangeDomain(event: any) {
     const assetID = event.target.getAttribute('asset-id')
 
     let system: IAsset
@@ -312,7 +356,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
     this.updateAssetData(system, domainSelected)
   }
 
-  public async handleAssetChangeType(event: any, changedIndex: any) {
+  private async handleAssetChangeType(event: any, changedIndex: any) {
     const updatedCheckedState = this.state.typeCheckedState.map((item, index) =>
       index === changedIndex ? !item : false
     )
@@ -321,7 +365,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
     this.setState({ typeCheckedState: updatedCheckedState }, () => this.updateAssetTypeData(asset))
   }
 
-  public async updateAssetData(system: IAsset, domain: string[]) {
+  private async updateAssetData(system: IAsset, domain: string[]) {
     try {
       const newSystem: IAsset = await this.soiService.updateAssetDomain(system, domain)
       const response = await this.soiService.updateAssetDB(newSystem)
@@ -338,7 +382,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
     }
   }
 
-  public async updateAssetTypeData(system: IAsset) {
+  private async updateAssetTypeData(system: IAsset) {
     const typeSelected: string = this.state.types[this.state.typeCheckedState.indexOf(true)]
     try {
       const newSystem: IAsset = await this.soiService.updateAssetType(system, typeSelected)
@@ -380,6 +424,57 @@ export class AssetProfile extends Component<PropsType, StateType> {
     }
     return system
   }
+
+  private async handleDeleteAsset() {
+    if (this.state.assetSelected !== undefined) {
+      try {
+        const response = await this.soiService.deleteAsset(this.state.assetSelected.name)
+        if (response.status === 'Success') {
+          const assetsUpdated: IAsset[] = []
+          if (this.state.assetSelected.name.startsWith('spot')) {
+            this.props.spots.forEach((spot) => {
+              if (this.state.assetSelected !== undefined && spot.name !== this.state.assetSelected.name) {
+                assetsUpdated.push(spot)
+              }
+            })
+            this.props.setSpots(assetsUpdated)
+          } else if (this.state.assetSelected.name.startsWith('ccu')) {
+            this.props.ccus.forEach((ccu) => {
+              if (this.state.assetSelected !== undefined && ccu.name !== this.state.assetSelected.name) {
+                assetsUpdated.push(ccu)
+              }
+            })
+            this.props.setCcus(assetsUpdated)
+          } else {
+            this.props.vehicles.forEach((vehicle) => {
+              if (this.state.assetSelected !== undefined && vehicle.name !== this.state.assetSelected.name) {
+                assetsUpdated.push(vehicle)
+              }
+            })
+            this.props.setVehicles(assetsUpdated)
+          }
+
+          NotificationManager.success(response.message)
+        } else {
+          NotificationManager.error(response.message)
+        }
+      } catch (error) {
+        NotificationManager.error('Cannot delete asset')
+      }
+    }
+    this.setState({ assetSelected: undefined })
+    this.props.setSidePanelVisibility(false)
+    this.props.setSidePanelContent({})
+    this.toggleRemoveAssetModal()
+    this.redirect_homepage()
+  }
+
+  private redirect_homepage() {
+    const userLink = document.getElementById('homepage-link')
+    if (userLink !== null) {
+      userLink.click()
+    }
+  }
 }
 
 function mapStateToProps(state: IRipplesState) {
@@ -398,6 +493,8 @@ const actionCreators = {
   setVehicles,
   setSpots,
   setCcus,
+  setSidePanelVisibility,
+  setSidePanelContent,
 }
 
 export default connect(mapStateToProps, actionCreators)(AssetProfile)
