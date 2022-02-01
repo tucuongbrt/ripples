@@ -128,6 +128,10 @@ export class AssetProfile extends Component<PropsType, StateType> {
             <span className="user-profile-value"> {this.state.assetSelected.planId} </span>
           </li>
           <li>
+            <span className="asset-profile-field">Domain: </span>
+            <span className="user-profile-value">{this.parseDomains()}</span>
+          </li>
+          <li>
             <span className="asset-profile-field">type: </span>
             <span className="user-profile-value"> {assetType} </span>
           </li>
@@ -473,6 +477,23 @@ export class AssetProfile extends Component<PropsType, StateType> {
     const userLink = document.getElementById('homepage-link')
     if (userLink !== null) {
       userLink.click()
+    }
+  }
+
+  private parseDomains() {
+    if (this.state.assetSelected !== undefined) {
+      const lastPosition = this.state.assetSelected.domain.length - 1
+      let domainParsed = ''
+      this.state.assetSelected.domain.forEach((item, index) => {
+        if (index !== lastPosition) {
+          domainParsed = domainParsed.concat(item, ', ')
+        } else {
+          domainParsed = domainParsed.concat(item)
+        }
+      })
+      return domainParsed
+    } else {
+      return <></>
     }
   }
 }

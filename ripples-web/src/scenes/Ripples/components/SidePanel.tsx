@@ -45,11 +45,15 @@ class SidePanel extends Component<PropsType, {}> {
                 {this.props.authenticated && this.props.selectedVehicle && (
                   <i className="fas fa-cog fa-lg" onClick={this.props.onSettingsClick} />
                 )}
-                {this.props.authenticated && !isCasual(this.props.auth) && (
-                  <Link className="asset-link" to="/asset/profile">
-                    <i title="Asset info" className="fas fa-info-circle fa-lg" />
-                  </Link>
-                )}
+                {this.props.authenticated &&
+                  !isCasual(this.props.auth) &&
+                  (this.props.title.includes('ccu') ||
+                    this.props.title.includes('spot') ||
+                    this.props.selectedVehicle) && (
+                    <Link className="asset-link" to="/asset/profile">
+                      <i title="Asset info" className="fas fa-info-circle fa-lg" />
+                    </Link>
+                  )}
               </CardTitle>
               <div>{content}</div>
             </CardBody>

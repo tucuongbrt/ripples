@@ -614,10 +614,23 @@ path.leaflet-polygon {
   margin: 10px;
 }
 
-.user-profile div, .asset-profile-left, .asset-profile-left {
+.assetOptDomainLabel, .assetOptTypeLabel {
+  margin: 5px;
+}
+
+.user-profile div {
    min-height: 300px;
    padding: 5px;
    border: none;
+}
+
+.asset-profile-left div {
+  padding: 5px;
+   border: none;
+}
+
+.asset-domain {
+  min-width: none;
 }
 
 .asset-profile-bottom {
@@ -639,7 +652,7 @@ path.leaflet-polygon {
 }
 
 @media screen and (max-width: 760px) {
-   #user-profile-left, .asset-profile-left { 
+   #user-profile-left, #asset-profile-left { 
     float: none;
     margin-right: 0;
     width: auto;
@@ -650,7 +663,7 @@ path.leaflet-polygon {
 @media screen and (max-width: 760px) {
   .asset-profile { 
     overflow-y: auto
- }
+  }
 }
 
 .user-profile-field, .asset-profile-field {
@@ -702,8 +715,8 @@ path.leaflet-polygon {
 
 .asset-profile-img-wrap {
   position: relative;
-  width: 500px;
-  height: 600px;
+  width: auto;
+  height: auto;
 }
 
 #imgSelected {
