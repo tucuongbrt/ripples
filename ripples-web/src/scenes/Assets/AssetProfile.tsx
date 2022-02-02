@@ -378,6 +378,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
         NotificationManager.success(response.message)
         await this.updateAssets()
         await this.getAssetInfo()
+        this.props.setSidePanelVisibility(false)
       } else {
         NotificationManager.warning('Failed to update asset domain')
       }
@@ -396,6 +397,7 @@ export class AssetProfile extends Component<PropsType, StateType> {
         NotificationManager.success(response.message)
         await this.updateAssets()
         await this.getAssetInfo()
+        this.props.setSidePanelVisibility(false)
       } else {
         NotificationManager.warning('Failed to update asset domain')
       }

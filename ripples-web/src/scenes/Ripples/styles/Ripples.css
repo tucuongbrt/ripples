@@ -634,7 +634,7 @@ path.leaflet-polygon {
 }
 
 .asset-profile-bottom {
-  min-height: 300px;
+  margin: 10px;
 }
 
 #user-profile-left, #asset-profile-left {
