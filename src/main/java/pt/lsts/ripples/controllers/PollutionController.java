@@ -6,6 +6,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.json.JSONObject;
@@ -140,12 +141,14 @@ public class PollutionController {
                 return new ResponseEntity<>(new HTTPResponse("success", "Pollution markers synched"), HttpStatus.OK);
             } else {
                 logger.warn("Pollution markers cannot be synched with the external server: " + SERVERURL);
-                return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"), HttpStatus.OK);
+                return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"),
+                        HttpStatus.OK);
             }
         } catch (Exception e) {
             logger.warn("Pollution markers cannot be synched with the external server: " + SERVERURL);
             e.printStackTrace();
-            return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"), HttpStatus.OK);
+            return new ResponseEntity<>(new HTTPResponse("error", "Pollution markers cannot be synched"),
+                    HttpStatus.OK);
         }
     }
 
@@ -240,4 +243,40 @@ public class PollutionController {
 
         return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
     }
+
+    @PostMapping(path = { "/pollution/trajectory", "/pollution/trajectory/" })
+    public ResponseEntity<HTTPResponse> addKMLDomain(@RequestBody Map<String, Object> payload) {
+        logger.info("--Received trajectory--");
+        //System.out.println("ID            -> " + payload.get("id"));
+        //System.out.println("totalDuration -> " + payload.get("total_duration"));
+        
+        List<Map<String, Object>> listTrajectories = new ArrayList<Map<String, Object>>();
+        listTrajectories = (List<Map<String, Object>>) payload.get("trajectories");
+
+        for (Map<String, Object> trajectory : listTrajectories) {
+            //System.out.println("ID       -> " + trajectory.get("id"));
+            //System.out.println("duration -> " + trajectory.get("duration"));
+
+            List<Object[]> listWaypoints = new ArrayList<Object[]>();
+            listWaypoints = (List<Object[]>) trajectory.get("waypoints");
+
+            for (int i = 0; i < listWaypoints.size(); i++) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(listWaypoints.get(i));
+                sb.deleteCharAt(0);
+                sb.deleteCharAt(sb.length() - 1);
+                /*
+                String[] parts = sb.toString().split(", ");
+                Long timestamp =  Double.valueOf(parts[0]).longValue();
+                double lat = Double.parseDouble(parts[1]);
+                double lng = Double.parseDouble(parts[2]);
+                System.out.println("timestamp : " + timestamp);
+                System.out.println("latitude  : " + lat);
+                System.out.println("longitude : " + lng);
+                */
+            }
+        }
+        return new ResponseEntity<>(new HTTPResponse("success", "Trajectory received"), HttpStatus.OK);
+    }
+
 }
