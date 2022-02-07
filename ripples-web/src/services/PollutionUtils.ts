@@ -26,10 +26,10 @@ export default class PollutionService {
     })
   }
 
-  public async syncPollutionMarkers(server: string) {
+  public async syncPollutionMarkers(server: string, timestamp: Date, lat: any, lng: any, pollutionMarkers: number[]) {
     return request({
       method: 'POST',
-      body: JSON.stringify(server),
+      body: JSON.stringify({ server, timestamp, lat, lng, pollutionMarkers }),
       url: `${apiURL}/pollution/sync/`,
     })
   }

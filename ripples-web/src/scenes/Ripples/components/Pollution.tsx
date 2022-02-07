@@ -13,6 +13,10 @@ interface PropsType {
     latitude: any
     longitude: any
   }
+  trajectoryLocation?: {
+    latitude: any
+    longitude: any
+  }
   pollutionMarkers?: IPollution[]
   pollutionOpen: IPollution[]
   obstaclePolygons?: IObstacle[]
@@ -89,6 +93,17 @@ class Pollution extends Component<PropsType, {}> {
       return (
         <Marker
           position={[this.props.locationSelected.latitude, this.props.locationSelected.longitude]}
+          icon={new BlueCircleIcon()}
+        />
+      )
+    }
+  }
+
+  public buildTrajectoryLocation() {
+    if (this.props.trajectoryLocation) {
+      return (
+        <Marker
+          position={[this.props.trajectoryLocation.latitude, this.props.trajectoryLocation.longitude]}
           icon={new BlueCircleIcon()}
         />
       )
@@ -900,6 +915,7 @@ class Pollution extends Component<PropsType, {}> {
         {this.buildSelectedLocation()}
         {this.buildObstaclesPolygons()}
         {this.drawObstacleLocation()}
+        {this.buildTrajectoryLocation()}
       </>
     )
   }

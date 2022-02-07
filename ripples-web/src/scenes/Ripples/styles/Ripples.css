@@ -366,6 +366,10 @@ path.leaflet-polygon {
   -webkit-animation: fadein 500ms;
 }
 
+.pollution-trajectory-timestamp {
+  display: table;
+}
+
 .input-domain-asset {
   display: grid;
 }

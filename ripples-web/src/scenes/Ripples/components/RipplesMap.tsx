@@ -87,6 +87,8 @@ import PollutionService from '../../../services/PollutionUtils'
 import Pollution from './Pollution'
 import IObstacle from '../../../model/IObstacles'
 import IAssetState from '../../../model/IAssetState'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 
 const { NotificationManager } = require('react-notifications')
 
@@ -175,6 +177,13 @@ interface StateType {
     longitude: any
   }
   pollutionOpen: IPollution[]
+  pollutionSyncSelector: boolean
+  pollutionTrajectoryLocationOpen: boolean
+  pollutionTrajectoryLocation?: {
+    latitude: any
+    longitude: any
+  }
+  pollutionTrajectoryTimestamp: Date
   editPollutionMarker?: IPollution
   editObstacle?: IObstacle
   pollutionDescriptionUpdate: string
@@ -236,6 +245,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       pollutionDescription: '',
       pollutionRadius: 20,
       pollutionOpen: [],
+      pollutionSyncSelector: false,
+      pollutionTrajectoryLocationOpen: false,
+      pollutionTrajectoryTimestamp: new Date(),
       editPollutionMarker: undefined,
       editObstacle: undefined,
       pollutionDescriptionUpdate: '',
@@ -421,6 +433,9 @@ class RipplesMap extends Component<PropsType, StateType> {
         if (this.state.editObstacle) {
           this.setState({ editObstacle: undefined })
         }
+        if (this.state.pollutionTrajectoryLocationOpen) {
+          this.setState({ pollutionTrajectoryLocation: clickLocation })
+        }
       }
     }
   }
@@ -563,6 +578,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           obstacleLocationSelected={this.state.obstacleLocation}
           obstaclePolygons={obstacle}
           setObstacle={this.handleSelectedObstacle}
+          trajectoryLocation={this.state.pollutionTrajectoryLocation}
         />
       )
     } else {
@@ -613,9 +629,92 @@ class RipplesMap extends Component<PropsType, StateType> {
                   </>
                 )}
 
-                <Button className="m-1" color="warning" size="sm" onClick={() => this.syncAllPollutionMarkers()}>
-                  Sync Pollution Markers
-                </Button>
+                {!this.state.pollutionSyncSelector ? (
+                  <Button
+                    className="m-1"
+                    color="warning"
+                    size="sm"
+                    onClick={() => this.selectTrajectoryPollutionMarkers()}
+                  >
+                    Sync Pollution Markers
+                  </Button>
+                ) : (
+                  <div>
+                    <hr />
+                    <label>Trajectory location</label>
+                    {this.state.pollutionTrajectoryLocation && (
+                      <>
+                        <span>{this.state.pollutionTrajectoryLocation.latitude}</span>
+                        <span>{this.state.pollutionTrajectoryLocation.longitude}</span>
+                      </>
+                    )}
+
+                    {this.state.pollutionTrajectoryLocationOpen ? (
+                      <i
+                        className="fas fa-check"
+                        title="Done"
+                        onClick={() =>
+                          this.setState({
+                            pollutionTrajectoryLocationOpen: !this.state.pollutionTrajectoryLocationOpen,
+                          })
+                        }
+                      />
+                    ) : (
+                      <i
+                        className="fas fa-map-marked-alt"
+                        title="Select coordinates"
+                        onClick={() => this.selectPollutionTrajectoryLocation()}
+                      />
+                    )}
+
+                    <div className="pollution-trajectory-timestamp">
+                      <label htmlFor="trajectory-timestamp">Trajectory timestamp</label>
+                      <DatePicker
+                        id={'trajectory-timestamp'}
+                        className="trajectory-input-date"
+                        selected={this.state.pollutionTrajectoryTimestamp}
+                        onChange={(newDate: Date) => this.setState({ pollutionTrajectoryTimestamp: newDate })}
+                        showTimeSelect={true}
+                        dateFormat="MMMM d, yyyy h:mm aa"
+                        timeCaption="time"
+                        disabled={false}
+                      />
+                    </div>
+
+                    <div className="pollution-trajectory-markers">
+                      <label htmlFor="pollutionMarkersSelected">Pollution markers selected</label>
+                      <ul id="pollutionMarkersSelected">
+                        {this.state.pollutionOpen.map((p, i) => {
+                          return <li key={i}>{p.id}</li>
+                        })}
+                      </ul>
+                    </div>
+
+                    {this.state.pollutionOpen.length > 0 &&
+                      this.state.pollutionTrajectoryTimestamp &&
+                      this.state.pollutionTrajectoryLocation && (
+                        <Button className="m-1" color="warning" size="sm" onClick={() => this.sendPollutionAlert()}>
+                          Create trajectory
+                        </Button>
+                      )}
+
+                    <Button
+                      className="m-1"
+                      color="warning"
+                      size="sm"
+                      onClick={() =>
+                        this.setState({
+                          pollutionSyncSelector: !this.state.pollutionSyncSelector,
+                          pollutionTrajectoryLocation: undefined,
+                        })
+                      }
+                    >
+                      close
+                    </Button>
+
+                    <hr />
+                  </div>
+                )}
 
                 <div className="obstacleForm">
                   <span className="pollutionSpan">Obstacles</span>
@@ -652,7 +751,7 @@ class RipplesMap extends Component<PropsType, StateType> {
               <></>
             )}
 
-            {this.state.editPollutionMarker !== undefined ? (
+            {this.state.editPollutionMarker !== undefined && !this.state.pollutionSyncSelector ? (
               <div className="pollutionUpdateMarker">
                 <hr />
 
@@ -1071,21 +1170,44 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
   }
 
-  public async syncAllPollutionMarkers() {
+  public async selectTrajectoryPollutionMarkers() {
+    NotificationManager.info('Select the pollution markers in order to create a trajectory.')
+    this.setState({ pollutionSyncSelector: !this.state.pollutionSyncSelector })
+  }
+
+  private async sendPollutionAlert() {
     if (this.state.editPollutionConfig.length === 0) {
       NotificationManager.warning('The server is not defined. \nPlease contact an administrator')
     } else {
-      try {
-        const response = await this.pollutionService.syncPollutionMarkers(this.state.editPollutionConfig)
-        if (response.status === 'success') {
-          NotificationManager.success(response.message)
-        } else {
-          NotificationManager.error(response.message)
+      if (this.state.pollutionTrajectoryLocation) {
+        const markersID: number[] = []
+        this.state.pollutionOpen.forEach((p) => {
+          markersID.push(p.id)
+        })
+
+        try {
+          const response = await this.pollutionService.syncPollutionMarkers(
+            this.state.editPollutionConfig,
+            this.state.pollutionTrajectoryTimestamp,
+            this.state.pollutionTrajectoryLocation.latitude,
+            this.state.pollutionTrajectoryLocation.longitude,
+            markersID
+          )
+          if (response.status === 'success') {
+            NotificationManager.success(response.message)
+          } else {
+            NotificationManager.error(response.message)
+          }
+        } catch (error) {
+          NotificationManager.warning('Pollution markers cannot be synched')
         }
-      } catch (error) {
-        NotificationManager.warning('Pollution markers cannot be synched')
       }
     }
+  }
+
+  private selectPollutionTrajectoryLocation() {
+    NotificationManager.info('Select the coordinates for the trajectory.')
+    this.setState({ pollutionTrajectoryLocationOpen: !this.state.pollutionTrajectoryLocationOpen })
   }
 
   public enablePollutionMarker() {
