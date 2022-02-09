@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Circle, Marker, GeoJSON, Polygon } from 'react-leaflet'
+import { Circle, Marker, GeoJSON, Polygon, Rectangle } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IPollution from '../../../model/IPollution'
 import * as L from 'leaflet'
@@ -24,6 +24,7 @@ interface PropsType {
     latitude: any
     longitude: any
   }[]
+  trajectoryLocationOpen: boolean
 
   addCircle: (pollution: IPollution) => void
   removeCircle: (pollution: IPollution) => void
@@ -147,6 +148,16 @@ class Pollution extends Component<PropsType, {}> {
       })
 
       return <Polygon positions={positions} color="red" />
+    }
+  }
+
+  public buildLimits() {
+    const outer: any = [
+      [40.59571, -8.86626],
+      [40.65655, -8.74172],
+    ]
+    if (this.props.trajectoryLocationOpen) {
+      return <Rectangle bounds={outer} pathOptions={{ color: 'cyan' }} />
     }
   }
 
@@ -911,6 +922,7 @@ class Pollution extends Component<PropsType, {}> {
     return (
       <>
         {this.buildAveiroArea()}
+        {this.buildLimits()}
         {this.buildPollutionMarkers()}
         {this.buildSelectedLocation()}
         {this.buildObstaclesPolygons()}

@@ -579,6 +579,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           obstaclePolygons={obstacle}
           setObstacle={this.handleSelectedObstacle}
           trajectoryLocation={this.state.pollutionTrajectoryLocation}
+          trajectoryLocationOpen={this.state.pollutionTrajectoryLocationOpen}
         />
       )
     } else {
@@ -1224,7 +1225,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   }
 
   private selectPollutionTrajectoryLocation() {
-    NotificationManager.info('Select the coordinates for the trajectory.')
+    NotificationManager.info('Select the coordinates for the trajectory inside the rectangle.')
     this.setState({ pollutionTrajectoryLocationOpen: !this.state.pollutionTrajectoryLocationOpen })
   }
 
