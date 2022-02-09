@@ -138,6 +138,13 @@ public class PollutionController {
         jsonObject.put("longitude", payload.get("lng"));
         System.out.println(jsonObject.toString());
 
+        // update pollution status
+        for (PollutionLocation pollutionLocation : pollutionList) {
+            pollutionLocation.setStatus("Synched");
+            repo.save(pollutionLocation);
+            wsController.sendPollutionAssetFromServerToClients(pollutionLocation);
+        }
+
         final String SERVERURL = server.replaceAll("\"", "");
         // send to external server
         try {
@@ -152,7 +159,7 @@ public class PollutionController {
             out.close();
             httpCon.getInputStream();
             String response = httpCon.getResponseMessage();
-            if (response.equals(Integer.toString(HttpURLConnection.HTTP_OK))) {
+            if (response.equals("OK")) {
                 logger.info("Pollution markers synched with the external server: " +
                         SERVERURL);
                 return new ResponseEntity<>(new HTTPResponse("success",

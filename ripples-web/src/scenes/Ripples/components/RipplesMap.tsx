@@ -1180,26 +1180,44 @@ class RipplesMap extends Component<PropsType, StateType> {
       NotificationManager.warning('The server is not defined. \nPlease contact an administrator')
     } else {
       if (this.state.pollutionTrajectoryLocation) {
+        let markersValid: boolean = true
         const markersID: number[] = []
         this.state.pollutionOpen.forEach((p) => {
-          markersID.push(p.id)
+          if (p.status === 'Exec' || p.status === 'Done') {
+            markersValid = false
+            return
+          } else {
+            markersID.push(p.id)
+          }
         })
 
-        try {
-          const response = await this.pollutionService.syncPollutionMarkers(
-            this.state.editPollutionConfig,
-            this.state.pollutionTrajectoryTimestamp,
-            this.state.pollutionTrajectoryLocation.latitude,
-            this.state.pollutionTrajectoryLocation.longitude,
-            markersID
-          )
-          if (response.status === 'success') {
-            NotificationManager.success(response.message)
-          } else {
-            NotificationManager.error(response.message)
+        if (markersValid) {
+          try {
+            const response = await this.pollutionService.syncPollutionMarkers(
+              this.state.editPollutionConfig,
+              this.state.pollutionTrajectoryTimestamp,
+              this.state.pollutionTrajectoryLocation.latitude,
+              this.state.pollutionTrajectoryLocation.longitude,
+              markersID
+            )
+            if (response.status === 'success') {
+              NotificationManager.success(response.message)
+              this.setState({
+                pollutionTrajectoryLocationOpen: false,
+                pollutionSyncSelector: false,
+                pollutionOpen: [],
+                pollutionTrajectoryLocation: undefined,
+                editPollutionMarker: undefined,
+              })
+              this.props.setPollutionMarkers()
+            } else {
+              NotificationManager.error(response.message)
+            }
+          } catch (error) {
+            NotificationManager.warning('Pollution markers cannot be synched')
           }
-        } catch (error) {
-          NotificationManager.warning('Pollution markers cannot be synched')
+        } else {
+          NotificationManager.warning('Markers selected already visited.')
         }
       }
     }

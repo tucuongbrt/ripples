@@ -14,6 +14,10 @@
   padding-top: 5px;
 }
 
+.navbar-nav {
+  padding-right: 5px;
+}
+
 .navbar .navbar-expand-md {
   padding: 0px;
 }
