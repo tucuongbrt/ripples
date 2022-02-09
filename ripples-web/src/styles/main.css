@@ -90,13 +90,13 @@ i:hover {
 
 @media (max-width:880px){
     .leaflet-container {
-        height: calc(100vh - 132px);
+        height: calc(100vh - 106px);
     }
 }
 
 @media (max-width:766px){
     .leaflet-container {
-        height: calc(100vh - 66px);
+        height: calc(100vh - 42px);
     }
 }
 
