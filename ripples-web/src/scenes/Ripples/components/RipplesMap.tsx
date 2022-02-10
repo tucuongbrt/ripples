@@ -661,6 +661,15 @@ class RipplesMap extends Component<PropsType, StateType> {
                         showTimeSelect={true}
                         dateFormat="MMMM d, yyyy h:mm aa"
                         timeCaption="time"
+                        minDate={new Date(this.state.pollutionTrajectoryTimestamp)}
+                        maxDate={
+                          new Date(
+                            this.state.pollutionTrajectoryTimestamp.getFullYear(),
+                            this.state.pollutionTrajectoryTimestamp.getMonth(),
+                            this.state.pollutionTrajectoryTimestamp.getDate() + 4
+                          )
+                        }
+                        timeIntervals={60}
                         disabled={false}
                       />
                     </div>
