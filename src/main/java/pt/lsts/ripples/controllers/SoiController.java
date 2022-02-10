@@ -370,7 +370,7 @@ public class SoiController {
 		}
 	}
 
-	// @PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
+	@PreAuthorize("hasRole('ADMINISTRATOR')")
 	@RequestMapping(path = { "/soi/plan/{planName}" }, method = RequestMethod.DELETE)
 	public ResponseEntity<HTTPResponse> deletePlan(@PathVariable String planName) {
 		// set idle all the assigned plans
@@ -391,6 +391,31 @@ public class SoiController {
 			}
 		});
 		return new ResponseEntity<>(new HTTPResponse("success", "Plan deleted"), HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasRole('SCIENTIST') or hasRole('OPERATOR') or hasRole('ADMINISTRATOR')")
+	@RequestMapping(path = { "/soi/plans/all", "/soi/plans/all/" }, method = RequestMethod.GET)
+	public List<String> getAllPlans() {
+		ArrayList<String> plansID = new ArrayList<>();
+		ArrayList<String> new_plansID = new ArrayList<>();
+
+		assetsRepo.findAll().forEach(asset -> {
+			if(!asset.getPlan().getId().equals("idle")) {
+				plansID.add(asset.getPlan().getId());
+			}
+		});
+		unassignedPlansRepo.findAll().forEach(plan -> {
+			if(!plan.getId().equals("idle")) {
+				plansID.add(plan.getId());
+			}
+		});
+
+		for(String p : plansID) {
+			if(!new_plansID.contains(p)) {
+				new_plansID.add(p);
+			}
+		}
+		return new_plansID;
 	}
 
 	@RequestMapping(path = { "/soi/incoming/{name}" }, method = RequestMethod.GET, produces = "text/plain")

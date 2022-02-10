@@ -512,11 +512,11 @@ path.leaflet-polygon {
   padding-top: 25px;
 }
 
-.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-user-cog:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover, .fa-info-circle:hover {
+.fa-book-open:hover, .fa-exclamation-triangle:hover, .fa-envelope-open-text:hover, .fa-exclamation-triangle:hover, .fa-map:hover, .fa-users:hover, .fa-cogs:hover, .fa-user-cog:hover, .fa-ruler-horizontal:hover, .fa-sticky-note:hover, .fa-map-pin:hover, .fa-map-marker-alt:hover, .fa-network-wired:hover, .fa-key:hover, .fa-copy:hover, .fa-trash:hover, .fa-pencil-alt:hover, .fa-cog:hover, .fa-check:hover, .fa-edit:hover, .fa-user:hover, .fa-angle-double-up:hover, .fa-angle-double-down:hover, .fa-info-circle:hover, .fa-ruler-combined:hover {
   color:#2bace4;
 }
 
-.fa-user-cog, .fa-key, .fa-network-wired, .fa-info-circle  {
+.fa-user-cog, .fa-key, .fa-network-wired, .fa-info-circle, .fa-ruler-combined  {
   color: #444444;
 }
 
@@ -536,6 +536,16 @@ path.leaflet-polygon {
 
 .fa-copy {
   padding: 10px;
+}
+
+@media(max-width: 400px) {
+  .fa-user-cog, .fa-users, .settings-manager-icon {
+    font-size: 3em;
+  }
+
+  .settings-manager-icon, .fa-users {
+    padding-bottom: 8px;
+  }
 }
 
 .zt-dialog {
@@ -748,4 +758,14 @@ path.leaflet-polygon {
 
 .notification-container {
   top: 12%;
+}
+
+.input-remove-plan {
+  width: -webkit-fill-available;
+  height: 30px;
+  text-align: center;
+}
+
+.btn-remove-plan {
+  margin: 10px;
 }

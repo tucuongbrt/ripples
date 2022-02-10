@@ -106,6 +106,19 @@ export default class SoiService {
     })
   }
 
+  public async listPlans() {
+    return request({
+      url: `${apiURL}/soi/plans/all`,
+    })
+  }
+
+  public async removePlan(planId: string) {
+    return request({
+      method: 'DELETE',
+      url: `${apiURL}/soi/plan/${planId}`,
+    })
+  }
+
   /**
    * Method used to convert a string-keyed map to a JSON obj
    * @param strMap String-keyed map

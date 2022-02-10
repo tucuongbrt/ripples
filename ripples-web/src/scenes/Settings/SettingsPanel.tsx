@@ -21,7 +21,6 @@ import IAuthState, { isAdministrator, isCasual, IUser } from '../../model/IAuthS
 import IRipplesState from '../../model/IRipplesState'
 import { setUser } from '../../redux/ripples.actions'
 import { getCurrentUser } from '../../services/UserUtils'
-import SettingsService from '../../services/SettingsUtils'
 import { createDomain, deleteDomain, fetchDomainNames, updateDomain } from '../../services/DomainUtils'
 import TopNavLinks from '../../components/TopNavLinks'
 import Login from '../../components/Login'
@@ -31,6 +30,7 @@ import ZerotierService from '../../services/ZerotierUtils'
 import { createApiKey, fetchApiKeys, removeApiKey } from '../../services/ApiKeyUtils'
 import DateService from '../../services/DateUtils'
 import 'react-datepicker/dist/react-datepicker.css'
+import SoiService from '../../services/SoiUtils'
 const { NotificationManager } = require('react-notifications')
 
 interface StateType {
@@ -55,6 +55,10 @@ interface StateType {
   isTokenModalOpen: boolean
   isDomainModalOpen: boolean
   isRemoveDomainModalOpen: boolean
+  isPlanModalOpen: boolean
+  isRemovePlanModalOpen: boolean
+  plansID: string[]
+  planToDelete: string
   domainToRemove: any | null
   isNewTokenVisible: boolean
   isRemoveTokenModalOpen: boolean
@@ -86,8 +90,8 @@ interface IApiKeys {
 export class SettingsPanel extends Component<PropsType, StateType> {
   public notificationSystem: any = null
   public timerID: number = 0
-  private settingsService: SettingsService = new SettingsService()
   private ztService: ZerotierService = new ZerotierService()
+  private soiService: SoiService = new SoiService()
 
   constructor(props: any) {
     super(props)
@@ -113,6 +117,10 @@ export class SettingsPanel extends Component<PropsType, StateType> {
       isTokenModalOpen: false,
       isDomainModalOpen: false,
       isRemoveDomainModalOpen: false,
+      isPlanModalOpen: false,
+      isRemovePlanModalOpen: false,
+      plansID: [],
+      planToDelete: '',
       domainToRemove: null,
       isNewTokenVisible: false,
       apiKeys: [],
@@ -138,6 +146,10 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     this.onNodeIdSubmission = this.onNodeIdSubmission.bind(this)
     this.redirectToUserProfilePage = this.redirectToUserProfilePage.bind(this)
     this.toggleDomainModal = this.toggleDomainModal.bind(this)
+    this.togglePlanModal = this.togglePlanModal.bind(this)
+    this.toogleRemovePlanModal = this.toogleRemovePlanModal.bind(this)
+    this.handleChangePlan = this.handleChangePlan.bind(this)
+    this.removePlan = this.removePlan.bind(this)
   }
 
   public async loadCurrentlyLoggedInUser() {
@@ -157,12 +169,18 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     })
   }
 
+  private async getPlansID() {
+    const plansID: string[] = await this.soiService.listPlans()
+    this.setState({ plansID })
+  }
+
   public async componentDidMount() {
     await this.loadCurrentlyLoggedInUser()
     if (!(this.props.auth.authenticated && isAdministrator(this.props.auth))) {
       // NotificationManager.error('Only available for administrators')
     } else {
       this.getDomains()
+      this.getPlansID()
     }
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.getDomains()
@@ -216,6 +234,7 @@ export class SettingsPanel extends Component<PropsType, StateType> {
               <Row className="justify-content-center">
                 <Col className="setting-col">{this.redirectToUsersManagerPage()}</Col>
                 <Col className="setting-col">{this.buildDomainEditor()}</Col>
+                <Col className="setting-col">{this.buildPlanManager()}</Col>
                 <Col className="setting-col">{this.redirectToSettingsPage()}</Col>
               </Row>
             )}
@@ -349,7 +368,6 @@ export class SettingsPanel extends Component<PropsType, StateType> {
       email = 'all'
     }
     const apiKeys: any = await fetchApiKeys(email)
-    // const apiKeys: any = await fetchApiKeys()
     this.setState({ apiKeys })
   }
 
@@ -372,6 +390,17 @@ export class SettingsPanel extends Component<PropsType, StateType> {
         <p className="settings-panel-info-domain">Edit Domains</p>
         {this.buildDomainModal()}
         {this.buildRemoveDomainModal()}
+      </>
+    )
+  }
+
+  public buildPlanManager() {
+    return (
+      <>
+        <i className={'fas fa-ruler-combined fa-4x'} onClick={this.togglePlanModal} />
+        <p className="settings-panel-info-domain">Plan Manager</p>
+        {this.buildPlanManagerModal()}
+        {this.buildRemovePlanModal()}
       </>
     )
   }
@@ -498,18 +527,6 @@ export class SettingsPanel extends Component<PropsType, StateType> {
         domainInputValue: '',
         domainPreviousValue: '',
       })
-      /*
-                  const users = [...this.state.users]
-                  users.forEach((u) => {
-                    const updateDomain: string[] = u.domain
-                    const index = updateDomain.indexOf(previousDomainName)
-                    if (index !== -1) {
-                      updateDomain[index] = newDomainName
-                    }
-                    u.domain = updateDomain
-                  })
-                  this.setState({ users })
-            */
       this.getDomains()
 
       NotificationManager.success('Updated domain name')
@@ -536,6 +553,12 @@ export class SettingsPanel extends Component<PropsType, StateType> {
         domainPreviousValue: '',
       })
     }
+  }
+
+  private handleChangePlan(event: any) {
+    const elem = event.target
+    const value = elem.value
+    this.setState({ planToDelete: value })
   }
 
   public buildTokenModal() {
@@ -711,6 +734,57 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     )
   }
 
+  public buildPlanManagerModal() {
+    return (
+      <Modal isOpen={this.state.isPlanModalOpen} toggle={this.togglePlanModal} id={'planModal'}>
+        <ModalHeader toggle={this.togglePlanModal}> Plan manager </ModalHeader>
+        <ModalBody>
+          <select
+            className="input-remove-plan"
+            title="Select plan to delete"
+            value={this.state.planToDelete === '' ? 'Select plan to remove' : this.state.planToDelete}
+            onChange={this.handleChangePlan}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <option value={''}>Select plan to remove</option>
+            {this.state.plansID.map((plan, index) => {
+              return (
+                <option value={plan} key={index} onClick={(event) => event.stopPropagation()}>
+                  {plan}
+                </option>
+              )
+            })}
+          </select>
+        </ModalBody>
+        {this.state.planToDelete !== '' && (
+          <Button color="danger" className="btn-remove-plan" onClick={() => this.toogleRemovePlanModal()}>
+            Remove
+          </Button>
+        )}
+      </Modal>
+    )
+  }
+
+  public buildRemovePlanModal() {
+    return (
+      <Modal isOpen={this.state.isRemovePlanModalOpen}>
+        <ModalHeader toggle={() => this.toogleRemovePlanModal()}> Remove Plan </ModalHeader>
+        <ModalBody>
+          <div>
+            The Plan '<b>{this.state.planToDelete}</b>' will be removed. <br />
+            If the plan is assigned to a vehicle, it will be replaced by 'idle' plan. <br />
+            Do you want to continue?
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="danger" onClick={() => this.removePlan()}>
+            Remove
+          </Button>
+        </ModalFooter>
+      </Modal>
+    )
+  }
+
   public toogleTokenModal() {
     this.setState({ isTokenModalOpen: !this.state.isTokenModalOpen })
   }
@@ -742,6 +816,14 @@ export class SettingsPanel extends Component<PropsType, StateType> {
       isRemoveTokenModalOpen: !this.state.isRemoveTokenModalOpen,
       tokenToRemove: token,
     })
+  }
+
+  public togglePlanModal() {
+    this.setState({ isPlanModalOpen: !this.state.isPlanModalOpen, planToDelete: '' })
+  }
+
+  public toogleRemovePlanModal() {
+    this.setState({ isRemovePlanModalOpen: !this.state.isRemovePlanModalOpen })
   }
 
   public onTokenCopy() {
@@ -806,6 +888,20 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     }
   }
 
+  public async removePlan() {
+    const resp = await this.soiService.removePlan(this.state.planToDelete)
+    if (resp.status === 'success') {
+      this.setState({
+        isRemovePlanModalOpen: !this.state.isRemovePlanModalOpen,
+        planToDelete: '',
+      })
+      NotificationManager.success(resp.message)
+      this.getPlansID()
+    } else {
+      NotificationManager.warning(resp.message)
+    }
+  }
+
   private redirectToUsersManagerPage() {
     return (
       <>
@@ -854,7 +950,7 @@ export class SettingsPanel extends Component<PropsType, StateType> {
     return (
       <>
         <Link className="navbar-link-panel" to="/settings/manager">
-          <i title="Settings Manager" className="fas fa-cogs fa-4x" />
+          <i title="Settings Manager" className="fas fa-cogs fa-4x settings-manager-icon" />
         </Link>
         <p className="settings-panel-info">Settings Manager</p>
       </>
@@ -871,7 +967,6 @@ export class SettingsPanel extends Component<PropsType, StateType> {
   }
 
   private redirectToUserProfilePage() {
-    console.log('-> ' + this.props.auth.currentUser.email)
     localStorage.setItem('user-profile', this.props.auth.currentUser.email)
     const userLink = document.getElementById('user-link')
     if (userLink !== null) {
