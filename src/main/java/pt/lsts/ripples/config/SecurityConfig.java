@@ -135,7 +135,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/pollution/**",
                         "/user/image/**")
                         .permitAll()
-                    .antMatchers("/", "/ripples", "/soirisk", "/messages/text", "/user/manager", "/settings/manager", "/settings/panel", "/user/profile", "/asset/profile")
+                    .antMatchers("/", "/ripples", "/risk", "/messages/text", "/user/manager", "/settings/manager", "/settings/panel", "/user/profile", "/asset/profile")
                         .permitAll()
                     .antMatchers("/ripples-docs/**", "/ripples-docs**")
                         .permitAll()

@@ -23,7 +23,7 @@ class App extends Component {
         <Router>
           <Switch>
             <Route path="/" exact={true} component={Ripples} />
-            <Route path="/soirisk" exact={true} component={SoiRisk} />
+            <Route path="/risk" exact={true} component={SoiRisk} />
             <Route path="/messages/text" exact={true} component={TextMessages} />
             <Route path="/kml/manager" exact={true} component={KMLManager} />
             <Route path="/logbook/manager" exact={true} component={LogbookManager} />

@@ -916,10 +916,10 @@ export class SettingsPanel extends Component<PropsType, StateType> {
   private redirectToSoiRiskAnalysisPage() {
     return (
       <>
-        <Link className="navbar-link-panel" to="/soirisk">
+        <Link className="navbar-link-panel" to="/risk">
           <i title="Soi Risk Analysis" className="fas fa-exclamation-triangle fa-4x" />
         </Link>
-        <p className="settings-panel-info">Soi Risk Analysis</p>
+        <p className="settings-panel-info">Risk Analysis</p>
       </>
     )
   }
