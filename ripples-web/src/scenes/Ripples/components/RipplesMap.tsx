@@ -80,7 +80,6 @@ import Vehicle from './Vehicle'
 import VerticalProfile from './VerticalProfile'
 import WeatherLinePlot from './WeatherLinePlot'
 import PlanManager from './PlanManager'
-import { fetchDomainNames } from '../../../services/DomainUtils'
 import L from 'leaflet'
 import IPollution from '../../../model/IPollution'
 import PollutionService from '../../../services/PollutionUtils'
@@ -164,7 +163,6 @@ interface StateType {
   newAnnotationContent: string
   clickLocationWeather: IWeather[]
   assetSelected: IAsset | undefined
-  domains: string[]
 
   isPollutionLayerActive: boolean
   pollutionEnable: boolean
@@ -192,7 +190,6 @@ interface StateType {
   pollutionLongitudeUpdate: number
   isPollutionModalOpen: boolean
   isObstacleModalOpen: boolean
-  isRemoveAssetModalOpen: boolean
   obstacleEnable: boolean
   obstacleDescription: string
   obstacleLocation: {
@@ -236,7 +233,6 @@ class RipplesMap extends Component<PropsType, StateType> {
       newAnnotationContent: '',
       clickLocationWeather: [],
       assetSelected: undefined,
-      domains: [],
 
       isPollutionLayerActive: false,
       pollutionEnable: false,
@@ -256,7 +252,6 @@ class RipplesMap extends Component<PropsType, StateType> {
       pollutionLongitudeUpdate: 0,
       isPollutionModalOpen: false,
       isObstacleModalOpen: false,
-      isRemoveAssetModalOpen: false,
       obstacleEnable: false,
       obstacleDescription: '',
       obstacleLocation: [],
@@ -271,7 +266,6 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.onLocationClick = this.onLocationClick.bind(this)
     this.onEditVehicle = this.onEditVehicle.bind(this)
     this.setAssetSelected = this.setAssetSelected.bind(this)
-    this.handleAssetChangeDomain = this.handleAssetChangeDomain.bind(this)
     this.buildPollutionDialog = this.buildPollutionDialog.bind(this)
     this.handleChangePollutionDescription = this.handleChangePollutionDescription.bind(this)
     this.handleChangePollutionDescriptionUpdate = this.handleChangePollutionDescriptionUpdate.bind(this)
@@ -289,7 +283,6 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.handleSelectedObstacle = this.handleSelectedObstacle.bind(this)
     this.togglePollutionModal = this.togglePollutionModal.bind(this)
     this.toggleObstacleModal = this.toggleObstacleModal.bind(this)
-    this.toggleRemoveAssetModal = this.toggleRemoveAssetModal.bind(this)
     this.onMeasureToggle = this.onMeasureToggle.bind(this)
     this.onGpsClick = this.onGpsClick.bind(this)
     this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
@@ -298,10 +291,6 @@ class RipplesMap extends Component<PropsType, StateType> {
 
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
-    }
-
-    if (this.props.auth.authenticated && isAdministrator(this.props.auth)) {
-      this.getDomains()
     }
   }
 
@@ -414,13 +403,7 @@ class RipplesMap extends Component<PropsType, StateType> {
     }
 
     if (e.originalEvent.srcElement.className && typeof e.originalEvent.srcElement.className.includes !== 'undefined') {
-      // popup asset domain
-      if (
-        !e.originalEvent.srcElement.className.includes('assetOptDomain') &&
-        !e.originalEvent.srcElement.className.includes('removeAsset')
-      ) {
-        this.setAssetSelected(undefined)
-      }
+      this.setAssetSelected(undefined)
     } else {
       // popup pollution data
       if (e.originalEvent.srcElement.nodeName !== 'BUTTON' && e.originalEvent.srcElement.nodeName !== 'INPUT') {
@@ -1672,7 +1655,6 @@ class RipplesMap extends Component<PropsType, StateType> {
           </LayersControl>
           {this.buildNewAnnotationMarker()}
           {this.buildToolpickMarker()}
-          {this.buildDomainDialog()}
           {this.buildRipplesTools()}
         </LeafletMap>
         {this.state.activeLegend}
@@ -1808,11 +1790,6 @@ class RipplesMap extends Component<PropsType, StateType> {
       })
     }
     this.props.setEditVehicle(undefined)
-  }
-
-  private async getDomains() {
-    const domains: string[] = await fetchDomainNames()
-    this.setState({ domains })
   }
 
   private onMapAddClick(clickLocation: ILatLng) {
@@ -1955,78 +1932,6 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.setState({ assetSelected: system })
   }
 
-  private buildDomainDialog() {
-    if (this.props.auth.authenticated && isAdministrator(this.props.auth) && this.state.assetSelected !== undefined) {
-      const assetId = this.state.assetSelected.name
-
-      const domain: string[] = []
-      this.state.assetSelected.domain.forEach((d) => {
-        domain.push(d)
-      })
-
-      return (
-        <div className="domainDialog">
-          <div className="input-domain-asset">
-            <label className="domain-label">Domain</label>
-            {this.state.domains.map((d, index) => {
-              return (
-                <label className={'assetOptDomainLabel'} key={index}>
-                  <input
-                    type="checkbox"
-                    className={'assetOptDomain'}
-                    value={d}
-                    checked={domain.includes(d) ? true : false}
-                    onChange={this.handleAssetChangeDomain}
-                    asset-id={assetId}
-                  />
-                  {d}
-                </label>
-              )
-            })}
-          </div>
-          <div className="input-remove-asset">
-            <hr className="domainDialog-separator" />
-            <Button className="removeAsset" color="danger" size="sm" onClick={() => this.toggleRemoveAssetModal()}>
-              Remove
-            </Button>
-          </div>
-
-          <Modal isOpen={this.state.isRemoveAssetModalOpen} toggle={this.toggleRemoveAssetModal}>
-            <ModalHeader toggle={this.toggleRemoveAssetModal}>Remove asset</ModalHeader>
-            <ModalBody>The asset will be removed permanently. Do you want to continue?</ModalBody>
-            <ModalFooter>
-              <Button color="danger" onClick={() => this.handleDeleteAsset()}>
-                Yes
-              </Button>
-            </ModalFooter>
-          </Modal>
-        </div>
-      )
-    }
-  }
-
-  public async handleAssetChangeDomain(event: any) {
-    const assetID = event.target.getAttribute('asset-id')
-    let system: IAsset
-    if (assetID.startsWith('spot')) {
-      system = this.props.spots.filter((item) => item.name === assetID)[0]
-    } else if (assetID.startsWith('ccu')) {
-      system = this.props.ccus.filter((item) => item.name === assetID)[0]
-    } else {
-      system = this.props.vehicles.filter((item) => item.name === assetID)[0]
-    }
-
-    const domains: any = document.getElementsByClassName('assetOptDomain')
-    const domainSelected: string[] = []
-    for (const domain of domains) {
-      if (domain.checked) domainSelected.push(domain.value)
-    }
-
-    this.props.updateAssets(system, domainSelected)
-
-    this.setState({ assetSelected: undefined })
-  }
-
   private buildRipplesTools() {
     return (
       <div className={this.props.auth.authenticated ? 'ripples-tools' : 'ripples-tools-nologin'}>
@@ -2065,53 +1970,6 @@ class RipplesMap extends Component<PropsType, StateType> {
         </div>
       </div>
     )
-  }
-
-  public async handleDeleteAsset() {
-    if (this.state.assetSelected !== undefined) {
-      try {
-        const response = await this.soiService.deleteAsset(this.state.assetSelected.name)
-        if (response.status === 'Success') {
-          const assetsUpdated: IAsset[] = []
-          if (this.state.assetSelected.name.startsWith('spot')) {
-            this.props.spots.forEach((spot) => {
-              if (this.state.assetSelected !== undefined && spot.name !== this.state.assetSelected.name) {
-                assetsUpdated.push(spot)
-              }
-            })
-            this.props.setSpots(assetsUpdated)
-          } else if (this.state.assetSelected.name.startsWith('ccu')) {
-            this.props.ccus.forEach((ccu) => {
-              if (this.state.assetSelected !== undefined && ccu.name !== this.state.assetSelected.name) {
-                assetsUpdated.push(ccu)
-              }
-            })
-            this.props.setCcus(assetsUpdated)
-          } else {
-            this.props.vehicles.forEach((vehicle) => {
-              if (this.state.assetSelected !== undefined && vehicle.name !== this.state.assetSelected.name) {
-                assetsUpdated.push(vehicle)
-              }
-            })
-            this.props.setVehicles(assetsUpdated)
-          }
-
-          NotificationManager.success(response.message)
-        } else {
-          NotificationManager.error(response.message)
-        }
-      } catch (error) {
-        NotificationManager.error('Cannot delete asset')
-      }
-    }
-    this.setAssetSelected(undefined)
-    this.toggleRemoveAssetModal()
-  }
-
-  public toggleRemoveAssetModal() {
-    this.setState((prevState) => ({
-      isRemoveAssetModalOpen: !prevState.isRemoveAssetModalOpen,
-    }))
   }
 
   private async onMapToolpickClick(clickLocation: ILatLng) {
