@@ -452,7 +452,6 @@ path.leaflet-polygon {
 
 .react-datepicker-wrapper {
   float: left;
-  width: 94%;
 }
 
 .settings-group-title {
@@ -469,8 +468,12 @@ path.leaflet-polygon {
 }
 
 .setting-modal-input {
-  margin: 5px;
   padding: 5px;
+}
+
+.setting-input-date-div {
+  display: inline-grid;
+  width: 94%;
 }
 
 .setting-btn-domain {
