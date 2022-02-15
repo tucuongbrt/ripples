@@ -21,14 +21,11 @@ interface StateType {
     verified: boolean
     domain: string[]
   }[]
-  isDomainModalOpen: boolean
   isUserModalOpen: boolean
   domains: string[]
   domainInputElem: any | null
   domainInputValue: string
   domainPreviousValue: string
-  domainNewInput: string
-  domainNewInputVisible: boolean
   userToRemove: string
 }
 
@@ -47,14 +44,11 @@ export class Users extends Component<PropsType, StateType> {
       isNavOpen: false,
       loading: true,
       users: [],
-      isDomainModalOpen: false,
       isUserModalOpen: false,
       domains: [],
       domainInputElem: null,
       domainInputValue: '',
       domainPreviousValue: '',
-      domainNewInput: '',
-      domainNewInputVisible: false,
       userToRemove: '',
     }
     this.getUsers = this.getUsers.bind(this)
@@ -259,7 +253,6 @@ export class Users extends Component<PropsType, StateType> {
             verified: m.emailVerified,
           })
         )
-        // this.setState({ users: users.reverse() })
         this.setState({ users })
       })
       .catch((_) => {
