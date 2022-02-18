@@ -26,9 +26,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import pt.lsts.ripples.domain.shared.ExternalServer;
 import pt.lsts.ripples.domain.shared.PollutionLocation;
+import pt.lsts.ripples.domain.shared.PollutionSample;
 import pt.lsts.ripples.domain.shared.ObstaclePosition;
 import pt.lsts.ripples.repo.main.ExternalServerRepository;
 import pt.lsts.ripples.repo.main.PollutionDataRepository;
+import pt.lsts.ripples.repo.main.PollutionSampleDataRepository;
 import pt.lsts.ripples.repo.main.ObstacleDataRepository;
 import pt.lsts.ripples.util.HTTPResponse;
 
@@ -55,6 +57,9 @@ public class PollutionController {
 
     @Autowired
     ObstacleDataRepository repoObstacles;
+
+    @Autowired
+    PollutionSampleDataRepository repoSamples;
 
     private final Logger logger = LoggerFactory.getLogger(PollutionController.class);
 
@@ -305,5 +310,24 @@ public class PollutionController {
         }
         return new ResponseEntity<>(new HTTPResponse("success", "Trajectory received"), HttpStatus.OK);
     }
+
+    @RequestMapping(path = { "/pollution/sample", "/pollution/sample/" }, method = RequestMethod.GET)
+    public List<PollutionSample> listPollutionSamples() {
+        ArrayList<PollutionSample> pollutionSampleList = new ArrayList<>();
+        repoSamples.findAll().forEach(pollutionSampleList::add);
+        return pollutionSampleList;
+    }
+
+    @PostMapping(path = { "/pollution/sample", "/pollution/sample/" }, consumes = "application/json")
+    public ResponseEntity<HTTPResponse> createPollutionSample(@RequestBody PollutionSample sample) {
+        PollutionSample newSample = new PollutionSample(sample.getLatitude(), sample.getLongitude(), sample.getStatus(),
+                sample.getTimestamp());
+        repoSamples.save(newSample);        
+
+        logger.info("Added pollution sample: " + newSample.toString());
+        return new ResponseEntity<>(new HTTPResponse("success", "Added pollution sample"), HttpStatus.OK);
+    }
+
+
 
 }
