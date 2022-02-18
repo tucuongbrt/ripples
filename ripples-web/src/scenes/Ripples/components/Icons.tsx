@@ -164,6 +164,13 @@ export const RedCircleIcon = L.Icon.extend({
   },
 })
 
+export const RedCircleSmalIcon = L.Icon.extend({
+  options: {
+    iconSize: [5, 5],
+    iconUrl: circle_red,
+  },
+})
+
 export const GreenCircleIcon = L.Icon.extend({
   options: {
     iconSize: [10, 10],

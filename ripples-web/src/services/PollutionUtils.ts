@@ -84,4 +84,11 @@ export default class PollutionService {
       url: `${apiURL}/pollution/obstacle/${id}`,
     })
   }
+
+  public async fetchAssetTrajectory(assetName: string, timestamp: Date) {
+    const seconds = Math.floor(timestamp.getTime() / 1000)
+    return request({
+      url: `${apiURL}/positions/${assetName}/` + seconds,
+    })
+  }
 }

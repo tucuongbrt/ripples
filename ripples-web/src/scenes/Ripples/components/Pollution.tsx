@@ -1,12 +1,29 @@
 import React, { Component } from 'react'
-import { Circle, Marker, GeoJSON, Polygon, Rectangle } from 'react-leaflet'
+import { Circle, Marker, GeoJSON, Polygon, Rectangle, Polyline } from 'react-leaflet'
 import { connect } from 'react-redux'
 import IPollution from '../../../model/IPollution'
 import * as L from 'leaflet'
 import { setSidePanelContent, setSidePanelTitle, setSidePanelVisibility } from '../../../redux/ripples.actions'
-import { BlueCircleIcon, GreenCircleIcon, YellowCircleIcon, OrangeCircleIcon, RedCircleIcon } from './Icons'
+import {
+  BlueCircleIcon,
+  GreenCircleIcon,
+  YellowCircleIcon,
+  OrangeCircleIcon,
+  RedCircleIcon,
+  RedCircleSmalIcon,
+} from './Icons'
 import { LatLng } from 'leaflet'
 import IObstacle from '../../../model/IObstacles'
+import DateService from '../../../services/DateUtils'
+
+export interface IAssetTrajectory {
+  id: number
+  imcId: number
+  lat: number
+  lon: number
+  name: string
+  timestamp: Date
+}
 
 interface PropsType {
   locationSelected?: {
@@ -25,6 +42,7 @@ interface PropsType {
     longitude: any
   }[]
   trajectoryLocationOpen: boolean
+  assetTrajectory: IAssetTrajectory[]
 
   addCircle: (pollution: IPollution) => void
   removeCircle: (pollution: IPollution) => void
@@ -108,6 +126,31 @@ class Pollution extends Component<PropsType, {}> {
           icon={new BlueCircleIcon()}
         />
       )
+    }
+  }
+
+  public buildAssetTrajectoryWP() {
+    if (this.props.assetTrajectory.length > 0) {
+      return this.props.assetTrajectory.map((pos, index) => {
+        return (
+          <Marker
+            key={'assetTrajectory_' + index}
+            position={[pos.lat, pos.lon]}
+            icon={new RedCircleSmalIcon()}
+            title={DateService.formatDate(pos.timestamp)}
+          />
+        )
+      })
+    }
+  }
+
+  public buildAssetTrajectory() {
+    if (this.props.assetTrajectory.length > 0) {
+      const polyline: LatLng[] = []
+      this.props.assetTrajectory.forEach((pos) => {
+        polyline.push(new LatLng(pos.lat, pos.lon))
+      })
+      return <Polyline positions={polyline} color="red" weight={1} dashArray="3" />
     }
   }
 
@@ -928,6 +971,8 @@ class Pollution extends Component<PropsType, {}> {
         {this.buildObstaclesPolygons()}
         {this.drawObstacleLocation()}
         {this.buildTrajectoryLocation()}
+        {this.buildAssetTrajectoryWP()}
+        {this.buildAssetTrajectory()}
       </>
     )
   }

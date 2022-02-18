@@ -83,7 +83,7 @@ import PlanManager from './PlanManager'
 import L from 'leaflet'
 import IPollution from '../../../model/IPollution'
 import PollutionService from '../../../services/PollutionUtils'
-import Pollution from './Pollution'
+import Pollution, { IAssetTrajectory } from './Pollution'
 import IObstacle from '../../../model/IObstacles'
 import IAssetState from '../../../model/IAssetState'
 import DatePicker from 'react-datepicker'
@@ -122,6 +122,7 @@ interface PropsType {
   pollution: IPollution[]
   obstacle: IObstacle[]
   vehicleSelectedLastState: IAssetState | null
+  vehicleSelected: string
   planSelectedPosition: ILatLng | null
   setSelectedWaypointIdx: (_: number) => void
   updateWpLocation: (_: ILatLng) => void
@@ -196,6 +197,9 @@ interface StateType {
     latitude: any
     longitude: any
   }[]
+  pollutionFollowAssetSinceTimestamp: Date
+  isFollowAssetOpen: boolean
+  assetTrajectory: IAssetTrajectory[]
   currentZoom: number
 }
 
@@ -203,6 +207,7 @@ class RipplesMap extends Component<PropsType, StateType> {
   public upgradedOptions: any
   public initZoom = 10
   public oneSecondTimer = 0
+  public followAssetTimer = 0
   private map!: LeafletMap
   private positionService = new PositionService()
   private blueCircleIcon = new BlueCircleIcon()
@@ -255,6 +260,9 @@ class RipplesMap extends Component<PropsType, StateType> {
       obstacleEnable: false,
       obstacleDescription: '',
       obstacleLocation: [],
+      pollutionFollowAssetSinceTimestamp: new Date(),
+      isFollowAssetOpen: false,
+      assetTrajectory: [],
       currentZoom: MapUtils.initZoom,
     }
     this.handleMapClick = this.handleMapClick.bind(this)
@@ -288,6 +296,9 @@ class RipplesMap extends Component<PropsType, StateType> {
     this.onAnnotationToggle = this.onAnnotationToggle.bind(this)
     this.onToolpickToogle = this.onToolpickToogle.bind(this)
     this.buildWeatherSelector = this.buildWeatherSelector.bind(this)
+    this.handleFollowAsset = this.handleFollowAsset.bind(this)
+    this.handleUnfollowAsset = this.handleUnfollowAsset.bind(this)
+    this.handleAssetTrajectoryDatepicker = this.handleAssetTrajectoryDatepicker.bind(this)
 
     if (this.props.auth.authenticated && !isCasual(this.props.auth)) {
       this.fetchMapSettings()
@@ -369,6 +380,7 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public componentWillUnmount() {
     clearInterval(this.oneSecondTimer)
+    clearInterval(this.followAssetTimer)
   }
 
   /**
@@ -563,6 +575,7 @@ class RipplesMap extends Component<PropsType, StateType> {
           setObstacle={this.handleSelectedObstacle}
           trajectoryLocation={this.state.pollutionTrajectoryLocation}
           trajectoryLocationOpen={this.state.pollutionTrajectoryLocationOpen}
+          assetTrajectory={this.state.assetTrajectory}
         />
       )
     } else {
@@ -737,6 +750,56 @@ class RipplesMap extends Component<PropsType, StateType> {
                         Cancel
                       </Button>
                     </div>
+                  )}
+                </div>
+
+                <div className="trajectoryForm">
+                  <span className="pollutionSpan">Trajectories</span>
+                  <Button
+                    className="m-1"
+                    color="info"
+                    size="sm"
+                    onClick={() => NotificationManager.warning('Not available yet...')}
+                  >
+                    List trajectories
+                  </Button>
+
+                  {!this.state.isFollowAssetOpen ? (
+                    <Button className="m-1" color="info" size="sm" onClick={this.handleFollowAsset}>
+                      Follow asset
+                    </Button>
+                  ) : (
+                    <>
+                      <Button className="m-1" color="info" size="sm" onClick={this.handleUnfollowAsset}>
+                        Unfollow asset
+                      </Button>
+
+                      <label htmlFor="trajectory-timestamp">Follow asset since</label>
+                      <div className="pollution-trajectory-asset-timestamp">
+                        <DatePicker
+                          id={'trajectory-timestamp'}
+                          className="trajectory-input-date"
+                          selected={this.state.pollutionFollowAssetSinceTimestamp}
+                          onChange={(newDate: Date) => this.handleAssetTrajectoryDatepicker(newDate)}
+                          showTimeSelect={true}
+                          dateFormat="MMMM d, yyyy h:mm aa"
+                          timeCaption="time"
+                          maxDate={new Date(this.state.pollutionTrajectoryTimestamp)}
+                          excludeScrollbar={true}
+                          /*
+                          minDate={
+                            new Date(
+                              this.state.pollutionTrajectoryTimestamp.getFullYear(),
+                              this.state.pollutionTrajectoryTimestamp.getMonth(),
+                              this.state.pollutionTrajectoryTimestamp.getDate()
+                            )
+                          }
+                          */
+                          timeIntervals={15}
+                          disabled={false}
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -1228,6 +1291,39 @@ class RipplesMap extends Component<PropsType, StateType> {
 
   public disablePollutionMarker() {
     this.setState({ pollutionEnable: false, pollutionLocation: undefined })
+  }
+
+  public handleFollowAsset() {
+    if (this.props.vehicleSelected.length === 0) {
+      NotificationManager.info('Select a vehicle to follow')
+    } else {
+      this.setState({ isFollowAssetOpen: !this.state.isFollowAssetOpen })
+
+      this.updateAssetTrajectory()
+      if (!this.followAssetTimer) {
+        this.followAssetTimer = window.setInterval(() => {
+          if (this.state.isFollowAssetOpen) {
+            this.updateAssetTrajectory()
+          }
+        }, 30000)
+      }
+    }
+  }
+
+  public handleUnfollowAsset() {
+    this.setState({ isFollowAssetOpen: !this.state.isFollowAssetOpen, assetTrajectory: [] })
+  }
+
+  public handleAssetTrajectoryDatepicker(newDate: Date) {
+    this.setState({ pollutionFollowAssetSinceTimestamp: newDate }, this.updateAssetTrajectory)
+  }
+
+  private async updateAssetTrajectory() {
+    const resp: IAssetTrajectory[] = await this.pollutionService.fetchAssetTrajectory(
+      this.props.vehicleSelected,
+      this.state.pollutionFollowAssetSinceTimestamp
+    )
+    this.setState({ assetTrajectory: resp })
   }
 
   public buildAisShips() {
@@ -2041,6 +2137,7 @@ function mapStateToProps(state: IRipplesState) {
     pollution: state.pollution,
     obstacle: state.obstacle,
     vehicleSelectedLastState: state.vehicleSelectedLastState,
+    vehicleSelected: state.vehicleSelected,
     planSelectedPosition: state.planSelectedPosition,
   }
 }
